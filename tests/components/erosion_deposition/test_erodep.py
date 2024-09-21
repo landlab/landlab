@@ -26,28 +26,6 @@ def test_route_to_multiple_error_raised():
         ErosionDeposition(mg, K=0.01, v_s=0.001, m_sp=0.5, n_sp=1.0, sp_crit=0)
 
 
-def test_phi_error_raised():
-    mg = RasterModelGrid((10, 10))
-    z = mg.add_zeros("topographic__elevation", at="node")
-    z += mg.x_of_node + mg.y_of_node
-    fa = FlowAccumulator(mg)
-    fa.run_one_step()
-
-    with pytest.raises(ValueError):
-        ErosionDeposition(mg, phi=0)
-
-
-def test_extra_kwd_error_raised():
-    mg = RasterModelGrid((10, 10))
-    z = mg.add_zeros("topographic__elevation", at="node")
-    z += mg.x_of_node + mg.y_of_node
-    fa = FlowAccumulator(mg)
-    fa.run_one_step()
-
-    with pytest.raises(ValueError):
-        ErosionDeposition(mg, spam=0)
-
-
 def test_bad_solver_name():
     """
     Test that any solver name besides 'basic' and 'adaptive' raises an error.

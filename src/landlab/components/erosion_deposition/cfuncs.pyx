@@ -10,29 +10,29 @@ cdef extern from "math.h":
     double exp(double x) nogil
 
 
-def calculate_qs_in(
-    id_t [:] stack_flip_ud,
-    id_t [:] flow_receivers,
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cpdef void calculate_qs_in(
+    const id_t [:] stack_flip_ud,
+    const id_t [:] flow_receivers,
     const cython.floating [:] cell_area_at_node,
-    cython.floating [:] q,
+    const cython.floating [:] q,
     cython.floating [:] qs,
     cython.floating [:] qs_in,
-    cython.floating [:] Es,
-    double v_s,
-    double F_f,
-):
-
+    const cython.floating [:] Es,
+    const cython.floating [:] v_s,
+    const double F_f,
+) noexcept nogil:
     """Calculate and qs and qs_in."""
-    # define internal variables
-    cdef unsigned int n_nodes = stack_flip_ud.shape[0]
-    cdef unsigned int node_id
+    cdef unsigned int n_nodes = len(stack_flip_ud)
+    cdef unsigned int node
     cdef unsigned int i
 
     # iterate top to bottom through the stack, calculate qs and adjust qs_in
     for i in range(n_nodes):
 
         # choose the node id
-        node_id = stack_flip_ud[i]
+        node = stack_flip_ud[i]
 
         # If q at current node is greather than zero, calculate qs based on a
         # local analytical solution. This local analytical solution depends on
@@ -44,16 +44,19 @@ def calculate_qs_in(
         #
         # there is water flux (q) and this node is not a pit then calculate qs.
 
-        if q[node_id] > 0 and (flow_receivers[node_id] != node_id):
-            qs[node_id] = ((qs_in[node_id]
-                            + ((1.0 - F_f) * Es[node_id]) * cell_area_at_node[node_id])
-                           / (1.0 + (v_s * cell_area_at_node[node_id] / (q[node_id]))))
+        if q[node] > 0 and flow_receivers[node] != node:
+            qs[node] = (
+                (
+                    qs_in[node]
+                    + (1.0 - F_f) * Es[node] * cell_area_at_node[node]
+                ) / (1.0 + v_s[node] * cell_area_at_node[node] / q[node])
+            )
 
             # finally, add this node's qs to recieiving nodes qs_in.
-            # if qs[node_id] == 0, then there is no need for this line to be
+            # if qs[node] == 0, then there is no need for this line to be
             # evaluated.
-            qs_in[flow_receivers[node_id]] += qs[node_id]
+            qs_in[flow_receivers[node]] += qs[node]
 
         else:
             # if q at the current node is zero, set qs at that node is zero.
-            qs[node_id] = 0
+            qs[node] = 0
