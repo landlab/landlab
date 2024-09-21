@@ -21,7 +21,7 @@ Two papers have been written describing Landlab, both are open access:
 [tutorial-fault-scarp]: fault_scarp/landlab-fault-scarp.ipynb
 [tutorial-fields]: fields/working_with_fields.ipynb
 [tutorial-grid-objects]: grids/grid_object_demo.ipynb
-[tutorial-mappers]: mappers/mappers.ipynb 
+[tutorial-mappers]: mappers/mappers.ipynb
 [tutorial-plotting]: plotting/landlab-plotting.ipynb
 [tutorial-reading-dem]: reading_dem_into_landlab/reading_dem_into_landlab.ipynb
 [user-guide]: /user_guide/index
