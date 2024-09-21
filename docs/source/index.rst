@@ -32,7 +32,7 @@ Tutorials
    :hidden:
 
    installation
-   Tutorial notebooks <getting_started/index>
+   Getting started <getting_started/index>
    user_guide/index
    Tutorials <tutorials/index>
    Teaching with Landlab <teaching/index>
