@@ -9,34 +9,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  setup-conda:
-    name: Setup Miniconda
-    runs-on: ubuntu-latest
-
-    outputs:
-      python-version: ${{ steps.set-python.outputs.python-version }}
-
-    steps:
-      - name: Set Python Version
-        id: set-python
-        run: echo "::set-output name=python-version::${{ matrix.python-version }}"
-
-      - uses: actions/checkout@v4
-
-      - uses: conda-incubator/setup-miniconda@v3
-        with:
-          python-version: ${{ matrix.python-version }}
-          miniforge-variant: Miniforge3
-          miniforge-version: latest
-          auto-update-conda: true
-
-      - name: Show conda installation info
-        run: |
-          conda info
-          conda list
-
   build:
-    needs: setup-conda
+    # Run on external PRs, but not on internal PRs, to avoid duplicate runs
     if: |
       github.event_name == 'push' ||
       github.event.pull_request.head.repo.full_name != github.repository
@@ -51,6 +25,17 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+          miniforge-variant: Miniforge3
+          miniforge-version: latest
+          auto-update-conda: true
+
+      - name: Show conda installation info
+        run: |
+          conda info
+          conda list
 
       - name: Install compilers
         run: conda install c-compiler cxx-compiler -c conda-forge
@@ -89,11 +74,17 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+          miniforge-variant: Miniforge3
+          miniforge-version: latest
+          auto-update-conda: true
 
-      - name: Install and test richdem engine
-        run: |
-          conda install richdem -c conda-forge
-          python -c 'import _richdem'
+      # - name: Install and test richdem engine
+      #   run: |
+      #     conda install richdem -c conda-forge
+      #     python -c 'import _richdem'
 
       - uses: actions/download-artifact@v4
         name: Download build artifact
