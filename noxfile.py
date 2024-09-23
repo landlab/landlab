@@ -94,7 +94,7 @@ def test_notebooks(session: nox.Session) -> None:
         *("-r", PATH["requirements"] / "notebooks.txt"),
     )
     session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
-    session.install("git+https://github.com/mcflugen/nbmake.git@mcflugen/add-markers")
+    session.install("git+https://github.com/mcflugen/nbmake.git@v1.5.4-markers")
 
     session.install(file, "--no-deps")
 
