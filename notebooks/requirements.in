@@ -3,3 +3,4 @@ dask[array]
 holoviews
 jupyter
 mesa[network] >1
+pygmt
