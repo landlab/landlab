@@ -111,6 +111,12 @@ repos:
     - id: forbid-new-submodules
     - id: mixed-line-ending
     - id: trailing-whitespace
+    - id: file-contents-sorter
+      files: |
+        (?x)^(
+          cython-files.txt|
+          .*requirements(-\w+)?.(in|txt)
+        )
 
 - repo: https://github.com/regebro/pyroma
   rev: "4.2"

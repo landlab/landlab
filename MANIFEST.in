@@ -7,15 +7,16 @@ include LICENSE.rst
 include README.rst
 include USEDBY.rst
 include CITATION.cff
+include cython-files.txt
 include requirements*
 include noxfile.py
 include notebooks.py
 
 recursive-include docs *.txt
-recursive-include landlab *.pyx *.pxd *.hpp
 recursive-include landlab README.md
-recursive-include landlab/data *
 recursive-include requirements *.md *.txt
+recursive-include src/landlab *.pyx *.pxd *.hpp
+recursive-include src/landlab/data *
 recursive-include tests *py
 recursive-include tests *.asc
 recursive-include tests *.dbf

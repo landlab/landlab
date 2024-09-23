@@ -63,6 +63,7 @@ def test_one_load_bench(benchmark, n, method):
     )
 
 
+@pytest.mark.slow
 @pytest.mark.benchmark(group="number-of-loads")
 @pytest.mark.parametrize("n_loads", [0, 1, 2, 3, 4, 5, 6, 7, 8])
 @pytest.mark.parametrize("method", ["old", "new", "cython"])
@@ -155,6 +156,7 @@ def test_subside_loads_without_row_col_bench(benchmark, n_loads):
     )
 
 
+@pytest.mark.slow
 @pytest.mark.benchmark(group="speedup")
 @pytest.mark.parametrize("method", ["subside_loads", "subside_loads_slow"])
 @pytest.mark.parametrize("n_loads", [0, 1, 2, 3, 4, 5, 6, 7, 8])

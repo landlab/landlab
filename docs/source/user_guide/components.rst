@@ -241,10 +241,6 @@ We compile three tables to assist users with the :ref:`Landlab standard names<st
 - Third is a table listing which components provide each field.
 
 
-See :ref:`here <standard_name_changes>` for a list of changes to the standard
-name list associated with the release of Landlab version 1.x (relative to 0.x).
-
-
 Dealing with nonstandard names
 ++++++++++++++++++++++++++++++
 

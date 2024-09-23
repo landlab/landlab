@@ -8,7 +8,11 @@ find in GIS software.
 
   .. currentmodule:: landlab
 
-  {% for grid, label in [('RasterModelGrid', 'Raster'), ('HexModelGrid', 'Hex'), ('RadialModelGrid', 'Radial'), ('VoronoiDelaunayGrid', 'Voronoi'), ('FramedVoronoiGrid', 'FramedVoronoi')] %}
+  {% for grid in ['RasterModelGrid'] + grids
+    | reject('equalto', 'RasterModelGrid')
+    | sort
+  %}
+  {% set label = grid.replace('ModelGrid', '').replace('Grid', '') %}
 
   .. tab:: {{ label }}
 

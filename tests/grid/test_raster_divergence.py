@@ -62,6 +62,7 @@ def test_flux_div_at_node_bench(benchmark):
     benchmark(calc_flux_div_at_node, grid, value_at_link, out=actual)
 
 
+@pytest.mark.slow
 @pytest.mark.benchmark(group="large")
 @pytest.mark.parametrize(
     "func",

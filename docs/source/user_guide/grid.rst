@@ -114,7 +114,7 @@ Now, create a regular (raster) grid with 10 rows and 40 columns, with a node spa
 
     >>> mg = RasterModelGrid((10, 40), 5.0)
 
-*mg* is now a grid object with 400 ``( 10*40 )`` nodes and 750 ``( 40*(10-1) + 30*(10-1) )`` links.
+*mg* is now a grid object with 400 ``( 10*40 )`` nodes and 750 ``( 40*(10-1) + 10*(40-1) )`` links.
 
 .. code-block:: python
 

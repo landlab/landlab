@@ -1,5 +1,3 @@
-# This file was automatically generated with:
-#     nox -s build-index
 
 # Generated using `landlab index components`
 [components]
@@ -2329,6 +2327,67 @@ mapping = 'node'
 optional = true
 units = 'm/s'
 
+[components.MassWastingRunout]
+name = 'landlab.components.mass_wasting_runout.mass_wasting_runout.MassWastingRunout'
+unit_agnostic = false
+summary = 'a cellular-automata mass wasting runout model that routes an initial mass'
+
+[components.MassWastingRunout.info.flow__receiver_node]
+doc = 'Node array of receivers (node that receives flow from current node)'
+dtype = 'int64'
+intent = 'in'
+mapping = 'node'
+optional = false
+units = '-'
+
+[components.MassWastingRunout.info.flow__receiver_proportions]
+doc = 'Node array of proportion of flow sent to each receiver.'
+dtype = 'float64'
+intent = 'in'
+mapping = 'node'
+optional = false
+units = '-'
+
+[components.MassWastingRunout.info.mass__wasting_id]
+doc = 'interger or float id of each mass wasting area is assigned                 to all nodes representing the mass wasting area.'
+dtype = 'int64'
+intent = 'in'
+mapping = 'node'
+optional = false
+units = '-'
+
+[components.MassWastingRunout.info.particle__diameter]
+doc = 'representative particle diameter at each node, this might             vary with underlying geology, contributing area or field observations'
+dtype = 'float64'
+intent = 'inout'
+mapping = 'node'
+optional = true
+units = 'm'
+
+[components.MassWastingRunout.info.soil__thickness]
+doc = 'soil depth to restrictive layer'
+dtype = 'float64'
+intent = 'inout'
+mapping = 'node'
+optional = false
+units = 'm'
+
+[components.MassWastingRunout.info.topographic__elevation]
+doc = 'Land surface topographic elevation'
+dtype = 'float64'
+intent = 'inout'
+mapping = 'node'
+optional = true
+units = 'm'
+
+[components.MassWastingRunout.info.topographic__steepest_slope]
+doc = 'The steepest *downhill* slope'
+dtype = 'float64'
+intent = 'in'
+mapping = 'node'
+optional = false
+units = '-'
+
 [components.NetworkSedimentTransporter]
 name = 'landlab.components.network_sediment_transporter.network_sediment_transporter.NetworkSedimentTransporter'
 unit_agnostic = false
@@ -2480,7 +2539,7 @@ unit_agnostic = false
 summary = 'Potential Evapotranspiration Component calculates spatially distributed'
 
 [components.PotentialEvapotranspiration.info.radiation__incoming_shortwave_flux]
-doc = 'total incident shortwave radiation over the time step'
+doc = 'incident shortwave radiation'
 dtype = 'float64'
 intent = 'out'
 mapping = 'cell'
@@ -2488,7 +2547,7 @@ optional = false
 units = 'W/m^2'
 
 [components.PotentialEvapotranspiration.info.radiation__net_flux]
-doc = 'net total radiation over the time step'
+doc = 'net radiation'
 dtype = 'float64'
 intent = 'out'
 mapping = 'cell'
@@ -2496,7 +2555,7 @@ optional = false
 units = 'W/m^2'
 
 [components.PotentialEvapotranspiration.info.radiation__net_longwave_flux]
-doc = 'net incident longwave radiation over the time step'
+doc = 'net incident longwave radiation'
 dtype = 'float64'
 intent = 'out'
 mapping = 'cell'
@@ -2504,7 +2563,7 @@ optional = false
 units = 'W/m^2'
 
 [components.PotentialEvapotranspiration.info.radiation__net_shortwave_flux]
-doc = 'net incident shortwave radiation over the time step'
+doc = 'net incident shortwave radiation'
 dtype = 'float64'
 intent = 'out'
 mapping = 'cell'
@@ -2512,7 +2571,7 @@ optional = false
 units = 'W/m^2'
 
 [components.PotentialEvapotranspiration.info.radiation__ratio_to_flat_surface]
-doc = 'ratio of total incident shortwave radiation on sloped surface to flat surface'
+doc = 'ratio of incident shortwave radiation on sloped surface to flat surface'
 dtype = 'float64'
 intent = 'in'
 mapping = 'cell'
@@ -2742,10 +2801,42 @@ summary = 'Extract and plot profiles set up using points within a grid.'
 [components.Radiation]
 name = 'landlab.components.radiation.radiation.Radiation'
 unit_agnostic = false
-summary = 'Compute 1D and 2D total incident shortwave radiation.'
+summary = 'Compute 1D and 2D daily incident shortwave radiation.'
+
+[components.Radiation.info.radiation__clearsky_flux]
+doc = 'clearsky radiation'
+dtype = 'float64'
+intent = 'out'
+mapping = 'cell'
+optional = false
+units = 'W/m^2'
+
+[components.Radiation.info.radiation__extraterrestrial_flux]
+doc = 'extraterrestrial radiation'
+dtype = 'float64'
+intent = 'out'
+mapping = 'cell'
+optional = false
+units = 'W/m^2'
 
 [components.Radiation.info.radiation__incoming_shortwave_flux]
-doc = 'total incident shortwave radiation over the time step'
+doc = 'incident shortwave radiation'
+dtype = 'float64'
+intent = 'out'
+mapping = 'cell'
+optional = false
+units = 'W/m^2'
+
+[components.Radiation.info.radiation__net_flux]
+doc = 'net radiation'
+dtype = 'float64'
+intent = 'out'
+mapping = 'cell'
+optional = false
+units = 'W/m^2'
+
+[components.Radiation.info.radiation__net_longwave_flux]
+doc = 'net incident longwave radiation'
 dtype = 'float64'
 intent = 'out'
 mapping = 'cell'
@@ -2753,7 +2844,7 @@ optional = false
 units = 'W/m^2'
 
 [components.Radiation.info.radiation__net_shortwave_flux]
-doc = 'net incident shortwave radiation over the time step'
+doc = 'net incident shortwave radiation'
 dtype = 'float64'
 intent = 'out'
 mapping = 'cell'
@@ -2761,7 +2852,7 @@ optional = false
 units = 'W/m^2'
 
 [components.Radiation.info.radiation__ratio_to_flat_surface]
-doc = 'ratio of total incident shortwave radiation on sloped surface to flat surface'
+doc = 'ratio of incident shortwave radiation on sloped surface to flat surface'
 dtype = 'float64'
 intent = 'out'
 mapping = 'cell'
@@ -4254,6 +4345,7 @@ used_by = [
   'landlab.components.hand_calculator.hand_calculator.HeightAboveDrainageCalculator',
   'landlab.components.lake_fill.lake_fill_barnes.LakeMapperBarnes',
   'landlab.components.lateral_erosion.lateral_erosion.LateralEroder',
+  'landlab.components.mass_wasting_runout.mass_wasting_runout.MassWastingRunout',
   'landlab.components.profiler.channel_profiler.ChannelProfiler',
   'landlab.components.profiler.trickle_down_profiler.TrickleDownProfiler',
   'landlab.components.space.space.Space',
@@ -4277,7 +4369,9 @@ provided_by = [
 
 [fields.flow__receiver_proportions]
 desc = 'Node array of proportion of flow sent to each receiver.'
-used_by = []
+used_by = [
+  'landlab.components.mass_wasting_runout.mass_wasting_runout.MassWastingRunout',
+]
 provided_by = [
   'landlab.components.flow_director.flow_director_dinf.FlowDirectorDINF',
   'landlab.components.flow_director.flow_director_mfd.FlowDirectorMFD',
@@ -4509,11 +4603,27 @@ provided_by = [
   'landlab.components.flexure.flexure_1d.Flexure1D',
 ]
 
+[fields.mass__wasting_id]
+desc = 'interger or float id of each mass wasting area is assigned                 to all nodes representing the mass wasting area.'
+used_by = [
+  'landlab.components.mass_wasting_runout.mass_wasting_runout.MassWastingRunout',
+]
+provided_by = []
+
 [fields.mean_water__depth]
 desc = 'Tidal mean water depth'
 used_by = []
 provided_by = [
   'landlab.components.tidal_flow.tidal_flow_calculator.TidalFlowCalculator',
+]
+
+[fields.particle__diameter]
+desc = 'representative particle diameter at each node, this might             vary with underlying geology, contributing area or field observations'
+used_by = [
+  'landlab.components.mass_wasting_runout.mass_wasting_runout.MassWastingRunout',
+]
+provided_by = [
+  'landlab.components.mass_wasting_runout.mass_wasting_runout.MassWastingRunout',
 ]
 
 [fields.plant__age]
@@ -4530,8 +4640,22 @@ provided_by = [
   'landlab.components.plant_competition_ca.plant_competition_ca.VegCA',
 ]
 
+[fields.radiation__clearsky_flux]
+desc = 'clearsky radiation'
+used_by = []
+provided_by = [
+  'landlab.components.radiation.radiation.Radiation',
+]
+
+[fields.radiation__extraterrestrial_flux]
+desc = 'extraterrestrial radiation'
+used_by = []
+provided_by = [
+  'landlab.components.radiation.radiation.Radiation',
+]
+
 [fields.radiation__incoming_shortwave_flux]
-desc = 'total incident shortwave radiation over the time step'
+desc = 'incident shortwave radiation'
 used_by = []
 provided_by = [
   'landlab.components.pet.potential_evapotranspiration_field.PotentialEvapotranspiration',
@@ -4539,21 +4663,23 @@ provided_by = [
 ]
 
 [fields.radiation__net_flux]
-desc = 'net total radiation over the time step'
+desc = 'net radiation'
 used_by = []
 provided_by = [
   'landlab.components.pet.potential_evapotranspiration_field.PotentialEvapotranspiration',
+  'landlab.components.radiation.radiation.Radiation',
 ]
 
 [fields.radiation__net_longwave_flux]
-desc = 'net incident longwave radiation over the time step'
+desc = 'net incident longwave radiation'
 used_by = []
 provided_by = [
   'landlab.components.pet.potential_evapotranspiration_field.PotentialEvapotranspiration',
+  'landlab.components.radiation.radiation.Radiation',
 ]
 
 [fields.radiation__net_shortwave_flux]
-desc = 'net incident shortwave radiation over the time step'
+desc = 'net incident shortwave radiation'
 used_by = []
 provided_by = [
   'landlab.components.pet.potential_evapotranspiration_field.PotentialEvapotranspiration',
@@ -4561,7 +4687,7 @@ provided_by = [
 ]
 
 [fields.radiation__ratio_to_flat_surface]
-desc = 'ratio of total incident shortwave radiation on sloped surface to flat surface'
+desc = 'ratio of incident shortwave radiation on sloped surface to flat surface'
 used_by = [
   'landlab.components.pet.potential_evapotranspiration_field.PotentialEvapotranspiration',
 ]
@@ -4827,8 +4953,11 @@ provided_by = []
 desc = 'soil depth to restrictive layer'
 used_by = [
   'landlab.components.landslides.landslide_probability.LandslideProbability',
+  'landlab.components.mass_wasting_runout.mass_wasting_runout.MassWastingRunout',
 ]
-provided_by = []
+provided_by = [
+  'landlab.components.mass_wasting_runout.mass_wasting_runout.MassWastingRunout',
+]
 
 [fields.soil__transmissivity]
 desc = 'mode rate of water transmitted through a unit width of saturated soil - either provided or calculated with Ksat and soil depth'
@@ -5078,6 +5207,7 @@ used_by = [
   'landlab.components.lake_fill.lake_fill_barnes.LakeMapperBarnes',
   'landlab.components.lateral_erosion.lateral_erosion.LateralEroder',
   'landlab.components.marine_sediment_transport.simple_submarine_diffuser.SimpleSubmarineDiffuser',
+  'landlab.components.mass_wasting_runout.mass_wasting_runout.MassWastingRunout',
   'landlab.components.nonlinear_diffusion.Perron_nl_diffuse.PerronNLDiffuse',
   'landlab.components.normal_fault.normal_fault.NormalFault',
   'landlab.components.overland_flow.generate_overland_flow_Bates.OverlandFlowBates',
@@ -5123,6 +5253,7 @@ provided_by = [
   'landlab.components.lake_fill.lake_fill_barnes.LakeMapperBarnes',
   'landlab.components.lateral_erosion.lateral_erosion.LateralEroder',
   'landlab.components.marine_sediment_transport.simple_submarine_diffuser.SimpleSubmarineDiffuser',
+  'landlab.components.mass_wasting_runout.mass_wasting_runout.MassWastingRunout',
   'landlab.components.network_sediment_transporter.network_sediment_transporter.NetworkSedimentTransporter',
   'landlab.components.nonlinear_diffusion.Perron_nl_diffuse.PerronNLDiffuse',
   'landlab.components.normal_fault.normal_fault.NormalFault',
@@ -5181,6 +5312,7 @@ used_by = [
   'landlab.components.gravel_bedrock_eroder.gravel_bedrock_eroder.GravelBedrockEroder',
   'landlab.components.gravel_river_transporter.gravel_river_transporter.GravelRiverTransporter',
   'landlab.components.lateral_erosion.lateral_erosion.LateralEroder',
+  'landlab.components.mass_wasting_runout.mass_wasting_runout.MassWastingRunout',
   'landlab.components.space.space.Space',
   'landlab.components.space.space_large_scale_eroder.SpaceLargeScaleEroder',
   'landlab.components.steepness_index.channel_steepness.SteepnessFinder',
@@ -6177,6 +6309,304 @@ uncategorized = [
   'landlab.grid.hex.HexModelGrid.y_of_corner',
 ]
 
+[grids.IcosphereGlobalGrid]
+boundary-condition = [
+  'landlab.grid.icosphere.IcosphereGlobalGrid.active_adjacent_nodes_at_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.active_faces',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.active_links',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.boundary_nodes',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.closed_boundary_nodes',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.core_cells',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.core_nodes',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.fixed_gradient_boundary_nodes',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.fixed_links',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.fixed_value_boundary_nodes',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.node_at_core_cell',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.node_has_boundary_neighbor',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.node_is_boundary',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.number_of_active_faces',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.number_of_active_links',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.number_of_core_cells',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.number_of_core_nodes',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.number_of_fixed_links',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.number_of_patches_present_at_link',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.number_of_patches_present_at_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.open_boundary_nodes',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.set_nodata_nodes_to_closed',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.set_nodata_nodes_to_fixed_gradient',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.status_at_link',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.status_at_node',
+]
+connectivity = [
+  'landlab.grid.icosphere.IcosphereGlobalGrid.active_adjacent_nodes_at_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.active_link_dirs_at_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.cell_area_at_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.downwind_links_at_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.link_at_node_is_downwind',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.link_at_node_is_upwind',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.node_at_core_cell',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.node_has_boundary_neighbor',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.upwind_links_at_node',
+]
+deprecated = [
+
+]
+field-add = [
+  'landlab.grid.icosphere.IcosphereGlobalGrid.add_empty',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.add_field',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.add_full',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.add_ones',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.add_zeros',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.delete_field',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.empty',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.new_field_location',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.ones',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.zeros',
+]
+field-io = [
+  'landlab.grid.icosphere.IcosphereGlobalGrid.at_cell',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.at_corner',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.at_face',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.at_link',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.at_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.at_patch',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.field_values',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.return_array_or_field_values',
+]
+gradient = [
+  'landlab.grid.icosphere.IcosphereGlobalGrid.calc_diff_at_link',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.calc_flux_div_at_cell',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.calc_flux_div_at_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.calc_grad_at_link',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.calc_grad_at_patch',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.calc_net_flux_at_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.calc_slope_at_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.calc_slope_at_patch',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.calc_unit_normal_at_patch',
+]
+info-cell = [
+  'landlab.grid.icosphere.IcosphereGlobalGrid.cell_area_at_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.core_cells',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_node_to_cell',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.node_at_core_cell',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.number_of_core_cells',
+]
+info-corner = [
+
+]
+info-face = [
+  'landlab.grid.icosphere.IcosphereGlobalGrid.active_faces',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.number_of_active_faces',
+]
+info-field = [
+  'landlab.grid.icosphere.IcosphereGlobalGrid.field_units',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.has_field',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.has_group',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.keys',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.size',
+]
+info-grid = [
+  'landlab.grid.icosphere.IcosphereGlobalGrid.axis_name',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.axis_units',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.ndim',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.node_axis_coordinates',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.number_of_elements',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.size',
+]
+info-link = [
+  'landlab.grid.icosphere.IcosphereGlobalGrid.active_link_dirs_at_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.active_links',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.angle_of_link_about_head',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.calc_diff_at_link',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.calc_grad_at_link',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.downwind_links_at_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.fixed_links',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.link_at_node_is_downwind',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.link_at_node_is_upwind',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_downwind_node_link_max_to_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_downwind_node_link_mean_to_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_link_head_node_to_link',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_link_tail_node_to_link',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_link_vector_sum_to_patch',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_max_of_link_nodes_to_link',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_max_of_node_links_to_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_mean_of_link_nodes_to_link',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_min_of_link_nodes_to_link',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_min_of_node_links_to_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_upwind_node_link_max_to_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_upwind_node_link_mean_to_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_value_at_downwind_node_link_max_to_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_value_at_max_node_to_link',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_value_at_min_node_to_link',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_value_at_upwind_node_link_max_to_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.number_of_active_links',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.number_of_fixed_links',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.number_of_patches_present_at_link',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.patches_present_at_link',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.resolve_values_on_links',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.status_at_link',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.upwind_links_at_node',
+]
+info-node = [
+  'landlab.grid.icosphere.IcosphereGlobalGrid.active_adjacent_nodes_at_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.active_link_dirs_at_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.all_node_azimuths_map',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.all_node_distances_map',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.boundary_nodes',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.calc_aspect_at_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.calc_distances_of_nodes_to_point',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.calc_flux_div_at_cell',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.calc_flux_div_at_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.calc_hillshade_at_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.calc_net_flux_at_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.calc_slope_at_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.cell_area_at_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.closed_boundary_nodes',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.core_nodes',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.downwind_links_at_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.fixed_gradient_boundary_nodes',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.fixed_value_boundary_nodes',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.link_at_node_is_downwind',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.link_at_node_is_upwind',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_downwind_node_link_max_to_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_downwind_node_link_mean_to_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_link_head_node_to_link',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_link_tail_node_to_link',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_max_of_link_nodes_to_link',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_max_of_node_links_to_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_max_of_patch_nodes_to_patch',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_mean_of_link_nodes_to_link',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_mean_of_patch_nodes_to_patch',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_min_of_link_nodes_to_link',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_min_of_node_links_to_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_min_of_patch_nodes_to_patch',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_node_to_cell',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_upwind_node_link_max_to_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_upwind_node_link_mean_to_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_value_at_downwind_node_link_max_to_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_value_at_max_node_to_link',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_value_at_min_node_to_link',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_value_at_upwind_node_link_max_to_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.node_at_core_cell',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.node_axis_coordinates',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.node_has_boundary_neighbor',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.node_is_boundary',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.number_of_core_nodes',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.number_of_patches_present_at_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.open_boundary_nodes',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.patches_present_at_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.set_nodata_nodes_to_closed',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.set_nodata_nodes_to_fixed_gradient',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.status_at_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.unit_vector_sum_xcomponent_at_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.unit_vector_sum_ycomponent_at_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.upwind_links_at_node',
+]
+info-patch = [
+  'landlab.grid.icosphere.IcosphereGlobalGrid.calc_grad_at_patch',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.calc_slope_at_patch',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.calc_unit_normal_at_patch',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_link_vector_sum_to_patch',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_max_of_patch_nodes_to_patch',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_mean_of_patch_nodes_to_patch',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_min_of_patch_nodes_to_patch',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.number_of_patches_present_at_link',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.number_of_patches_present_at_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.patches_present_at_link',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.patches_present_at_node',
+]
+map = [
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_downwind_node_link_max_to_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_downwind_node_link_mean_to_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_link_head_node_to_link',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_link_tail_node_to_link',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_link_vector_sum_to_patch',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_max_of_link_nodes_to_link',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_max_of_node_links_to_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_max_of_patch_nodes_to_patch',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_mean_of_link_nodes_to_link',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_mean_of_patch_nodes_to_patch',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_min_of_link_nodes_to_link',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_min_of_node_links_to_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_min_of_patch_nodes_to_patch',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_node_to_cell',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_upwind_node_link_max_to_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_upwind_node_link_mean_to_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_value_at_downwind_node_link_max_to_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_value_at_max_node_to_link',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_value_at_min_node_to_link',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_value_at_upwind_node_link_max_to_node',
+]
+quantity = [
+  'landlab.grid.icosphere.IcosphereGlobalGrid.all_node_azimuths_map',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.all_node_distances_map',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.angle_of_link_about_head',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.calc_distances_of_nodes_to_point',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.node_axis_coordinates',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.unit_vector_sum_xcomponent_at_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.unit_vector_sum_ycomponent_at_node',
+]
+subset = [
+
+]
+surface = [
+  'landlab.grid.icosphere.IcosphereGlobalGrid.calc_aspect_at_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.calc_hillshade_at_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.calc_slope_at_node',
+]
+uncategorized = [
+  'landlab.grid.icosphere.IcosphereGlobalGrid.BAD_INDEX',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.BC_LINK_IS_ACTIVE',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.BC_LINK_IS_FIXED',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.BC_LINK_IS_INACTIVE',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.BC_NODE_IS_CLOSED',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.BC_NODE_IS_CORE',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.BC_NODE_IS_FIXED_GRADIENT',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.BC_NODE_IS_FIXED_VALUE',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.BC_NODE_IS_LOOPED',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.VALID_LOCATIONS',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.area_of_patch',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.as_dataarray',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.as_dataset',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.at_cell',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.at_corner',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.at_face',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.at_grid',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.at_layer',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.at_link',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.at_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.at_patch',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.cell_at_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.corners_at_cell',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.default_group',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.event_layers',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.face_at_link',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.faces_at_cell',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.fields',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.fixed_gradient_boundary_node_anchor_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.fixed_gradient_boundary_node_fixed_link',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.from_dict',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.from_file',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.groups',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.imshow',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.link_at_face',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.link_status_at_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.link_with_angle',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.link_with_node_status',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_link_vector_components_to_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_node_to_link_lax_wendroff',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_node_to_link_linear_upwind',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.map_vectors_to_links',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.material_layers',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.node_at_cell',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.patches_at_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.phi_of_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.r_of_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.reset_status_at_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.theta_of_node',
+  'landlab.grid.icosphere.IcosphereGlobalGrid.xy_of_reference',
+]
+
 [grids.ModelGrid]
 boundary-condition = [
   'landlab.grid.base.ModelGrid.active_adjacent_nodes_at_node',
@@ -6462,6 +6892,196 @@ uncategorized = [
   'landlab.grid.base.ModelGrid.material_layers',
   'landlab.grid.base.ModelGrid.reset_status_at_node',
   'landlab.grid.base.ModelGrid.xy_of_reference',
+]
+
+[grids.NetworkModelGrid]
+boundary-condition = [
+  'landlab.grid.network.NetworkModelGrid.active_links',
+  'landlab.grid.network.NetworkModelGrid.perimeter_nodes',
+  'landlab.grid.network.NetworkModelGrid.status_at_link',
+  'landlab.grid.network.NetworkModelGrid.status_at_node',
+]
+connectivity = [
+
+]
+deprecated = [
+
+]
+field-add = [
+  'landlab.grid.network.NetworkModelGrid.add_empty',
+  'landlab.grid.network.NetworkModelGrid.add_field',
+  'landlab.grid.network.NetworkModelGrid.add_full',
+  'landlab.grid.network.NetworkModelGrid.add_ones',
+  'landlab.grid.network.NetworkModelGrid.add_zeros',
+  'landlab.grid.network.NetworkModelGrid.delete_field',
+  'landlab.grid.network.NetworkModelGrid.empty',
+  'landlab.grid.network.NetworkModelGrid.new_field_location',
+  'landlab.grid.network.NetworkModelGrid.ones',
+  'landlab.grid.network.NetworkModelGrid.zeros',
+]
+field-io = [
+  'landlab.grid.network.NetworkModelGrid.at_cell',
+  'landlab.grid.network.NetworkModelGrid.at_corner',
+  'landlab.grid.network.NetworkModelGrid.at_face',
+  'landlab.grid.network.NetworkModelGrid.at_link',
+  'landlab.grid.network.NetworkModelGrid.at_node',
+  'landlab.grid.network.NetworkModelGrid.at_patch',
+  'landlab.grid.network.NetworkModelGrid.field_values',
+  'landlab.grid.network.NetworkModelGrid.return_array_or_field_values',
+]
+gradient = [
+  'landlab.grid.network.NetworkModelGrid.calc_grad_at_link',
+]
+info-cell = [
+
+]
+info-corner = [
+
+]
+info-face = [
+
+]
+info-field = [
+  'landlab.grid.network.NetworkModelGrid.field_units',
+  'landlab.grid.network.NetworkModelGrid.has_field',
+  'landlab.grid.network.NetworkModelGrid.has_group',
+  'landlab.grid.network.NetworkModelGrid.keys',
+  'landlab.grid.network.NetworkModelGrid.size',
+]
+info-grid = [
+  'landlab.grid.network.NetworkModelGrid.axis_name',
+  'landlab.grid.network.NetworkModelGrid.axis_units',
+  'landlab.grid.network.NetworkModelGrid.size',
+]
+info-link = [
+  'landlab.grid.network.NetworkModelGrid.angle_of_link',
+  'landlab.grid.network.NetworkModelGrid.calc_grad_at_link',
+  'landlab.grid.network.NetworkModelGrid.length_of_link',
+  'landlab.grid.network.NetworkModelGrid.links_at_node',
+  'landlab.grid.network.NetworkModelGrid.map_downwind_node_link_max_to_node',
+  'landlab.grid.network.NetworkModelGrid.map_downwind_node_link_mean_to_node',
+  'landlab.grid.network.NetworkModelGrid.map_link_head_node_to_link',
+  'landlab.grid.network.NetworkModelGrid.map_link_tail_node_to_link',
+  'landlab.grid.network.NetworkModelGrid.map_max_of_link_nodes_to_link',
+  'landlab.grid.network.NetworkModelGrid.map_max_of_node_links_to_node',
+  'landlab.grid.network.NetworkModelGrid.map_mean_of_link_nodes_to_link',
+  'landlab.grid.network.NetworkModelGrid.map_min_of_link_nodes_to_link',
+  'landlab.grid.network.NetworkModelGrid.map_min_of_node_links_to_node',
+  'landlab.grid.network.NetworkModelGrid.map_upwind_node_link_max_to_node',
+  'landlab.grid.network.NetworkModelGrid.map_upwind_node_link_mean_to_node',
+  'landlab.grid.network.NetworkModelGrid.map_value_at_downwind_node_link_max_to_node',
+  'landlab.grid.network.NetworkModelGrid.map_value_at_max_node_to_link',
+  'landlab.grid.network.NetworkModelGrid.map_value_at_min_node_to_link',
+  'landlab.grid.network.NetworkModelGrid.map_value_at_upwind_node_link_max_to_node',
+  'landlab.grid.network.NetworkModelGrid.midpoint_of_link',
+  'landlab.grid.network.NetworkModelGrid.status_at_link',
+  'landlab.grid.network.NetworkModelGrid.x_of_link',
+  'landlab.grid.network.NetworkModelGrid.y_of_link',
+]
+info-node = [
+  'landlab.grid.network.NetworkModelGrid.active_links',
+  'landlab.grid.network.NetworkModelGrid.adjacent_nodes_at_node',
+  'landlab.grid.network.NetworkModelGrid.map_downwind_node_link_max_to_node',
+  'landlab.grid.network.NetworkModelGrid.map_downwind_node_link_mean_to_node',
+  'landlab.grid.network.NetworkModelGrid.map_link_head_node_to_link',
+  'landlab.grid.network.NetworkModelGrid.map_link_tail_node_to_link',
+  'landlab.grid.network.NetworkModelGrid.map_max_of_link_nodes_to_link',
+  'landlab.grid.network.NetworkModelGrid.map_max_of_node_links_to_node',
+  'landlab.grid.network.NetworkModelGrid.map_mean_of_link_nodes_to_link',
+  'landlab.grid.network.NetworkModelGrid.map_min_of_link_nodes_to_link',
+  'landlab.grid.network.NetworkModelGrid.map_min_of_node_links_to_node',
+  'landlab.grid.network.NetworkModelGrid.map_upwind_node_link_max_to_node',
+  'landlab.grid.network.NetworkModelGrid.map_upwind_node_link_mean_to_node',
+  'landlab.grid.network.NetworkModelGrid.map_value_at_downwind_node_link_max_to_node',
+  'landlab.grid.network.NetworkModelGrid.map_value_at_max_node_to_link',
+  'landlab.grid.network.NetworkModelGrid.map_value_at_min_node_to_link',
+  'landlab.grid.network.NetworkModelGrid.map_value_at_upwind_node_link_max_to_node',
+  'landlab.grid.network.NetworkModelGrid.node_at_link_head',
+  'landlab.grid.network.NetworkModelGrid.node_at_link_tail',
+  'landlab.grid.network.NetworkModelGrid.nodes',
+  'landlab.grid.network.NetworkModelGrid.nodes_at_link',
+  'landlab.grid.network.NetworkModelGrid.number_of_nodes',
+  'landlab.grid.network.NetworkModelGrid.perimeter_nodes',
+  'landlab.grid.network.NetworkModelGrid.status_at_node',
+  'landlab.grid.network.NetworkModelGrid.x_of_node',
+  'landlab.grid.network.NetworkModelGrid.xy_of_node',
+  'landlab.grid.network.NetworkModelGrid.y_of_node',
+]
+info-patch = [
+
+]
+map = [
+  'landlab.grid.network.NetworkModelGrid.map_downwind_node_link_max_to_node',
+  'landlab.grid.network.NetworkModelGrid.map_downwind_node_link_mean_to_node',
+  'landlab.grid.network.NetworkModelGrid.map_link_head_node_to_link',
+  'landlab.grid.network.NetworkModelGrid.map_link_tail_node_to_link',
+  'landlab.grid.network.NetworkModelGrid.map_max_of_link_nodes_to_link',
+  'landlab.grid.network.NetworkModelGrid.map_max_of_node_links_to_node',
+  'landlab.grid.network.NetworkModelGrid.map_mean_of_link_nodes_to_link',
+  'landlab.grid.network.NetworkModelGrid.map_min_of_link_nodes_to_link',
+  'landlab.grid.network.NetworkModelGrid.map_min_of_node_links_to_node',
+  'landlab.grid.network.NetworkModelGrid.map_upwind_node_link_max_to_node',
+  'landlab.grid.network.NetworkModelGrid.map_upwind_node_link_mean_to_node',
+  'landlab.grid.network.NetworkModelGrid.map_value_at_downwind_node_link_max_to_node',
+  'landlab.grid.network.NetworkModelGrid.map_value_at_max_node_to_link',
+  'landlab.grid.network.NetworkModelGrid.map_value_at_min_node_to_link',
+  'landlab.grid.network.NetworkModelGrid.map_value_at_upwind_node_link_max_to_node',
+]
+quantity = [
+  'landlab.grid.network.NetworkModelGrid.x_of_link',
+  'landlab.grid.network.NetworkModelGrid.y_of_link',
+]
+subset = [
+  'landlab.grid.network.NetworkModelGrid.active_links',
+  'landlab.grid.network.NetworkModelGrid.perimeter_nodes',
+]
+surface = [
+
+]
+uncategorized = [
+  'landlab.grid.network.NetworkModelGrid.BAD_INDEX',
+  'landlab.grid.network.NetworkModelGrid.BC_LINK_IS_ACTIVE',
+  'landlab.grid.network.NetworkModelGrid.BC_LINK_IS_FIXED',
+  'landlab.grid.network.NetworkModelGrid.BC_LINK_IS_INACTIVE',
+  'landlab.grid.network.NetworkModelGrid.BC_NODE_IS_CLOSED',
+  'landlab.grid.network.NetworkModelGrid.BC_NODE_IS_CORE',
+  'landlab.grid.network.NetworkModelGrid.BC_NODE_IS_FIXED_GRADIENT',
+  'landlab.grid.network.NetworkModelGrid.BC_NODE_IS_FIXED_VALUE',
+  'landlab.grid.network.NetworkModelGrid.BC_NODE_IS_LOOPED',
+  'landlab.grid.network.NetworkModelGrid.VALID_LOCATIONS',
+  'landlab.grid.network.NetworkModelGrid.adjacent_links_at_link',
+  'landlab.grid.network.NetworkModelGrid.at_grid',
+  'landlab.grid.network.NetworkModelGrid.at_link',
+  'landlab.grid.network.NetworkModelGrid.at_node',
+  'landlab.grid.network.NetworkModelGrid.default_group',
+  'landlab.grid.network.NetworkModelGrid.ds',
+  'landlab.grid.network.NetworkModelGrid.freeze',
+  'landlab.grid.network.NetworkModelGrid.from_dict',
+  'landlab.grid.network.NetworkModelGrid.from_file',
+  'landlab.grid.network.NetworkModelGrid.from_netcdf',
+  'landlab.grid.network.NetworkModelGrid.frozen',
+  'landlab.grid.network.NetworkModelGrid.groups',
+  'landlab.grid.network.NetworkModelGrid.link_dirs_at_node',
+  'landlab.grid.network.NetworkModelGrid.load',
+  'landlab.grid.network.NetworkModelGrid.map_link_vector_components_to_node',
+  'landlab.grid.network.NetworkModelGrid.map_node_to_link_lax_wendroff',
+  'landlab.grid.network.NetworkModelGrid.map_node_to_link_linear_upwind',
+  'landlab.grid.network.NetworkModelGrid.map_vectors_to_links',
+  'landlab.grid.network.NetworkModelGrid.ndim',
+  'landlab.grid.network.NetworkModelGrid.node_x',
+  'landlab.grid.network.NetworkModelGrid.node_y',
+  'landlab.grid.network.NetworkModelGrid.number_of_links',
+  'landlab.grid.network.NetworkModelGrid.reset_status_at_node',
+  'landlab.grid.network.NetworkModelGrid.sort',
+  'landlab.grid.network.NetworkModelGrid.thaw',
+  'landlab.grid.network.NetworkModelGrid.thawed',
+  'landlab.grid.network.NetworkModelGrid.to_dict',
+  'landlab.grid.network.NetworkModelGrid.to_json',
+  'landlab.grid.network.NetworkModelGrid.to_netcdf',
+  'landlab.grid.network.NetworkModelGrid.unit_vector_at_link',
+  'landlab.grid.network.NetworkModelGrid.unit_vector_at_node',
+  'landlab.grid.network.NetworkModelGrid.xy_of_link',
+  'landlab.grid.network.NetworkModelGrid.xy_of_reference',
 ]
 
 [grids.RadialModelGrid]
@@ -7299,6 +7919,7 @@ uncategorized = [
   'landlab.grid.raster.RasterModelGrid.at_node',
   'landlab.grid.raster.RasterModelGrid.at_patch',
   'landlab.grid.raster.RasterModelGrid.boundary_corners',
+  'landlab.grid.raster.RasterModelGrid.calc_net_face_flux_at_cell',
   'landlab.grid.raster.RasterModelGrid.cell_at_node',
   'landlab.grid.raster.RasterModelGrid.cells_at_corner',
   'landlab.grid.raster.RasterModelGrid.cells_at_face',

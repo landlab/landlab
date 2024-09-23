@@ -1,0 +1,2 @@
+Moved the nbmake markers stored in the notebooks' metadata into their own
+namespace for newer versions of nbmake.
