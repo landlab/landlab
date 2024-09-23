@@ -369,5 +369,5 @@ class C4(Photosynthesis):
 
 
 class Cam(Photosynthesis):
-    def __init__(self, latitude):
-        super().__init__(latitude)
+    def __init__(self, latitude, photo_params):
+        super().__init__(latitude, photo_params=photo_params)

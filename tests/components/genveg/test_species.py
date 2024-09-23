@@ -3,8 +3,7 @@ import numpy as np
 from numpy.testing import assert_allclose, assert_almost_equal
 
 from landlab.components.genveg.species import Species
-from landlab.components.genveg.habit import Forbherb, Graminoid, Shrub, Tree, Vine
-from landlab.components.genveg.form import Bunch, Colonizing, Multiplestems, Rhizomatous, Singlecrown, Singlestem, Stoloniferous, Thicketforming
+from landlab.components.genveg.photosynthesis import C3, C4, Cam
 
 
 def create_species_object(example_input_params):
@@ -234,31 +233,12 @@ def test_nsc_rate_change_per_season_and_part(example_input_params):
     )
 
 
-def test_select_habit_class(example_input_params):
+def test_select_photosythesis_type(example_input_params):
     species_object = create_species_object(example_input_params)
-    dummy_species = example_input_params
-    for spec, cls in zip(
-        ['forb_herb', 'graminoid', 'shrub', 'tree', 'vine'],
-        [Forbherb, Graminoid, Shrub, Tree, Vine]
-    ):
-        dummy_species["BTS"]["plant_factors"]["growth_habit"] = spec
-        print(dummy_species["BTS"]["plant_factors"]["growth_habit"])
+    dummy_photosythesis = example_input_params
+    for photosynthesis_opt, cls in zip(["C3", "C4", "cam"], [C3, C4, Cam]):
+        dummy_photosythesis["BTS"]["plant_factors"]["p_type"] = photosynthesis_opt
         assert isinstance(
-            species_object.select_habit_class(dummy_species["BTS"]),
-            cls
-        )
-
-
-
-def test_select_form_class(example_input_params):
-    species_object = create_species_object(example_input_params)
-    dummy_growth_form = example_input_params
-    for growth, cls in zip(
-        ['bunch', 'colonizing', 'multiple_stems', 'rhizomatous', 'single_crown', 'single_stem', 'stoloniferous', 'thicket_forming'],
-        [Bunch, Colonizing, Multiplestems, Rhizomatous, Singlecrown, Singlestem, Stoloniferous, Thicketforming]
-    ):
-        dummy_growth_form["BTS"]["plant_factors"]["growth_form"] = growth
-        assert isinstance(
-            species_object.select_form_class(dummy_growth_form["BTS"]),
+            species_object.select_photosythesis_type(dummy_photosythesis["BTS"], 0.9074),
             cls
         )
