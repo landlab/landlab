@@ -3,3 +3,4 @@ dask[array]==2024.6.2
 holoviews==1.18.0
 jupyter==1.0.0
 mesa==2.1.2
+pygmt==0.12.0

@@ -3,3 +3,4 @@ dask[array]
 holoviews
 jupyter
 mesa >1
+pygmt
