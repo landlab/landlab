@@ -4,7 +4,6 @@ import json
 import os
 import pathlib
 import shutil
-from collections import defaultdict
 
 import nox
 from packaging.requirements import Requirement
@@ -213,50 +212,55 @@ def docs_build_api(session: nox.Session) -> None:
     )
 
 
-@nox.session(name="docs-build-gallery-index")
+@nox.session(name="docs-build-gallery-index", python=None)
 def docs_build_notebook_index(session: nox.Session) -> None:
     docs_dir = PATH["docs"] / "source"
 
     for gallery in ("tutorials", "teaching"):
-        index = collect_notebooks(docs_dir / gallery)
+        gallery_index = docs_dir / "generated" / gallery / "index.md"
+        os.makedirs(os.path.dirname(gallery_index), exist_ok=True)
 
-        for subdir, entries in sorted(index.items()):
-            title = pathlib.Path(subdir).stem.replace("_", " ").title()
+        sections = [
+            os.path.abspath(f.path)
+            for f in os.scandir(docs_dir / gallery)
+            if f.is_dir()
+        ]
 
-            path_to_notebooks = pathlib.Path(gallery) / subdir
+        content = [f"# {gallery.title()} Gallery"] + [
+            format_nbgallery(section, str(docs_dir), level=2)
+            for section in sorted(sections)
+        ]
 
-            lines = [
-                f"{title}",
-                f"{'-' * len(title)}",
-                "",
-                ".. nbgallery::",
-                "    :glob:",
-                "",
-            ] + [f"    /{path_to_notebooks / v!s}" for v in entries]
+        with open(gallery_index, "w") as fp:
+            print((2 * os.linesep).join(content), file=fp)
 
-            generated_dir = docs_dir / "generated" / path_to_notebooks
-            generated_file = generated_dir / "_index.rst"
-
-            generated_dir.mkdir(parents=True, exist_ok=True)
-            with open(generated_file, "w") as fp:
-                print(os.linesep.join(lines), file=fp)
-            session.log(generated_file)
+        session.log(gallery_index)
 
 
-def collect_notebooks(path_to_notebooks):
-    paths = pathlib.Path(path_to_notebooks)
+def format_nbgallery(path, start, level=1):
+    title = pathlib.Path(path).stem.replace("_", " ").title()
 
-    index = defaultdict(list)
+    p = os.path.relpath(path, start)
 
-    for p in (p for p in paths.iterdir() if p.is_dir()):
-        subdir = p.relative_to(path_to_notebooks)
+    files = []
+    if glob.glob(os.path.join(path, "*.ipynb")):
+        files += [f"/{p}/*"]
+    if glob.glob(os.path.join(path, "**/*.ipynb")):
+        files += [f"/{p}/**"]
 
-        if glob.glob(str(p / "*.ipynb")) + glob.glob(str(p / "*.md")):
-            index[subdir] += ["*"]
-        if glob.glob(str(p / "**/*.ipynb")) + glob.glob(str(p / "**/*.md")):
-            index[subdir] += ["**"]
+    return (
+        f"""\
+{'#' * level} {title}
 
-    return index
+```{{nbgallery}}
+:glob:
+
+{'\n'.join(files)}
+```
+"""
+        if files
+        else ""
+    )
 
 
 @nox.session(name="check-versions")

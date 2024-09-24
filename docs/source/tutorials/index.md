@@ -116,9 +116,9 @@ sense of this functionality:
 
 
 ```{toctree}
-:caption: Tutorials
+:caption: Gallery
 :hidden:
 :glob:
 
-/generated/tutorials/**/_index
+Gallery </generated/tutorials/index>
 ```
