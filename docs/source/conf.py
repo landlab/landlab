@@ -311,7 +311,7 @@ nbsphinx_prolog = """
 
 .. note::
 
-    This page was generate from a jupyter notebook_.
+    This page was generated from a jupyter notebook_.
 
 .. _notebook: https://github.com/landlab/landlab/blob/{{ env.config.release|e }}/{{ docname|e }}
 """
