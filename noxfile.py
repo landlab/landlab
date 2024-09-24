@@ -248,8 +248,10 @@ def format_nbgallery(path, start, level=1):
     if glob.glob(os.path.join(path, "**/*.ipynb")):
         files += [f"/{p}/**"]
 
-    return (
-        f"""\
+    if not files:
+        return ""
+    else:
+        return f"""\
 {'#' * level} {title}
 
 ```{{nbgallery}}
@@ -258,9 +260,6 @@ def format_nbgallery(path, start, level=1):
 {'\n'.join(files)}
 ```
 """
-        if files
-        else ""
-    )
 
 
 @nox.session(name="check-versions")
