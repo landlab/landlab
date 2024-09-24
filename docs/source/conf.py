@@ -309,10 +309,11 @@ nbsphinx_thumbnails = {
 nbsphinx_prolog = """
 {% set docname = 'notebooks/' + env.doc2path(env.docname, base=None) %}
 
-This page was generate from
-https://github.com/landlab/landlab/blob/{{ env.config.release|e }}/{{ docname|e }}
+.. note::
 
-----
+    This page was generate from a jupyter notebook_.
+
+.. _notebook: https://github.com/landlab/landlab/blob/{{ env.config.release|e }}/{{ docname|e }}
 """
 
 nbsphinx_epilog = """
