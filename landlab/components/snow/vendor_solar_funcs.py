@@ -2,7 +2,8 @@
 Utility functions used to calculate short wave radiation
 
 This module is originally from the Topoflow model (by Scott D. Packham).
-https://github.com/peckhams/topoflow36/blob/master/topoflow/components/solar_funcs.py
+
+* https://github.com/peckhams/topoflow36/blob/master/topoflow/components/solar_funcs.py
 
 This file defines a set of functions for computing both shortwave
 and longwave radiation.  Most of the functions are from Appendix
@@ -20,6 +21,7 @@ Boehner (2009) Ch.8 in Geomorphometry book
 See also papers by:
    Glen Liston and David Tarboton's (w/ C. Luce)
 """
+
 # -----------------------------------------------------------------------
 #
 #  Copyright (c) 2005-2023, Scott D. Peckham
@@ -379,7 +381,7 @@ def ET_Radiation_Flux(lat_deg, Julian_day, th):
     # ------------------------------------------------------------
     term1 = np.cos(delta) * np.cos(lat_rad) * np.cos(omega * th)
     term2 = np.sin(delta) * np.sin(lat_rad)
-    K_ET = I_sc * E0 * (term1 + term2)
+    K_ET = np.asarray(I_sc * E0 * (term1 + term2))
 
     TEST = False
     if TEST:
@@ -879,7 +881,7 @@ def Clear_Sky_Radiation(
     K_dif = Diffuse_Radiation_Flux(lat_deg, Julian_day, W_p, TSN_offset, gamma_dust)
     K_bs = BS_Radiation_Flux(lat_deg, Julian_day, W_p, albedo, TSN_offset, gamma_dust)
 
-    K_cs = (tau * K_ET) + K_dif + K_bs
+    K_cs = np.asarray((tau * K_ET) + K_dif + K_bs)
 
     # ----------------
     # For debugging
