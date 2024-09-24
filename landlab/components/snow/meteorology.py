@@ -20,7 +20,6 @@ from landlab import Component
 
 from . import vendor_solar_funcs
 
-
 _G = 9.81  # gravitational acceleration [m / s2]
 _SIGMA = 5.67e-8  # Stefan-Boltzman constant [W m-2 K-4]
 _KAPPA = 0.408  # (von Karman)
@@ -66,7 +65,7 @@ class Meteorology(Component):
     cp_air  : float, optional
         Air heat capacity [J / kg / K].
     roughness_length : float, optional
-        Log law roughness length: the height at which the wind speed
+        Log law roughness length, which is the height at which the wind speed
         theoretically becomes zero due to surface roughness [m].
     reference_height : float, optional
         A specific height above the ground where wind speed is measured or modeled. [m]
@@ -155,6 +154,14 @@ class Meteorology(Component):
             "units": "radians",
             "mapping": "node",
             "doc": "land surface slope",
+        },
+        "snowpack__depth": {
+            "dtype": float,
+            "intent": "in",
+            "optional": True,
+            "units": "m",
+            "mapping": "node",
+            "doc": "snow depth",
         },
         "land_surface__albedo": {
             "dtype": float,
@@ -261,14 +268,6 @@ class Meteorology(Component):
             "mapping": "node",
             "doc": "net sensible heat energy flux",
         },
-        # "atmosphere_bottom_air__neutral_bulk_heat_aerodynamic_conductance": {
-        #     "dtype": float,
-        #     "intent": "out",
-        #     "optional": False,
-        #     "units": "m s-1",
-        #     "mapping": "node",
-        #     "doc": "neutral bulk heat aerodynamic conductance",
-        # },
         "atmosphere_bottom_air__bulk_sensible_heat_aerodynamic_conductance": {
             "dtype": float,
             "intent": "out",
@@ -375,12 +374,6 @@ class Meteorology(Component):
         self._datetime_obj = datetime.datetime.strptime(
             start_datetime, "%Y-%m-%d %H:%M:%S"
         )
-        self._julian_day = vendor_solar_funcs.Julian_Day(
-            self._datetime_obj.month,
-            self._datetime_obj.day,
-            self._datetime_obj.hour,
-            self._datetime_obj.year,
-        )
 
         # input fields
         if "land_surface__aspect_angle" not in grid.at_node:
@@ -388,6 +381,9 @@ class Meteorology(Component):
 
         if "land_surface__slope_angle" not in grid.at_node:
             grid.add_zeros("land_surface__slope_angle", at="node")
+
+        if "snow__depth" not in grid.at_node:
+            grid.add_zeros("snow__depth", at="node")
 
         if "land_surface__albedo" not in grid.at_node:
             grid.add_full("land_surface__albedo", 0.3, at="node")
@@ -400,22 +396,25 @@ class Meteorology(Component):
                 "atmosphere_aerosol_dust__reduction_of_transmittance", at="node"
             )
 
-        if ("atmosphere_bottom_air__brutsaert_emissivity_canopy_factor" not in
-                grid.at_node):
+        if (
+            "atmosphere_bottom_air__brutsaert_emissivity_canopy_factor"
+            not in grid.at_node
+        ):
             grid.add_zeros(
                 "atmosphere_bottom_air__brutsaert_emissivity_canopy_factor", at="node"
             )
 
-        if ("atmosphere_bottom_air__brutsaert_emissivity_cloud_factor" not in
-                grid.at_node):
+        if (
+            "atmosphere_bottom_air__brutsaert_emissivity_cloud_factor"
+            not in grid.at_node
+        ):
             grid.add_zeros(
                 "atmosphere_bottom_air__brutsaert_emissivity_cloud_factor", at="node"
             )
 
         if "atmosphere_bottom_air_water-vapor__relative_saturation" not in grid.at_node:
             grid.add_full(
-                "atmosphere_bottom_air_water-vapor__relative_saturation", 0.5,
-                at="node"
+                "atmosphere_bottom_air_water-vapor__relative_saturation", 0.5, at="node"
             )
 
         if "atmosphere_bottom_air__pressure" not in grid.at_node:
@@ -423,7 +422,7 @@ class Meteorology(Component):
 
         if "atmosphere_bottom_air_flow__reference-height_speed" not in grid.at_node:
             grid.add_full(
-             "atmosphere_bottom_air_flow__reference-height_speed", 3, at="node"
+                "atmosphere_bottom_air_flow__reference-height_speed", 3, at="node"
             )
 
         # output fields
@@ -489,9 +488,23 @@ class Meteorology(Component):
             raise ValueError("satterlund must be a boolean value")
         self._satterlund = satterlund
 
+    @property
+    def julian_day(self):
+
+        return vendor_solar_funcs.Julian_Day(
+            self._datetime_obj.month,
+            self._datetime_obj.day,
+            self._datetime_obj.hour,
+            self._datetime_obj.year,
+        )
+
     @staticmethod
     def calc_bulk_richardson_number(
-            reference_height, air_temp, surf_temp, wind_speed, out=None,
+        reference_height,
+        air_temp,
+        surf_temp,
+        wind_speed,
+        out=None,
     ):
         """Calculate bulk richardson number (Ri)
 
@@ -522,8 +535,12 @@ class Meteorology(Component):
 
     @staticmethod
     def calc_bulk_aero_conductance(
-            reference_height, roughness_length, richardson_number, wind_speed,
-            air_temp, surf_temp
+        reference_height,
+        roughness_length,
+        richardson_number,
+        wind_speed,
+        air_temp,
+        surf_temp,
     ):
         """calculate air bulk aerodynamic conductance
 
@@ -533,10 +550,10 @@ class Meteorology(Component):
             A specific height above the ground where wind speed
             is measured or modeled [m].
         roughness_length : float
-            Log law roughness length: the height at which the wind speed
+            Log law roughness length, which is the height at which the wind speed
             theoretically becomes zero due to surface roughness [m].
         richardson_number : aray_like
-            Bulk richardson number
+            Bulk richardson number.
         wind_speed : array_like
             The wind speed measured or modeled at the reference height [m / s].
         air_temp : array_like
@@ -550,39 +567,43 @@ class Meteorology(Component):
             Bulk sensible or latent heat aerodynamic conductance [m / s].
         """
 
-        # changed for landlab: changed how arg is calculated, remove h_swe.
-        # changed for landlab: return only one value to represent Dh and De (Dh=De)
+        # changed for landlab:
+        # - changed how arg is calculated, remove h_snow
+        # - changed to return only one value to represent Dh and De (Dh=De)
 
         # see Price & Dunne 1976
         # calculate Dn
-        arg = _KAPPA / np.log(np.asarray(reference_height)/roughness_length)
-        conduct_neutral = np.asarray(wind_speed) * arg ** 2.0
+        arg = _KAPPA / np.log(reference_height / roughness_length)
+        conductance_neutral = np.asarray(wind_speed) * arg**2.0
 
         # check if pixels are neutral
-        nw = sum(np.asarray(air_temp) != np.asarray(surf_temp))
+        w = np.asarray(air_temp) != np.asarray(surf_temp)
+        nw = np.asarray(w).sum()
 
         # if all pixels are neutral, set Dh = De = Dn
-        aero_conductance = conduct_neutral.copy()
+        aero_conductance = conductance_neutral
 
         # if one or more pixels are not neutral, make correction using Ri, set Dh = De
         if nw != 0:
-            ws = np.asarray(richardson_number) > 0  # If (Ri > 0) or (T_air > T_surf), then STABLE.
+            ws = (
+                np.asarray(richardson_number) > 0
+            )  # If (Ri > 0) or (T_air > T_surf), then STABLE.
             wu = np.invert(ws)  # where unstable
 
-            aero_conductance[ws] = (
-                    aero_conductance[ws] / (1.0 + 10 * np.asarray(richardson_number)[ws])
+            aero_conductance[ws] = aero_conductance[ws] / (
+                1.0 + 10 * np.asarray(richardson_number)[ws]
             )
-            aero_conductance[wu] = (
-                    aero_conductance[wu] * (1.0 - 10 * np.asarray(richardson_number)[wu])
+            aero_conductance[wu] = aero_conductance[wu] * (
+                1.0 - 10 * np.asarray(richardson_number)[wu]
             )
 
         return aero_conductance
 
     @staticmethod
     def calc_sensible_heat_flux(
-            rho_air, cp_air, aero_conductance, air_temp, surf_temp, out=None
+        rho_air, cp_air, aero_conductance, air_temp, surf_temp, out=None
     ):
-        """Calculate sensible heat energy flux
+        """Calculate net sensible heat energy flux
 
         Parameters
         ----------
@@ -604,23 +625,27 @@ class Meteorology(Component):
         """
 
         # see Price & Dunne 1976
-        return np.multiply(np.asarray(air_temp) - np.asarray(surf_temp),
-                           rho_air * cp_air * np.asarray(aero_conductance), out=out)
-
+        return np.multiply(
+            np.asarray(air_temp) - np.asarray(surf_temp),
+            rho_air * cp_air * np.asarray(aero_conductance),
+            out=out,
+        )
 
     @staticmethod
-    def calc_saturation_vapor_pressure(temp, satterlund=False, millibar=False, out=None):
+    def calc_saturation_vapor_pressure(
+        temp, satterlund=False, millibar=False, out=None
+    ):
         """Calculate saturation vapor pressure
 
         Parameters
         ----------
 
         temp : array_like
-            Air temperature  [deg_C].
+            Air temperature [deg_C].
         satterlund : bool, optional
             If true, use Satterlund method. If false, use Brutsaert method.
         millibar : bool, optional
-            If true, the units for vapor pressure is millibar. If false,
+            If true, the units for the output is millibar. If false,
             the units is kPa.
 
         Returns
@@ -630,21 +655,26 @@ class Meteorology(Component):
         """
 
         if not satterlund:
-            # use Brutsaert method (Dingman 2015 p148) [kPa]
-            out = np.multiply(0.611, np.exp((17.3 * np.asarray(temp)) / (np.asarray(temp) + 237.3)), out=out)
+            # use Brutsaert method (Dingman 2015 p148)
+            out = np.multiply(
+                0.611,
+                np.exp((17.3 * np.asarray(temp)) / (np.asarray(temp) + 237.3)),
+                out=out,
+            )
         else:
-            # use Satterlund method [kPa]
-            out = np.divide(10 ** (11.4 - (2353 / (np.asarray(temp) + _C_TO_K))) , 1000, out=out)
+            # use Satterlund method
+            out = np.divide(
+                10 ** (11.4 - (2353 / (np.asarray(temp) + _C_TO_K))), 1000, out=out
+            )
 
         if millibar:
             out = np.multiply(out, _KPA_TO_MBAR, out=out)
 
         return out
 
-
     @staticmethod
     def calc_vapor_pressure(sat_vapor_pressure, relative_humidity, out=None):
-        """ Calculate vapor pressure
+        """Calculate vapor pressure
 
         Parameters
         ----------
@@ -679,15 +709,13 @@ class Meteorology(Component):
 
         # https: // en.wikipedia.org / wiki / Dew_point
 
-
         a = 6.1121  # [mbar]
         b = 18.678
         c = 257.14  # [deg C]
 
         log_term = np.log(np.asarray(air_vapor_pressure) / a)
 
-        return np.divide(c * log_term , b - log_term, out=out)
-
+        return np.divide(c * log_term, b - log_term, out=out)
 
     @staticmethod
     def calc_precipitable_water_content(dew_point, out=None):
@@ -706,37 +734,42 @@ class Meteorology(Component):
 
         return np.multiply(np.exp(0.0614 * np.asarray(dew_point)), 1.12, out=out)
 
-
     @staticmethod
-    def calc_latent_heat_flux(rho_air, aero_conductance, air_pressure,
-                              air_vapor_pressure, surf_vapor_pressure, out=None):
-        """Calculate latent heat flux
+    def calc_latent_heat_flux(
+        rho_air,
+        aero_conductance,
+        air_pressure,
+        air_vapor_pressure,
+        surf_vapor_pressure,
+        out=None,
+    ):
+        """Calculate net latent heat flux
 
         Parameters
         ----------
         rho_air : float
             Air density [kg / m3].
+        aero_conductance :array_like
+            Bulk latent heat aerodynamic conductance [m / s].
         air_pressure : array_like
             Bottom air pressure [millibar].
-        aero_conductance :array_like
-            Bulk latent heat aerodynamic conductance [m / s]
         air_vapor_pressure : array_like
-            Air temperature [deg_C].
+            Air vapor pressure [millibar].
         surf_vapor_pressure : array_like
-            Land surface temperature [deg_C].
+            Surface vapor pressure [millibar].
 
         Returns
         -------
         array_like
-            Net latent heat energy flux [W / m2]
+            Net latent heat energy flux [W / m2].
         """
 
         # see Price & Dunne 1976
         term1 = rho_air * _LATENT_HEAT_OF_VAPORIZATION * np.asarray(aero_conductance)
 
-        term2 = ((np.asarray(air_vapor_pressure) - np.asarray(surf_vapor_pressure)) *
-                 (_LATENT_HEAT_CONSTANT / np.asarray(air_pressure)))
-
+        term2 = (np.asarray(air_vapor_pressure) - np.asarray(surf_vapor_pressure)) * (
+            _LATENT_HEAT_CONSTANT / np.asarray(air_pressure)
+        )
 
         return np.multiply(term1, term2, out=out)
 
@@ -761,9 +794,9 @@ class Meteorology(Component):
         Returns
         -------
         array_like
-            True solar noon offset. [hour]
+            True solar noon offset [hour].
         """
-        # this is function is changed for landlab. Removed the code for julian day
+        # Changed for landlab. Removed the code for julian day calculation
         dec_part = julian_day - np.int16(julian_day)
         clock_hour = dec_part * _HOURS_PER_DAY
         solar_noon = vendor_solar_funcs.True_Solar_Noon(
@@ -777,11 +810,20 @@ class Meteorology(Component):
 
         return tsn_offset
 
-
-    @staticmethod # TODO: check the math
-    def calc_net_shortwave_radiation(julian_day, tsn_offset, latitude, prec_water,
-                                     alpha, beta, albedo, canopy_factor, cloud_factor,
-                                     dust_atten,out=None):
+    @staticmethod
+    def calc_net_shortwave_radiation(
+        julian_day,
+        tsn_offset,
+        latitude,
+        prec_water,
+        alpha,
+        beta,
+        albedo,
+        canopy_factor,
+        cloud_factor,
+        dust_atten,
+        out=None,
+    ):
         """Calculate net shortwave radiation energy flux
 
         Parameters
@@ -826,7 +868,7 @@ class Meteorology(Component):
 
         qn_sw = k_cs * (1 - np.asarray(albedo))
 
-        # changed for landlab to add cloud and canopy factor impact (Dingman 2015 p227)
+        # changed for landlab: add cloud and canopy factor impact (Dingman 2015 p227)
         tau_cloud = np.asarray(0.355 + 0.68 * (1 - np.asarray(cloud_factor)))
         tau_cloud[tau_cloud > 1] = 1
         tau_canopy = np.exp(-3.91 * np.asarray(canopy_factor))
@@ -834,8 +876,14 @@ class Meteorology(Component):
         return np.multiply(tau_cloud * tau_canopy, qn_sw, out=out)
 
     @staticmethod
-    def calc_air_emissivity(air_temp, air_vapor_pressure,
-                            canopy_factor, cloud_factor, satterlund=False, out=None):
+    def calc_air_emissivity(
+        air_temp,
+        air_vapor_pressure,
+        canopy_factor,
+        cloud_factor,
+        satterlund=False,
+        out=None,
+    ):
         """Calculate air emissivity
 
         Parameters
@@ -861,12 +909,15 @@ class Meteorology(Component):
 
         if not satterlund:
             # Brutsaert method (Dingman 2002 P196)
-            air_vapor_pressure_kpa = np.asarray(air_vapor_pressure)/_KPA_TO_MBAR
-            term1 = ((1.0 - np.asarray(canopy_factor)) * 1.72 *
-                     (air_vapor_pressure_kpa / air_temp_k) ** _ONE_SEVENTH)
-            term2 = 1.0 + (0.22 * np.asarray(cloud_factor)**2.0)
+            air_vapor_pressure_kpa = np.asarray(air_vapor_pressure) / _KPA_TO_MBAR
+            term1 = (
+                (1.0 - np.asarray(canopy_factor))
+                * 1.72
+                * (air_vapor_pressure_kpa / air_temp_k) ** _ONE_SEVENTH
+            )
+            term2 = 1.0 + (0.22 * np.asarray(cloud_factor) ** 2.0)
 
-            out = np.add(term1*term2, canopy_factor, out=out)
+            out = np.add(term1 * term2, canopy_factor, out=out)
 
         else:
             # satterlund method
@@ -876,9 +927,10 @@ class Meteorology(Component):
         return out
 
     @staticmethod
-    def calc_net_longwave_radiation(air_temp, surf_temp,
-                                    air_emissivity, surf_emissivity, out=None):
-        """Calculate longwave radiation energy flux
+    def calc_net_longwave_radiation(
+        air_temp, surf_temp, air_emissivity, surf_emissivity, out=None
+    ):
+        """Calculate net longwave radiation energy flux
 
         Parameters
         ----------
@@ -896,20 +948,25 @@ class Meteorology(Component):
         array_like
             Net longwave radiation energy flux [W / m2].
         """
-        # see Dingman 2015 p231
+        # see Dingman 2015 p231.
+        # This function doesn't account for cloud and canopy factor impact
         air_temp_k = np.asarray(air_temp) + _C_TO_K
         surf_temp_k = np.asarray(surf_temp) + _C_TO_K
-        lw_in = np.asarray(air_emissivity) * _SIGMA * air_temp_k ** 4.0
-        lw_out = np.asarray(surf_emissivity) * _SIGMA * surf_temp_k ** 4.0
+        lw_in = np.asarray(air_emissivity) * _SIGMA * air_temp_k**4.0
+        lw_out = np.asarray(surf_emissivity) * _SIGMA * surf_temp_k**4.0
         # radiation from the air that is reflected from the surface
         lw_out += (1.0 - np.asarray(surf_emissivity)) * lw_in
 
         return np.subtract(lw_in, lw_out, out=out)
 
-
     @staticmethod
-    def calc_net_energy_flux(shortwave_energy_flux, longwave_energy_flux,
-                             sensible_heat_flux, latent_heat_flux, out=None):
+    def calc_net_energy_flux(
+        shortwave_energy_flux,
+        longwave_energy_flux,
+        sensible_heat_flux,
+        latent_heat_flux,
+        out=None,
+    ):
         """Calculate net total energy flux
 
         Parameters
@@ -929,112 +986,139 @@ class Meteorology(Component):
             Net total energy flux [W / m2].
         """
 
-        return np.add(sensible_heat_flux + latent_heat_flux,
-                      shortwave_energy_flux + longwave_energy_flux, out=out)
-
+        return np.add(
+            np.asarray(sensible_heat_flux) + np.asarray(latent_heat_flux),
+            np.asarray(shortwave_energy_flux) + np.asarray(longwave_energy_flux),
+            out=out,
+        )
 
     def run_one_step(self, dt):
         # update state variables
-        delta = relativedelta(seconds=dt)
-        self._datetime_obj += delta
-        self._julian_day = vendor_solar_funcs.Julian_Day(
-            self._datetime_obj.month,
-            self._datetime_obj.day,
-            self._datetime_obj.hour,
-            self._datetime_obj.year,
-        )
 
         Meteorology.calc_bulk_richardson_number(
-            self.reference_height,
+            self._reference_height,
             self.grid.at_node["atmosphere_bottom_air__temperature"],
             self.grid.at_node["land_surface__temperature"],
             self.grid.at_node["atmosphere_bottom_air_flow__reference-height_speed"],
-            out=self.grid.at_node["atmosphere_bottom_air_flow__bulk_richardson_number"]
+            out=self.grid.at_node["atmosphere_bottom_air_flow__bulk_richardson_number"],
         )
 
         aero_conductance = Meteorology.calc_bulk_aero_conductance(
-            self.reference_height,
-            self.roughness_length,
+            self._reference_height,
+            self._roughness_length,
             self.grid.at_node["atmosphere_bottom_air_flow__bulk_richardson_number"],
             self.grid.at_node["atmosphere_bottom_air_flow__reference-height_speed"],
             self.grid.at_node["atmosphere_bottom_air__temperature"],
             self.grid.at_node["land_surface__temperature"],
         )
-        self.grid.at_node["atmosphere_bottom_air__bulk_sensible_heat_aerodynamic_conductance"][:] = aero_conductance
-        self.grid.at_node["atmosphere_bottom_air__bulk_latent_heat_aerodynamic_conductance"][:] = aero_conductance
+        self.grid.at_node[
+            "atmosphere_bottom_air__bulk_sensible_heat_aerodynamic_conductance"
+        ][:] = aero_conductance
+        self.grid.at_node[
+            "atmosphere_bottom_air__bulk_latent_heat_aerodynamic_conductance"
+        ][:] = aero_conductance
 
         Meteorology.calc_sensible_heat_flux(
-            self.rho_air,
-            self.cp_air,
-            self.grid.at_node["atmosphere_bottom_air__bulk_sensible_heat_aerodynamic_conductance"],
-            self.grid.at_node["atmosphere_bottom_air_flow__reference-height_speed"],
+            self._rho_air,
+            self._cp_air,
+            self.grid.at_node[
+                "atmosphere_bottom_air__bulk_sensible_heat_aerodynamic_conductance"
+            ],
+            self.grid.at_node["atmosphere_bottom_air__temperature"],
             self.grid.at_node["land_surface__temperature"],
-            out=self.grid.at_node["atmosphere_bottom_air_land_net-sensible-heat__energy_flux"]
+            out=self.grid.at_node[
+                "atmosphere_bottom_air_land_net-sensible-heat__energy_flux"
+            ],
         )
 
         Meteorology.calc_saturation_vapor_pressure(
             self.grid.at_node["atmosphere_bottom_air__temperature"],
             satterlund=self._satterlund,
             millibar=True,
-            out = self.grid.at_node["atmosphere_bottom_air_water-vapor__saturated_partial_pressure"],
+            out=self.grid.at_node[
+                "atmosphere_bottom_air_water-vapor__saturated_partial_pressure"
+            ],
         )
 
         Meteorology.calc_vapor_pressure(
-            self.grid.at_node["atmosphere_bottom_air_water-vapor__saturated_partial_pressure"],
+            self.grid.at_node[
+                "atmosphere_bottom_air_water-vapor__saturated_partial_pressure"
+            ],
             self.grid.at_node["atmosphere_bottom_air_water-vapor__relative_saturation"],
-            out=self.grid.at_node["atmosphere_bottom_air_water-vapor__partial_pressure"],
+            out=self.grid.at_node[
+                "atmosphere_bottom_air_water-vapor__partial_pressure"
+            ],
         )
 
         Meteorology.calc_saturation_vapor_pressure(
             self.grid.at_node["land_surface__temperature"],
             satterlund=self._satterlund,
             millibar=True,
-            out=self.grid.at_node["land_surface_air_water-vapor__saturated_partial_pressure"],
-        )
-
-        Meteorology.calc_dew_point(
-            self.grid.at_node["land_surface_air_water-vapor__saturated_partial_pressure"],
-            out=self.grid.at_node["atmosphere_bottom_air_water-vapor__dew_point_temperature"],
-        )
-
-        Meteorology.calc_precipitable_water_content(
-            self.grid.at_node["atmosphere_bottom_air_water-vapor__dew_point_temperature"],
-            out=self.grid.at_node["atmosphere_air-column_water-vapor__liquid-equivalent_depth"]
+            out=self.grid.at_node[
+                "land_surface_air_water-vapor__saturated_partial_pressure"
+            ],
         )
 
         Meteorology.calc_vapor_pressure(
-            self.grid.at_node["land_surface_air_water-vapor__saturated_partial_pressure"],
+            self.grid.at_node[
+                "land_surface_air_water-vapor__saturated_partial_pressure"
+            ],
             self.grid.at_node["atmosphere_bottom_air_water-vapor__relative_saturation"],
-            out= self.grid.at_node["land_surface_air_water-vapor__partial_pressure"],
+            out=self.grid.at_node["land_surface_air_water-vapor__partial_pressure"],
+        )
+
+        Meteorology.calc_dew_point(
+            self.grid.at_node["atmosphere_bottom_air_water-vapor__partial_pressure"],
+            out=self.grid.at_node[
+                "atmosphere_bottom_air_water-vapor__dew_point_temperature"
+            ],
+        )
+
+        Meteorology.calc_precipitable_water_content(
+            self.grid.at_node[
+                "atmosphere_bottom_air_water-vapor__dew_point_temperature"
+            ],
+            out=self.grid.at_node[
+                "atmosphere_air-column_water-vapor__liquid-equivalent_depth"
+            ],
         )
 
         Meteorology.calc_latent_heat_flux(
             self._rho_air,
-            self.grid.at_node["atmosphere_bottom_air__bulk_latent_heat_aerodynamic_conductance"],
+            self.grid.at_node[
+                "atmosphere_bottom_air__bulk_latent_heat_aerodynamic_conductance"
+            ],
             self.grid.at_node["atmosphere_bottom_air__pressure"],
             self.grid.at_node["atmosphere_bottom_air_water-vapor__partial_pressure"],
             self.grid.at_node["land_surface_air_water-vapor__partial_pressure"],
-            out=self.grid.at_node["atmosphere_bottom_air_land_net-latent-heat__energy_flux"],
+            out=self.grid.at_node[
+                "atmosphere_bottom_air_land_net-latent-heat__energy_flux"
+            ],
         )
 
         tsn_offset = Meteorology.calc_tsn_offset(
-            self._julian_day,
+            self.julian_day,
             self._datetime_obj.year,
             self.grid.at_node["land_surface__longitude"],
-            self.gmt_offset,
+            self._gmt_offset,
         )
 
         Meteorology.calc_net_shortwave_radiation(
-            self._julian_day,
+            self.julian_day,
             tsn_offset,
             self.grid.at_node["land_surface__latitude"],
-            self.grid.at_node["atmosphere_air-column_water-vapor__liquid-equivalent_depth"],
+            self.grid.at_node[
+                "atmosphere_air-column_water-vapor__liquid-equivalent_depth"
+            ],
             self.grid.at_node["land_surface__aspect_angle"],
             self.grid.at_node["land_surface__slope_angle"],
             self.grid.at_node["land_surface__albedo"],
             self.grid.at_node[
-                "atmosphere_bottom_air__brutsaert_emissivity_canopy_factor"],
-            self.grid.at_node["atmosphere_bottom_air__brutsaert_emissivity_cloud_factor"],
+                "atmosphere_bottom_air__brutsaert_emissivity_canopy_factor"
+            ],
+            self.grid.at_node[
+                "atmosphere_bottom_air__brutsaert_emissivity_cloud_factor"
+            ],
             self.grid.at_node["atmosphere_aerosol_dust__reduction_of_transmittance"],
             out=self.grid.at_node["land_surface_net-shortwave-radiation__energy_flux"],
         )
@@ -1043,12 +1127,13 @@ class Meteorology(Component):
             self.grid.at_node["atmosphere_bottom_air__temperature"],
             self.grid.at_node["atmosphere_bottom_air_water-vapor__partial_pressure"],
             self.grid.at_node[
-                "atmosphere_bottom_air__brutsaert_emissivity_canopy_factor"],
+                "atmosphere_bottom_air__brutsaert_emissivity_canopy_factor"
+            ],
             self.grid.at_node[
-                "atmosphere_bottom_air__brutsaert_emissivity_cloud_factor"],
+                "atmosphere_bottom_air__brutsaert_emissivity_cloud_factor"
+            ],
             satterlund=self._satterlund,
-            out=self.grid.at_node["atmosphere_bottom_air__emissivity"]
-
+            out=self.grid.at_node["atmosphere_bottom_air__emissivity"],
         )
 
         Meteorology.calc_net_longwave_radiation(
@@ -1060,9 +1145,16 @@ class Meteorology(Component):
         )
 
         Meteorology.calc_net_energy_flux(
-            self.grid.at_node["atmosphere_bottom_air_land_net-sensible-heat__energy_flux"],
-            self.grid.at_node["atmosphere_bottom_air_land_net-latent-heat__energy_flux"],
+            self.grid.at_node[
+                "atmosphere_bottom_air_land_net-sensible-heat__energy_flux"
+            ],
+            self.grid.at_node[
+                "atmosphere_bottom_air_land_net-latent-heat__energy_flux"
+            ],
             self.grid.at_node["land_surface_net-shortwave-radiation__energy_flux"],
             self.grid.at_node["land_surface_net-longwave-radiation__energy_flux"],
             out=self.grid.at_node["land_surface_net-total-energy__energy_flux"],
         )
+
+        time_delta = relativedelta(seconds=dt)
+        self._datetime_obj += time_delta
