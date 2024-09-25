@@ -26,11 +26,11 @@ def build(session: nox.Session) -> None:
     os.environ["WITH_OPENMP"] = "1"
 
     session.log(f"CC = {os.environ.get('CC', 'NOT FOUND')}")
-    session.install(
-        "pip",
-        "build",
-        *("-r", PATH["requirements"] / "required.txt"),
-    )
+    if session.virtualenv.venv_backend != "none":
+        session.install(
+            "build",
+            *("-r", PATH["requirements"] / "required.txt"),
+        )
 
     session.run("python", "-m", "build", "--outdir", "./build/wheelhouse")
 
@@ -41,16 +41,18 @@ def test(session: nox.Session) -> None:
     path_args, pytest_args = pop_option(session.posargs, "--path")
     file = path_args[0] if path_args else "."
 
-    os.environ["WITH_OPENMP"] = "1"
+    if session.virtualenv.venv_backend != "none":
+        os.environ["WITH_OPENMP"] = "1"
+        session.log(f"CC = {os.environ.get('CC', 'NOT FOUND')}")
+        session.install(
+            *("-r", PATH["requirements"] / "required.txt"),
+            *("-r", PATH["requirements"] / "testing.txt"),
+        )
 
-    session.log(f"CC = {os.environ.get('CC', 'NOT FOUND')}")
-    session.install(
-        *("-r", PATH["requirements"] / "required.txt"),
-        *("-r", PATH["requirements"] / "testing.txt"),
-    )
-
-    session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
-    session.install(file, "--no-deps")
+        session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
+        session.install(file, "--no-deps")
+    else:
+        session.run("pip", "install", file, "--no-deps")
 
     check_package_versions(session, files=["required.txt", "testing.txt"])
 
@@ -58,7 +60,7 @@ def test(session: nox.Session) -> None:
         *("-n", "auto"),
         *("--cov", PROJECT),
         "-vvv",
-        # "--dist", "worksteal",  # this is not available quite yet
+        *("--dist", "worksteal"),
     ] + pytest_args
 
     if "CI" in os.environ:
@@ -81,6 +83,7 @@ def test_notebooks(session: nox.Session) -> None:
         "--nbmake",
         "--nbmake-kernel=python3",
         "--nbmake-timeout=3000",
+        "--overwrite",
         *("-n", "auto"),
         "-vvv",
     ] + pytest_args
@@ -136,7 +139,9 @@ def lint(session: nox.Session) -> None:
     """Look for lint."""
     skip_hooks = [] if "--no-skip" in session.posargs else ["check-manifest", "pyroma"]
 
-    session.install("pre-commit")
+    if session.virtualenv.venv_backend != "none":
+        session.install("pre-commit")
+
     session.run("pre-commit", "run", "--all-files", env={"SKIP": ",".join(skip_hooks)})
 
 
@@ -171,7 +176,8 @@ def docs_build(session: nox.Session) -> None:
     """Build the docs."""
     docs_build_api(session)
 
-    session.install("-r", PATH["requirements"] / "docs.txt")
+    if session.virtualenv.venv_backend != "none":
+        session.install("-r", PATH["requirements"] / "docs.txt")
 
     check_package_versions(session, files=["required.txt", "docs.txt"])
 
@@ -191,9 +197,11 @@ def docs_build(session: nox.Session) -> None:
 @nox.session(name="docs-build-api")
 def docs_build_api(session: nox.Session) -> None:
     docs_dir = PATH["docs"] / "source"
-    generated_dir = docs_dir / "generated" / "api"
 
-    session.install("-r", PATH["requirements"] / "docs.txt")
+    generated_dir = os.path.join(docs_dir, "generated", "api")
+
+    if session.virtualenv.venv_backend != "none":
+        session.install("-r", PATH["requirements"] / "docs.txt")
 
     session.log(f"generating api docs in {generated_dir}")
     session.run(
@@ -204,8 +212,7 @@ def docs_build_api(session: nox.Session) -> None:
         "--module-first",
         *("-d", "2"),
         f"--templatedir={docs_dir / '_templates'}",
-        "-o",
-        str(generated_dir),
+        *("-o", generated_dir),
         "src/landlab",
         "*.pyx",
         "*.so",
