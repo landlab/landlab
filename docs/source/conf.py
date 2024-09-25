@@ -298,12 +298,16 @@ autodoc_default_options = {
 }
 
 nbsphinx_execute = "never"
-nbsphinx_thumbnails = {
-    "teaching/**/*": "_static/favicon.ico",
-    "teaching/*": "_static/favicon.ico",
-    "tutorials/**/*": "_static/favicon.ico",
-    "tutorials/*": "_static/favicon.ico",
-}
+nbsphinx_thumbnails = (
+    {}
+    if os.getenv("GITHUB_ACTIONS")
+    else {
+        "teaching/**/*": "_static/favicon.ico",
+        "teaching/*": "_static/favicon.ico",
+        "tutorials/**/*": "_static/favicon.ico",
+        "tutorials/*": "_static/favicon.ico",
+    }
+)
 
 # This is processed by Jinja2 and inserted before each notebook
 nbsphinx_prolog = """
