@@ -47,7 +47,8 @@ jobs:
       - name: Build
         run: |
           pip install nox
-          nox -s build --force-pythons=${{ matrix.python-version }}
+          pip install build -r requirements/required.txt
+          nox -s build --no-venv --force-pythons=${{ matrix.python-version }}
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
@@ -89,10 +90,10 @@ jobs:
           miniforge-version: latest
           auto-update-conda: true
 
-      # - name: Install and test richdem engine
-      #   run: |
-      #     conda install richdem -c conda-forge
-      #     python -c 'import _richdem'
+      - name: Install and test richdem engine
+        run: |
+          conda install richdem -c conda-forge
+          python -c 'import _richdem'
 
       - uses: actions/download-artifact@v4
         name: Download build artifact
@@ -101,7 +102,9 @@ jobs:
 
       - name: Set pytest opts
         if: ${{ matrix.session-name == 'test-notebooks' }}
-        run: echo "PYTEST_ADDOPTS=--overwrite" >> $GITHUB_ENV
+        run: |
+          echo "PYTEST_ADDOPTS=--overwrite" >> $GITHUB_ENV
+          pip install -r requirements/notebooks.txt
 
       - name: Test
         env:
@@ -110,7 +113,8 @@ jobs:
           MPLBACKEND: "Agg"
         run: |
           pip install nox
-          nox --verbose -s ${{ matrix.session-name }} \
+          pip install -r requirements/required.txt -r requirements/testing.txt
+          nox --verbose --no-venv -s ${{ matrix.session-name }} \
               --force-pythons=${{ matrix.python-version }} \
               -- -m '${{ matrix.pytest-marker }}' --path=*whl
 
@@ -179,7 +183,8 @@ jobs:
       - name: Build documentation
         run: |
           pip install nox
-          nox -s docs-build
+          pip install -r requirements/docs.txt
+          nox -s docs-build --no-venv
 
       - name: Create zip
         run: zip -r docs.zip build/html
