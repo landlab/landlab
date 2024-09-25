@@ -116,15 +116,19 @@ jobs:
 
       - name: Find executed notebooks
         if: ${{ matrix.session-name == 'test-notebooks' }}
-        run: git diff --name-only | tr '\n' ' ' > executed-notebooks.txt
+        run: |
+          for f in $(git diff --name-only); do
+            echo mkdir -p executed/$(dirname $f);
+            echo cp $f executed/$(dirname $f);
+          done
 
       - name: Upload executed notebooks
-        if: ${{ matrix.os == 'macos-latest' && matrix.session-name == 'test-notebooks' }}
+        if: ${{ matrix.os == 'macos-latest' && 
+                matrix.session-name == 'test-notebooks' }}
         uses: actions/upload-artifact@v4
         with:
           name: notebooks-${{ matrix.os }}-${{ matrix.python-version }}
-          # path: docs/source/tutorials/**/*.ipynb
-          path: $(cat executed-notebooks.txt)
+          path: executed/
           overwrite: true
 
       - name: Coveralls
@@ -141,6 +145,7 @@ jobs:
       matrix:
         os: [macos-latest]
         python-version: ["3.12"]
+
     runs-on: ${{ matrix.os }}
 
     defaults:
@@ -160,7 +165,6 @@ jobs:
         name: Download build artifact
         with:
           name: notebooks-${{ matrix.os }}-${{ matrix.python-version }}
-          path: docs/source/tutorials/
           merge-multiple: true
 
       - name: Display structure of downloaded files
@@ -196,3 +200,4 @@ jobs:
         with:
           parallel-finished: true
           debug: true
+
