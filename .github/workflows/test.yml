@@ -123,7 +123,7 @@ jobs:
           done
 
       - name: Upload executed notebooks
-        if: ${{ matrix.os == 'macos-latest' && 
+        if: ${{ matrix.os == 'macos-latest' &&
                 matrix.session-name == 'test-notebooks' }}
         uses: actions/upload-artifact@v4
         with:
@@ -200,4 +200,3 @@ jobs:
         with:
           parallel-finished: true
           debug: true
-
