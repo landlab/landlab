@@ -47,7 +47,7 @@ jobs:
       - name: Build
         run: |
           pip install nox
-          nox -s build --force-pythons=${{ matrix.python-version }} --no-venv
+          nox -s build --force-pythons=${{ matrix.python-version }}
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
@@ -106,7 +106,7 @@ jobs:
           MPLBACKEND: "Agg"
         run: |
           pip install nox
-          nox --verbose --no-venv -s ${{ matrix.session-name }} \
+          nox --verbose -s ${{ matrix.session-name }} \
               --force-pythons=${{ matrix.python-version }} \
               -- -m '${{ matrix.pytest-marker }}' --path=*whl
 
@@ -162,7 +162,7 @@ jobs:
       - name: Build documentation
         run: |
           pip install nox
-          nox --no-venv -s docs-build
+          nox -s docs-build
 
       - name: Create zip
         run: zip -r docs.zip build/html
