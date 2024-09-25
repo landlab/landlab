@@ -116,6 +116,7 @@ jobs:
         with:
           name: notebooks-${{ matrix.os }}-${{ matrix.python-version }}
           path: docs/source/tutorials/**/*.ipynb
+          overwrite: true
 
       - name: Coveralls
         if: ${{ matrix.os == 'ubuntu-latest' && matrix.session-name == 'test' }}
