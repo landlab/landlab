@@ -110,6 +110,13 @@ jobs:
               --force-pythons=${{ matrix.python-version }} \
               -- -m '${{ matrix.pytest-marker }}' --path=*whl
 
+      - name: Upload executed notebooks
+        if: ${{ matrix.os == 'macos-latest' && matrix.session-name == 'test-notebooks' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: notebooks-${{ matrix.os }}
+          path: docs/source/tutorials/**/*.ipynb
+
       - name: Coveralls
         if: ${{ matrix.os == 'ubuntu-latest' && matrix.session-name == 'test' }}
         uses: AndreMiras/coveralls-python-action@develop
@@ -117,6 +124,41 @@ jobs:
           parallel: true
           flag-name: py${{ matrix.python-version }}-${{ matrix.os }}-${{ matrix.pytest-marker }}
           debug: true
+
+  docs:
+    needs: test
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+          miniforge-variant: Miniforge3
+          miniforge-version: latest
+          auto-update-conda: true
+
+      - uses: actions/download-artifact@v4
+        name: Download build artifact
+        with:
+          name: notebooks-${{ matrix.os }}
+          path: docs/source/tutorials/
+      - name: Display structure of downloaded files
+        run: ls -R
+
+      - name: install and check pandoc
+        run: |
+          conda install pandoc -c conda-forge
+          pandoc --help
+          pandoc --version
+
+      - name: Build documentation
+        run: |
+          pip install nox
+          nox -s docs-build
+
+      - name: Create zip
+        run: zip -r docs.zip build/html
 
   coveralls_finish:
     needs: test
