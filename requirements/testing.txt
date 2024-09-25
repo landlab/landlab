@@ -6,4 +6,3 @@ pytest-benchmark==4.0.0
 pytest-cov==4.1.0
 pytest-datadir==1.5.0
 pytest-xdist==3.3.1
-git+https://github.com/mcflugen/nbmake.git@v1.5.4-markers

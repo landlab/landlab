@@ -91,6 +91,7 @@ def test_notebooks(session: nox.Session) -> None:
         os.environ["WITH_OPENMP"] = "1"
         session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
         session.install(
+            "git+https://github.com/mcflugen/nbmake.git@v1.5.4-markers",
             *("-r", PATH["requirements"] / "required.txt"),
             *("-r", PATH["requirements"] / "testing.txt"),
             *("-r", PATH["requirements"] / "notebooks.txt"),

@@ -2,7 +2,6 @@
 # [project.optional-dependencies] testing
 coveralls
 flaky
-git+https://github.com/mcflugen/nbmake.git@v1.5.4-markers
 hypothesis
 pytest
 pytest-benchmark

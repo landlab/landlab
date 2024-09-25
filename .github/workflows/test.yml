@@ -105,6 +105,7 @@ jobs:
         run: |
           echo "PYTEST_ADDOPTS=--overwrite" >> $GITHUB_ENV
           pip install -r requirements/notebooks.txt
+          pip install git+https://github.com/mcflugen/nbmake.git@v1.5.4-markers
 
       - name: Test
         env:
