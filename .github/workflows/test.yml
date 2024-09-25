@@ -47,7 +47,7 @@ jobs:
       - name: Build
         run: |
           pip install nox
-          nox -s build --force-pythons=${{ matrix.python-version }}
+          nox -s build --force-pythons=${{ matrix.python-version }} --no-venv
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
@@ -106,7 +106,7 @@ jobs:
           MPLBACKEND: "Agg"
         run: |
           pip install nox
-          nox --verbose -s ${{ matrix.session-name }} \
+          nox --verbose --no-venv -s ${{ matrix.session-name }} \
               --force-pythons=${{ matrix.python-version }} \
               -- -m '${{ matrix.pytest-marker }}' --path=*whl
 
@@ -128,7 +128,10 @@ jobs:
 
   docs:
     needs: test
-    runs-on: macos-latest
+    matrix:
+      os: [macos-latest]
+      python-version: ["3.12"]
+    runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v4
@@ -145,6 +148,7 @@ jobs:
           name: notebooks-${{ matrix.os }}-${{ matrix.python-version }}
           path: docs/source/tutorials/
           merge-multiple: true
+
       - name: Display structure of downloaded files
         run: ls -R
 
@@ -157,10 +161,16 @@ jobs:
       - name: Build documentation
         run: |
           pip install nox
-          nox -s docs-build
+          nox --no-venv -s docs-build
 
       - name: Create zip
         run: zip -r docs.zip build/html
+
+      - name: Upload docs
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-${{ matrix.os }}-${{ matrix.python-version }}
+          path: docs.zip
 
   coveralls_finish:
     needs: test
