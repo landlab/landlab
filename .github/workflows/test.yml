@@ -118,8 +118,8 @@ jobs:
         if: ${{ matrix.session-name == 'test-notebooks' }}
         run: |
           for f in $(git diff --name-only); do
-            echo mkdir -p executed/$(dirname $f);
-            echo cp $f executed/$(dirname $f);
+            mkdir -p executed/$(dirname $f);
+            cp $f executed/$(dirname $f);
           done
 
       - name: Upload executed notebooks
