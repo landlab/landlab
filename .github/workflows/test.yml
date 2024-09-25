@@ -99,6 +99,10 @@ jobs:
         with:
           name: build-${{ matrix.os }}-${{ matrix.python-version }}
 
+      - name: Set pytest opts
+        if: ${{ matrix.session-name == 'test-notebooks' }}
+        run: echo "PYTEST_ADDOPTS=--overwrite" >> $GITHUB_ENV
+
       - name: Test
         env:
           HYPOTHESIS_PROFILE: "ci"
@@ -110,12 +114,17 @@ jobs:
               --force-pythons=${{ matrix.python-version }} \
               -- -m '${{ matrix.pytest-marker }}' --path=*whl
 
+      - name: Find executed notebooks
+        if: ${{ matrix.session-name == 'test-notebooks' }}
+        run: git diff --name-only | tr '\n' ' ' > executed-notebooks.txt
+
       - name: Upload executed notebooks
         if: ${{ matrix.os == 'macos-latest' && matrix.session-name == 'test-notebooks' }}
         uses: actions/upload-artifact@v4
         with:
           name: notebooks-${{ matrix.os }}-${{ matrix.python-version }}
-          path: docs/source/tutorials/**/*.ipynb
+          # path: docs/source/tutorials/**/*.ipynb
+          path: $(cat executed-notebooks.txt)
           overwrite: true
 
       - name: Coveralls
