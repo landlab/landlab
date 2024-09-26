@@ -124,8 +124,8 @@ jobs:
         if: ${{ matrix.session-name == 'test-notebooks' }}
         run: |
           for f in $(git diff --name-only); do
-            echo $f
             mkdir -p executed/$(dirname $f);
+            cp $f executed/$(dirname $f);
           done
           ls -R executed/
 
@@ -134,7 +134,7 @@ jobs:
                 matrix.session-name == 'test-notebooks' }}
         uses: actions/upload-artifact@v4
         with:
-          name: notebooks-${{ matrix.os }}-${{ matrix.python-version }}
+          name: notebooks-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.pytest-marker.replace(' ', '_') }}
           path: executed/
           overwrite: true
 
@@ -171,7 +171,7 @@ jobs:
       - uses: actions/download-artifact@v4
         name: Download build artifact
         with:
-          name: notebooks-${{ matrix.os }}-${{ matrix.python-version }}
+          pattern: notebooks-*
           merge-multiple: true
 
       - name: Display structure of downloaded files
