@@ -104,8 +104,8 @@ jobs:
         if: ${{ matrix.session-name == 'test-notebooks' }}
         run: |
           echo "PYTEST_ADDOPTS=--overwrite" >> $GITHUB_ENV
-          pip install -r requirements/notebooks.txt
-          pip install git+https://github.com/mcflugen/nbmake.git@v1.5.4-markers
+          # pip install -r requirements/notebooks.txt
+          # pip install git+https://github.com/mcflugen/nbmake.git@v1.5.4-markers
 
       - name: Test
         env:
@@ -114,11 +114,11 @@ jobs:
           MPLBACKEND: "Agg"
         run: |
           pip install nox
-          pip install -r requirements/required.txt -r requirements/testing.txt
-          pip install *whl --no-deps
-          nox --verbose --no-venv -s ${{ matrix.session-name }} \
+          # pip install -r requirements/required.txt -r requirements/testing.txt
+          # pip install *whl --no-deps
+          nox --verbose -s ${{ matrix.session-name }} \
               --force-pythons=${{ matrix.python-version }} \
-              -- -m '${{ matrix.pytest-marker }}'
+              -- -m '${{ matrix.pytest-marker }}' --path=*whl
 
       - name: Find executed notebooks
         if: ${{ matrix.session-name == 'test-notebooks' }}
