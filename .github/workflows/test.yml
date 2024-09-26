@@ -111,7 +111,7 @@ jobs:
         env:
           HYPOTHESIS_PROFILE: "ci"
           OPENTOPOGRAPHY_API_KEY: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
-          MPLBACKEND: "Agg"
+          MPLBACKEND: "module://matplotlib_inline.backend_inline"
         run: |
           pip install nox
           # pip install -r requirements/required.txt -r requirements/testing.txt
