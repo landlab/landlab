@@ -39,9 +39,9 @@ def build(session: nox.Session) -> None:
 def test(session: nox.Session) -> None:
     """Run the tests."""
     path_args, pytest_args = pop_option(session.posargs, "--path")
-    file = path_args[0] if path_args else "."
 
     if session.virtualenv.venv_backend != "none":
+        file = path_args[0] if path_args else "."
         os.environ["WITH_OPENMP"] = "1"
         session.log(f"CC = {os.environ.get('CC', 'NOT FOUND')}")
         session.install(
@@ -51,21 +51,20 @@ def test(session: nox.Session) -> None:
 
         session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
         session.install(file, "--no-deps")
-    else:
-        session.run("pip", "install", file, "--no-deps")
 
     check_package_versions(session, files=["required.txt", "testing.txt"])
 
     args = [
+        "pytest",
         *("-n", "auto"),
         *("--cov", PROJECT),
         "-vvv",
-        *("--dist", "worksteal"),
+        # *("--dist", "worksteal"),
     ] + pytest_args
 
     if "CI" in os.environ:
         args.append(f"--cov-report=xml:{ROOT.absolute()!s}/coverage.xml")
-    session.run("pytest", *args)
+    session.run(*args)
 
     if "CI" not in os.environ:
         session.run("coverage", "report", "--ignore-errors", "--show-missing")
@@ -75,7 +74,6 @@ def test(session: nox.Session) -> None:
 def test_notebooks(session: nox.Session) -> None:
     """Run the notebooks."""
     path_args, pytest_args = pop_option(session.posargs, "--path")
-    file = path_args[0] if path_args else "."
 
     args = [
         "pytest",
@@ -88,6 +86,7 @@ def test_notebooks(session: nox.Session) -> None:
     ] + pytest_args
 
     if session.virtualenv.venv_backend != "none":
+        file = path_args[0] if path_args else "."
         os.environ["WITH_OPENMP"] = "1"
         session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
         session.install(
@@ -97,8 +96,6 @@ def test_notebooks(session: nox.Session) -> None:
             *("-r", PATH["requirements"] / "notebooks.txt"),
         )
         session.install(file, "--no-deps")
-    else:
-        session.run("pip", "install", file, "--no-deps")
 
     check_package_versions(
         session, files=["required.txt", "testing.txt", "notebooks.txt"]

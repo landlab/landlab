@@ -115,9 +115,10 @@ jobs:
         run: |
           pip install nox
           pip install -r requirements/required.txt -r requirements/testing.txt
+          pip install *whl --no-deps
           nox --verbose --no-venv -s ${{ matrix.session-name }} \
               --force-pythons=${{ matrix.python-version }} \
-              -- -m '${{ matrix.pytest-marker }}' --path=*whl
+              -- -m '${{ matrix.pytest-marker }}'
 
       - name: Find executed notebooks
         if: ${{ matrix.session-name == 'test-notebooks' }}
