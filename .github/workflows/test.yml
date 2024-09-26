@@ -114,6 +114,7 @@ jobs:
           MPLBACKEND: "module://matplotlib_inline.backend_inline"
         run: |
           pip install nox
+          pip install matplotlib_inline
           # pip install -r requirements/required.txt -r requirements/testing.txt
           # pip install *whl --no-deps
           nox --verbose -s ${{ matrix.session-name }} \
