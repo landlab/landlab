@@ -172,6 +172,7 @@ def build_index(session: nox.Session) -> None:
 def docs_build(session: nox.Session) -> None:
     """Build the docs."""
     docs_build_api(session)
+    docs_build_notebook_index(session)
 
     if session.virtualenv.venv_backend != "none":
         session.install("-r", PATH["requirements"] / "docs.txt")
