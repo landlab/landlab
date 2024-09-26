@@ -231,10 +231,19 @@ def docs_build_notebook_index(session: nox.Session) -> None:
             if f.is_dir()
         ]
 
-        content = [f"# {gallery.title()} Gallery"] + [
-            format_nbgallery(section, str(docs_dir), level=2)
-            for section in sorted(sections)
-        ]
+        content = (
+            [
+                f"""\
+({gallery}-gallery)=
+
+# {gallery.title()} Gallery
+"""
+            ]
+            + [
+                format_nbgallery(section, str(docs_dir), level=2)
+                for section in sorted(sections)
+            ]
+        )
 
         with open(gallery_index, "w") as fp:
             print((2 * os.linesep).join(content), file=fp)
