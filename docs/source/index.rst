@@ -23,8 +23,9 @@ page.
 Tutorials
 ---------
 
-:ref:`Gallery of tutorial notebooks <tutorials>`.
+An overview of :ref:`tutorial content <tutorials>`.
 
+Gallery of tutorial :ref:`notebooks <tutorials-gallery>`.
 
 .. toctree::
    :caption: Getting Started
