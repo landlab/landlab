@@ -100,23 +100,24 @@ jobs:
         with:
           name: build-${{ matrix.os }}-${{ matrix.python-version }}
 
-      - name: Set pytest opts
+      - name: Set pytest opts for notebook tests
         if: ${{ matrix.session-name == 'test-notebooks' }}
         run: |
           echo "PYTEST_ADDOPTS=--overwrite" >> $GITHUB_ENV
-          # pip install -r requirements/notebooks.txt
-          # pip install git+https://github.com/mcflugen/nbmake.git@v1.5.4-markers
+          echo "MPLBACKEND=module://matplotlib_inline.backend_inline" >> $GITHUB_ENV
+          pip install matplotlib_inline
+
+      - name: Set pytest opts for notebook tests
+        if: ${{ matrix.session-name != 'test-notebooks' }}
+        run: |
+          echo "MPLBACKEND=Agg" >> $GITHUB_ENV
 
       - name: Test
         env:
           HYPOTHESIS_PROFILE: "ci"
           OPENTOPOGRAPHY_API_KEY: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
-          MPLBACKEND: "module://matplotlib_inline.backend_inline"
         run: |
           pip install nox
-          pip install matplotlib_inline
-          # pip install -r requirements/required.txt -r requirements/testing.txt
-          # pip install *whl --no-deps
           nox --verbose -s ${{ matrix.session-name }} \
               --force-pythons=${{ matrix.python-version }} \
               -- -m '${{ matrix.pytest-marker }}' --path=*whl
