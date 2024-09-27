@@ -45,10 +45,10 @@ def test_ones():
     fields.new_field_location("node", 12)
     fields.new_field_location("cell", 2)
 
-    value_array = fields.ones("node")
+    value_array = fields.ones(at="node")
     assert_array_equal(np.ones(12), value_array)
 
-    value_array = fields.ones("cell")
+    value_array = fields.ones(at="cell")
     assert_array_equal(np.ones(2), value_array)
 
 
@@ -59,11 +59,11 @@ def test_add_ones():
 
     fields.add_ones("z", at="node")
     assert_array_equal(np.ones(12), fields["node"]["z"])
-    assert_array_equal(np.ones(12), fields.field_values("node", "z"))
+    assert_array_equal(np.ones(12), fields.field_values("z", at="node"))
 
     fields.add_ones("z", at="cell")
     assert_array_equal(np.ones(2), fields["cell"]["z"])
-    assert_array_equal(np.ones(2), fields.field_values("cell", "z"))
+    assert_array_equal(np.ones(2), fields.field_values("z", at="cell"))
 
 
 def test_add_ones_return_value():
@@ -74,12 +74,12 @@ def test_add_ones_return_value():
     rtn_value = fields.add_ones("z", at="node")
     assert_array_equal(rtn_value, np.ones(12))
     assert rtn_value is fields["node"]["z"]
-    assert rtn_value is fields.field_values("node", "z")
+    assert rtn_value is fields.field_values("z", at="node")
 
     rtn_value = fields.add_ones("z", at="cell")
     assert_array_equal(rtn_value, np.ones(2))
     assert rtn_value is fields["cell"]["z"]
-    assert rtn_value is fields.field_values("cell", "z")
+    assert rtn_value is fields.field_values("z", at="cell")
 
 
 def test_add_existing_field_default():
@@ -187,7 +187,7 @@ def test_delete_field():
         fields.delete_field("node", "vals")
     fields.delete_field("link", "vals")
     with pytest.raises(KeyError):
-        fields.field_units("link", "vals")
+        fields.field_units("vals", at="link")
     with pytest.raises(KeyError):
         fields.at_link["vals"]
 
@@ -245,11 +245,11 @@ def test_grid_field_zeros_ones_empty():
     fields = ModelDataFields()
     fields.new_field_location("grid", 1)
     with pytest.raises(ValueError):
-        fields.zeros("grid")
+        fields.zeros(at="grid")
     with pytest.raises(ValueError):
-        fields.empty("grid")
+        fields.empty(at="grid")
     with pytest.raises(ValueError):
-        fields.ones("grid")
+        fields.ones(at="grid")
 
 
 def test_nd_field():
@@ -271,7 +271,7 @@ def test_setting_units(name, unit_str):
     fields = ModelDataFields()
     fields.new_field_location("node", 12)
     fields.add_field(name, np.empty(12), at="node", units=unit_str[::-1])
-    assert fields.field_units("node", name) == unit_str[::-1]
+    assert fields.field_units(name, at="node") == unit_str[::-1]
 
     fields["node"].set_units(name, unit_str)
-    assert fields.field_units("node", name) == unit_str
+    assert fields.field_units(name, at="node") == unit_str
