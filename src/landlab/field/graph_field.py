@@ -5,8 +5,8 @@
 import numpy as np
 import xarray as xr
 
-from .errors import FieldError
-from .errors import GroupError
+from landlab.field.errors import FieldError
+from landlab.field.errors import GroupError
 
 
 def reshape_for_storage(array, field_size=None):
