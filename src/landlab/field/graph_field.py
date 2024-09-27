@@ -2,6 +2,9 @@
 :class:`~landlab.graph.graph.Graph`.
 """
 
+import inspect
+import warnings
+
 import numpy as np
 import xarray as xr
 
@@ -658,14 +661,9 @@ class GraphFields:
 
         :meta landlab: info-field
         """
-        if len(args) == 2:
-            group, field = args
-        elif len(args) == 1:
-            group, field = kwds.pop("at", self.default_group), args[0]
-        else:
-            raise ValueError("number of arguments must be 1 or 2")
-        if group is None:
-            raise ValueError("no group provided")
+        kwds.setdefault("at", self.default_group)
+        args, group = _parse_args_and_location(1, *args, **kwds)
+        field = args[0]
 
         try:
             return field in self[group]
@@ -784,14 +782,9 @@ class GraphFields:
 
         :meta landlab: field-io
         """
-        if len(args) == 2:
-            group, field = args
-        elif len(args) == 1:
-            group, field = kwds.pop("at", self.default_group), args[0]
-        else:
-            raise ValueError("number of arguments must be 1 or 2")
-        if group is None:
-            raise ValueError("no group provided")
+        kwds.setdefault("at", self.default_group)
+        args, group = _parse_args_and_location(1, *args, **kwds)
+        field = args[0]
 
         try:
             fields = self[group]
@@ -883,17 +876,12 @@ class GraphFields:
 
         :meta landlab: field-io
         """
-        if len(args) == 2:
-            group, field = args
-        elif len(args) == 1:
-            group, field = kwds.pop("at", self.default_group), args[0]
-        else:
-            raise ValueError("number of arguments must be 1 or 2")
-        if group is None:
-            raise ValueError("no group provided")
+        kwds.setdefault("at", self.default_group)
+        args, group = _parse_args_and_location(1, *args, **kwds)
+        field = args[0]
 
         if isinstance(field, str):
-            vals = self.field_values(group, field)
+            vals = self.field_values(field, at=group)
         else:
             vals = np.asarray(field)
             if vals.size != self[group].size:
@@ -932,14 +920,9 @@ class GraphFields:
 
         :meta landlab: info-field
         """
-        if len(args) == 2:
-            group, field = args
-        elif len(args) == 1:
-            group, field = kwds.pop("at", self.default_group), args[0]
-        else:
-            raise ValueError("number of arguments must be 1 or 2")
-        if group is None:
-            raise ValueError("no group provided")
+        kwds.setdefault("at", self.default_group)
+        args, group = _parse_args_and_location(1, *args, **kwds)
+        field = args[0]
 
         return self[group]._ds[field].attrs["units"]
 
@@ -977,10 +960,9 @@ class GraphFields:
 
         :meta landlab: field-add
         """
-        if len(args) == 0:
-            group = kwds.pop("at", kwds.pop("centering", "node"))
-        else:
-            group = args[0]
+        kwds.setdefault("at", kwds.pop("centering", "node"))
+        args, group = _parse_args_and_location(0, *args, **kwds)
+        kwds.pop("at")
 
         if group == "grid":
             raise ValueError(
@@ -1148,12 +1130,10 @@ class GraphFields:
 
         :meta landlab: field-add
         """
-        if len(args) == 3:
-            at, name, value_array = args
-        elif len(args) == 2:
-            at, name, value_array = (kwds.pop("at", None), args[0], args[1])
-        else:
-            raise ValueError("number of arguments must be 2 or 3")
+        kwds.setdefault("at", "node")
+        args, at = _parse_args_and_location(2, *args, **kwds)
+        name, value_array = args
+        kwds.pop("at")
 
         units = kwds.get("units", "?")
         copy = kwds.get("copy", False)
@@ -1250,12 +1230,11 @@ class GraphFields:
 
         :meta landlab: field-add
         """
-        if len(args) == 2:
-            loc, name = args
-        elif len(args) == 1:
-            loc, name = kwds.pop("at"), args[0]
-        else:
-            raise ValueError("number of arguments must be 1 or 2")
+        kwds.setdefault("at", "node")
+        args, loc = _parse_args_and_location(1, *args, **kwds)
+        name = args[0]
+        kwds.pop("at")
+
         units = kwds.pop("units", "?")
         copy = kwds.pop("copy", False)
         clobber = kwds.pop("clobber", False)
@@ -1397,13 +1376,10 @@ class GraphFields:
 
         :meta landlab: field-add
         """
-        if len(args) == 3:
-            at, name, fill_value = args
-        elif len(args) == 2:
-            at = kwds.pop("at", "node")
-            name, fill_value = args
-        else:
-            raise ValueError("number of arguments must be 2 or 3")
+        kwds.setdefault("at", "node")
+        args, at = _parse_args_and_location(2, *args, **kwds)
+        name, fill_value = args
+        kwds.pop("at")
 
         data = self.add_empty(name, at=at, **kwds)
         data.fill(fill_value)
@@ -1445,6 +1421,20 @@ def _parse_args_and_location(n_args: int, *args, **kwds) -> tuple[str, str]:
     if len(args) == n_args:
         return args, kwds.get("at", None)
     elif len(args) == n_args + 1:
+        caller_name = inspect.stack()[1].function
+        sig = f"at={args[0]!r}"
+        if n_args > 0:
+            sig = ", ".join([f"arg{n}" for n in range(n_args)] + [sig])
+
+        warnings.warn(
+            f"Calling `{caller_name}` with the field location as the first argument"
+            " is deprecated and will be removed in future versions. Instead, please use"
+            " the `at` keyword to specify the location:"
+            f" {caller_name}({sig}).",
+            FutureWarning,
+            stacklevel=3,
+        )
+
         return args[1:], args[0]
     else:
         raise ValueError(f"number of arguments must be {n_args} or {n_args + 1}")
