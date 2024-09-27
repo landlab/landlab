@@ -226,6 +226,7 @@ def test_calc_bulk_richardson_number(params):
 )
 def test_calc_bulk_aero_conductance(params):
     """Test the calculation of the bulk aero conductance."""
+    
     aero_conductance = Meteorology.calc_bulk_aero_conductance(
         reference_height=10,
         roughness_length=0.02,
@@ -271,6 +272,7 @@ def test_calc_sensible_heat_flux(params):
 )
 def test_calc_saturation_vapor_pressure(params):
     """Test to calculate saturation vapor pressure"""
+
     # Brutsaert method
     sat_vapor_pressure = Meteorology.calc_saturation_vapor_pressure(
         temp=params["air_temp"], satterlund=False, millibar=True
@@ -317,6 +319,7 @@ def test_calc_dew_point(air_vapor_pressure):
 )
 def test_calc_surf_temp(params):
     """Test to calculate land surface temperature"""
+
     # test different input types
     surf_temp = Meteorology.calc_surf_temp(
         dew_point=params["dew_point"], h_swe=params["h_swe"]
@@ -439,6 +442,7 @@ def test_calc_net_shortwave_radiation(params):
 )
 def test_calc_air_emissivity(params):
     """Test to calculate emissivity of air"""
+
     # Brutsaert method
     air_em = Meteorology.calc_air_emissivity(
         air_temp=params["air_temp"],
@@ -469,8 +473,9 @@ def test_calc_air_emissivity(params):
         PARAMS["test_case_4"],
     ],
 )
-def test_update_net_longwave_radiation(params):
+def test_calc_net_longwave_radiation(params):
     """Test to calculate net long wave energy flux"""
+
     q_lw = Meteorology.calc_net_longwave_radiation(
         air_temp=params["air_temp"],
         surf_temp=params["surf_temp"],
@@ -489,7 +494,9 @@ def test_update_net_longwave_radiation(params):
         ([[1, 1], [1, 1]], [[2, 2], [2, 2]], [[3, 3], [3, 3]], [[4, 4], [4, 4]]),
     ],
 )
-def test_update_net_energy_flux(q_lw, q_sw, qh, qe):
+def test_calc_net_energy_flux(q_lw, q_sw, qh, qe):
+    """Test to calculate total net energy flux"""
+
     q_sum = Meteorology.calc_net_energy_flux(
         shortwave_energy_flux=q_sw,
         longwave_energy_flux=q_lw,
@@ -526,19 +533,18 @@ def test_run_multiple_steps():
 
     assert_almost_equal(
         grid.at_node["land_surface_net-shortwave-radiation__energy_flux"], 3.34685251
-    )  # Qn_SW
-
+    )
     assert_almost_equal(
         grid.at_node["land_surface_net-longwave-radiation__energy_flux"], 17.6928257
-    )  # Qn_LW
+    )
     assert_almost_equal(
         grid.at_node["atmosphere_bottom_air_land_net-sensible-heat__energy_flux"],
         9.743864,
-    )  # Qh
+    )
     assert_almost_equal(
         grid.at_node["atmosphere_bottom_air_land_net-latent-heat__energy_flux"],
         4.9008869,
-    )  # Qe
+    )
     assert_almost_equal(
         grid.at_node["land_surface_net-total-energy__energy_flux"], 35.6844291
     )  # Q_sum
@@ -554,18 +560,18 @@ def test_run_multiple_steps():
 
     assert_almost_equal(
         grid.at_node["land_surface_net-shortwave-radiation__energy_flux"], 166.10733404
-    )  # Qn_SW
+    )
     assert_almost_equal(
         grid.at_node["land_surface_net-longwave-radiation__energy_flux"], -109.48594478
-    )  # Qn_LW
+    )
     assert_almost_equal(
         grid.at_node["atmosphere_bottom_air_land_net-sensible-heat__energy_flux"],
         -121.49949326,
-    )  # Qh
+    )
     assert_almost_equal(
         grid.at_node["atmosphere_bottom_air_land_net-latent-heat__energy_flux"],
         -43.26555593,
-    )  # Qe
+    )
     assert_almost_equal(
         grid.at_node["land_surface_net-total-energy__energy_flux"], -108.14365992
-    )  # Q_sum
+    )
