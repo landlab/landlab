@@ -1408,3 +1408,43 @@ class GraphFields:
         data = self.add_empty(name, at=at, **kwds)
         data.fill(fill_value)
         return data
+
+
+def _parse_args_and_location(n_args: int, *args, **kwds) -> tuple[str, str]:
+    """Parse arguments for backward compatibility.
+
+    Parameters
+    ----------
+    n_args : int
+        The new number of expected arguments.
+    *args : tuple
+        The passed arguments.
+    **kwds : dict
+        The passed keyword arguments.
+
+    Returns
+    -------
+    tuple of tuple, str
+        The arguments as expect with the new signature followed by
+        the location string.
+
+    Examples
+    --------
+    >>> from landlab.field.graph_field import _parse_args_and_location
+    >>> _parse_args_and_location(0, "node")
+    ((), 'node')
+    >>> _parse_args_and_location(1, "node", "z")
+    (('z',), 'node')
+    >>> _parse_args_and_location(2, "cell", "z", [1, 2, 3])
+    (('z', [1, 2, 3]), 'cell')
+    >>> _parse_args_and_location(2, "cell", "z", [1, 2, 3], at="node")
+    (('z', [1, 2, 3]), 'cell')
+    >>> _parse_args_and_location(2, "z", [1, 2, 3], at="node")
+    (('z', [1, 2, 3]), 'node')
+    """
+    if len(args) == n_args:
+        return args, kwds.get("at", None)
+    elif len(args) == n_args + 1:
+        return args[1:], args[0]
+    else:
+        raise ValueError(f"number of arguments must be {n_args} or {n_args + 1}")
