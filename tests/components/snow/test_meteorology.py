@@ -196,6 +196,7 @@ def test_assign_parameters():
     with pytest.raises(ValueError):
         met.clear_sky = -1
 
+
 @pytest.mark.parametrize(
     "params",
     [
