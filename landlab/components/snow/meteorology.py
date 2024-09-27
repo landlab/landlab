@@ -57,9 +57,10 @@ class Meteorology(Component):
         A Landlab model grid object.
     start_datetime : string
         Start time (local time) in format of "yyyy-mm-dd hh:mm:ss".
-    gmt_offset : int, optional
-        GMT offset at the location of interest. It should be entered as an integer
-        between 0 and 12 with negative values for locations west of the prime meridian.
+    gmt_offset : int or array_like, optional
+        GMT offset at the location of interest. It should be entered as an integer or an
+        array of integers between 0 and 12 with negative values for locations west of
+        the prime meridian.
     rho_air : float, optional
         Air density [kg / m3].
     cp_air  : float, optional
@@ -72,7 +73,14 @@ class Meteorology(Component):
     satterlund : bool, optional
         Indicate the method for calcuating saturation vapor pressure and air emissivity.
         If true, use Satterlund method. If false, use Brutsaert method.
-
+    calc_input: bool, optional
+        Indicate whether to calculate land surface temperature as input.
+        If false, user provides land surface temperature data as input. If true, use dew
+        point temperature to estimate its values.
+    clear_sky: bool, optional
+        Indicate whether to account for cloud and canopy factor impact.
+        If false, the cloud and canopy factors will be used for the calculation of
+        the net shortwave energy flux.
 
     Examples
     --------
@@ -80,25 +88,35 @@ class Meteorology(Component):
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.snow import Meteorology
     >>> grid = RasterModelGrid((2, 2))
-    >>> grid.add_full("atmosphere_bottom_air__temperature", 1, at="node")
-    array([ 1.,  1.,  1.,  1.])
-    >>> grid.add_full("land_surface__temperature", -1, at="node")
-    array([-1., -1., -1., -1.])
+    >>> grid.add_full("atmosphere_bottom_air__temperature", 8, at="node")
+    array([8., 8., 8., 8.])
+    >>> grid.add_full("land_surface__temperature", 4, at="node")
+    array([4., 4., 4., 4.])
     >>> grid.add_full("land_surface__latitude", 40, at="node")
-    array([ 40.,  40.,  40.,  40.])
-    >>> grid.add_full("land_surface__longitude", -105, at="node")
-    array([-105., -105., -105., -105.])
-    >>> grid.add_full(
-    ...     "atmosphere_bottom_air_water-vapor__relative_saturation", 0.4, at="node"
-    ... )
-    array([ 0.4,  0.4,  0.4,  0.4])
-    >>> dt = 60 * 60 * 48
-    >>> met = Meteorology(
-    ...     grid, start_datetime="2023-01-01 12:00:00", GMT_offset=-7, satterlund=False
-    ... )
+    array([40., 40., 40., 40.])
+    >>> grid.add_full("land_surface__longitude", -75, at="node")
+    array([-75., -75., -75., -75.])
+    >>> grid.add_full("atmosphere_bottom_air_flow__reference-height_speed", 2.0)
+    array([2., 2., 2., 2.])
+    >>> grid.add_full("atmosphere_bottom_air__pressure", 1000)
+    array([1000., 1000., 1000., 1000.])
+    >>> grid.add_full("atmosphere_bottom_air__brutsaert_emissivity_canopy_factor", 0.98)
+    array([0.98, 0.98, 0.98, 0.98])
+    >>> grid.add_full("atmosphere_bottom_air__brutsaert_emissivity_cloud_factor", 0.62)
+    array([0.62, 0.62, 0.62, 0.62])
+    >>> grid.add_full("atmosphere_aerosol_dust__reduction_of_transmittance", 0.1)
+    array([0.1, 0.1, 0.1, 0.1])
+    >>> grid.add_full("land_surface__slope_angle", 0.2)
+    array([0.2, 0.2, 0.2, 0.2])
+    >>> grid.add_full("land_surface__aspect_angle", 0.5)
+    array([0.5, 0.5, 0.5, 0.5])
+    >>> grid.add_full("land_surface__albedo", 0.3)
+    array([0.3, 0.3, 0.3, 0.3])
+    >>> dt = 60 * 60
+    >>> met = Meteorology(grid, start_datetime="2023-01-02 12:00:00", gmt_offset=-5)
     >>> met.run_one_step(dt)
     >>> grid.at_node["land_surface_net-total-energy__energy_flux"]
-    array([ 498.41796974,  498.41796974,  498.41796974,  498.41796974])
+    array([35.68442908, 35.68442908, 35.68442908, 35.68442908])
     """
 
     _name = "Meteorology"
@@ -106,7 +124,7 @@ class Meteorology(Component):
     _unit_agnostic = False
 
     _info = {
-        # input fields
+        # input fields (15 var)
         "atmosphere_bottom_air__temperature": {
             "dtype": float,
             "intent": "in",
@@ -117,7 +135,7 @@ class Meteorology(Component):
         },
         "land_surface__temperature": {
             "dtype": float,
-            "intent": "in",
+            "intent": "inout",
             "optional": False,
             "units": "deg_C",
             "mapping": "node",
@@ -155,13 +173,13 @@ class Meteorology(Component):
             "mapping": "node",
             "doc": "land surface slope",
         },
-        "snowpack__depth": {
+        "snowpack__liquid-equivalent_depth": {
             "dtype": float,
             "intent": "in",
             "optional": True,
             "units": "m",
             "mapping": "node",
-            "doc": "snow depth",
+            "doc": "snow water equivalent depth",
         },
         "land_surface__albedo": {
             "dtype": float,
@@ -227,7 +245,7 @@ class Meteorology(Component):
             "mapping": "node",
             "doc": "air flow speed at reference height",
         },  # uz
-        # output fields (18 var)
+        # output fields (15 var)
         "land_surface_net-total-energy__energy_flux": {
             "dtype": float,
             "intent": "out",
@@ -358,8 +376,10 @@ class Meteorology(Component):
         rho_air=1.2614,
         cp_air=1005.7,
         roughness_length=0.02,
-        reference_height=3,
+        reference_height=10,
         satterlund=False,
+        calc_input=False,
+        clear_sky=False,
     ):
         """Initialize Meteorology component"""
 
@@ -370,6 +390,8 @@ class Meteorology(Component):
         self._roughness_length = roughness_length  # m
         self._reference_height = reference_height  # m
         self._satterlund = satterlund  # bool
+        self._calc_input = calc_input  # bool
+        self._clear_sky = clear_sky
 
         self._datetime_obj = datetime.datetime.strptime(
             start_datetime, "%Y-%m-%d %H:%M:%S"
@@ -382,8 +404,8 @@ class Meteorology(Component):
         if "land_surface__slope_angle" not in grid.at_node:
             grid.add_zeros("land_surface__slope_angle", at="node")
 
-        if "snow__depth" not in grid.at_node:
-            grid.add_zeros("snow__depth", at="node")
+        if "snowpack__liquid-equivalent_depth" not in grid.at_node:
+            grid.add_zeros("snowpack__liquid-equivalent_depth", at="node")
 
         if "land_surface__albedo" not in grid.at_node:
             grid.add_full("land_surface__albedo", 0.3, at="node")
@@ -418,7 +440,7 @@ class Meteorology(Component):
             )
 
         if "atmosphere_bottom_air__pressure" not in grid.at_node:
-            grid.add_full("atmosphere_bottom_air__pressure", 1000, at="node")
+            grid.add_full("atmosphere_bottom_air__pressure", 1013.25, at="node")
 
         if "atmosphere_bottom_air_flow__reference-height_speed" not in grid.at_node:
             grid.add_full(
@@ -487,6 +509,26 @@ class Meteorology(Component):
         if not isinstance(satterlund, bool):
             raise ValueError("satterlund must be a boolean value")
         self._satterlund = satterlund
+
+    @property
+    def calc_input(self):
+        return self._calc_input
+
+    @calc_input.setter
+    def calc_input(self, calc_input):
+        if not isinstance(calc_input, bool):
+            raise ValueError("calc_input must be a boolean value")
+        self._calc_input = calc_input
+
+    @property
+    def clear_sky(self):
+        return self._clear_sky
+
+    @clear_sky.setter
+    def clear_sky(self, clear_sky):
+        if not isinstance(clear_sky, bool):
+            raise ValueError("clear_sky must be a boolean value")
+        self._clear_sky = clear_sky
 
     @property
     def julian_day(self):
@@ -581,7 +623,7 @@ class Meteorology(Component):
         nw = np.asarray(w).sum()
 
         # if all pixels are neutral, set Dh = De = Dn
-        aero_conductance = conductance_neutral
+        aero_conductance = np.asarray(conductance_neutral)
 
         # if one or more pixels are not neutral, make correction using Ri, set Dh = De
         if nw != 0:
@@ -668,7 +710,7 @@ class Meteorology(Component):
             )
 
         if millibar:
-            out = np.multiply(out, _KPA_TO_MBAR, out=out)
+            out = np.multiply(out, _KPA_TO_MBAR, out=np.asarray(out))
 
         return out
 
@@ -716,6 +758,31 @@ class Meteorology(Component):
         log_term = np.log(np.asarray(air_vapor_pressure) / a)
 
         return np.divide(c * log_term, b - log_term, out=out)
+
+    @staticmethod
+    def calc_surf_temp(dew_point, h_swe, out=None):
+        """Calculate land surface temperature
+
+        Parameters
+        ----------
+        dew_point : array_like
+            Dew point temperature [deg_C].
+        h_swe : array_like
+            Snow water equivalent [m].
+
+        Returns
+        -------
+        array_like
+            Land surface temperature [deg_C].
+        """
+
+        result = np.where(np.asarray(h_swe) > 0, np.minimum(dew_point, 0), dew_point)
+
+        if out is not None:
+            out[:] = result
+            return out
+        else:
+            return result
 
     @staticmethod
     def calc_precipitable_water_content(dew_point, out=None):
@@ -785,9 +852,10 @@ class Meteorology(Component):
             Year for a given datetime.
         longitude : array_like
             longitude at the location of interest [degree].
-        gmt_offset : int, optional
+        gmt_offset : int or array_like, optional
             GMT offset at the location of interest. It should be entered as an integer
-            between 0 and 12 with negative values for locations west of the prime meridian.
+            or an array of integers between 0 and 12 with negative values for locations
+            west of the prime meridian.
         dts_offset : int, optional
             Daylight Saving Time offset [hour].
 
@@ -802,7 +870,7 @@ class Meteorology(Component):
         solar_noon = vendor_solar_funcs.True_Solar_Noon(
             julian_day,
             np.asarray(longitude),
-            gmt_offset,
+            np.asarray(gmt_offset),
             DST_offset=dts_offset,
             year=year,
         )
@@ -819,9 +887,10 @@ class Meteorology(Component):
         alpha,
         beta,
         albedo,
+        dust_atten,
         canopy_factor,
         cloud_factor,
-        dust_atten,
+        clear_sky=True,
         out=None,
     ):
         """Calculate net shortwave radiation energy flux
@@ -842,12 +911,15 @@ class Meteorology(Component):
             Land surface slope [radians].
         albedo : array_like
             Land surface albedo.
+        dust_atten: array_like
+            Aerosol dust reduction of transmittance.
         canopy_factor: array_like
             Brutsaert emissivity canopy factor.
         cloud_factor: array_like
             Brutsaert emissivity cloud factor.
-        dust_atten: array_like
-            Aerosol dust reduction of transmittance.
+        clear_sky: bool, optional
+            Indicate whether to account for cloud and canopy factor impact.
+            If false, the cloud and canopy factors will be used for calculation.
 
         Returns
         -------
@@ -869,9 +941,12 @@ class Meteorology(Component):
         qn_sw = k_cs * (1 - np.asarray(albedo))
 
         # changed for landlab: add cloud and canopy factor impact (Dingman 2015 p227)
-        tau_cloud = np.asarray(0.355 + 0.68 * (1 - np.asarray(cloud_factor)))
-        tau_cloud[tau_cloud > 1] = 1
-        tau_canopy = np.exp(-3.91 * np.asarray(canopy_factor))
+        if clear_sky:
+            tau_cloud = tau_canopy = 1
+        else:
+            tau_cloud = np.asarray(0.355 + 0.68 * (1 - np.asarray(cloud_factor)))
+            tau_cloud[tau_cloud > 1] = 1
+            tau_canopy = np.exp(-3.91 * np.asarray(canopy_factor))
 
         return np.multiply(tau_cloud * tau_canopy, qn_sw, out=out)
 
@@ -994,6 +1069,49 @@ class Meteorology(Component):
 
     def run_one_step(self, dt):
         # update state variables
+        Meteorology.calc_saturation_vapor_pressure(
+            self.grid.at_node["atmosphere_bottom_air__temperature"],
+            satterlund=self._satterlund,
+            millibar=True,
+            out=self.grid.at_node[
+                "atmosphere_bottom_air_water-vapor__saturated_partial_pressure"
+            ],
+        )
+
+        Meteorology.calc_vapor_pressure(
+            self.grid.at_node[
+                "atmosphere_bottom_air_water-vapor__saturated_partial_pressure"
+            ],
+            self.grid.at_node["atmosphere_bottom_air_water-vapor__relative_saturation"],
+            out=self.grid.at_node[
+                "atmosphere_bottom_air_water-vapor__partial_pressure"
+            ],
+        )
+
+        Meteorology.calc_dew_point(
+            self.grid.at_node["atmosphere_bottom_air_water-vapor__partial_pressure"],
+            out=self.grid.at_node[
+                "atmosphere_bottom_air_water-vapor__dew_point_temperature"
+            ],
+        )
+
+        if self._calc_input:  # changed for landlab: add calc_input parameter
+            Meteorology.calc_surf_temp(
+                self.grid.at_node[
+                    "atmosphere_bottom_air_water-vapor__dew_point_temperature"
+                ],
+                self.grid.at_node["snowpack__liquid-equivalent_depth"],
+                out=self.grid.at_node["land_surface__temperature"],
+            )
+
+        Meteorology.calc_saturation_vapor_pressure(
+            self.grid.at_node["land_surface__temperature"],
+            satterlund=self._satterlund,
+            millibar=True,
+            out=self.grid.at_node[
+                "land_surface_air_water-vapor__saturated_partial_pressure"
+            ],
+        )
 
         Meteorology.calc_bulk_richardson_number(
             self._reference_height,
@@ -1031,31 +1149,12 @@ class Meteorology(Component):
             ],
         )
 
-        Meteorology.calc_saturation_vapor_pressure(
-            self.grid.at_node["atmosphere_bottom_air__temperature"],
-            satterlund=self._satterlund,
-            millibar=True,
-            out=self.grid.at_node[
-                "atmosphere_bottom_air_water-vapor__saturated_partial_pressure"
-            ],
-        )
-
-        Meteorology.calc_vapor_pressure(
+        Meteorology.calc_precipitable_water_content(
             self.grid.at_node[
-                "atmosphere_bottom_air_water-vapor__saturated_partial_pressure"
+                "atmosphere_bottom_air_water-vapor__dew_point_temperature"
             ],
-            self.grid.at_node["atmosphere_bottom_air_water-vapor__relative_saturation"],
             out=self.grid.at_node[
-                "atmosphere_bottom_air_water-vapor__partial_pressure"
-            ],
-        )
-
-        Meteorology.calc_saturation_vapor_pressure(
-            self.grid.at_node["land_surface__temperature"],
-            satterlund=self._satterlund,
-            millibar=True,
-            out=self.grid.at_node[
-                "land_surface_air_water-vapor__saturated_partial_pressure"
+                "atmosphere_air-column_water-vapor__liquid-equivalent_depth"
             ],
         )
 
@@ -1065,22 +1164,6 @@ class Meteorology(Component):
             ],
             self.grid.at_node["atmosphere_bottom_air_water-vapor__relative_saturation"],
             out=self.grid.at_node["land_surface_air_water-vapor__partial_pressure"],
-        )
-
-        Meteorology.calc_dew_point(
-            self.grid.at_node["atmosphere_bottom_air_water-vapor__partial_pressure"],
-            out=self.grid.at_node[
-                "atmosphere_bottom_air_water-vapor__dew_point_temperature"
-            ],
-        )
-
-        Meteorology.calc_precipitable_water_content(
-            self.grid.at_node[
-                "atmosphere_bottom_air_water-vapor__dew_point_temperature"
-            ],
-            out=self.grid.at_node[
-                "atmosphere_air-column_water-vapor__liquid-equivalent_depth"
-            ],
         )
 
         Meteorology.calc_latent_heat_flux(
@@ -1113,13 +1196,14 @@ class Meteorology(Component):
             self.grid.at_node["land_surface__aspect_angle"],
             self.grid.at_node["land_surface__slope_angle"],
             self.grid.at_node["land_surface__albedo"],
+            self.grid.at_node["atmosphere_aerosol_dust__reduction_of_transmittance"],
             self.grid.at_node[
                 "atmosphere_bottom_air__brutsaert_emissivity_canopy_factor"
             ],
             self.grid.at_node[
                 "atmosphere_bottom_air__brutsaert_emissivity_cloud_factor"
             ],
-            self.grid.at_node["atmosphere_aerosol_dust__reduction_of_transmittance"],
+            clear_sky=self._clear_sky,
             out=self.grid.at_node["land_surface_net-shortwave-radiation__energy_flux"],
         )
 
