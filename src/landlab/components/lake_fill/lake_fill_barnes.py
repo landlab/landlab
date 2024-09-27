@@ -337,7 +337,7 @@ class LakeMapperBarnes(Component):
             )
 
         self._pit = []
-        self._closed = self._grid.zeros("node", dtype=bool)
+        self._closed = self._grid.zeros(at="node", dtype=bool)
         self._gridclosednodes = (
             self._grid.status_at_node == self._grid.BC_NODE_IS_CLOSED
         )
@@ -1168,7 +1168,7 @@ class LakeMapperBarnes(Component):
         ... )
         True
         """
-        closedq = self._grid.ones("node", dtype=int)
+        closedq = self._grid.ones(at="node", dtype=int)
         # Using a slightly different approach. We recognise three types: lake
         # (0), lake margin (1), and closed (2). This lets us work the
         # perimeter too. Open each lake as needed.

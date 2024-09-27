@@ -190,7 +190,7 @@ class SteepnessFinder(Component):
         self._ksn = self._grid.add_zeros(
             "channel__steepness_index", at="node", clobber=True
         )
-        self._mask = self._grid.ones("node", dtype=bool)
+        self._mask = self._grid.ones(at="node", dtype=bool)
         # this one needs modifying if smooth_elev
         self._elev = self._grid.at_node["topographic__elevation"]
 
@@ -224,7 +224,7 @@ class SteepnessFinder(Component):
         )[::-1]
         # note elevs are guaranteed to be in order, UNLESS a fill
         # algorithm has been used.
-        nodes_incorporated = self._grid.zeros("node", dtype=bool)
+        nodes_incorporated = self._grid.zeros(at="node", dtype=bool)
         # now do each poss channel in turn
         # get the head of the first (longest!) channel:
         for dstr_order_index in range(valid_dstr_order.size):
