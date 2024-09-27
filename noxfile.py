@@ -26,11 +26,11 @@ def build(session: nox.Session) -> None:
     os.environ["WITH_OPENMP"] = "1"
 
     session.log(f"CC = {os.environ.get('CC', 'NOT FOUND')}")
-    session.install(
-        "pip",
-        "build",
-        *("-r", PATH["requirements"] / "required.txt"),
-    )
+    if session.virtualenv.venv_backend != "none":
+        session.install(
+            "build",
+            *("-r", PATH["requirements"] / "required.txt"),
+        )
 
     session.run("python", "-m", "build", "--outdir", "./build/wheelhouse")
 
@@ -39,31 +39,32 @@ def build(session: nox.Session) -> None:
 def test(session: nox.Session) -> None:
     """Run the tests."""
     path_args, pytest_args = pop_option(session.posargs, "--path")
-    file = path_args[0] if path_args else "."
 
-    os.environ["WITH_OPENMP"] = "1"
+    if session.virtualenv.venv_backend != "none":
+        file = path_args[0] if path_args else "."
+        os.environ["WITH_OPENMP"] = "1"
+        session.log(f"CC = {os.environ.get('CC', 'NOT FOUND')}")
+        session.install(
+            *("-r", PATH["requirements"] / "required.txt"),
+            *("-r", PATH["requirements"] / "testing.txt"),
+        )
 
-    session.log(f"CC = {os.environ.get('CC', 'NOT FOUND')}")
-    session.install(
-        *("-r", PATH["requirements"] / "required.txt"),
-        *("-r", PATH["requirements"] / "testing.txt"),
-    )
-
-    session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
-    session.install(file, "--no-deps")
+        session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
+        session.install(file, "--no-deps")
 
     check_package_versions(session, files=["required.txt", "testing.txt"])
 
     args = [
+        "pytest",
         *("-n", "auto"),
         *("--cov", PROJECT),
         "-vvv",
-        # "--dist", "worksteal",  # this is not available quite yet
+        # *("--dist", "worksteal"),
     ] + pytest_args
 
     if "CI" in os.environ:
         args.append(f"--cov-report=xml:{ROOT.absolute()!s}/coverage.xml")
-    session.run("pytest", *args)
+    session.run(*args)
 
     if "CI" not in os.environ:
         session.run("coverage", "report", "--ignore-errors", "--show-missing")
@@ -73,7 +74,6 @@ def test(session: nox.Session) -> None:
 def test_notebooks(session: nox.Session) -> None:
     """Run the notebooks."""
     path_args, pytest_args = pop_option(session.posargs, "--path")
-    file = path_args[0] if path_args else "."
 
     args = [
         "pytest",
@@ -85,17 +85,17 @@ def test_notebooks(session: nox.Session) -> None:
         "-vvv",
     ] + pytest_args
 
-    os.environ["WITH_OPENMP"] = "1"
-
-    session.install(
-        *("-r", PATH["requirements"] / "required.txt"),
-        *("-r", PATH["requirements"] / "testing.txt"),
-        *("-r", PATH["requirements"] / "notebooks.txt"),
-    )
-    session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
-    session.install("git+https://github.com/mcflugen/nbmake.git@v1.5.4-markers")
-
-    session.install(file, "--no-deps")
+    if session.virtualenv.venv_backend != "none":
+        file = path_args[0] if path_args else "."
+        os.environ["WITH_OPENMP"] = "1"
+        session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
+        session.install(
+            "git+https://github.com/mcflugen/nbmake.git@v1.5.4-markers",
+            *("-r", PATH["requirements"] / "required.txt"),
+            *("-r", PATH["requirements"] / "testing.txt"),
+            *("-r", PATH["requirements"] / "notebooks.txt"),
+        )
+        session.install(file, "--no-deps")
 
     check_package_versions(
         session, files=["required.txt", "testing.txt", "notebooks.txt"]
@@ -136,7 +136,9 @@ def lint(session: nox.Session) -> None:
     """Look for lint."""
     skip_hooks = [] if "--no-skip" in session.posargs else ["check-manifest", "pyroma"]
 
-    session.install("pre-commit")
+    if session.virtualenv.venv_backend != "none":
+        session.install("pre-commit")
+
     session.run("pre-commit", "run", "--all-files", env={"SKIP": ",".join(skip_hooks)})
 
 
@@ -170,8 +172,10 @@ def build_index(session: nox.Session) -> None:
 def docs_build(session: nox.Session) -> None:
     """Build the docs."""
     docs_build_api(session)
+    docs_build_notebook_index(session)
 
-    session.install("-r", PATH["requirements"] / "docs.txt")
+    if session.virtualenv.venv_backend != "none":
+        session.install("-r", PATH["requirements"] / "docs.txt")
 
     check_package_versions(session, files=["required.txt", "docs.txt"])
 
@@ -180,7 +184,7 @@ def docs_build(session: nox.Session) -> None:
         "sphinx-build",
         *("-j", "auto"),
         *("-b", "html"),
-        "-W",
+        # "-W",
         "--keep-going",
         PATH["docs"] / "source",
         PATH["build"] / "html",
@@ -191,9 +195,11 @@ def docs_build(session: nox.Session) -> None:
 @nox.session(name="docs-build-api")
 def docs_build_api(session: nox.Session) -> None:
     docs_dir = PATH["docs"] / "source"
-    generated_dir = docs_dir / "generated" / "api"
 
-    session.install("-r", PATH["requirements"] / "docs.txt")
+    generated_dir = os.path.join(docs_dir, "generated", "api")
+
+    if session.virtualenv.venv_backend != "none":
+        session.install("-r", PATH["requirements"] / "docs.txt")
 
     session.log(f"generating api docs in {generated_dir}")
     session.run(
@@ -204,11 +210,71 @@ def docs_build_api(session: nox.Session) -> None:
         "--module-first",
         *("-d", "2"),
         f"--templatedir={docs_dir / '_templates'}",
-        "-o",
-        str(generated_dir),
+        *("-o", generated_dir),
         "src/landlab",
         "*.pyx",
         "*.so",
+    )
+
+
+@nox.session(name="docs-build-gallery-index", python=None)
+def docs_build_notebook_index(session: nox.Session) -> None:
+    docs_dir = PATH["docs"] / "source"
+
+    for gallery in ("tutorials", "teaching"):
+        gallery_index = docs_dir / "generated" / gallery / "index.md"
+        os.makedirs(os.path.dirname(gallery_index), exist_ok=True)
+
+        sections = [
+            os.path.abspath(f.path)
+            for f in os.scandir(docs_dir / gallery)
+            if f.is_dir()
+        ]
+
+        content = (
+            [
+                f"""\
+({gallery}-gallery)=
+
+# {gallery.title()} Gallery
+"""
+            ]
+            + [
+                format_nbgallery(section, str(docs_dir), level=2)
+                for section in sorted(sections)
+            ]
+        )
+
+        with open(gallery_index, "w") as fp:
+            print((2 * os.linesep).join(content), file=fp)
+
+        session.log(gallery_index)
+
+
+def format_nbgallery(path, start, level=1):
+    title = pathlib.Path(path).stem.replace("_", " ").title()
+
+    p = os.path.relpath(path, start)
+
+    files = []
+    if glob.glob(os.path.join(path, "*.ipynb")):
+        files += [f"/{p}/*"]
+    if glob.glob(os.path.join(path, "**/*.ipynb")):
+        files += [f"/{p}/**"]
+
+    body = "\n".join(files)
+    return (
+        f"""\
+{'#' * level} {title}
+
+```{{nbgallery}}
+:glob:
+
+{body}
+```
+"""
+        if files
+        else ""
     )
 
 

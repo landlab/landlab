@@ -8,6 +8,7 @@ build:
     pre_build:
       - pip install nox
       - nox -s docs-build-api
+      - nox -s docs-build-gallery-index
 
 sphinx:
   builder: html
