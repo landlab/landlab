@@ -163,13 +163,14 @@ def test_assign_parameters():
 
     # parameters
     assert met._datetime_obj == datetime(2023, 1, 1, 12, 0)
-    assert met._gmt_offset == 0
-    assert met._rho_air == 1.2614
-    assert met._cp_air == 1005.7
-    assert met._roughness_length == 0.02
-    assert met._reference_height == 10
-    assert not met._satterlund
-    assert not met._calc_input
+    assert met.gmt_offset == 0
+    assert met.rho_air == 1.2614
+    assert met.cp_air == 1005.7
+    assert met.roughness_length == 0.02
+    assert met.reference_height == 10
+    assert not met.satterlund
+    assert not met.calc_input
+    assert not met.clear_sky
 
     with pytest.raises(ValueError):
         met.gmt_offset = -13
@@ -192,6 +193,8 @@ def test_assign_parameters():
     with pytest.raises(ValueError):
         met.calc_input = -1
 
+    with pytest.raises(ValueError):
+        met.clear_sky = -1
 
 @pytest.mark.parametrize(
     "params",
@@ -226,7 +229,7 @@ def test_calc_bulk_richardson_number(params):
 )
 def test_calc_bulk_aero_conductance(params):
     """Test the calculation of the bulk aero conductance."""
-    
+
     aero_conductance = Meteorology.calc_bulk_aero_conductance(
         reference_height=10,
         roughness_length=0.02,
