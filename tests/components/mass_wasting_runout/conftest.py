@@ -31,7 +31,7 @@ def example_square_mg():
     mg.at_node["mass__wasting_id"] = np.zeros(nn).astype(int)
     mg.at_node["mass__wasting_id"][np.array([38])] = 1
     depth = np.ones(nn) * 1
-    mg.add_field("node", "soil__thickness", depth)
+    mg.add_field("soil__thickness", depth, at="node")
     np.random.seed(seed=7)
     mg.at_node["particle__diameter"] = np.random.uniform(0.05, 0.25, nn)
     mg.at_node["organic__content"] = np.random.uniform(0.01, 0.10, nn)
@@ -69,7 +69,7 @@ def example_flat_mg():
     nn = mg.number_of_nodes
     mg.at_node["mass__wasting_id"] = np.zeros(mg.number_of_nodes).astype(int)
     depth = np.ones(nn) * 1
-    mg.add_field("node", "soil__thickness", depth)
+    mg.add_field("soil__thickness", depth, at="node")
     return mg
 
 
@@ -88,7 +88,7 @@ def example_bumpy_mg():
     nn = mg.number_of_nodes
     mg.at_node["mass__wasting_id"] = np.zeros(mg.number_of_nodes).astype(int)
     depth = np.ones(nn) * 1
-    mg.add_field("node", "soil__thickness", depth)
+    mg.add_field("soil__thickness", depth, at="node")
     return mg
 
 
@@ -115,7 +115,7 @@ def example_pile_MWRu():
     mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
     # soil thickness
     thickness = np.ones(mg.number_of_nodes) * hs
-    mg.add_field("node", "soil__thickness", thickness)
+    mg.add_field("soil__thickness", thickness, at="node")
     mg.add_field("topographic__elevation", np.ones(r * c) * 1, at="node")
     # set particle diameter
     mg.at_node["particle__diameter"] = np.ones(len(mg.node_x)) * Dp
@@ -201,7 +201,7 @@ def example_flume_MWRu():
 
     # soil thickness
     thickness = np.ones(mg.number_of_nodes) * soil_thickness
-    mg.add_field("node", "soil__thickness", thickness)
+    mg.add_field("soil__thickness", thickness, at="node")
 
     # define landslide location
     mg.at_node["mass__wasting_id"] = np.zeros(mg.number_of_nodes).astype(int)

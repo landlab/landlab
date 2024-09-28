@@ -54,7 +54,7 @@ class OrientedRasterCTS(CellLabCTSModel):
     >>> nsd = {0: "yes", 1: "no"}
     >>> xnlist = []
     >>> xnlist.append(Transition((0, 1, 0), (1, 1, 0), 1.0, "frogging"))
-    >>> nsg = mg.add_zeros("node", "node_state_grid")
+    >>> nsg = mg.add_zeros("node_state_grid", at="node")
     >>> orcts = OrientedRasterCTS(mg, nsd, xnlist, nsg)
     """
 
