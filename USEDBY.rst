@@ -58,7 +58,7 @@ Campforts, B., Shobe, C.M., Overeem, I., and Tucker, G.E. (2022) **The art of la
 Cardenas, B. T., Lamb, M. P., & Grotzinger, J. P. (2022). **Martian landscapes of fluvial ridges carved from ancient sedimentary basin fill.** *Nature Geoscience,* 1-7. `https://www.nature.com/articles/s41561-022-01058-2 <https://www.nature.com/articles/s41561-022-01058-2>`__.
 
 Cullen, C., Anders, A. M., Lai, J., & Druhan, J. L. (2022). **Numerical modeling of groundwater‐driven stream network evolution in low‐relief post‐glacial landscapes.** *Earth Surface Processes and Landforms,* 47(2), 658-671, `https://doi.org/10.1002/esp.5278 <https://doi.org/10.1002/esp.5278>`__.
->
+
 Gray, H. J., DuRoss, C. B., Nicovich, S. R., & Gold, R. D. (2022). **A geomorphic-process-based cellular automata model of colluvial wedge morphology and stratigraphy.** *Earth Surface Dynamics,* 10(2), 329-348, `https://doi.org/10.5194/esurf-10-329-2022 <https://doi.org/10.5194/esurf-10-329-2022>`__.
 
 Kwang, J. S., Thaler, E. A., Quirk, B. J., Quarrier, C. L., & Larsen, I. J. (2022). **A Landscape Evolution Modeling Approach for Predicting Three‐Dimensional Soil Organic Carbon Redistribution in Agricultural Landscapes.** *Journal of Geophysical Research: Biogeosciences,* 127(2), e2021JG006616, `https://doi.org/10.1029/2021JG006616 <https://doi.org/10.1029/2021JG006616>`__.
@@ -71,7 +71,7 @@ Reitman, N. G., Mueller, K. J., & Tucker, G. E. (2022). **Surface slip variabili
 
 Tucker, G. E., Hutton, E. W., Piper, M. D., Campforts, B., Gan, T., Barnhart, K. R., ... & Syvitski, J. (2022). **CSDMS: a community platform for numerical modeling of Earth surface processes.** *Geoscientific Model Development,* 15(4), 1413-1439, `https://doi.org/10.5194/gmd-15-1413-2022 <https://doi.org/10.5194/gmd-15-1413-2022>`__.
 
-Uhlemann, S., Dafflon, B., Wainwright, H. M., Williams, K. H., Minsley, B., Zamudio, K., ... & Hubbard, S. (2022). **Surface parameters and bedrock properties covary across a mountainous watershed: Insights from machine learning and geophysics.** *Science Advances,* 8(12), eabj2479.`https://doi.org/10.1126/sciadv.abj2479 <https://doi.org/10.1126/sciadv.abj2479>`__.
+Uhlemann, S., Dafflon, B., Wainwright, H. M., Williams, K. H., Minsley, B., Zamudio, K., ... & Hubbard, S. (2022). **Surface parameters and bedrock properties covary across a mountainous watershed: Insights from machine learning and geophysics.** *Science Advances,* 8(12), eabj2479. `https://doi.org/10.1126/sciadv.abj2479 <https://doi.org/10.1126/sciadv.abj2479>`__.
 
 Xi, C., Hu, X., Ma, G., Rezania, M., Liu, B., & He, K. (2022). **Predictive model of regional coseismic landslides’ permanent displacement considering uncertainty.** *Landslides,* 19(10), 2513-2534, `https://doi.org/10.1007/s10346-022-01918-3 <https://doi.org/10.1007/s10346-022-01918-3>`__.
 
@@ -80,7 +80,7 @@ Zhao, H., Lin, Y., Zhou, J., Delang, C. O., & He, H. (2022). **Simulation of Hol
 2021
 ----
 
-Barnhart, K. R., Jones, R. P., George, D. L., McArdell, B. W., Rengers, F. K., Staley, D. M., & Kean, J. W. (2021). **Multi‐Model Comparison of Computed Debris Flow Runout for the 9 January 2018 Montecito, California Post‐Wildfire Event.** *Journal of Geophysical Research: Earth Surface,* 126(12), e2021JF006245.`https://doi.org/10.1029/2021JF006245 <https://doi.org/10.1029/2021JF006245>`__.
+Barnhart, K. R., Jones, R. P., George, D. L., McArdell, B. W., Rengers, F. K., Staley, D. M., & Kean, J. W. (2021). **Multi‐Model Comparison of Computed Debris Flow Runout for the 9 January 2018 Montecito, California Post‐Wildfire Event.** *Journal of Geophysical Research: Earth Surface,* 126(12), e2021JF006245. `https://doi.org/10.1029/2021JF006245 <https://doi.org/10.1029/2021JF006245>`__.
 
 Chen, H., Wang, X., Lu, H., & Van Balen, R. (2021). **Anthropogenic impacts on Holocene fluvial dynamics in the Chinese Loess Plateau, an evaluation based on landscape evolution modelling.** *Geomorphology,* 392, 107935, `https://doi.org/10.1016/j.geomorph.2021.107935 <https://doi.org/10.1016/j.geomorph.2021.107935>`__.
 
