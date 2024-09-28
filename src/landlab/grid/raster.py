@@ -291,8 +291,8 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
             groups[at] = {}
             for name in self[at].keys():
                 groups[at][name] = {
-                    "array": self.field_values(at, name),
-                    "units": self.field_units(at, name),
+                    "array": self.field_values(name, at=at),
+                    "units": self.field_units(name, at=at),
                 }
 
         state_dict["fields"] = groups
@@ -973,7 +973,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
                 # set a flag to indicate successful setting of internal values
                 self.fixed_value_node_properties["internal_flag"] = True
 
-        if not self.has_field("node", value_of):
+        if not self.has_field(value_of, at="node"):
             print(
                 """
                 *************************************************
@@ -1921,7 +1921,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         :meta landlab: boundary-condition
         """
         # get node_data if a field name
-        node_data = self.return_array_or_field_values("node", node_data)
+        node_data = self.return_array_or_field_values(node_data, at="node")
 
         # For this to be a watershed, need to make sure that there is a ring
         # of closed boundary nodes around the outside of the watershed,
@@ -2102,7 +2102,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         :meta landlab: boundary-condition
         """
         # get node_data if a field name
-        node_data = self.return_array_or_field_values("node", node_data)
+        node_data = self.return_array_or_field_values(node_data, at="node")
 
         if outlet_id is None:
             # verify that there is one and only one node with the status
@@ -2264,7 +2264,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         :meta landlab: boundary-condition
         """
         # get node_data if a field name
-        node_data = self.return_array_or_field_values("node", node_data)
+        node_data = self.return_array_or_field_values(node_data, at="node")
 
         # make ring of no data nodes
         self.set_closed_boundaries_at_grid_edges(True, True, True, True)
@@ -2342,7 +2342,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         :meta landlab: boundary-condition
         """
         # get node_data if a field name
-        node_data = self.return_array_or_field_values("node", node_data)
+        node_data = self.return_array_or_field_values(node_data, at="node")
 
         # make ring of no data nodes
         self.set_closed_boundaries_at_grid_edges(True, True, True, True)

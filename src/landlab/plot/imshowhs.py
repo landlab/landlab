@@ -192,7 +192,8 @@ def imshowhs_grid(grid, values, **kwds):
     values_at = kwds.pop("at", values_at)
 
     if isinstance(values, str):
-        values = grid.field_values(values_at, values)
+        values = grid.field_values(values, at=values_at)
+        # values = grid.field_values(values_at, values)
 
     if values_at == "node":
         ax = imshowhs_grid_at_node(grid, values, **kwds)
