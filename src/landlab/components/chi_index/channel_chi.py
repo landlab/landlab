@@ -49,7 +49,7 @@ class ChiFinder(Component):
     ...     mg2.nodes_at_top_edge,
     ... ):
     ...     mg2.status_at_node[nodes] = mg2.BC_NODE_IS_CLOSED
-    >>> _ = mg2.add_zeros("node", "topographic__elevation")
+    >>> _ = mg2.add_zeros("topographic__elevation", at="node")
     >>> mg2.at_node["topographic__elevation"][mg2.core_nodes] = (
     ...     mg2.node_x[mg2.core_nodes] / 1000.0
     ... )
@@ -226,8 +226,10 @@ class ChiFinder(Component):
         self._set_up_reference_area(reference_area)
 
         self._use_true_dx = use_true_dx
-        self._chi = self._grid.add_zeros("node", "channel__chi_index", clobber=clobber)
-        self._mask = self._grid.ones("node", dtype=bool)
+        self._chi = self._grid.add_zeros(
+            "channel__chi_index", at="node", clobber=clobber
+        )
+        self._mask = self._grid.ones(at="node", dtype=bool)
         self._elev = self._grid.at_node["topographic__elevation"]
 
     def _set_up_reference_area(self, reference_area):
@@ -270,7 +272,7 @@ class ChiFinder(Component):
                 valid_upstr_order, chi_integrand, self._chi, mean_dx
             )
         else:
-            chi_integrand = self._grid.zeros("node")
+            chi_integrand = self._grid.zeros(at="node")
             chi_integrand[valid_upstr_order] = (
                 self._A0 / valid_upstr_areas
             ) ** reftheta
@@ -394,7 +396,7 @@ class ChiFinder(Component):
         ...     mg2.nodes_at_top_edge,
         ... ):
         ...     mg2.status_at_node[nodes] = mg2.BC_NODE_IS_CLOSED
-        >>> _ = mg2.add_zeros("node", "topographic__elevation")
+        >>> _ = mg2.add_zeros("topographic__elevation", at="node")
         >>> mg2.at_node["topographic__elevation"][mg2.core_nodes] = (
         ...     mg2.node_x[mg2.core_nodes] / 1000.0
         ... )
@@ -684,7 +686,7 @@ class ChiFinder(Component):
         ...     mg.nodes_at_top_edge,
         ... ):
         ...     mg.status_at_node[nodes] = mg.BC_NODE_IS_CLOSED
-        >>> _ = mg.add_zeros("node", "topographic__elevation")
+        >>> _ = mg.add_zeros("topographic__elevation", at="node")
         >>> mg.at_node["topographic__elevation"][mg.core_nodes] = (
         ...     mg.node_x[mg.core_nodes] / 1000.0
         ... )

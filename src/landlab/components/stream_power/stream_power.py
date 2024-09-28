@@ -338,8 +338,8 @@ class StreamPowerEroder(Component):
         # m and n will always be set, but care needs to be taken to include Q
         # and W directly if appropriate
 
-        self._stream_power_erosion = self._grid.zeros(centering="node")
-        self._alpha = self._grid.zeros("node")
+        self._stream_power_erosion = self._grid.zeros(at="node")
+        self._alpha = self._grid.zeros(at="node")
 
     @property
     def K(self):
