@@ -226,7 +226,9 @@ class ChiFinder(Component):
         self._set_up_reference_area(reference_area)
 
         self._use_true_dx = use_true_dx
-        self._chi = self._grid.add_zeros("channel__chi_index", at="node", clobber=clobber)
+        self._chi = self._grid.add_zeros(
+            "channel__chi_index", at="node", clobber=clobber
+        )
         self._mask = self._grid.ones(at="node", dtype=bool)
         self._elev = self._grid.at_node["topographic__elevation"]
 
