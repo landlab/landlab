@@ -126,7 +126,9 @@ class HexLatticeTectonicizer:
 
         # If needed, create node-state grid
         if node_state is None:
-            self.node_state = self.grid.add_zeros("node_state_map", at="node", dtype=int)
+            self.node_state = self.grid.add_zeros(
+                "node_state_map", at="node", dtype=int
+            )
         else:
             self.node_state = node_state
 
