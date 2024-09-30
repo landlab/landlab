@@ -223,6 +223,7 @@ def build(ctx):
     authors_file = pathlib.Path(ctx.parent.params["authors_file"])
     author_format = ctx.parent.params["author_format"]
     credits_file = pathlib.Path(ctx.parent.params["credits_file"])
+    start_string = ctx.parent.params["start_string"]
 
     git_log = GitLog("%aN")
     try:
@@ -235,9 +236,7 @@ def build(ctx):
             out(f"{git_log}")
 
     intro = (
-        _read_until(authors_file, until=".. credits-roll start-author-list")
-        if authors_file.is_file()
-        else ""
+        _read_until(authors_file, until=start_string) if authors_file.is_file() else ""
     )
     if len(intro) == 0:
         err(f"empty or missing authors file ({authors_file})")
