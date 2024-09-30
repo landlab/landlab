@@ -95,7 +95,7 @@ landlab = [
 where = ["src"]
 
 [tool.setuptools.dynamic]
-readme = {file = ["README.rst", "AUTHORS.rst"]}
+readme = {file = ["README.rst", "AUTHORS.md"]}
 version = {attr = "landlab._version.__version__"}
 
 [tool.pytest.ini_options]
@@ -201,5 +201,6 @@ exclude = '''
   .*\[bot\]  # ignore all bots
 )
 '''
-authors_file = "AUTHORS.rst"
-author_format = "* `{name} <https://github.com/{github}>`_"
+authors_file = "AUTHORS.md"
+author_format = "- [{name}](https://github.com/{github})"
+start_string = "<!-- credits-roll start-author-list -->"
