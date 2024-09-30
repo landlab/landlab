@@ -197,10 +197,10 @@ class SnowEnergyBalance(Component):
 
         super().__init__(grid)
 
-        self.rho_water = rho_water
-        self.cp_snow = cp_snow
-        self.rain_snow_temp = rain_snow_temp
-        self.melting_point = melting_point
+        self._rho_water = rho_water
+        self._cp_snow = cp_snow
+        self._rain_snow_temp = rain_snow_temp
+        self._melting_point = melting_point
         self._total_p_snow = grid.zeros(at="node")
         self._total_sm = grid.zeros(at="node")
 

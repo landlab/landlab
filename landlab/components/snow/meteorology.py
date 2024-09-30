@@ -55,7 +55,7 @@ class Meteorology(Component):
     ----------
     grid : ModelGrid
         A Landlab model grid object.
-    start_datetime : string
+    start_datetime : string, optional
         Start time (local time) in format of "yyyy-mm-dd hh:mm:ss".
     gmt_offset : int or array_like, optional
         GMT offset at the location of interest. It should be entered as an integer or an
@@ -371,7 +371,7 @@ class Meteorology(Component):
     def __init__(
         self,
         grid,
-        start_datetime,
+        start_datetime=None,
         gmt_offset=0,
         rho_air=1.2614,
         cp_air=1005.7,
@@ -393,9 +393,12 @@ class Meteorology(Component):
         self._calc_input = calc_input  # bool
         self._clear_sky = clear_sky
 
-        self._datetime_obj = datetime.datetime.strptime(
-            start_datetime, "%Y-%m-%d %H:%M:%S"
-        )
+        if start_datetime is not None:
+            self._datetime_obj = datetime.datetime.strptime(
+                start_datetime, "%Y-%m-%d %H:%M:%S"
+            )
+        else:
+            self._datetime_obj = datetime.datetime.now()
 
         # input fields
         if "land_surface__aspect_angle" not in grid.at_node:
@@ -1071,7 +1074,7 @@ class Meteorology(Component):
         # update state variables
         Meteorology.calc_saturation_vapor_pressure(
             self.grid.at_node["atmosphere_bottom_air__temperature"],
-            satterlund=self._satterlund,
+            satterlund=self.satterlund,
             millibar=True,
             out=self.grid.at_node[
                 "atmosphere_bottom_air_water-vapor__saturated_partial_pressure"
@@ -1106,7 +1109,7 @@ class Meteorology(Component):
 
         Meteorology.calc_saturation_vapor_pressure(
             self.grid.at_node["land_surface__temperature"],
-            satterlund=self._satterlund,
+            satterlund=self.satterlund,
             millibar=True,
             out=self.grid.at_node[
                 "land_surface_air_water-vapor__saturated_partial_pressure"
@@ -1114,7 +1117,7 @@ class Meteorology(Component):
         )
 
         Meteorology.calc_bulk_richardson_number(
-            self._reference_height,
+            self.reference_height,
             self.grid.at_node["atmosphere_bottom_air__temperature"],
             self.grid.at_node["land_surface__temperature"],
             self.grid.at_node["atmosphere_bottom_air_flow__reference-height_speed"],
@@ -1122,8 +1125,8 @@ class Meteorology(Component):
         )
 
         aero_conductance = Meteorology.calc_bulk_aero_conductance(
-            self._reference_height,
-            self._roughness_length,
+            self.reference_height,
+            self.roughness_length,
             self.grid.at_node["atmosphere_bottom_air_flow__bulk_richardson_number"],
             self.grid.at_node["atmosphere_bottom_air_flow__reference-height_speed"],
             self.grid.at_node["atmosphere_bottom_air__temperature"],
@@ -1137,8 +1140,8 @@ class Meteorology(Component):
         ][:] = aero_conductance
 
         Meteorology.calc_sensible_heat_flux(
-            self._rho_air,
-            self._cp_air,
+            self.rho_air,
+            self.cp_air,
             self.grid.at_node[
                 "atmosphere_bottom_air__bulk_sensible_heat_aerodynamic_conductance"
             ],
@@ -1167,7 +1170,7 @@ class Meteorology(Component):
         )
 
         Meteorology.calc_latent_heat_flux(
-            self._rho_air,
+            self.rho_air,
             self.grid.at_node[
                 "atmosphere_bottom_air__bulk_latent_heat_aerodynamic_conductance"
             ],
@@ -1183,7 +1186,7 @@ class Meteorology(Component):
             self.julian_day,
             self._datetime_obj.year,
             self.grid.at_node["land_surface__longitude"],
-            self._gmt_offset,
+            self.gmt_offset,
         )
 
         Meteorology.calc_net_shortwave_radiation(
@@ -1203,7 +1206,7 @@ class Meteorology(Component):
             self.grid.at_node[
                 "atmosphere_bottom_air__brutsaert_emissivity_cloud_factor"
             ],
-            clear_sky=self._clear_sky,
+            clear_sky=self.clear_sky,
             out=self.grid.at_node["land_surface_net-shortwave-radiation__energy_flux"],
         )
 
@@ -1216,7 +1219,7 @@ class Meteorology(Component):
             self.grid.at_node[
                 "atmosphere_bottom_air__brutsaert_emissivity_cloud_factor"
             ],
-            satterlund=self._satterlund,
+            satterlund=self.satterlund,
             out=self.grid.at_node["atmosphere_bottom_air__emissivity"],
         )
 
