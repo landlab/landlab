@@ -32,19 +32,21 @@ Contributors
 * `Nicole M Gasparini <https://github.com/nicgaspar>`_
 * `Charlie Shobe <https://github.com/cmshobe>`_
 * `David Litwin <https://github.com/DavidLitwin>`_
+* `Laurent Roberge <https://github.com/loroberge>`_
 * `Sebastien Lenard <https://github.com/sebastien-lenard>`_
 * `Ronda Strauch <https://github.com/RondaStrauch>`_
+* `Benjamin Campforts <https://github.com/BCampforts>`_
 * `Margaux Mouchene <https://github.com/margauxmouchene>`_
 * `Jenny Knuth <https://github.com/jennyknuth>`_
-* `Benjamin Campforts <https://github.com/BCampforts>`_
-* `Nathan Lyons <https://github.com/nathanlyons>`_
+* `Berkan M <https://github.com/BerkM125>`_
 * `Jeffrey Keck <https://github.com/keckje>`_
+* `Nathan Lyons <https://github.com/nathanlyons>`_
+* `Allison Pfeiffer <https://github.com/pfeiffea>`_
 * `Rachel Glade <https://github.com/Glader011235>`_
-* `Laurent Roberge <https://github.com/loroberge>`_
+* `Annie Thompson <https://github.com/anweiii>`_
 * `Giuseppecipolla95 <https://github.com/Giuseppecipolla95>`_
 * `Dylan Ward <https://github.com/ddoubleprime>`_
 * `Amanda Manaster <https://github.com/amanaster2>`_
-* `Allison Pfeiffer <https://github.com/pfeiffea>`_
 * `Mark Piper <https://github.com/mdpiper>`_
 * `Jay Hariharan <https://github.com/elbeejay>`_
 * `Shelby Ahrendt <https://github.com/shelbyahrendt>`_
@@ -56,3 +58,4 @@ Contributors
 * `Kristen Thyng <https://github.com/kthyng>`_
 * `Muneer Ahammad <https://github.com/muneerVT>`_
 * `Sarah Lundell <https://github.com/slundell123>`_
+* `pankajiitkgp <https://github.com/pankajiitkgp>`_
