@@ -95,8 +95,11 @@ landlab = [
 where = ["src"]
 
 [tool.setuptools.dynamic]
-readme = {file = ["README.rst", "AUTHORS.md"]}
 version = {attr = "landlab._version.__version__"}
+
+[tool.setuptools.dynamic.readme]
+file = ["README.md", "AUTHORS.md"]
+content-type = "text/markdown"
 
 [tool.pytest.ini_options]
 minversion = "6.0"
