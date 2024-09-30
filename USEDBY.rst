@@ -25,7 +25,7 @@ Shobe, C. M., Bower, S. J., Maxwell, A. E., Glade, R. C., & Samassi, N. M. (2024
 
 Walker, S. J., Wilkinson, S. N., & Hairsine, P. B. (2024). **Advancing gully topographic threshold analysis using an automated algorithm and high-resolution topography.** *CATENA,* 239, 107897.
 
-Wang, Y. (2024) **Identifying geomorphic domains using hierarchically clustered drainage area‐slope scaling.** *Earth Surface Processes and Landforms,* https://doi.org/10.1002/esp.5796.
+Wang, Y. (2024) **Identifying geomorphic domains using hierarchically clustered drainage area‐slope scaling.** *Earth Surface Processes and Landforms,* `DOI <https://doi.org/10.1002/esp.5796>`__.
 
 2023
 ----
@@ -55,9 +55,9 @@ Anders, A. M., Lai, J., & Marshak, S. (2022). **Development of Foreland Intracra
 
 Campforts, B., Shobe, C.M., Overeem, I., and Tucker, G.E. (2022) **The art of landslides: how stochastic mass wasting shapes topography and influences landscape dynamics.** *Journal of Geophysical Research: Earth Surface,* v. 127(8), e2022JF006745, `DOI <https://doi.org/10.1029/2022JF006745>`__.
 
-Cardenas, B. T., Lamb, M. P., & Grotzinger, J. P. (2022). **Martian landscapes of fluvial ridges carved from ancient sedimentary basin fill.** *Nature Geoscience,* 1-7. `https://www.nature.com/articles/s41561-022-01058-2 <https://www.nature.com/articles/s41561-022-01058-2>`__.
+Cardenas, B. T., Lamb, M. P., & Grotzinger, J. P. (2022). **Martian landscapes of fluvial ridges carved from ancient sedimentary basin fill.** *Nature Geoscience,* 1-7. `DOI <https://doi.org/10.1038/s41561-022-01058-2>`__.
 
-Cullen, C., Anders, A. M., Lai, J., & Druhan, J. L. (2022). **Numerical modeling of groundwater‐driven stream network evolution in low‐relief post‐glacial landscapes.** *Earth Surface Processes and Landforms,* 47(2), 658-671, `DOI <https://doi.org/10.1002/esp.5278>`__.
+Cullen, C., Anders, A. M., Lai, J., & Druhan, J. L. (2022). **Numerical modeling of groundwater‐driven stream network evolution in low‐relief post‐glacial landscapes.** *Earth Surface Processes and Landforms*, 47(2), 658-671, `DOI <https://doi.org/10.1002/esp.5278>`__.
 
 Gray, H. J., DuRoss, C. B., Nicovich, S. R., & Gold, R. D. (2022). **A geomorphic-process-based cellular automata model of colluvial wedge morphology and stratigraphy.** *Earth Surface Dynamics,* 10(2), 329-348, `DOI <https://doi.org/10.5194/esurf-10-329-2022>`__.
 
@@ -67,7 +67,7 @@ Litwin, D. G., Tucker, G. E., Barnhart, K. R., & Harman, C. J. (2022). **Groundw
 
 Maneerat, P., Bürgmann, R., & Betka, P. M. (2022). **Thrust Sequence in the Western Fold-and-Thrust Belt of the Indo-Burma Range Determined from Fluvial Profile Analysis and Dynamic Landform Modeling.** *Tectonophysics,* 845, 229638, `DOI <https://doi.org/10.1016/j.tecto.2022.229638>`__.
 
-Reitman, N. G., Mueller, K. J., & Tucker, G. E. (2022). **Surface slip variability on strike‐slip faults.** *Earth Surface Processes and Landforms,* 47(4), 908-935, `DOI <https://doi.org/10.1002/esp.5294>`__.
+Reitman, N. G., Mueller, K. J., & Tucker, G. E. (2022). **Surface slip variability on strike‐slip faults.** *Earth Surface Processes and Landforms*, 47(4), 908-935, `DOI <https://doi.org/10.1002/esp.5294>`__.
 
 Tucker, G. E., Hutton, E. W., Piper, M. D., Campforts, B., Gan, T., Barnhart, K. R., ... & Syvitski, J. (2022). **CSDMS: a community platform for numerical modeling of Earth surface processes.** *Geoscientific Model Development,* 15(4), 1413-1439, `DOI <https://doi.org/10.5194/gmd-15-1413-2022>`__.
 
@@ -94,7 +94,7 @@ Lipp, A. G., & Roberts, G. G. (2021). **Scale‐Dependent Flow Directions of Riv
 
 Lipp, A. G., Roberts, G. G., Whittaker, A. C., Gowing, C. J., & Fernandes, V. M. (2021). **Source region geochemistry from unmixing downstream sedimentary elemental compositions.** *Geochemistry, Geophysics, Geosystems,* 22(10), e2021GC009838, `DOI <https://doi.org/10.1029/2021GC009838>`__.
 
-O’Malley, C. P. B., White, N. J., Stephenson, S. N., & Roberts, G. G. (2021). **Large‐scale tectonic forcing of the African landscape.** *Journal of Geophysical Research: Earth Surface,* 126(12), e2021JF006345 https://doi.org/10.1029/2021JF006345.
+O’Malley, C. P. B., White, N. J., Stephenson, S. N., & Roberts, G. G. (2021). **Large‐scale tectonic forcing of the African landscape.** *Journal of Geophysical Research: Earth Surface,* 126(12), e2021JF006345 `DOI <https://doi.org/10.1029/2021JF006345>`__.
 
 Pan, B., Cai, S., & Geng, H. (2021). **Numerical simulation of landscape evolution and mountain uplift history constrain-A case study from the youthful stage mountains around the central Hexi Corridor, NE Tibetan Plateau.** *Science China Earth Sciences,* 1-13, `DOI <https://doi.org/10.1007/s11430-020-9716-6>`__.
 
@@ -123,7 +123,7 @@ Barnhart, K. R., Tucker, G. E., Doty, S., Shobe, C. M., Glade, R. C., Rossi, M. 
 
 Barnhart, K. R., Tucker, G. E., Doty, S., Shobe, C. M., Glade, R. C., Rossi, M. W., & Hill, M. C. (2020). **Inverting topography for landscape evolution model process representation: Part 3, Determining parameter ranges for select mature geomorphic transport laws and connecting changes in fluvial erodibility to changes in climate.** *Journal of Geophysical Research: Earth Surface,* e2019JF005287, `DOI <https://doi.org/10.1029/2019JF005287>`__.
 
-Carriere, A., Le Bouteiller, C., Tucker, G.E., Klotz, S., and Naaim, M. (2020) **Impact of vegetation on erosion: Insights from the calibration and test of a landscape evolution model in alpine badland catchments.** *Earth Surface Processes and Landforms.* `DOI <https://doi.org/10.1002/esp.4741>`__.
+Carriere, A., Le Bouteiller, C., Tucker, G.E., Klotz, S., and Naaim, M. (2020) **Impact of vegetation on erosion: Insights from the calibration and test of a landscape evolution model in alpine badland catchments.** *Earth Surface Processes and Landforms*. `DOI <https://doi.org/10.1002/esp.4741>`__.
 
 Evans, M. J., Scheele, B. C., Westgate, M. J., Yebra, M., Newport, J. S., & Manning, A. D. (2020). Beyond the pond: Terrestrial habitat use by frogs in a changing climate. Biological Conservation, 249, 108712., `DOI <https://doi.org/10.1016/j.biocon.2020.108712>`__.
 
@@ -150,22 +150,22 @@ Walker, S. J., Wilkinson, S. N., van Dijk, A. I., & Hairsine, P. B. (2020). **A 
 
 Baldazo, D., Parras, J., & Zazo, S. (2019). **Decentralized multi-agent deep reinforcement learning in swarms of drones for flood monitoring.** In *2019 27th European Signal Processing Conference (EUSIPCO)* (pp. 1-5). IEEE.
 
-Bandaragoda, C. J., Castronova, A., Istanbulluoglu, E., Strauch, R., Nudurupati, S. S., Phuong, J., Adams, J.M., Gasparini, N.M., Barnhart, K.R., Hutton, E.W.H., Hobley, D.E.J., Lyons, N.J., Tucker, G.E., Tarboton, D.G., Idaszak, R., and Wang S. (2019). **Enabling collaborative numerical Modeling in Earth sciences using Knowledge Infrastructure.** *Environmental Modelling & Software*, `doi:10.1016/j.envsoft.2019.03.020 <https://linkinghub.elsevier.com/retrieve/pii/S1364815219301562>`__.
+Bandaragoda, C. J., Castronova, A., Istanbulluoglu, E., Strauch, R., Nudurupati, S. S., Phuong, J., Adams, J.M., Gasparini, N.M., Barnhart, K.R., Hutton, E.W.H., Hobley, D.E.J., Lyons, N.J., Tucker, G.E., Tarboton, D.G., Idaszak, R., and Wang S. (2019). **Enabling collaborative numerical Modeling in Earth sciences using Knowledge Infrastructure.** *Environmental Modelling & Software*, `DOI <https://doi.org/10.1016/j.envsoft.2019.03.020>`__.
 
-Barnhart, K. R., Glade, R. C., Shobe, C. M., and Tucker, G. E. (2019) **Terrainbento 1.0: a Python package for multi-model analysis in long-term drainage basin evolution.** *Geosci. Model Dev.*, v. 12, p. 1267-1297, `doi:10.5194/gmd-12-1267-2019 <https://www.geosci-model-dev.net/12/1267/2019/>`__.
+Barnhart, K. R., Glade, R. C., Shobe, C. M., and Tucker, G. E. (2019) **Terrainbento 1.0: a Python package for multi-model analysis in long-term drainage basin evolution.** *Geosci. Model Dev.*, v. 12, p. 1267-1297, `DOI <https://doi.org/10.5194/gmd-12-1267-2019>`__.
 
 Barnhart, K.R., Hutton, E., and Tucker, G.E. (2019) **umami: a Python package for Earth surface dynamics objective function construction**, *Journal of Open Source Software*, 4(42), 1776, `DOI <https://doi.org/10.21105/joss.01776>`__.
 
-Glade, R.C.*, Shobe, C.M.*, Anderson, R.S., and Tucker, G.E. (2019) **Canyon shape and erosion dynamics governed by channel-hillslope feedbacks.** *Geology*, `doi:10.1130/G46219.1 <https://pubs.geoscienceworld.org/gsa/geology/article/47/7/650/570313/Canyon-shape-and-erosion-dynamics-governed-by>`__. \*Equal contributions
+Glade, R.C.*, Shobe, C.M.*, Anderson, R.S., and Tucker, G.E. (2019) **Canyon shape and erosion dynamics governed by channel-hillslope feedbacks.** *Geology*, `DOI <https://doi.org/10.1130/G46219.1>`__. \*Equal contributions
 
-Phuong J., C. Bandaragoda, E. Istanbulluoglu, C. Beveridge, R. Strauch, L. Setiawan, and S. D. Mooney (2019). **Automated retrieval, preprocessing, and visualization of gridded hydrometeorology data products for spatial-temporal exploratory analysis and intercomparison.** Environmental Modeling and Software. Vol 116. p. 119-30: https://linkinghub.elsevier.com/retrieve/pii/S136481521830865X.
+Phuong J., C. Bandaragoda, E. Istanbulluoglu, C. Beveridge, R. Strauch, L. Setiawan, and S. D. Mooney (2019). **Automated retrieval, preprocessing, and visualization of gridded hydrometeorology data products for spatial-temporal exploratory analysis and intercomparison.** Environmental Modeling and Software. Vol 116. p. 119-30: `DOI <https://doi.org/10.1016/j.envsoft.2019.01.007>`__.
 
 Reitman, N.G., Mueller, K.J., Tucker, G.E., Gold, R.D., Briggs, R.D., and Barnhart, K.R. (2019) **Landscape Evolution Models Demonstrate that Offset Channels are Incomplete Records of Strike-Slip Fault Displacement.** *Journal of Geophysical Research: Solid Earth*, 124, `DOI <https://doi.org/10.1029/2019JB018596>`__.
 
-Sharman, G. R., Sylvester, Z., & Covault, J. A. (2019). **Conversion of tectonic and climatic forcings into records of sediment supply and provenance.** *Scientific Reports*, 9(1), 4115, `doi:10.1038/s41598-019-39754-6 <https://www.nature.com/articles/s41598-019-39754-6>`__.
+Sharman, G. R., Sylvester, Z., & Covault, J. A. (2019). **Conversion of tectonic and climatic forcings into records of sediment supply and provenance.** *Scientific Reports*, 9(1), 4115, `DOI <https://doi.org/10.1038/s41598-019-39754-6>`__.
 
 Zebari, M., Grützner, C., Navabpour, P., & Ustaszewski, K. (2019). **Relative timing of uplift along the Zagros Mountain Front Flexure (Kurdistan Region of Iraq): Constrained by geomorphic indices and landscape evolution modeling.** *Solid Earth*, 10(3), 663-682
-`doi:10.5194/se-10-663-2019 <https://www.solid-earth.net/10/663/2019/>`__.
+`DOI <https://doi.org/10.5194/se-10-663-2019>`__.
 
 2018
 ----
@@ -173,18 +173,18 @@ Zebari, M., Grützner, C., Navabpour, P., & Ustaszewski, K. (2019). **Relative t
 Barnhart, K. R., Hutton, E. W., Gasparini, N. M., & Tucker, G. E.
 (2018). **Lithology: A Landlab submodule for spatially variable rock
 properties.** *J. Open Source Software*, 3(30), 979,
-`doi:10.21105/joss.00979 <https://joss.theoj.org/papers/10.21105/joss.00979>`__
+`DOI <https://doi.org/10.21105/joss.00979>`__
 
 Lai J., and Anders, A. (2018) **Modeled Postglacial Landscape Evolution
 at the Southern Margin of the Laurentide Ice Sheet: Hydrological
 Connection of Uplands Controls the Pace and Style of Fluvial Network
 Expansion.** *Journal of Geophysical Research: Earth Surface*, v. 123, no. 5,
-p. 967-984, `doi:10.1029/2017JF004509 <https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2017JF004509>`__
+p. 967-984, `DOI <https://doi.org/10.1029/2017JF004509>`__
 
 Langston, A.L., and Tucker, G. E. (2018) **Developing and exploring a
 theory for the lateral erosion of bedrock channels for use in landscape
 evolution models.** *Earth Surface Dynamics*, v. 6, p. 1-27,
-doi:10.5194/esurf-6-1-2018.
+`DOI <https://doi.org/10.5194/esurf-6-1-2018>`__.
 `abstract  <https://www.earth-surf-dynam.net/6/1/2018/>`__
 `paper  <https://www.earth-surf-dynam.net/6/1/2018/esurf-6-1-2018.pdf>`__
 
@@ -193,7 +193,7 @@ E.S., Istanbulluoglu, E., McGuire, L.A., Niu G.-Y. Poulos, M.J.,
 Rasmussen, C., Richardson, P., Swetnam, T.L., and Tucker, G.E. (2018)
 **Which way do you lean? Using slope aspect variations to understand
 Critical Zone processes and feedbacks.** *Earth Surface Processes and
-Landforms*, doi:10.1002/esp.4306.
+Landforms*, `DOI <https://doi.org/10.1002/esp.4306>`__.
 `abstract <https://onlinelibrary.wiley.com/doi/abs/10.1002/esp.4306>`__
 `paper <https://onlinelibrary.wiley.com/doi/epdf/10.1002/esp.4306>`__
 
@@ -202,7 +202,7 @@ P. (2018). **Effect of changing vegetation and precipitation on
 denudation–Part 2: Predicted landscape response to transient climate and
 vegetation cover over millennial to million-year timescales.** *Earth
 Surface Dynamics*, 6(4), 859-881,
-`doi:10.5194/esurf-6-859-2018 <https://www.earth-surf-dynam.net/6/859/2018/>`__.
+`DOI <https://doi.org/10.5194/esurf-6-859-2018>`__.
 
 Singer, M. B., Michaelides, K., & Hobley, D. E. J. (2018) **STORM 1.0: a
 simple, flexible, and parsimonious stochastic rainfall generator for simulating
@@ -212,13 +212,13 @@ climate and climate change.** *Geoscientific Model Development*,  11, 3713–372
 Strauch, R.E., Istanbulluoglu, E., Nudurupati, S.S., Bandaragoda, C.,
 Gasparini, N.M., & Tucker, G.E. (2018) **A hydro-climatological approach
 to predicting regional landslide probability using Landlab.** *Earth
-Surface Dynamics*, v. 6, p. 49-75, doi:10.5194/esurf-6-49-2018.
+Surface Dynamics*, v. 6, p. 49-75, `DOI <https://doi.org/10.5194/esurf-6-49-2018>`__.
 `abstract <https://www.earth-surf-dynam.net/6/49/2018/>`__
 `paper <https://www.earth-surf-dynam.net/6/49/2018/esurf-6-49-2018.pdf>`__
 
 Tucker, G. E., McCoy, S.W., and Hobley, D.E.J. (2018) **A lattice grain
 model of hillslope evolution.** *Earth Surface Dynamics*, v. 6,
-p. 563-582, doi: 10.5194/esurf-6-563-2018.
+p. 563-582, `DOI <https://doi.org/10.5194/esurf-6-563-2018>`__.
 `abstract and paper <https://www.earth-surf-dynam.net/6/563/2018/>`__
 
 
@@ -229,7 +229,7 @@ Adams, J.M., Gasparini, N.M., Hobley, D.E.J., Tucker, G.E., Hutton,
 E.W.H., Nudurupati, S.S., and Istanbulluoglu, E. **The Landlab v1.0
 OverlandFlow component: a Python tool for computing shallow-water flow
 across watersheds.** *Geoscientific Model Development*, 2017,
-doi:10.5194/gmd-10-1645-2017.
+`DOI <https://doi.org/10.5194/gmd-10-1645-2017>`__.
 `abstract <https://www.geosci-model-dev.net/10/1645/2017/gmd-10-1645-2017.html>`__
 `paper <https://www.geosci-model-dev.net/10/1645/2017/gmd-10-1645-2017.pdf>`__
 
@@ -237,21 +237,21 @@ Gray, H.J., Shobe, C.M., Hobley, D.E.J., Tucker, G.E., Duvall, A.R.,
 Harbert, S.A., and Owen, L.A. (2017) **Off-fault deformation rate along
 the southern San Andreas fault at Mecca Hills, southern California,
 inferred from landscape modeling of curved drainages.** *Geology*, v.
-46(1), p. 59-62, doi: 10.1130/G39820.1.
+46(1), p. 59-62, `DOI <https://doi.org/10.1130/G39820.1>`__.
 `abstract and paper <https://pubs.geoscienceworld.org/gsa/geology/article-abstract/46/1/59/522872/Off-fault-deformation-rate-along-the-southern-San?redirectedFrom=fulltext>`__
 
 Hobley, D.E.J., Adams, J.M., Nudurupati, S.S., Hutton, E.W.H, Gasparini,
 N.M., Istanbulluoglu, E., and Tucker, G.E., **Creative computing with
 Landlab: an open-source toolkit for building, coupling, and exploring
 two-dimensional numerical models of Earth-surface dynamics.** *Earth
-Surface Dynamics*, 2017, doi:10.5194/esurf-5-21-2017.
+Surface Dynamics*, 2017, `DOI <https://doi.org/10.5194/esurf-5-21-2017>`__.
 `abstract <https://www.earth-surf-dynam.net/5/21/2017/>`__
 `paper <https://www.earth-surf-dynam.net/5/21/2017/esurf-5-21-2017.pdf>`__
 
 Shobe, C.M., Tucker, G.E., and Barnhart, K.R. **The SPACE 1.0 model: a
 Landlab component for 2-D calculation of sediment transport, bedrock
 erosion, and landscape evolution.** *Geoscientific Model Development*,
-2017, doi:10.5194/gmd-10-4577-2017.
+2017, `DOI <https://doi.org/10.5194/gmd-10-4577-2017>`__.
 `abstract <https://www.geosci-model-dev.net/10/4577/2017/>`__
 `paper <https://www.geosci-model-dev.net/10/4577/2017/gmd-10-4577-2017.pdf>`__
 
@@ -267,7 +267,7 @@ Landlab.** *Geoscientific Model Development*, February 2016.
 
 Wickert, A.D. **Open-source modular solutions for flexural isostasy:
 gFlex v1.0.** *Geoscientific Model Development*, 9, 997-1017,
-doi:10.5194/gmd-9-997-2016, 2016.
+`DOI <https://doi.org/10.5194/gmd-9-997-2016>`__, 2016.
 `abstract <https://www.geosci-model-dev.net/9/997/2016/>`__
 `paper <https://www.geosci-model-dev.net/9/997/2016/gmd-9-997-2016.pdf>`__
 
