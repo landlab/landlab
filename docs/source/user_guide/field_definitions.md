@@ -6,39 +6,40 @@ The following tables list all of the field names used by *landlab* components. T
 component that use a given field (i.e. it is an input for the component), while the *Provided By* tab lists
 components that provide the field as output.
 
-```{eval-rst}
-.. jinja:: llcats
+`````{jinja} llcats
+````{{"{"}}tab{{"}"}} Description
+``` {{"{"}}list-table{{"}"}}
+:widths: 50 50
+:header-rows: 0
 
-    .. tab:: Description
-
-        .. list-table::
-            :widths: 50 50
-            :header-rows: 0
-
-            {% for name, info in fields |dictsort %}
-            * - *{{name}}*
-              - {{info['desc']}}
-            {% endfor %}
-
-    .. tab:: Used By
-
-        .. list-table::
-            :widths: 50 50
-            :header-rows: 0
-
-            {% for name, info in fields |dictsort %}
-            * - *{{name}}*
-              - {% if info['used_by'] %}{% for cls in info['used_by'] %}:py:class:`~{{cls}}` {% endfor %}{% endif %}
-            {% endfor %}
-
-    .. tab:: Provided By
-
-        .. list-table::
-            :widths: 50 50
-            :header-rows: 0
-
-            {% for name, info in fields |dictsort %}
-            * - *{{name}}*
-              - {% if info['provided_by'] %}{% for cls in info['provided_by'] %}:py:class:`~{{cls}}` {% endfor %}{% endif %}
-            {% endfor %}
+{% for name, info in fields |dictsort %}
+* - *{{name}}*
+  - {{info['desc']}}
+{% endfor %}
 ```
+````
+
+````{{"{"}}tab{{"}"}} Used By
+``` {{"{"}}list-table{{"}"}}
+:widths: 50 50
+:header-rows: 0
+
+{% for name, info in fields |dictsort %}
+* - *{{name}}*
+  - {% if info['used_by'] %}{% for cls in info['used_by'] %}{{"{"}}class{{"}"}}`~{{cls}}` {% endfor %}{% endif %}
+{% endfor %}
+```
+````
+
+````{{"{"}}tab{{"}"}} Provided By
+``` {{"{"}}list-table{{"}"}}
+:widths: 50 50
+:header-rows: 0
+
+{% for name, info in fields |dictsort %}
+* - *{{name}}*
+  - {% if info['provided_by'] %}{% for cls in info['provided_by'] %}{{"{"}}class{{"}"}}`~{{cls}}` {% endfor %}{% endif %}
+{% endfor %}
+```
+````
+`````

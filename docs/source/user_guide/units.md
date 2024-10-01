@@ -38,12 +38,10 @@ When it doubt, the best approach is to open a GitHub issue.
 
 Below is a list of non-unit agnostic components:
 
-```{eval-rst}
-.. jinja:: llcats
-
-    {% for name, component in components |dictsort %}
-    {% if not component['unit_agnostic'] %}
-    * :class:`{{name}} <{{ component['name'] }}>`
-    {% endif %}
-    {% endfor %}
+```{jinja} llcats
+{% for name, component in components |dictsort %}
+{% if not component['unit_agnostic'] %}
+* {{"{"}}class{{"}"}}`{{name}} <{{ component['name'] }}>`
+{% endif %}
+{% endfor %}
 ```
