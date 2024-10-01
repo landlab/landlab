@@ -29,7 +29,7 @@ command prompt:
 
 `landlab list`
 
-See the {ref}`Components section <api.components>` of the Landlab reference
+See the {ref}`Components section <api-components>` of the Landlab reference
 manual for a list of all Landlab components currently available.
 
 ## Landlab component classes, their import, and their instantiation
@@ -52,7 +52,7 @@ from landlab.components import LinearDiffuser
 ```
 
 The available components are listed in the
-{ref}`Components section <api.components>` of the Landlab Reference Manual.
+{ref}`Components section <api-components>` of the Landlab Reference Manual.
 
 Component classes always take a copy of the grid as their first argument. They
 then take a sequence of additional keyword arguments that set the actual

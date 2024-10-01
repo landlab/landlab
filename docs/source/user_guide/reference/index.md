@@ -62,14 +62,6 @@ values
 components
 ```
 
-## Full Index
-
-```{toctree}
-:maxdepth: 2
-
-modules
-```
-
 ## References
 
 - {ref}`modindex`

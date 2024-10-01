@@ -50,7 +50,7 @@ existing, off-the-shelf components can be slotted in alongside novel process
 descriptions.
 
 A list of the current components is found within the Reference guide
-{ref}`components section <api.components>`.
+{ref}`components section <api-components>`.
 
 Note that not all components will run under all conditions, but any
 limitations should be made clear in the documentation associated with
@@ -92,7 +92,7 @@ From inside Landlab, you'll also need:
 - A **grid** class—choose from {py:class}`RasterModelGrid <landlab.grid.raster.RasterModelGrid>`,
   {py:class}`landlab.grid.voronoi.VoronoiDelaunayGrid <landlab.grid.voronoi.VoronoiDelaunayGrid>`,
   or some of the more specialized classes listed on the
-  {ref}`grid documentation page <api.grid>`.
+  {ref}`grid documentation page <api-grid>`.
 - Any **components** you want to run
 - Any Landlab **utilities** you need, such as plotters (
   {py:func}`imshow_grid <landlab.plot.imshow>`) or

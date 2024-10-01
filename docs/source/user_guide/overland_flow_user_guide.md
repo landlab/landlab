@@ -145,7 +145,7 @@ There are other options for boundary condition handling that are more
 appropriate for non-DEM modeling domains. (For a complete review of boundary
 condition handling in Landlab, review Hobley et al., in submission for
 *Earth Surface Dynamics* or Landlab
-{ref}`boundary <api.grid.grid_summary.bc>` condition documentation
+{ref}`boundary <api-grid-grid-summary-bc>` condition documentation
 
 Here, the `FIXED_GRADIENT` boundary condition is described. The
 `set_nodata_nodes_to_fixed_gradient()` method sets all NODATA nodes to
@@ -358,7 +358,7 @@ matplotlib color map (`cmap`).
 **Note**: As of right now, `imshow__grid` plots data on nodes and cells.
 If the user wants to plot data from link elements, a mapper from link to cell
 or link to node must be used first. An extensive list of Landlab
-{ref}`mapper <api.grid.grid_summary.mappers>` methods is available in the documentation.
+{ref}`mapper <api-grid-grid-summary-mappers>` methods is available in the documentation.
 
 ## References
 
