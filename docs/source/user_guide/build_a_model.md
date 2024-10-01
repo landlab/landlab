@@ -2,7 +2,7 @@
 
 # What goes into a Landlab model?
 
-In the previous section, {ref}`Grid <grid_user_guide>` we showed you most of the core
+In the previous section, {ref}`Grid <grid-user-guide>` we showed you most of the core
 functionality of the Landlab grid. In this section, we introduce you to how to
 actually use it to build models and work with the Landlab component library.
 
@@ -21,12 +21,12 @@ Typically, a driver file will consist of six distinct sections:
 - **Finalize** and handle the data (e.g., plot, export)
 
 Beyond the driver, if you're using Landlab components, you'll probably also need
-a {ref}`parameter file<input_files>`. This file supplies the components with the additional
+a {ref}`parameter file<input-files>`. This file supplies the components with the additional
 parameter and setup information they need. Landlab parameter files are text
 files `.txt`, have fixed format, and for convenience (so you only have to
 specify the minimum of path information in the file name) should be placed in
 the same folder as the driver file. Find out more about parameter files
-{ref}`here<input_files>`. However, if you're not using components, there's little need
+{ref}`here<input-files>`. However, if you're not using components, there's little need
 to create a parameter file; you can just directly pass other parameters to the grid
 in the driver.
 
@@ -258,7 +258,7 @@ while accumulated_time < 1000.0:
 
 Both produce 1000 time units of run, with an explicit timestep of 10. Notice
 that the latter technique is particularly amenable to situations where your
-explicit timestep is varying (e.g., a storm sequence). (For more on time steps in numerical models see the {ref}`Time Steps<time_steps>` page.)
+explicit timestep is varying (e.g., a storm sequence). (For more on time steps in numerical models see the {ref}`Time Steps <time-steps>` page.)
 
 Landlab also however has a built in storm generator component,
 {py:class}`PrecipitationDistribution<landlab.components.uniform_precip.PrecipitationDistribution>`,
@@ -291,7 +291,7 @@ for an example of this generator in action.
 What exactly "…do the thing" consists of is up to you. You can either design
 your own operations to do in the loop for yourself, or you can implement
 processes from Landlab's component library. See {ref}`here
-<landlab_components_page>`
+<landlab-components-page>`
 for more information on using the components.
 
 ### 6. Finalize and handle the data
@@ -365,7 +365,7 @@ saved as fields. Save and load use the NumPy specific `.npy` file format;
 #### Plot the data
 
 Landlab has a fairly comprehensive suite of built in plotting functions; read
-more about them {ref}`here<plotting_and_vis>`.
+more about them {ref}`here<plotting-and-vis>`.
 
 You also of course have the option of using the [matplotlib plotting library](https://matplotlib.org/) of Python for things like cross-sections.
 

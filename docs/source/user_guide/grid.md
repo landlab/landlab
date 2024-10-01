@@ -60,7 +60,7 @@ and hexagonal—are also available.
 shaded.)
 :::
 
-{ref}`Figure 1 <basic_grid_elements>` illustrates
+{ref}`Figure 1 <basic-grid-elements>` illustrates
 how **ModelGrid** represents a simulation grid. The
 grid contains a set of *(x,y)* points called **nodes**. In a typical
 finite-difference or finite-volume model, nodes are the locations at which one tracks
@@ -74,20 +74,20 @@ runs from one node (known as its **from-node** or **tail-node**) to another node
 (known as its **to-node** or **head-node**).
 
 Every node in the grid interior is associated with a polygon known as a **cell** (illustrated,
-for example, by the shaded square region in {ref}`Figure 1a <basic_grid_elements>`). Each cell is
+for example, by the shaded square region in {ref}`Figure 1a <basic-grid-elements>`). Each cell is
 bounded by a set of line segments known as **faces**, which it shares with its neighboring
 cells.
 
 In the simple case of a regular (raster) grid, the cells are square, the nodes
-are the center points of the cells ({ref}`Figure 1 <basic_grid_elements>`), and the links and faces have
+are the center points of the cells ({ref}`Figure 1 <basic-grid-elements>`), and the links and faces have
 identical length (equal to the node spacing). In a Voronoi-Delaunay grid, the
 cells are Voronoi polygons (also known as Theissen polygons)
-({ref}`Figure 1a <basic_grid_elements>`). In this case, each cell represents the surface area that
+({ref}`Figure 1a <basic-grid-elements>`). In this case, each cell represents the surface area that
 is closer to its own node than to any other node in the grid. The faces
 represent locations that are equidistant between two neighboring nodes. Other grid
 configurations are possible as well. The spring 2015 version of Landlab includes
 support for hexagonal and radial grids, which are specialized versions of the
-Voronoi-Delaunay grid shown in {ref}`Figure 1a <basic_grid_elements>`. Note that the node-link-cell-face
+Voronoi-Delaunay grid shown in {ref}`Figure 1a <basic-grid-elements>`. Note that the node-link-cell-face
 topology is general enough to represent other types of grid; for example, one could use
 **ModelGrid's** data structures to implement a quad-tree grid,
 or a Delaunay-Voronoi grid in which cells are triangular elements with
@@ -134,7 +134,7 @@ track the elevation at each node. The following code creates a data field
 (array) called *elevation*. In this case, we'll use the grid method
 *add_zeros* to create a field that initially sets all values in the field to
 zero (we'll explain how to read in elevation values from a file in the section
-on {ref}`DEMs below <importing_a_dem>`). The *add_zeros* method takes
+on {ref}`DEMs below <importing-a-dem>`). The *add_zeros* method takes
 two arguments: the name of the grid element (in this case, *node*, in the
 singular) and a name we choose for the value in the data field (here we'll just
 call it *elevation*). Each *elevation* value in the data field is then
@@ -239,7 +239,7 @@ there are on the grid. It is easy for any part of the code to query what data ar
 
 You are free to call your fields whatever you want. However, field names are
 more useful if standardized across components. If you are writing a Landlab component
-you should use {ref}`Landlab's standard names <component_standard_names>`.
+you should use {ref}`Landlab's standard names <component-standard-names>`.
 Standard names for fields in a particular component can be
 accessed individually through the properties
 *component_instance.\_input_var_names* and *component_instance.\_output_var_names*
@@ -257,7 +257,7 @@ accessed individually through the properties
 ```
 
 We also maintain this list of all the
-{ref}`Landlab standard names <component_standard_names>`.
+{ref}`Landlab standard names <component-standard-names>`.
 
 Our fields also offer direct compatibility with [CSDMS's standard naming system for
 variables](https://csdms.colorado.edu/wiki/CSDMS_Standard_Names).
@@ -355,10 +355,10 @@ flow is possible (see boundary conditions below).
 
 ## Other Grid Elements
 
-The cell vertices are called *corners* (`Figure 1, solid squares <basic_grid_elements>`).
+The cell vertices are called *corners* (`Figure 1, solid squares <basic-grid-elements>`).
 Each face is therefore a line segment connecting two corners. The intersection
 of a face and a link (or directed edge) is known as a *junction*
-({ref}`Figure 1, open diamonds <basic_grid_elements>`). Often, it is useful to calculate scalar
+({ref}`Figure 1, open diamonds <basic-grid-elements>`). Often, it is useful to calculate scalar
 values (say, ice thickness in a glacier) at nodes, and vector values (say, ice
 velocity) at junctions. This approach is sometimes referred to as a
 staggered-grid scheme. It lends itself naturally to finite-volume methods, in
@@ -368,16 +368,16 @@ there are no supporting functions for the use of junctions, but support is immin
 
 Notice that the links also enclose a set of polygons that are offset from the
 cells. These secondary polygons are known as *patches* ({ref}`Figure 1,
-dotted <basic_grid_elements>`). This means that any grid comprises two complementary tesselations: one
+dotted <basic-grid-elements>`). This means that any grid comprises two complementary tesselations: one
 made of cells, and one made of patches. If one of these is a Voronoi
 tessellation, the other is a Delaunay triangulation. For this reason, Delaunay
 triangulations and Voronoi diagrams are said to be dual to one another: for any
 given Delaunay triangulation, there is a unique corresponding Voronoi diagram.
 With **ModelGrid,** one can
 create a mesh with Voronoi polygons as cells and Delaunay triangles as patches
-({ref}`Figure 1b <basic_grid_elements>`). Alternatively, with a raster grid, one simply has
+({ref}`Figure 1b <basic-grid-elements>`). Alternatively, with a raster grid, one simply has
 two sets of square elements that are offset by half the grid spacing
-({ref}`Figure 1a <basic_grid_elements>`). Whatever the form of the tessellation, **ModelGrid** keeps
+({ref}`Figure 1a <basic-grid-elements>`). Whatever the form of the tessellation, **ModelGrid** keeps
 track of the geometry and topology of the grid. patches can be useful for processes
 like calculating the mean gradient at a node, incorporating influence from its
 neighbors.
@@ -516,7 +516,7 @@ with these boundary condition schemes! Almost all existing components work fine 
 core, closed, and fixed_value conditions, but some may struggle with fixed_gradient,
 and most will struggle with looped. If you're working with the component library, take
 a moment to check your components can understand your implemented boundary conditions!
-See the {ref}`Component Developer's Guide <dev_contributing>` for more information.
+See the {ref}`Component Developer's Guide <dev-contributing>` for more information.
 
 ## Using a Different Grid Type
 

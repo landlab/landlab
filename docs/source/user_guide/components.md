@@ -13,7 +13,7 @@ Landlab components exist as classes, and can be imported from
 `landlab.components`.
 
 To develop your own Landlab component, see
-{ref}`this page <dev_contributing>`
+{ref}`this page <dev-contributing>`
 and
 [this tutorial](https://mybinder.org/v2/gh/landlab/landlab/master?filepath=notebooks/tutorials/making_components/making_components.ipynb).
 
@@ -199,7 +199,7 @@ examples of use cases with one, two, and more coupled components.
 
 You can also get an overview of field usage by all components through Landlab's
 command line interface. See
-{ref}`here <getting_info_about_fields>`
+{ref}`here <getting-info-about-fields>`
 for more information.
 
 (component-standard-names)=
@@ -216,7 +216,7 @@ Nonetheless, you may recognize the basic style of the names:
 
 e.g., *topographic\_\_elevation*, *water_surface\_\_gradient*, *water\_\_volume_flux*
 
-We compile three tables to assist users with the {ref}`Landlab standard names<standard_name_definitions>`.
+We compile three tables to assist users with the {ref}`Landlab standard names<standard-name-definitions>`.
 
 - First is a list of all names with their definitions.
 - Second is a table listing which components use each field.

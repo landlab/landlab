@@ -24,7 +24,7 @@ for instructions on the structure and content of your component code. See also
 shows you the common set of files (such as `__init__.py` and documentation
 files) that get added or modified when a component is added to Landlab.
 
-See the {ref}`Standard Naming conventions <component_standard_names>` for good practice
+See the {ref}`Standard Naming conventions <component-standard-names>` for good practice
 on parameters and variables naming.
 
 The following pages describe the software development practices that Landlab
