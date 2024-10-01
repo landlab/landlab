@@ -1,8 +1,6 @@
-.. _landlab_develop_with_git:
+(landlab-develop-with-git)=
 
-================
-Develop with Git
-================
+# Develop with Git
 
 *This information is intended to help users who have downloaded the
 Landlab source code from Github, and intend to develop new components for
@@ -29,7 +27,7 @@ unhelpful or redundant, you can easily roll them back - either by
 individually reverting each committed change, or by deleting the whole
 branch.
 
-`This <http://rogerdudler.github.io/git-guide/>`_ is a nice, simple
+[This](http://rogerdudler.github.io/git-guide/) is a nice, simple
 guide to the git command line tools. All this functionality is also
 available through the Github app.
 
@@ -38,26 +36,24 @@ Desktop". This provides all the functionality described below in a form
 that avoids the command line, if that sounds like something you'd
 prefer.*
 
-Branching with git
-------------------
+## Branching with git
 
-Making a new branch
-```````````````````
+### Making a new branch
 
 Before making any changes to your code, you should create a new branch.
 
 Update your mirror with any upstream changes you don't have:
 
-.. code-block:: bash
-
-   $ git fetch upstream
+```bash
+$ git fetch upstream
+```
 
 If using git at the command line, make the new branch like this:
 
-.. code-block:: bash
-
-   $ git branch name-of-branch upstream/master
-   $ git checkout name-of-branch
+```bash
+$ git branch name-of-branch upstream/master
+$ git checkout name-of-branch
+```
 
 From the Github app, you can do the same thing with the "branching"
 button in the top line. A nice feature of the app is it shows you
@@ -75,23 +71,22 @@ You can create branches from branches!
 If changes appear in the master and you want to also have them in your
 active branch, you can update your active branch from the master with
 
-.. code-block:: bash
-
-   $ git pull
+```bash
+$ git pull
+```
 
 or with the "Update from master" button in the app.
 
-Pushing changes from your local machine to your fork on Github
-``````````````````````````````````````````````````````````````
+### Pushing changes from your local machine to your fork on Github
 
 If you want to keep a copy of the files you have modified or created on
 your branches on your public GitHub page for Landlab (you probably do as
 this will serve as a file backup) you need to tell git to push changes
 to your github repo. This is done with the following command:
 
-.. code-block:: bash
-
-   $ git push --set-upstream origin name-of-branch
+```bash
+$ git push --set-upstream origin name-of-branch
+```
 
 In the app, the same functionality is achieved by first "publishing"
 your branch (creating it on your page within the github.com central
@@ -102,15 +97,14 @@ On your Landlab GitHub page you will now be able to toggle between your
 various branches to see the code you have committed. The app also lets
 you see the structure of your branches on your local machine.
 
-Committing changes and merging branches back in
-```````````````````````````````````````````````
+### Committing changes and merging branches back in
 
 Changes you make to your code are "saved" in git when you commit them to
 your branch. Save your files, then at the command line
 
-.. code-block:: bash
-
-   $ git commit -m "Text describing the changes"
+```bash
+$ git commit -m "Text describing the changes"
+```
 
 Again, the app provides the same functionality, but with the added bonus
 that it shows you what the changes you've made since your last commit
@@ -124,7 +118,7 @@ review what the code was like at any time in the past!
 
 Note that files that you do not explicitly ask git to track (either by
 clicking the checkbox next to the file in the GUI or by using
-``git add``) are not tracked — and thus not sent to the github.com
+`git add`) are not tracked — and thus not sent to the github.com
 central servers when you push changes.
 
 Once you're happy with your branch, and the code is fully functional
@@ -136,10 +130,10 @@ master).
 Once you've done that pull, in git at the command line, make the master
 your active branch again then *merge* the branch:
 
-.. code-block:: bash
-
-   $ git checkout master
-   $ git merge my-branch-name
+```bash
+$ git checkout master
+$ git merge my-branch-name
+```
 
 In the app, create the merge by making a "pull request" using the button
 in the top right. The process is fairly self explanatory, and provides a
@@ -148,8 +142,7 @@ merge, click through the hyperlink and merge it into the master on the
 website using the prominent green button. On your local machine, sync
 your master branch to pick up the changes locally.
 
-Pulling changes from your fork to the Landlab master fork
----------------------------------------------------------
+## Pulling changes from your fork to the Landlab master fork
 
 Once you've completed whatever modifications you were working on with
 Landlab, we'd like to incorporate your changes back into the main code
@@ -177,44 +170,40 @@ If you're confused by this process, just create the request, and one of
 us will see it and come to help you. You can create comments on your
 request from the website at any time after you've made it.
 
+## Troubleshooting
 
-Troubleshooting
----------------
-
-What do I do if my pull request cannot be automatically merged?
-```````````````````````````````````````````````````````````````
+### What do I do if my pull request cannot be automatically merged?
 
 Get the latest upstream/master and go to the `master` branch. Remember,
 *do not develop here*.  Always develop in a feature branch. Merge the lastest
 upstream master with your master
 
-.. code-block:: bash
-
-  $ git fetch upstream
-  $ git checkout master
-  $ git merge upstream/master
+```bash
+$ git fetch upstream
+$ git checkout master
+$ git merge upstream/master
+```
 
 Go to the branch on which you are developing and merge the lastest upstream
 master with your branch
 
-.. code-block:: bash
-
-  $ git checkout <branch_name>
-  $ git merge upstream/master
+```bash
+$ git checkout <branch_name>
+$ git merge upstream/master
+```
 
 Fix the conflicts. Do this by hand or with a merge editor. This is where you
 decide how to integrate the conflicting changes. Since only you know what and
 why you made the changes you did, this can only be done by you
 
-.. code-block:: bash
-
-
-  $ git mergetool
+```bash
+$ git mergetool
+```
 
 After everything has been fixed, commit the changes and push the changes to
 the repository.  The pull request will automatically be updated
 
-.. code-block:: bash
-
-  $ git commit
-  $ git push
+```bash
+$ git commit
+$ git push
+```
