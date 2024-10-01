@@ -16,7 +16,7 @@ submit their Landlab contribution (e.g., a Landlab component, utility) to this
 journal.
 
 - Create a pull request to merge the contribution into Landlab. See
-  {ref}`Develop your own component or utility <landlab_component_dev_page>`.
+  {ref}`Develop your own component or utility <landlab-component-dev-page>`.
 
 - Following the above merge, create a new branch for the JOSS review process.
   Name the paper `paper.md`, which follows JOSS requirements, and place this

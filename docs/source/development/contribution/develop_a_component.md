@@ -69,7 +69,7 @@ For your new component, you should create a folder in
   on making a component for additional document requirements.
 
   In addition there are a number of recommendations and requirements for
-  Landlab components {ref}`summarized here <dev_component_rules>`.
+  Landlab components {ref}`summarized here <dev-component-rules>`.
 
 - a folder in the `landlab/tests/components/<my_component_name>` directory containing
   unit tests. The unit tests are run every time changes are pushed to the
