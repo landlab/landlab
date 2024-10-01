@@ -436,10 +436,10 @@ class SnowEnergyBalance(Component):
         array_like
             New snowpack cold content [J / m2].
         """
-        out = np.subtract(cold_content, q_sum * dt, out)
-        out[h_swe <= 0] = 0
+        result = np.asarray(np.subtract(cold_content, np.asarray(q_sum) * dt))
+        result[np.asarray(h_swe) <= 0] = 0
 
-        return out.clip(min=0, max=None, out=out)
+        return result.clip(min=0, max=None, out=out)
 
     def run_one_step(self, dt):
         """Run component for a time step.
