@@ -1,12 +1,12 @@
-.. _citing:
+(citing)=
 
-Citing Landlab
-==============
+# Citing Landlab
 
-.. start-citing-landlab
+% start-citing-landlab
 
 If you use any portion of *Landlab*, please cite the following papers:
 
+```{eval-rst}
 .. tab:: APA
 
   `Hobley, D. E. J. <https://www.earth-surf-dynam.net/5/21/2017/>`__, Adams,
@@ -24,7 +24,9 @@ If you use any portion of *Landlab*, please cite the following papers:
   doi:10.5194/esurf-8-379-2020.
 
   Hutton, E., Barnhart, K., Hobley, D., Tucker, G., Nudurupati, S., Adams, J., Gasparini, N., Shobe, C., Strauch, R., Knuth, J., Mouchene, M., Lyons, N., Litwin, D., Glade, R., Giuseppecipolla95, Manaster, A., Abby, L., Thyng, K., & Rengers, F. (2020). landlab [Computer software]. https://doi.org/10.5281/zenodo.595872
+```
 
+```{eval-rst}
 .. tab:: BibTeX
 
   ::
@@ -77,13 +79,13 @@ If you use any portion of *Landlab*, please cite the following papers:
     url = {https://github.com/landlab/landlab},
     year = {2020}
     }
+```
 
-.. end-citing-landlab
+% end-citing-landlab
 
-Citing Landlab Components
--------------------------
+## Citing Landlab Components
 
-.. start-citing-components
+% start-citing-components
 
 If you are working with Landlab components and utilities, many of them have
 their own publication. Please cite it to acknowledge the component authors.
@@ -96,13 +98,13 @@ Citation information for each component can be found as follows:
   tool called the "Citation Registry" that creates a .bib file for software
   citations used in an application. See example usage below.
 
+### Landlab Citation Registry
 
-Landlab Citation Registry
-+++++++++++++++++++++++++
-
+```{eval-rst}
 .. automodule:: landlab._registry
     :members:
     :undoc-members:
     :show-inheritance:
+```
 
-.. end-citing-components
+% end-citing-components
