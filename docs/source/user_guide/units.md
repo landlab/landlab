@@ -1,7 +1,6 @@
-.. _unit_agnostic:
+(unit-agnostic)=
 
-How Landlab Is/Is Not Unit Agnostic
------------------------------------
+# How Landlab Is/Is Not Unit Agnostic
 
 This page describes how Landlab handles units. Our approach is intended to
 balance usability, effective communication of component expectations to users,
@@ -13,7 +12,7 @@ functions.
 
 All components require that a user is consistent between the space/time/mass
 units used within one and across multiple components. For example, if you were
-to couple a ``StreamPowerEroder`` and a ``LinearDiffuser`` your x, y, and z
+to couple a `StreamPowerEroder` and a `LinearDiffuser` your x, y, and z
 coordinates, the field `topographic__elevation` and all input parameters would
 need to share a common length unit. Further, input parameters with units that
 include time and your time step would need to share a common time unit.
@@ -21,7 +20,7 @@ include time and your time step would need to share a common time unit.
 Components that require that you are consistent with units but do not care
 whether you use feet or meters for your length unit are called "unit agnostic".
 You can find out if a component is unit agnostic by querying the attribute:
-``Component.unit_agnostic`` which will return ``True`` or ``False``.
+`Component.unit_agnostic` which will return `True` or `False`.
 
 Unit agnostic components will provide specific units in the field and parameter
 metadata. However, no computation within a unit agnostic component assumes a
@@ -39,6 +38,7 @@ When it doubt, the best approach is to open a GitHub issue.
 
 Below is a list of non-unit agnostic components:
 
+```{eval-rst}
 .. jinja:: llcats
 
     {% for name, component in components |dictsort %}
@@ -46,3 +46,4 @@ Below is a list of non-unit agnostic components:
     * :class:`{{name}} <{{ component['name'] }}>`
     {% endif %}
     {% endfor %}
+```

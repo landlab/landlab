@@ -1,7 +1,6 @@
-==================
-List of Components
-==================
+# List of Components
 
+```{eval-rst}
 .. jinja:: llcats
 
   .. list-table::
@@ -13,3 +12,4 @@ List of Components
     * - :class:`{{name}} <{{ component['name'] }}>`
       - {{ component['summary'] }}
     {% endfor %}
+```

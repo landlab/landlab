@@ -1,15 +1,13 @@
-.. _time_steps:
+(time-steps)=
 
-Time steps
-==========
+# Time steps
 
 Anyone who has taken a numerical computing course knows the importance of
 time-step size: choose too small a step and your calculation takes forever to
 run; choose too big a step and it goes unstable. The details depend, of course,
 on the particular equations and the numerical method used to solve them.
 
-Components and time steps
-_________________________
+## Components and time steps
 
 Landlab components are responsible for ensuring their own stability. This
 means, for example, that if your code asks a component to run for 10 years, the
@@ -36,5 +34,5 @@ to identify a time step that is small enough not to impact the solution in a
 significant way.
 
 To learn more about time steps, numerical stability, and solution accuracy, a
-good source is `Numerical Recipes by Press et al <http://numerical.recipes/>`_.
+good source is [Numerical Recipes by Press et al](http://numerical.recipes/).
 There are also plenty of textbooks on numerical computing available.
