@@ -1,9 +1,12 @@
-Subsets of elements
-===================
+(api-grid-grid-summary-mappers)=
 
-These methods are useful in identifying subsets of grid elements, e.g., closest node
-to a point; nodes at edges.
+# Mapping between elements
 
+These methods allow mapping of values defined on one grid element onto a
+second, e.g., mapping upwind node values onto links, or mean link values onto
+nodes.
+
+```{eval-rst}
 .. jinja:: llcats
 
   .. currentmodule:: landlab
@@ -19,7 +22,8 @@ to a point; nodes at edges.
     .. autosummary::
       :nosignatures:
 
-      {% for func in grids[grid]['subset'] %}
+      {% for func in grids[grid]['map'] %}
         ~{{func}}
       {% endfor %}
   {% endfor %}
+```

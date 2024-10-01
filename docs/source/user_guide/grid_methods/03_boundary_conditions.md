@@ -1,12 +1,12 @@
-.. _api.grid.grid_summary.mappers:
+(api-grid-grid-summary-bc)=
 
-Mapping between elements
-========================
+# Boundary conditions
 
-These methods allow mapping of values defined on one grid element onto a
-second, e.g., mapping upwind node values onto links, or mean link values onto
-nodes.
+These are the primary properties for getting and setting the grid boundary
+conditions. Changes made to {meth}`~.ModelGrid.status_at_node` automatically
+update the conditions defined at other grid elements.
 
+```{eval-rst}
 .. jinja:: llcats
 
   .. currentmodule:: landlab
@@ -22,7 +22,8 @@ nodes.
     .. autosummary::
       :nosignatures:
 
-      {% for func in grids[grid]['map'] %}
+      {% for func in grids[grid]['boundary-condition'] %}
         ~{{func}}
       {% endfor %}
   {% endfor %}
+```

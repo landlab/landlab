@@ -1,12 +1,9 @@
-.. _api.grid.grid_summary.bc:
+# Subsets of elements
 
-Boundary conditions
-===================
+These methods are useful in identifying subsets of grid elements, e.g., closest node
+to a point; nodes at edges.
 
-These are the primary properties for getting and setting the grid boundary
-conditions. Changes made to :meth:`~.ModelGrid.status_at_node` automatically
-update the conditions defined at other grid elements.
-
+```{eval-rst}
 .. jinja:: llcats
 
   .. currentmodule:: landlab
@@ -22,7 +19,8 @@ update the conditions defined at other grid elements.
     .. autosummary::
       :nosignatures:
 
-      {% for func in grids[grid]['boundary-condition'] %}
+      {% for func in grids[grid]['subset'] %}
         ~{{func}}
       {% endfor %}
   {% endfor %}
+```

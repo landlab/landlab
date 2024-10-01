@@ -1,6 +1,6 @@
-Nodes, Links, and Patches
-=========================
+# Nodes, Links, and Patches
 
+```{eval-rst}
 .. jinja:: llcats
 
   .. currentmodule:: landlab
@@ -25,3 +25,4 @@ Nodes, Links, and Patches
           {% endfor %}
     {% endfor %}
   {% endfor %}
+```

@@ -1,9 +1,9 @@
-Surface analysis
-================
+# Surface analysis
 
 These methods permit the kinds of surface analysis that you might expect to
 find in GIS software.
 
+```{eval-rst}
 .. jinja:: llcats
 
   .. currentmodule:: landlab
@@ -23,3 +23,4 @@ find in GIS software.
         ~{{func}}
       {% endfor %}
   {% endfor %}
+```

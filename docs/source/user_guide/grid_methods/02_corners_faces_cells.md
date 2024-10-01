@@ -1,6 +1,6 @@
-Corners, Faces, and Cells
-=========================
+# Corners, Faces, and Cells
 
+```{eval-rst}
 .. jinja:: llcats
 
   .. currentmodule:: landlab
@@ -25,3 +25,4 @@ Corners, Faces, and Cells
           {% endfor %}
     {% endfor %}
   {% endfor %}
+```

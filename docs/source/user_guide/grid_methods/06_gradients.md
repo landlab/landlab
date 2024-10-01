@@ -1,11 +1,11 @@
-Gradients, fluxes, and divergences
-==================================
+# Gradients, fluxes, and divergences
 
 Landlab is designed to easily calculate gradients in quantities across the
 grid, and to construct fluxes and flux divergences from them. Because these
 calculations tend to be a little more involved than property lookups, the
-methods tend to start with ``calc_``.
+methods tend to start with `calc_`.
 
+```{eval-rst}
 .. jinja:: llcats
 
   .. currentmodule:: landlab
@@ -25,3 +25,4 @@ methods tend to start with ``calc_``.
         ~{{func}}
       {% endfor %}
   {% endfor %}
+```
