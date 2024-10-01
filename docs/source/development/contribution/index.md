@@ -2,7 +2,7 @@
 
 # Guidelines for Contributing Code to Landlab
 
-Please review the {ref}`development practices <development_practices>`.
+Please review the {ref}`development practices <development-practices>`.
 
 ```{toctree}
 :maxdepth: 2

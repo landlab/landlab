@@ -37,7 +37,7 @@ journal.
   branch.
 
 - Merge `master` into `release`, and update version number. See
-  {ref}`Create a Landlab release <dev_releases>`.
+  {ref}`Create a Landlab release <dev-releases>`.
 
 - Ensure that the release is correctly created and distributed.
 

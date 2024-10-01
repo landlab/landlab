@@ -15,7 +15,7 @@ can just be a function. But like a component, we expect contributed utilities
 to follow the landlab standard practices outlined in our documentation.
 
 Once you have installed Landlab ({ref}`developer install <install>`)
-and {ref}`created your own branch <landlab_develop_with_git>`, you can start
+and {ref}`created your own branch <landlab-develop-with-git>`, you can start
 writing a Python script for your component.
 
 See [this tutorial](https://mybinder.org/v2/gh/landlab/landlab/master?filepath=notebooks/tutorials/making_components/making_components.ipynb)
@@ -84,11 +84,11 @@ For your new component, you should create a folder in
   This document is what will put your component's documentation on the
   ReadTheDocs page. See more below.
 
-Once everything is working, you can {ref}`create a pull request <landlab_develop_with_git>`
+Once everything is working, you can {ref}`create a pull request <landlab-develop-with-git>`
 to have your branch merged into the master so that your component can be
 included in the Landlab library and used by others.
 
-This will trigger {ref}`continuous integration testing <dev_ci>` of your branch
+This will trigger {ref}`continuous integration testing <dev-ci>` of your branch
 (doc tests, unit tests, and lint) to ensure its compatibility on all supported
 environments. You can find the results of these tests on the GitHub page of
 your pull request. If the tests fail, edit your files and commit your changes

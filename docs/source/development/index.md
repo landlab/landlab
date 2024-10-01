@@ -39,7 +39,7 @@ the package. These are:
 
 - {ref}`directory organization <organization>`
 - {ref}`dependency organization <dependencies>`, and
-- {ref}`release workflow <dev_releases>`
+- {ref}`release workflow <dev-releases>`
 
 If package maintainers change any of these, the prior pages likely need
 updating.
