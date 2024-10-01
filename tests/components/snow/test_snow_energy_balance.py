@@ -207,22 +207,27 @@ def test_multiple_steps():
     "precip", (1.0, [2.0], [1.0, 2.0, 3.0], [[1.0, 2.0], [4.0, 5.0]])
 )
 def test_calc_p_snow(precip):
+    """Test to calculate precipitation as snow"""
     assert_almost_equal(SnowEnergyBalance.calc_precip_snow(precip, -3.0, 1.0), precip)
     assert_almost_equal(SnowEnergyBalance.calc_precip_snow(precip, 3.0, 1.0), 0.0)
 
-
-def test_calc_snow_melt_rate():
-    q_sum = np.full(4, 334000)
-    cold_content = np.full(4, 0)
-    rho_water = 1000
-    dt = 1000
+@pytest.mark.parametrize("q_sum, cold_content",
+                         ([334000, 0],
+                          [[334000],[0]],
+                          [[334000,334000],[0,0]],
+                          [[[334000,334000],[334000,334000]],
+                           [[4,4],[4,4]]]
+                          ))
+def test_calc_snow_melt_rate(q_sum, cold_content):
+    """Test to calculate snow melt rate"""
     snow_melt_rate = SnowEnergyBalance.calc_snow_melt_rate(
-        q_sum, cold_content, rho_water, dt
+        q_sum, cold_content, rho_water = 1000, dt = 1000
     )
     assert np.allclose(snow_melt_rate, 0.001)
 
 
-def test_update_swe():
+def test_calc_swe():
+    """Test to calculate snow water equivalent"""
     h_swe = np.full(4, 0.01)
     sm_rate = np.full(4, 0.001)
     p_snow = np.full(4, 0.003)
@@ -231,26 +236,38 @@ def test_update_swe():
 
     assert np.all(h_swe == 0.02)
 
-
-def test_update_snow_depth():
-    h_snow = SnowEnergyBalance.calc_snow_depth([0.01, 0.01, 0.01], 2.0)
+@pytest.mark.parametrize(
+    "h_swe", (0.01, [0.01], [0.01, 0.01], [[0.01, 0.01], [0.01, 0.01]])
+)
+def test_calc_snow_depth(h_swe):
+    """Test to calculate snow depth"""
+    h_snow = SnowEnergyBalance.calc_snow_depth(h_swe, 2.0)
     assert np.all(h_snow == 0.02)
 
-
-def test_initialize_cold_content():
-    rho_snow = np.full(4, 300)
-    h_snow = np.full(4, 1)
-    surf_temp = np.full(4, -1)
+@pytest.mark.parametrize("rho_snow, h_snow, surf_temp",
+                         ([300, 1, -1],
+                          [[300], [1], [-1]],
+                          [[300,300],[1,1],[-1,-1]],
+                          [[[300,300],[300,300]],
+                           [[1,1],[1,1]],
+                           [[-1,-1], [-1,-1]]]
+                          ))
+def test_initialize_cold_content(rho_snow, h_snow, surf_temp):
+    """Test to initialize cold content"""
     cold_content = SnowEnergyBalance.initialize_cold_content(
         rho_snow, h_snow, surf_temp, 2090, 0
     )
     assert np.all(cold_content == 627000.0)
 
-
-def test_update_cold_content():
-    q_sum = np.array([-1000, 1000, -1000, 1000])
-    cold_content = np.array([500, 2000, 0, 4000])
-    h_swe = np.array([1, 2, 0, 1])
-
-    SnowEnergyBalance.calc_cold_content(q_sum, cold_content, h_swe, 2, out=cold_content)
-    assert np.allclose(cold_content, np.array([2500, 0, 0, 2000]))
+@pytest.mark.parametrize("q_sum, cold_content, h_swe",
+                         ([-1000, 500, 1],
+                          [[-1000], [500], [1]],
+                          [[-1000, -1000],[500, 500],[1, 1]],
+                          [[[-1000, -1000],[-1000, -1000]],
+                           [[500, 500],[500, 500]],
+                           [[1,1], [1,1]]]
+                          ))
+def test_calc_cold_content(q_sum, cold_content, h_swe):
+    """Teset to calculate cold content"""
+    cold_content = SnowEnergyBalance.calc_cold_content(q_sum, cold_content, h_swe, 2)
+    assert np.allclose(cold_content, 2500)
