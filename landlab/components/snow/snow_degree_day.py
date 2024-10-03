@@ -182,7 +182,7 @@ class SnowDegreeDay(Component):
     @c0.setter
     def c0(self, c0):
         if np.any(c0 < 0):
-            raise ValueError("degree-day coefficent must be positive")
+            raise ValueError("degree-day coefficient must be positive")
         self._c0 = c0 / (_SECONDS_PER_DAY * _MM_PER_M)
 
     @property
