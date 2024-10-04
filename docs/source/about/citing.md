@@ -4,29 +4,31 @@
 
 If you use any portion of *Landlab*, please cite the following papers:
 
-```{tab} APA
-[Hobley, D. E. J.](https://www.earth-surf-dynam.net/5/21/2017/), Adams,
+::::{tab-set}
+:::{tab-item} APA
+
+Hobley, D. E. J., Adams,
 J. M., Nudurupati, S. S., Hutton, E. W. H., Gasparini, N. M., Istanbulluoglu,
 E. and Tucker, G. E., 2017, Creative computing with Landlab: an open-source
 toolkit for building, coupling, and exploring two-dimensional numerical models
 of Earth-surface dynamics, Earth Surface Dynamics, 5(1), p 21-46,
-10.5194/esurf-5-21-2017.
+[doi:10.5194/esurf-5-21-2017](https://www.earth-surf-dynam.net/5/21/2017/).
 
-[Barnhart, K. R.](https://doi.org/10.5194/esurf-8-379-2020),
+Barnhart, K. R.,
 Hutton, E. W. H., Tucker, G. E., Gasparini, N. M., Istanbulluoglu, E.,
 Hobley, D. E. J., Lyons, N. J., Mouchene, M., Nudurupati, S. S., Adams, J. M.,
 and Bandaragoda, C., 2020, Short communication: Landlab v2.0: A software package for
 Earth surface dynamics, Earth Surf. Dynam., 8(2), p 379-397,
-doi:10.5194/esurf-8-379-2020.
+[doi:10.5194/esurf-8-379-2020](https://doi.org/10.5194/esurf-8-379-2020).
 
 Hutton, E., Barnhart, K., Hobley, D., Tucker, G., Nudurupati, S., Adams,
 J., Gasparini, N., Shobe, C., Strauch, R., Knuth, J., Mouchene, M., Lyons,
 N., Litwin, D., Glade, R., Giuseppecipolla95, Manaster, A., Abby, L., Thyng, K.,
-& Rengers, F. (2020). landlab [Computer software].
-https://doi.org/10.5281/zenodo.595872
-```
+& Rengers, F. (2020). landlab [Computer software],
+[doi:10.5281/zenodo.595872](https://doi.org/10.5281/zenodo.595872).
+:::
 
-````{tab} BibTeX
+:::{tab-item} BibTeX
 ```bibtex
 @article{hobley2017creative,
   title={
@@ -83,8 +85,8 @@ https://doi.org/10.5281/zenodo.595872
   url={https://github.com/landlab/landlab},
   year={2020}
 }
-```
-````
+:::
+::::
 
 ## Citing Landlab Components
 
