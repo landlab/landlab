@@ -2,16 +2,12 @@
 
 # Recommendations and Rules for User-Contributed Components
 
-Reference the component tutorial
-
-Also the best practices tutorial.
-
 First, thank you for considering contributing a component! The following are
 some rules and recommendations.
 
 ## Rules
 
-- `super` is called in the init
+- `super` is called in the `__init__` method
 - All public attributes are properties
 - A component uses all required inputs fields and creates all required output fields.
 - Components have complete metadata in `_info`.
