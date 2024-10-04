@@ -26,11 +26,14 @@ A list of papers and presentations using Landlab can be found :ref:`here <papers
 
 
 .. toctree::
-    :caption: Introduction to Python
+    :caption: Grids and Components
     :maxdepth: 2
     :hidden:
 
-    python_numpy_intro
+    Grid & Component reference <reference/index>
+    component_list
+    field_definitions
+    grid_summary
 
 
 .. toctree::
@@ -57,26 +60,12 @@ A list of papers and presentations using Landlab can be found :ref:`here <papers
 
     units
 
-
-.. toctree::
-    :caption: Landlab Tutorial Library
-    :maxdepth: 2
-    :hidden:
-
-    tutorials
-    teaching_tutorials
-
-
 .. toctree::
     :caption: Additional resources
     :maxdepth: 2
     :hidden:
 
-    component_list
-    field_definitions
-    grid_summary
     time_steps
-    examples
     faq
 
 
@@ -94,13 +83,3 @@ A list of papers and presentations using Landlab can be found :ref:`here <papers
     :hidden:
 
     cell_lab_user_guide
-
-
-.. toctree::
-    :caption: Major Version Transition Guides
-    :maxdepth: 2
-    :hidden:
-
-    landlab_zero_to_one
-    landlab_one_to_two
-    standard_name_changes

@@ -1,26 +1,25 @@
 name: Test
 
-on: [push, pull_request]
+on:
+  - push
+  - pull_request
 
-# on:
-#   push:
-#       paths:
-#           - "landlab/**"
-#           - "tests/**"
-#   pull_request:
-#       paths:
-#           - "landlab/**"
-#           - "tests/**"
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
 
 jobs:
-  build-and-test:
-    name: Run the tests
-    # We want to run on external PRs, but not on our own internal PRs as they'll be run
-    # by the push to the branch. Without this if check, checks are duplicated since
-    # internal PRs match both the push and pull_request events.
-    if:
-      github.event_name == 'push' || github.event.pull_request.head.repo.full_name !=
-      github.repository
+  build:
+    # Run on external PRs, but not on internal PRs, to avoid duplicate runs
+    if: |
+      github.event_name == 'push' ||
+      github.event.pull_request.head.repo.full_name != github.repository
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.10", "3.11", "3.12"]
 
     runs-on: ${{ matrix.os }}
 
@@ -28,55 +27,183 @@ jobs:
       run:
         shell: bash -l {0}
 
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.10", "3.11", "3.12"]
-        pytest-marker: ["slow", "not slow"]
-      fail-fast: false
-
     steps:
       - uses: actions/checkout@v4
-
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: conda-incubator/setup-miniconda@v3
         with:
           python-version: ${{ matrix.python-version }}
           miniforge-variant: Miniforge3
           miniforge-version: latest
           auto-update-conda: true
 
-      - name: Install compilers
-        run: |
-            conda install c-compiler cxx-compiler
-
       - name: Show conda installation info
         run: |
           conda info
           conda list
+
+      - name: Install compilers
+        run: conda install c-compiler cxx-compiler -c conda-forge
+
+      - name: Build
+        run: |
+          pip install nox
+          pip install build -r requirements/required.txt
+          nox -s build --no-venv --force-pythons=${{ matrix.python-version }}
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.os }}-${{ matrix.python-version }}
+          path: build/wheelhouse/*
+
+  test:
+    needs: build
+    name: Run the tests
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.10", "3.11", "3.12"]
+        pytest-marker: ["slow", "not slow"]
+        session-name: ["test", "test-notebooks"]
+        exclude:
+          - session-name: "test-notebooks"
+            python-version: 3.10
+          - session-name: "test-notebooks"
+            python-version: 3.11
+          - session-name: "test-notebooks"
+            os: ubuntu-latest
+
+    runs-on: ${{ matrix.os }}
+
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+          miniforge-variant: Miniforge3
+          miniforge-version: latest
+          auto-update-conda: true
 
       - name: Install and test richdem engine
         run: |
           conda install richdem -c conda-forge
           python -c 'import _richdem'
 
+      - uses: actions/download-artifact@v4
+        name: Download build artifact
+        with:
+          name: build-${{ matrix.os }}-${{ matrix.python-version }}
+
+      - name: Set pytest opts for notebook tests
+        if: ${{ matrix.session-name == 'test-notebooks' }}
+        run: |
+          echo "PYTEST_ADDOPTS=--overwrite" >> $GITHUB_ENV
+          echo "MPLBACKEND=module://matplotlib_inline.backend_inline" >> $GITHUB_ENV
+          pip install matplotlib_inline
+
+      - name: Set pytest opts for notebook tests
+        if: ${{ matrix.session-name != 'test-notebooks' }}
+        run: |
+          echo "MPLBACKEND=Agg" >> $GITHUB_ENV
+
       - name: Test
         env:
           HYPOTHESIS_PROFILE: "ci"
+          OPENTOPOGRAPHY_API_KEY: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
         run: |
           pip install nox
-          nox -s test --force-pythons="${{ matrix.python-version }}" -- -m "${{ matrix.pytest-marker }}"
+          nox --verbose -s ${{ matrix.session-name }} \
+              --force-pythons=${{ matrix.python-version }} \
+              -- -m '${{ matrix.pytest-marker }}' --path=*whl
+
+      - name: Find executed notebooks
+        if: ${{ matrix.session-name == 'test-notebooks' }}
+        run: |
+          for f in $(git diff --name-only); do
+            mkdir -p executed/$(dirname $f);
+            cp $f executed/$(dirname $f);
+          done
+          ls -R executed/
+
+      - name: Upload executed notebooks
+        if: ${{ matrix.os == 'macos-latest' &&
+                matrix.session-name == 'test-notebooks' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: notebooks-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.pytest-marker }}
+          path: executed/
+          overwrite: true
 
       - name: Coveralls
-        if: matrix.os == 'ubuntu-latest'
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.session-name == 'test' }}
         uses: AndreMiras/coveralls-python-action@develop
         with:
           parallel: true
           flag-name: py${{ matrix.python-version }}-${{ matrix.os }}-${{ matrix.pytest-marker }}
           debug: true
 
+  docs:
+    needs: test
+    strategy:
+      matrix:
+        os: [macos-latest]
+        python-version: ["3.12"]
+
+    runs-on: ${{ matrix.os }}
+
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+          miniforge-variant: Miniforge3
+          miniforge-version: latest
+          auto-update-conda: true
+
+      - uses: actions/download-artifact@v4
+        name: Download build artifact
+        with:
+          pattern: notebooks-*
+          merge-multiple: true
+
+      - name: Display structure of downloaded files
+        run: ls -R
+
+      - name: install and check pandoc
+        run: |
+          conda install pandoc -c conda-forge
+          pandoc --help
+          pandoc --version
+
+      - name: Build documentation
+        run: |
+          pip install nox
+          pip install -r requirements/docs.txt
+          nox -s docs-build --no-venv
+
+      - name: Create zip
+        run: zip -r docs.zip build/html
+
+      - name: Upload docs
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-${{ matrix.os }}-${{ matrix.python-version }}
+          path: docs.zip
+
   coveralls_finish:
-    needs: build-and-test
+    needs: test
     runs-on: ubuntu-latest
+
     steps:
       - name: Coveralls Finished
         uses: AndreMiras/coveralls-python-action@develop

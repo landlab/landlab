@@ -1,0 +1,3 @@
+Added a configurable parameter to the `landlab authors` command that
+allows for a user-specified start string for the credits list in the
+authors file.
