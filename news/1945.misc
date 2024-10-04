@@ -1,0 +1,1 @@
+Require ``numpy<2`` temporarily while we upgrade to support ``numpy>=2``.

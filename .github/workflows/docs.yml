@@ -2,6 +2,10 @@ name: Documentation
 
 on: [push, pull_request]
 
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
 jobs:
     build:
         name: Build documentation
@@ -20,13 +24,21 @@ jobs:
 
         steps:
           - uses: actions/checkout@v4
-          - name: Set up Python 3.11
-            uses: actions/setup-python@v4
+          - uses: conda-incubator/setup-miniconda@v3
             with:
-              python-version: 3.11
+              python-version: 3.12
+              miniforge-variant: Miniforge3
+              miniforge-version: latest
+              auto-update-conda: true
+
+          - name: install and check pandoc
+            run: |
+              conda install pandoc -c conda-forge
+              pandoc --help
+              pandoc --version
 
           - name: Install dependencies
             run: pip install nox
 
           - name: Build documentation
-            run: nox -s build-docs
+            run: nox -s docs-build

@@ -1,4 +1,9 @@
 furo
+ipython
+myst-parser
+nbsphinx
+numpy
+pandoc
 sphinx-copybutton
 sphinx-inline-tabs
 sphinx-jinja
