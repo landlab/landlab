@@ -46,7 +46,7 @@ We recommend that you review the Landlab development practices:
 ## Files structure
 
 For your new component, you should create a folder in
-`landlab/landlab/components` caled `<my_component_name>` that contains:
+`landlab/landlab/components` called `<my_component_name>` that contains:
 
 - Your Python script `my_component_name.py`
 
