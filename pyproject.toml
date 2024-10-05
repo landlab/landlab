@@ -143,21 +143,19 @@ skip = "*-musllinux_* *-win32*"
 archs = "x86_64,aarch64,arm64,AMD64,x86"
 test-command = "python -c \"import landlab; print(landlab.__version__)\""
 
-[tool.cibuildwheel.macos]
-before-all = "brew install libomp"
-# before-all = "brew install llvm libomp"
+[tool.cibuildwheel.linux.environment]
+CPPFLAGS = "-fopenmp"
 
 [tool.cibuildwheel.macos.environment]
-LANDLAB_WITHOUT_OPENMP = "1"
-LDFLAGS = "-Wl,-rpath,/opt/homebrew/opt/libomp/lib -L/opt/homebrew/opt/libomp/lib -L/opt/homebrew/opt/llvm/lib/c++ -Wl,-rpath,/opt/homebrew/opt/llvm/lib/c++ -lomp"
-CPPFLAGS = "-Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include"
-CFLAGS = "-Wno-implicit-function-declaration -I/opt/homebrew/opt/libomp/include"
-CXXFLAGS = "-I/opt/homebrew/opt/libomp/include"
-# PATH = "/opt/homebrew/opt/llvm/bin:$PATH"
+MACOSX_DEPLOYMENT_TARGET = "12.0"
+CC = "clang"
+CXX = "clang++"
+CPPFLAGS = "-Xclang -fopenmp"
+LDFLAGS = "-lomp"
 
-[[tool.cibuildwheel.overrides]]
-select = "*x86_64*"
-environment = {"LANDLAB_WITHOUT_OPENMP"="1"}
+# [[tool.cibuildwheel.overrides]]
+# select = "*x86_64*"
+# environment = {"LANDLAB_WITHOUT_OPENMP"="1"}
 
 [tool.cibuildwheel.windows.environment]
 LANDLAB_WITHOUT_OPENMP = "1"
