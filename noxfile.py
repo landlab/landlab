@@ -41,16 +41,23 @@ def test(session: nox.Session) -> None:
     path_args, pytest_args = pop_option(session.posargs, "--path")
 
     if session.virtualenv.venv_backend != "none":
-        file = path_args[0] if path_args else "."
         os.environ["WITH_OPENMP"] = "1"
         session.log(f"CC = {os.environ.get('CC', 'NOT FOUND')}")
         session.install(
             *("-r", PATH["requirements"] / "required.txt"),
             *("-r", PATH["requirements"] / "testing.txt"),
         )
-
         session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
-        session.install(file, "--no-deps")
+
+        arg = path_args[0] if path_args else None
+        if arg is None:
+            session.install(".", "--no-deps")
+        elif os.path.isdir(arg):
+            session.install("landlab", f"--find-links={arg}", "--no-deps", "--no-index")
+        elif os.path.isfile(arg):
+            session.install(arg, "--no-deps")
+        else:
+            session.error("--path must be either a wheel for a wheelhouse folder")
 
     check_package_versions(session, files=["required.txt", "testing.txt"])
 
@@ -86,7 +93,6 @@ def test_notebooks(session: nox.Session) -> None:
     ] + pytest_args
 
     if session.virtualenv.venv_backend != "none":
-        file = path_args[0] if path_args else "."
         os.environ["WITH_OPENMP"] = "1"
         session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
         session.install(
@@ -95,7 +101,16 @@ def test_notebooks(session: nox.Session) -> None:
             *("-r", PATH["requirements"] / "testing.txt"),
             *("-r", PATH["requirements"] / "notebooks.txt"),
         )
-        session.install(file, "--no-deps")
+
+        arg = path_args[0] if path_args else "."
+        if arg is None:
+            session.install(".", "--no-deps")
+        elif os.path.isdir(arg):
+            session.install("landlab", f"--find-links={arg}", "--no-deps", "--no-index")
+        elif os.path.isfile(arg):
+            session.install(arg, "--no-deps")
+        else:
+            session.error("--path must be either a wheel for a wheelhouse folder")
 
     check_package_versions(
         session, files=["required.txt", "testing.txt", "notebooks.txt"]
