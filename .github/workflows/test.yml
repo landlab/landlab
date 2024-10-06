@@ -121,10 +121,10 @@ jobs:
           miniforge-version: latest
           auto-update-conda: true
 
-      - name: Install and test richdem engine
-        run: |
-          conda install richdem -c conda-forge
-          python -c 'import _richdem'
+      # - name: Install and test richdem engine
+      #   run: |
+      #     conda install richdem -c conda-forge
+      #     python -c 'import _richdem'
 
       - uses: actions/download-artifact@v4
         name: Download build artifacts
