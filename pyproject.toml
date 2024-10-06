@@ -141,7 +141,10 @@ ignore = [".nox", "build"]
 build = "cp310-* cp311-* cp312-*"
 skip = "*-musllinux_* *-win32*"
 archs = "x86_64,aarch64,arm64,AMD64,x86"
-test-command = "python -c \"import landlab; print(landlab.__version__)\""
+test-command = [
+	"python -c \"import landlab; print(landlab.__version__)\"",
+	"python -c \"from landlab import RasterModelGrid; print(RasterModelGrid((3, 3)))\"",
+]
 
 [tool.cibuildwheel.linux.environment]
 CPPFLAGS = "-fopenmp"
