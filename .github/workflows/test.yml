@@ -9,55 +9,94 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  build-wheels:
     # Run on external PRs, but not on internal PRs, to avoid duplicate runs
     if: |
       github.event_name == 'push' ||
       github.event.pull_request.head.repo.full_name != github.repository
 
+    name: Build wheels on ${{ matrix.cibw-only }}
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.10", "3.11", "3.12"]
+        include:
+          # Linux x86_64
+          - cibw-only: "cp310-manylinux_x86_64"
+            os: "ubuntu-latest"
+          - cibw-only: "cp311-manylinux_x86_64"
+            os: "ubuntu-latest"
+          - cibw-only: "cp312-manylinux_x86_64"
+            os: "ubuntu-latest"
 
-    runs-on: ${{ matrix.os }}
+          # Linux aarch64
+          # - cibw-only: "cp310-manylinux_aarch64"
+          #   os: "ubuntu-latest"
+          # - cibw-only: "cp311-manylinux_aarch64"
+          #   os: "ubuntu-latest"
+          # - cibw-only: "cp312-manylinux_aarch64"
+          #   os: "ubuntu-latest"
 
-    defaults:
-      run:
-        shell: bash -l {0}
+          # Mac x86_64
+          - cibw-only: "cp310-macosx_x86_64"
+            os: "macos-13"
+          - cibw-only: "cp311-macosx_x86_64"
+            os: "macos-13"
+          - cibw-only: "cp312-macosx_x86_64"
+            os: "macos-13"
+
+          # Mac arm64
+          - cibw-only: "cp310-macosx_arm64"
+            os: "macos-14"
+          - cibw-only: "cp311-macosx_arm64"
+            os: "macos-14"
+          - cibw-only: "cp312-macosx_arm64"
+            os: "macos-14"
+
+          # Windows 64bit
+          - cibw-only: "cp310-win_amd64"
+            os: "windows-latest"
+          - cibw-only: "cp311-win_amd64"
+            os: "windows-latest"
+          - cibw-only: "cp312-win_amd64"
+            os: "windows-latest"
 
     steps:
       - uses: actions/checkout@v4
-      - uses: conda-incubator/setup-miniconda@v3
+      - name: Use Python 3.12
+        uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
-          miniforge-variant: Miniforge3
-          miniforge-version: latest
-          auto-update-conda: true
+          python-version: '3.12'
 
-      - name: Show conda installation info
+      # - name: Set up QEMU  # Needed to build aarch64 wheels
+      #   if: runner.os == 'Linux'
+      #   uses: docker/setup-qemu-action@v3
+      #   with:
+      #     platforms: all
+
+      - name: Print build identifiers
         run: |
-          conda info
-          conda list
+          python -m pip install cibuildwheel
+          python -m cibuildwheel --only ${{ matrix.cibw-only }} --print-build-identifiers
 
-      - name: Install compilers
-        run: conda install c-compiler cxx-compiler -c conda-forge
-
-      - name: Build
+      - name: Install openmp
+        if: runner.os == 'macOS'
         run: |
-          pip install nox
-          pip install build -r requirements/required.txt
-          nox -s build --no-venv --force-pythons=${{ matrix.python-version }}
+          curl -O https://mac.r-project.org/openmp/openmp-13.0.0-darwin21-Release.tar.gz
+          sudo tar fvxz openmp-13.0.0-darwin21-Release.tar.gz -C /
 
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.21.2
         with:
-          name: build-${{ matrix.os }}-${{ matrix.python-version }}
-          path: build/wheelhouse/*
+          only: ${{ matrix.cibw-only }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.os }}-${{ matrix.cibw-only }}
+          path: ${{ github.workspace }}/wheelhouse/*.whl
 
   test:
-    needs: build
+    needs: build-wheels
     name: Run the tests
 
     strategy:
@@ -96,9 +135,11 @@ jobs:
           python -c 'import _richdem'
 
       - uses: actions/download-artifact@v4
-        name: Download build artifact
+        name: Download build artifacts
         with:
-          name: build-${{ matrix.os }}-${{ matrix.python-version }}
+          pattern: "build-*"
+          merge-multiple: true
+          path: ${{ github.workspace }}/dist
 
       - name: Set pytest opts for notebook tests
         if: ${{ matrix.session-name == 'test-notebooks' }}
@@ -120,7 +161,7 @@ jobs:
           pip install nox
           nox --verbose -s ${{ matrix.session-name }} \
               --force-pythons=${{ matrix.python-version }} \
-              -- -m '${{ matrix.pytest-marker }}' --path=*whl
+              -- -m '${{ matrix.pytest-marker }}' --path=dist
 
       - name: Find executed notebooks
         if: ${{ matrix.session-name == 'test-notebooks' }}
