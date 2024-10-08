@@ -18,7 +18,7 @@ from landlab.grid.nodestatus import NodeStatus
 
 # https://cython.readthedocs.io/en/stable/src/userguide/fusedtypes.html
 ctypedef fused id_t:
-    cython.integral
+    long
     long long
 
 

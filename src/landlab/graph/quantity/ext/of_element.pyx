@@ -3,11 +3,11 @@ from cython.parallel import prange
 
 # https://cython.readthedocs.io/en/stable/src/userguide/fusedtypes.html
 ctypedef fused id_t:
-    cython.integral
+    long
     long long
 
 ctypedef fused integral_out_t:
-    cython.integral
+    long
     long long
 
 

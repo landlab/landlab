@@ -4,12 +4,12 @@ from libc.stdlib cimport free
 from libc.stdlib cimport malloc
 
 ctypedef fused id_t:
-    cython.integral
+    long
     long long
 
 
 ctypedef fused integral_out_t:
-    cython.integral
+    long
     long long
 
 

@@ -15,7 +15,7 @@ ctypedef fused float_or_int:
     int8_t
 
 ctypedef fused id_t:
-    cython.integral
+    long
     long long
 
 

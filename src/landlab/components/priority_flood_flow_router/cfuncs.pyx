@@ -5,7 +5,7 @@ cimport numpy as np
 
 # https://cython.readthedocs.io/en/stable/src/userguide/fusedtypes.html
 ctypedef fused id_t:
-    cython.integral
+    long
     long long
 
 
