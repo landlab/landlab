@@ -65,6 +65,7 @@ following categories of components:
 /generated/api/landlab.components.radiation
 /generated/api/landlab.components.pet
 /generated/api/landlab.components.soil_moisture
+/generated/api/landlab.components.snow
 ```
 
 ## Groundwater hydrology
