@@ -65,12 +65,12 @@ jobs:
             os: "ubuntu-latest"
 
           # Linux aarch64
-          # - cibw-only: "cp310-manylinux_aarch64"
-          #   os: "ubuntu-latest"
-          # - cibw-only: "cp311-manylinux_aarch64"
-          #   os: "ubuntu-latest"
-          # - cibw-only: "cp312-manylinux_aarch64"
-          #   os: "ubuntu-latest"
+          - cibw-only: "cp310-manylinux_aarch64"
+            os: "ubuntu-latest"
+          - cibw-only: "cp311-manylinux_aarch64"
+            os: "ubuntu-latest"
+          - cibw-only: "cp312-manylinux_aarch64"
+            os: "ubuntu-latest"
 
           # Mac x86_64
           - cibw-only: "cp310-macosx_x86_64"
@@ -103,11 +103,12 @@ jobs:
         with:
           python-version: '3.12'
 
-      # - name: Set up QEMU  # Needed to build aarch64 wheels
-      #   if: runner.os == 'Linux'
-      #   uses: docker/setup-qemu-action@v3
-      #   with:
-      #     platforms: all
+      # Needed to build aarch64 wheels
+      - name: Set up QEMU
+        if: runner.os == 'Linux'
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: all
 
       - name: Print build identifiers
         run: |
