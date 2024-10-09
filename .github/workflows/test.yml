@@ -30,6 +30,20 @@ jobs:
           echo "tag_name=$tag_name"
           echo "publish_url=$publish_url"
 
+  build-sdist:
+    name: Build source distribution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build sdist
+        run: pipx run build --sdist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build-sdist
+          path: ${{ github.workspace }}/dist/*.tar.gz
+
   build-wheels:
     # Run on external PRs, but not on internal PRs, to avoid duplicate runs
     if: |
@@ -113,7 +127,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: wheels-${{ matrix.os }}-${{ matrix.cibw-only }}
+          name: build-wheels-${{ matrix.os }}-${{ matrix.cibw-only }}
           path: ${{ github.workspace }}/wheelhouse/*.whl
 
   test-landlab:
@@ -297,7 +311,7 @@ jobs:
           debug: true
 
   publish:
-    needs: ["check-tag", "test-landlab", "test-notebooks"]
+    needs: ["check-tag", "test-landlab", "test-notebooks", "build-sdist"]
     name: "Publish to PyPI/TestPyPI"
     runs-on: ubuntu-latest
 
@@ -307,7 +321,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          pattern: "wheels-*"
+          pattern: "build-*"
           merge-multiple: true
           path: ${{ github.workspace }}/dist
       - uses: pypa/gh-action-pypi-publish@release/v1
