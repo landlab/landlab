@@ -7,6 +7,66 @@
 
 <!-- towncrier release notes start -->
 
+## 2.9.0 (2024-10-09)
+
+
+### ✨ New Components
+
+- Added shared stream power component that models mixed bedrock-alluvial erosion in channels. [#1976](https://github.com/landlab/landlab/issues/1976)
+
+
+### 🍰 New Features
+
+- Added new, faster, aggregator functions for the {class}`~.DataRecord`. These new functions,
+  {func}`~.aggregate_items_at_link_count`, {func}`~.aggregate_items_at_link_sum`, and
+  {func}`~.aggregate_items_at_link_mean` are written in *cython* and are several orders
+  of magnitude faster than the previous method of using *merge*/*group_by*. [#1648](https://github.com/landlab/landlab/issues/1648)
+- Improved perfomance when creating graphs by using openmp for
+  parallelism. [#1940](https://github.com/landlab/landlab/issues/1940)
+- Added {func}`~.esri_ascii.dump` and {func}`~.esri_ascii.load` functions for reading and writing
+  grids to/from ESRI ASCII format. [#1948](https://github.com/landlab/landlab/issues/1948)
+- Added transport dependent bed material abrasion to the {class}`~.NetworkSedimentTransporter`, as in Pfeiffer et al. (2022). [#1952](https://github.com/landlab/landlab/issues/1952)
+
+
+### 🛠️ Bug Fixes
+
+- Fixed a bug in {class}`~.NetworkSedimentTransporter` where porosity was
+  corrected for twice in calculated topographic change at nodes. [#1921](https://github.com/landlab/landlab/issues/1921)
+- Update {class}`~.ConcentrationTrackerForDiffusion` run methods to to solve two situations that cause the mass balance to fail. [#1967](https://github.com/landlab/landlab/issues/1967)
+
+
+### 📖 Documentation Enhancements
+
+- Significantly reduced the amount of time needed to build the documentation. [#1987](https://github.com/landlab/landlab/issues/1987)
+- Autogenerate Landlab's API reference docs using *sphinx-apidoc*. [#1989](https://github.com/landlab/landlab/issues/1989)
+- Cleaned up the documentation by removing obsolete documentation and moving
+  posters and presentations to figshare. [#1993](https://github.com/landlab/landlab/issues/1993)
+- Added a notebook gallery that shows all of the *Landlab* tutorial and teaching
+  notebooks on the documentation site. [#1994](https://github.com/landlab/landlab/issues/1994)
+- Converted documentation files from ReStructuredText to MyST. [#2003](https://github.com/landlab/landlab/issues/2003)
+
+
+### 🔩 Other Changes and Additions
+
+- Speed up the Flexure component through parallelism using openmp. [#1660](https://github.com/landlab/landlab/issues/1660)
+- Provide effective sediment erosion and deposition rates for {class}`~.SpaceLargeScaleEroder`. [#1931](https://github.com/landlab/landlab/issues/1931)
+- Require ``numpy<2`` temporarily while we upgrade to support ``numpy>=2``. [#1945](https://github.com/landlab/landlab/issues/1945)
+- Updated *Landlab* to be compatible with *numpy* v2. [#1956](https://github.com/landlab/landlab/issues/1956)
+- Enhanced the continuous integration workflows to automatically
+  cancel any ongoing tests when new changes are pushed to the same branch. [#1971](https://github.com/landlab/landlab/issues/1971)
+- Changed the Landlab package to a src-layout. [#1985](https://github.com/landlab/landlab/issues/1985)
+- Decreased the run time of the continuous integraion tests by about a factor of two. [#1995](https://github.com/landlab/landlab/issues/1995)
+- Moved the nbmake markers stored in the notebooks' metadata into their own
+  namespace for newer versions of nbmake. [#1996](https://github.com/landlab/landlab/issues/1996)
+- Added a configurable parameter to the `landlab authors` command that
+  allows for a user-specified start string for the credits list in the
+  authors file. [#2005](https://github.com/landlab/landlab/issues/2005)
+- Changed the changelog and towncrier to use myst files. [#2006](https://github.com/landlab/landlab/issues/2006)
+- Modified *Landlab*'s test workflow to run the tests using wheels built
+  using cibuildwheel. [#2012](https://github.com/landlab/landlab/issues/2012)
+- Combined the `release` and prerelease `workflows` with the `test`
+  workflow. [#2013](https://github.com/landlab/landlab/issues/2013)
+
 ## 2.8.0 (2024-05-12)
 
 ### ✨ New Components
