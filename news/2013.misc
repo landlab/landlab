@@ -1,0 +1,3 @@
+
+Combined the `release` and prerelease `workflows` with the `test`
+workflow.
