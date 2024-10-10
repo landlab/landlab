@@ -27,8 +27,9 @@ array([0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001])
 """
 
 import random
-import warnings
 import re
+import warnings
+
 import numpy as np
 
 from landlab import Component
@@ -123,20 +124,20 @@ class SoilGrading(Component):
     }
 
     def __init__(
-            self,
-            grid,
-            meansizes=[0.0001, 0.0005, 0.002],
-            fragmentation_pattern=[0, 1],
-            A_factor=1,
-            initial_median_size=None,
-            grains_weight=None,
-            soil_density=2650,
-            phi=0.5,
-            initial_total_soil_weight=2650,
-            std=None,
-            CV=0.6,
-            is_bedrock_distribution_flag=False,
-            seed=2024,
+        self,
+        grid,
+        meansizes=[0.0001, 0.0005, 0.002],
+        fragmentation_pattern=[0, 1],
+        A_factor=1,
+        initial_median_size=None,
+        grains_weight=None,
+        soil_density=2650,
+        phi=0.5,
+        initial_total_soil_weight=2650,
+        std=None,
+        CV=0.6,
+        is_bedrock_distribution_flag=False,
+        seed=2024,
     ):
         """
         Parameters
@@ -224,7 +225,9 @@ class SoilGrading(Component):
             self.create_dist()
         else:
             if np.size(grains_weight) != np.size(meansizes):
-                raise ValueError("grains_weight and meansizes do not have the same size")
+                raise ValueError(
+                    "grains_weight and meansizes do not have the same size"
+                )
 
             self._update_mass(grains_weight, self._is_bedrock_distribution_flag)
 
@@ -241,11 +244,13 @@ class SoilGrading(Component):
         return self._A_factor
 
     @staticmethod
-    def create_grading(grading_name,
-                       grain_max_size,
-                       power_of=1 / 3,
-                       n_sizes=10,
-                       precent_of_volume_in_spread=10):
+    def create_grading(
+        grading_name,
+        grain_max_size,
+        power_of=1 / 3,
+        n_sizes=10,
+        precent_of_volume_in_spread=10,
+    ):
 
         # Make sure that grading_name is valid
         grading_name_split = grading_name.split("-")
@@ -255,7 +260,7 @@ class SoilGrading(Component):
         is_numeric = True
         sum_values = 0
         for s in grading_name.split("-")[1:]:
-            if s != 'spread':
+            if s != "spread":
                 is_numeric *= s.isnumeric()
                 if is_numeric:
                     sum_values += int(s)
@@ -279,9 +284,7 @@ class SoilGrading(Component):
             ]
         )
         if "spread" in grading_name:
-            precents_to_add = (
-                    np.ones((1, n_sizes)) * precent_of_volume_in_spread
-            )
+            precents_to_add = np.ones((1, n_sizes)) * precent_of_volume_in_spread
             precents = np.append(precents, precents_to_add)
         fragmentation_pattern = precents / 100
 
@@ -310,9 +313,9 @@ class SoilGrading(Component):
                 while cnti >= 0 and cnt <= (len(self._fragmentation_pattern) - 1):
                     self._A[cnti, i] = self._fragmentation_pattern[cnt]
                     if cnti == 0 and cnt <= (len(self._fragmentation_pattern) - 1):
-                        self._A[cnti, i] = (1 - self._fragmentation_pattern[0]) - np.sum(
-                            self._fragmentation_pattern[1:cnt]
-                        )
+                        self._A[cnti, i] = (
+                            1 - self._fragmentation_pattern[0]
+                        ) - np.sum(self._fragmentation_pattern[1:cnt])
                         cnt += 1
                         cnti -= 1
                     cnt += 1
@@ -343,9 +346,7 @@ class SoilGrading(Component):
             )
 
         else:
-            total_bedrock_weight = (
-                10000
-            )
+            total_bedrock_weight = 10000
             # SoilGrading assumes that bedrock thickness is unlimited
             # and only the bedrock elevation is tracked.
             # The variable total_bedrock_weight is set to a large enough number just for
@@ -378,14 +379,14 @@ class SoilGrading(Component):
             self._grid.at_node["grains__weight"][self._grid.core_nodes, :] = 1
             self._grid.at_node["grains__weight"] *= grains_weight__distribution
             layer_depth = np.sum(self.g_state0) / (
-                    self._soil_density * self._grid.area_of_cell
+                self._soil_density * self._grid.area_of_cell
             )
             layer_depth /= 1 - self._phi
 
             self._grid.at_node["soil__depth"][self._grid.core_nodes] += layer_depth
             self._grid.at_node["topographic__elevation"] = (
-                    self._grid.at_node["soil__depth"]
-                    + self._grid.at_node["bedrock__elevation"]
+                self._grid.at_node["soil__depth"]
+                + self._grid.at_node["bedrock__elevation"]
             )
 
     def _generate_normal_distribution(self, median_size=None, total_soil_weight=None):
