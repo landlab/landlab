@@ -292,6 +292,7 @@ def test_mismatch_user_input_meansizes_weights():
     with testing.assert_raises(ValueError):
         SoilGrading(mg, meansizes=[1, 1, 1], grains_weight=[1, 1, 1, 1])
 
+
 def test_fragmentation_pattern():
     """
     SoilGrading should raise a ValueError if the provided fragmentation pattern is not
@@ -317,7 +318,8 @@ def test_limits_array_order():
     mg = RasterModelGrid((n_rows, n_columns), xy_spacing=spacing)
     mg.add_zeros("topographic__elevation", at="node")
     with testing.assert_raises(ValueError):
-        SoilGrading(mg, meansizes=[1, 1, 1], limits=[[1,2],[2,3],[0,1]])
+        SoilGrading(mg, meansizes=[1, 1, 1], limits=[[1, 2], [2, 3], [0, 1]])
+
 
 def test_limits_array_shape():
     """
@@ -330,4 +332,4 @@ def test_limits_array_shape():
     mg = RasterModelGrid((n_rows, n_columns), xy_spacing=spacing)
     mg.add_zeros("topographic__elevation", at="node")
     with testing.assert_raises(ValueError):
-        SoilGrading(mg, meansizes=[1, 1, 1], limits=[[1,2,3,4],[2,3,4,5]])
+        SoilGrading(mg, meansizes=[1, 1, 1], limits=[[1, 2, 3, 4], [2, 3, 4, 5]])
