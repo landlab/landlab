@@ -277,3 +277,16 @@ def test_beyond_range_user_defined_bedrock_median_size_smaller():
     testing.assert_approx_equal(
         proportion_of_mass_in_the_larger_size_fraction, 1, err_msg=err_msg
     )
+
+def test_mismatch_user_input_meansizes_weights():
+    """
+    SoilGrading should raise a value error if the size of user defined meansizes is not equal
+    the size of user defined grains weight.
+    """
+    n_rows = 5
+    n_columns = 5
+    spacing = 1
+    mg = RasterModelGrid((n_rows, n_columns), xy_spacing=spacing)
+    mg.add_zeros("topographic__elevation", at="node")
+    with testing.assert_raises(ValueError):
+        SoilGrading(mg,meansizes=[1,1,1],grains_weight=[1,1,1,1])
