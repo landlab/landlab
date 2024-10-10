@@ -153,7 +153,7 @@ def test_match_to_user_defined_meansizes():
 
 
 @pytest.mark.filterwarnings(
-    "ignore:Median size provided is larger than the distribution upper bound"
+    "ignore:Median size requested is larger than the largest mean size in the distribution"
 )
 def test_beyond_range_user_defined_soil_median_size_larger():
     """
@@ -182,7 +182,7 @@ def test_beyond_range_user_defined_soil_median_size_larger():
 
 
 @pytest.mark.filterwarnings(
-    "ignore:Median size provided is larger than the distribution upper bound"
+    "ignore:Median size requested is larger than the largest mean size in the distribution"
 )
 def test_beyond_range_user_defined_bedrock_median_size_larger():
     """
@@ -204,7 +204,7 @@ def test_beyond_range_user_defined_bedrock_median_size_larger():
     soil_grading = SoilGrading(
         mg, meansizes=meansizes, initial_median_size=initial_median_size_soil
     )
-    soil_grading.create_dist(
+    soil_grading.generate_weight_distribution(
         is_bedrock_distribution_flag=True, median_size=median_size_bedrock
     )
     proportion_of_mass_in_the_larger_size_fraction = mg.at_node[
@@ -217,7 +217,7 @@ def test_beyond_range_user_defined_bedrock_median_size_larger():
 
 
 @pytest.mark.filterwarnings(
-    "ignore:Median size provided is smaller than the distribution lower bound"
+    "ignore:Median size requested is smaller than the smallest mean size in the distribution"
 )
 def test_beyond_range_user_defined_soil_median_size_smaller():
     """
@@ -245,7 +245,7 @@ def test_beyond_range_user_defined_soil_median_size_smaller():
 
 
 @pytest.mark.filterwarnings(
-    "ignore:Median size provided is smaller than the distribution lower bound"
+    "ignore:Median size requested is smaller than the smallest mean size in the distribution"
 )
 def test_beyond_range_user_defined_bedrock_median_size_smaller():
     """
@@ -267,7 +267,7 @@ def test_beyond_range_user_defined_bedrock_median_size_smaller():
     soil_grading = SoilGrading(
         mg, meansizes=meansizes, initial_median_size=initial_median_size_soil
     )
-    soil_grading.create_dist(
+    soil_grading.generate_weight_distribution(
         is_bedrock_distribution_flag=True, median_size=median_size_bedrock
     )
     proportion_of_mass_in_the_larger_size_fraction = mg.at_node[
@@ -281,7 +281,7 @@ def test_beyond_range_user_defined_bedrock_median_size_smaller():
 
 def test_mismatch_user_input_meansizes_weights():
     """
-    SoilGrading should raise a value error if the size of user defined meansizes is not equal
+    SoilGrading should raise a ValueError if the size of user defined meansizes is not equal
     the size of user defined grains weight.
     """
     n_rows = 5
@@ -291,3 +291,43 @@ def test_mismatch_user_input_meansizes_weights():
     mg.add_zeros("topographic__elevation", at="node")
     with testing.assert_raises(ValueError):
         SoilGrading(mg, meansizes=[1, 1, 1], grains_weight=[1, 1, 1, 1])
+
+def test_fragmentation_pattern():
+    """
+    SoilGrading should raise a ValueError if the provided fragmentation pattern is not
+    in the correct format.
+    """
+    n_rows = 5
+    n_columns = 5
+    spacing = 1
+    mg = RasterModelGrid((n_rows, n_columns), xy_spacing=spacing)
+    mg.add_zeros("topographic__elevation", at="node")
+    with testing.assert_raises(ValueError):
+        SoilGrading(mg, meansizes=[1, 1, 1], fragmentation_pattern=[0])
+
+
+def test_limits_array_order():
+    """
+    SoilGrading should raise a ValueError if limits array is not
+    in ascending order in all dimensions.
+    """
+    n_rows = 5
+    n_columns = 5
+    spacing = 1
+    mg = RasterModelGrid((n_rows, n_columns), xy_spacing=spacing)
+    mg.add_zeros("topographic__elevation", at="node")
+    with testing.assert_raises(ValueError):
+        SoilGrading(mg, meansizes=[1, 1, 1], limits=[[1,2],[2,3],[0,1]])
+
+def test_limits_array_shape():
+    """
+    SoilGrading should raise a ValueError if limits array is not
+    in the shape of meansizes x 2.
+    """
+    n_rows = 5
+    n_columns = 5
+    spacing = 1
+    mg = RasterModelGrid((n_rows, n_columns), xy_spacing=spacing)
+    mg.add_zeros("topographic__elevation", at="node")
+    with testing.assert_raises(ValueError):
+        SoilGrading(mg, meansizes=[1, 1, 1], limits=[[1,2,3,4],[2,3,4,5]])
