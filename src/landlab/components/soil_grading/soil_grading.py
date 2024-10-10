@@ -212,6 +212,7 @@ class SoilGrading(Component):
 
         self.create_transition_mat()
         self.set_grading_limits()
+
         if grains_weight == None:
             self._CV = CV
             if initial_median_size == None:
