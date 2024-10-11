@@ -70,7 +70,7 @@ repos:
   rev: 1.9.1
   hooks:
     - id: nbqa-pyupgrade
-      args: ["--py310-plus"]
+      args: ["--py311-plus"]
     - id: nbqa-isort
     - id: nbqa-flake8
       args: ["--extend-ignore=E402"]
@@ -90,7 +90,7 @@ repos:
   rev: v3.19.1
   hooks:
   - id: pyupgrade
-    args: [--py310-plus]
+    args: [--py311-plus]
 
 - repo: https://github.com/PyCQA/isort
   rev: 6.0.0
