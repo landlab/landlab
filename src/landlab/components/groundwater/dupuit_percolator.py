@@ -74,7 +74,7 @@ class GroundwaterDupuitPercolator(Component):
     capillary fringe is small, such that the water table can be modeled as a
     free surface. Please consider the applicability of these assumptions when
     using this model. For more details, see component documentation
-    :ref:`here <dupuit_theory>`.
+    :ref:`here <dupuit-theory>`.
 
     Examples
     --------
@@ -141,7 +141,7 @@ class GroundwaterDupuitPercolator(Component):
     -----
     Below is a summary of the theory and numerical implementation of
     the ``GroundwaterDupuitPercolator``. A complete description can be found
-    :ref:`here <dupuit_theory>`.
+    :ref:`here <dupuit-theory>`.
 
     Groundwater discharge per unit length, :math:`q`, is calculated as:
 
