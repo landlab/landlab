@@ -1,0 +1,3 @@
+
+Fixed an issue when using :func:`~.jaggedarray.unravel` when using
+an `int32` array for offsets.
