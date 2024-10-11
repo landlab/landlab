@@ -4,14 +4,11 @@ of discharge during flow.
 DEJH, late 2018
 """
 
-import sys
+from inspect import signature
 
 from landlab.components.flow_accum import FlowAccumulator
 from landlab.components.flow_accum import flow_accum_bw
 from landlab.components.flow_accum import flow_accum_to_n
-
-if sys.version_info[0] >= 3:
-    from inspect import signature
 
 
 class LossyFlowAccumulator(FlowAccumulator):
@@ -393,11 +390,9 @@ class LossyFlowAccumulator(FlowAccumulator):
         )
 
         if loss_function is not None:
-            if sys.version_info[0] >= 3:
-                sig = signature(loss_function)
-                num_params = len(sig.parameters)
-            else:  # Python 2
-                num_params = loss_function.func_code.co_argcount
+            sig = signature(loss_function)
+            num_params = len(sig.parameters)
+
             # save the func for loss, and do a quick test on its inputs:
             if num_params == 1:
                 # check the func takes a single value and turns it into a new
