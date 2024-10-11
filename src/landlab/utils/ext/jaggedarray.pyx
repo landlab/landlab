@@ -1,37 +1,34 @@
-import numpy as np
-
 cimport cython
-cimport numpy as np
-from libc.stdint cimport int64_t
-from libc.string cimport memcpy
+
+from cython.parallel import prange
+
+# https://cython.readthedocs.io/en/stable/src/userguide/fusedtypes.html
+ctypedef fused id_t:
+    cython.integral
+    long long
 
 
-cdef void _pad_jaggedarray(
-    void * data,
-    int64_t * offset,
-    size_t n_rows,
-    size_t size,
-    void * buff,
-    size_t n_cols,
-) noexcept nogil:
-    cdef int row
-    cdef void * dst = buff
-    cdef void * src = data
-
-    for row in range(n_rows):
-        dst = <char *>buff + n_cols * row * size
-        src = <char *>data + offset[row] * size
-
-        memcpy(dst, src, size * (offset[row + 1] - offset[row]))
+ctypedef fused float_or_int:
+    cython.integral
+    long long
+    cython.floating
 
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def unravel(
-    np.ndarray data,
-    np.ndarray[int64_t, ndim=1, mode="c"] offset,
-    np.ndarray out,
+    float_or_int [:] data,
+    const id_t [:] offset,
+    float_or_int [:, :] out,
 ):
-    _pad_jaggedarray(
-        data.data, &offset[0], len(offset) - 1, data.itemsize, out.data, out.shape[1]
-    )
+    cdef long n_rows = len(offset) - 1
+    cdef long col
+    cdef long row
+    cdef long offset_to_row
+    cdef long values_per_row
+
+    for row in prange(n_rows, nogil=True, schedule="static"):
+        offset_to_row = offset[row]
+        values_per_row = offset[row + 1] - offset[row]
+        for col in range(values_per_row):
+            out[row, col] = data[offset_to_row + col]
