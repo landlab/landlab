@@ -58,21 +58,21 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { os: macos-13, cibw-only: cp310-macosx_x86_64 }
           - { os: macos-13, cibw-only: cp311-macosx_x86_64 }
           - { os: macos-13, cibw-only: cp312-macosx_x86_64 }
-          - { os: macos-14, cibw-only: cp310-macosx_arm64 }
+          - { os: macos-13, cibw-only: cp313-macosx_x86_64 }
           - { os: macos-14, cibw-only: cp311-macosx_arm64 }
           - { os: macos-14, cibw-only: cp312-macosx_arm64 }
-          - { os: ubuntu-24.04, cibw-only: cp310-manylinux_x86_64 }
+          - { os: macos-14, cibw-only: cp313-macosx_arm64 }
           - { os: ubuntu-24.04, cibw-only: cp311-manylinux_x86_64 }
           - { os: ubuntu-24.04, cibw-only: cp312-manylinux_x86_64 }
-          - { os: ubuntu-24.04-arm, cibw-only: cp310-manylinux_aarch64 }
+          - { os: ubuntu-24.04, cibw-only: cp313-manylinux_x86_64 }
           - { os: ubuntu-24.04-arm, cibw-only: cp311-manylinux_aarch64 }
           - { os: ubuntu-24.04-arm, cibw-only: cp312-manylinux_aarch64 }
-          - { os: windows-2022, cibw-only: cp310-win_amd64 }
+          - { os: ubuntu-24.04-arm, cibw-only: cp313-manylinux_aarch64 }
           - { os: windows-2022, cibw-only: cp311-win_amd64 }
           - { os: windows-2022, cibw-only: cp312-win_amd64 }
+          - { os: windows-2022, cibw-only: cp313-win_amd64 }
 
     steps:
       - uses: actions/checkout@v4
@@ -110,7 +110,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, ubuntu-24.04-arm, macos-13, macos-latest, windows-latest]
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.11", "3.12", "3.13"]
         pytest-marker: ["slow", "not slow"]
 
     runs-on: ${{ matrix.os }}
@@ -157,7 +157,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, windows-latest]
-        python-version: ["3.12"]
+        python-version: ["3.13"]
         pytest-marker: ["slow", "not slow"]
 
     runs-on: ${{ matrix.os }}
