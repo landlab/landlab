@@ -321,14 +321,27 @@ jobs:
           pip install -r requirements/docs.txt
           nox -s docs-build --no-venv
 
-      - name: Create zip
-        run: zip -r docs.zip build/html
-
-      - name: Upload docs
-        uses: actions/upload-artifact@v4
+      - name: Upload static files as artifact
+        id: deployment
+        uses: actions/upload-pages-artifact@v3
         with:
-          name: docs-${{ matrix.os }}-${{ matrix.python-version }}
-          path: docs.zip
+          path: build/html/
+
+  deploy-docs:
+    needs: docs
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
 
   coveralls_finish:
     needs: test-landlab
