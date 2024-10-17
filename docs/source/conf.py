@@ -250,6 +250,7 @@ intersphinx_mapping = {
     "numpy": ("https://numpy.org/doc/stable/", None),
     "scipy": ("https://docs.scipy.org/doc/scipy/", None),
     "xarray": ("https://docs.xarray.dev/en/stable/", None),
+    "matplotlib": ("https://matplotlib.org/stable/", None),
 }
 
 with open("../index.toml", "rb") as fp:
