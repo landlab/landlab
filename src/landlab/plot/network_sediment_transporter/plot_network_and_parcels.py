@@ -216,7 +216,7 @@ def plot_network_and_parcels(
         height_ratios=[1, 0.1, 0.2],
     )
 
-    if fresh_fig is True:
+    if fresh_fig:
         ax = fig.add_subplot(spec[0, 0])
     else:
         plt.figure(fig)
@@ -447,12 +447,11 @@ def plot_network_and_parcels(
     # make axes equal
     ax.axis("equal")
 
-    if output is not None:
-        if type(output) is str:
-            plt.savefig(output, bbox_inches="tight")
-            plt.clf()
-        elif output:
-            plt.show()
+    if isinstance(output, str):
+        plt.savefig(output, bbox_inches="tight")
+        plt.clf()
+    elif output:
+        plt.show()
 
 
 def _get_xy_of_polylines(x_of_polylines, y_of_polylines):
