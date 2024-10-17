@@ -44,6 +44,7 @@ def plot_network_and_parcels(
     parcel_size_max=40,
     parcel_alpha=0.5,
     fig=None,
+    output=None,
     **kwargs,
 ):
     """Plot a river network and parcels on the river network.
@@ -130,6 +131,13 @@ def plot_network_and_parcels(
         Specify parcel marker transparency between 0.0 and 1.0.
     fig :  figure, optional
         Default is to create a new figure object.
+    output : None, string, or bool
+        If None (or False), the image is sent to the imaging buffer to await
+        an explicit call to show() or savefig() from outside this function.
+        If a string, the string should be the path to a save location, and the
+        filename (with file extension). The function will then call
+        plt.savefig([string]) itself. If True, the function will call
+        plt.show() itself once plotting is complete.
     **kwargs :
         Anything else to pass to figure creation.
 
@@ -446,7 +454,12 @@ def plot_network_and_parcels(
     # make axes equal
     ax.axis("equal")
 
-    return fig
+    if output is not None:
+        if type(output) is str:
+            plt.savefig(output, bbox_inches='tight')
+            plt.clf()
+        elif output:
+            plt.show()
 
 
 def _get_xy_of_polylines(x_of_polylines, y_of_polylines):
