@@ -20,7 +20,7 @@ repos:
       language: pygrep
 
 - repo: https://github.com/psf/black
-  rev: 24.8.0
+  rev: 24.10.0
   hooks:
   - id: black
     name: black
@@ -47,7 +47,7 @@ repos:
   hooks:
   - id: blackdoc
     description: "Black for doctests"
-    additional_dependencies: ["black==24.8.0"]
+    additional_dependencies: ["black==24.10.0"]
   - id: blackdoc-autoupdate-black
 
 
@@ -87,7 +87,7 @@ repos:
       args: [--drop-empty-cells]
 
 - repo: https://github.com/asottile/pyupgrade
-  rev: v3.17.0
+  rev: v3.18.0
   hooks:
   - id: pyupgrade
     args: [--py310-plus]
@@ -105,7 +105,7 @@ repos:
     types: [cython]
 
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v4.6.0
+  rev: v5.0.0
   hooks:
     - id: check-builtin-literals
     - id: check-added-large-files
