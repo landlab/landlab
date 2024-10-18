@@ -545,23 +545,16 @@ class river_flow_dynamics(Component):
         )
 
         # Using fixed entry nodes/links only when they exist
-        if len(self._fixed_entry_nodes) > 0:
-            self._fixed_nodes_exist = True
-        else:
-            self._fixed_nodes_exist = False
-
-        if len(self._fixed_entry_links) > 0:
-            self._fixed_links_exist = True
-        else:
-            self._fixed_links_exist = False
+        self._fixed_nodes_exist = len(self._fixed_entry_nodes) > 0
+        self._fixed_links_exist = len(self._fixed_entry_links) > 0
 
         # Updating grid fixed values according to the user input
-        if self._fixed_nodes_exist is True:
+        if self._fixed_nodes_exist:
             self._h[self._fixed_entry_nodes] = entry_nodes_h_values
             self._eta[self._fixed_entry_nodes] = (
                 entry_nodes_h_values - self._z[self._fixed_entry_nodes]
             )
-        if self._fixed_links_exist is True:
+        if self._fixed_links_exist:
             self._vel[self._fixed_entry_links] = entry_links_vel_values
 
         # Mapping node values at links
