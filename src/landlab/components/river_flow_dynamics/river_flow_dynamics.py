@@ -1124,7 +1124,6 @@ class river_flow_dynamics(Component):
             tempCalc1[self._grid.nodes_at_link[self._horizontal_links]], axis=1
         )
 
-        """ Setting A-faces """
         # Setting A-faces
         self._a_links = np.zeros_like(self._vel_at_N)
 
@@ -1153,9 +1152,8 @@ class river_flow_dynamics(Component):
         # divisions by zero
         self._a_links = np.where(self._wet_links, self._a_links, 1)
 
-        """ Path line tracing
-        U-velocity, x-direction, horizontal links
-        """
+        # Path line tracing
+        # U-velocity, x-direction, horizontal links
         # Getting the initial particle location at each volume faces
         tempB1 = [i in self._horizontal_links for i in self._active_links]
         self._x_of_particle = self._grid.xy_of_link[:, 0][self._active_links][tempB1]
@@ -1173,9 +1171,8 @@ class river_flow_dynamics(Component):
         # Calculating path line backwards on time
         self.path_line_tracing()
 
-        """ Bicuatradic interpolation
-        U-velocity, x-direction, around (p,q) location
-        """
+        # Bicuatradic interpolation
+        # U-velocity, x-direction, around (p,q) location
         self._UsL = np.zeros_like(self._u_vel)
 
         # Getting V-velocity at U-links
@@ -1327,9 +1324,8 @@ class river_flow_dynamics(Component):
         # Calculating UsL by bicuadratic interpolation
         self._UsL[tempB2] = W1 * A + W2 * B + W3 * C
 
-        """ Computing viscous terms
-        U-located particles
-        """
+        # Computing viscous terms
+        # U-located particles
         # Central difference scheme around x- and y- direction for U-located particles
         self._Uvis = np.zeros_like(self._u_vel)
 
@@ -1348,9 +1344,8 @@ class river_flow_dynamics(Component):
 
         self._Uvis[tempB2] = tempCalc1 + tempCalc2
 
-        """ Path line tracing
-        V-velocity, y-direction, vertical links
-        """
+        # Path line tracing
+        # V-velocity, y-direction, vertical links
         # Getting the initial particle location at each volume faces
         tempB1 = [j in self._vertical_links for j in self._active_links]
         self._x_of_particle = self._grid.xy_of_link[:, 0][self._active_links][tempB1]
@@ -1368,9 +1363,8 @@ class river_flow_dynamics(Component):
         # Calculating path line backwards on time
         self.path_line_tracing()
 
-        """ Bicuatradic interpolation
-        V-velocity, y-direction, around (p,q) location
-        """
+        # Bicuatradic interpolation
+        # V-velocity, y-direction, around (p,q) location
         self._VsL = np.zeros_like(self._v_vel)
 
         # Getting V-velocity at U-links
@@ -1524,9 +1518,8 @@ class river_flow_dynamics(Component):
         # Calculating VsL by bicuadratic interpolation
         self._VsL[tempB2] = W1 * A + W2 * B + W3 * C
 
-        """ Computing viscous terms
-        V-located particles
-        """
+        # Computing viscous terms
+        # V-located particles
         # Central difference scheme around x- and y- direction for V-located particles
         self._Vvis = np.zeros_like(self._v_vel)
 
@@ -1545,8 +1538,6 @@ class river_flow_dynamics(Component):
 
         self._Vvis[tempB2] = tempCalc1 + tempCalc2
 
-        """ Computing advective terms F(U,V)
-        """
         # Computing advective terms (FU, FV)
         self._f_vel = np.zeros_like(self._vel_at_N)
 
@@ -1558,8 +1549,6 @@ class river_flow_dynamics(Component):
         self._f_vel[self._horizontal_links] = tempCalc1
         self._f_vel[self._vertical_links] = tempCalc2
 
-        """ Setting G-faces
-        """
         # Setting G-faces
         self._g_links = np.zeros_like(self._vel_at_N)
 
@@ -1575,8 +1564,7 @@ class river_flow_dynamics(Component):
             self._grid.status_at_link == 4, 0, self._g_links
         )  # link is active (0), fixed (2), inactive (4)
 
-        """ Solving semi-implicit scheme with PCG method
-        """
+        # Solving semi-implicit scheme with PCG method
         # Building the system of equations 'A*x=b'
         A = np.zeros(
             (self._number_of_nodes, self._number_of_nodes)
@@ -1694,10 +1682,9 @@ class river_flow_dynamics(Component):
         self._eta = np.zeros_like(self._eta_at_N)
         self._eta[self._core_nodes] = pcg_results[0]
 
-        """ Boundary conditions
-        Radiation Boundary Conditions of Roed & Smedstad (1984) applied on open boundaries
-        Water surface elevation
-        """
+        # Boundary conditions
+        # Radiation Boundary Conditions of Roed & Smedstad (1984) applied on open boundaries
+        # Water surface elevation
         ## Updating the new WSE ('eta') with the fixed nodes values
         if self._fixed_nodes_exist is True:
             self._eta[self._fixed_entry_nodes] = (
@@ -1759,8 +1746,7 @@ class river_flow_dynamics(Component):
             self._eta[self._adjacent_nodes_at_corner_nodes], axis=1
         )
 
-        """ Updating water velocity
-        """
+        # Updating water velocity
         # tempB1 :  Considering only wet cells
         # tempB2 :  Cells with elevation below the water surface elevation
         tempB1 = np.where(
@@ -1793,10 +1779,9 @@ class river_flow_dynamics(Component):
         # Only updating velocity on wet cells
         self._vel = np.where(self._wet_links, self._vel, 0)
 
-        """ Boundary conditions
-        Radiation Boundary Conditions of Roed & Smedstad (1984) applied on open boundaries
-        Water velocity
-        """
+        # Boundary conditions
+        # Radiation Boundary Conditions of Roed & Smedstad (1984) applied on open boundaries
+        # Water velocity
         ## Updating the new Velocity with the fixed links values
         if self._fixed_links_exist is True:
             self._vel[self._fixed_entry_links] = self._entry_links_vel_values
@@ -1865,8 +1850,7 @@ class river_flow_dynamics(Component):
             Ce >= 0, vel_at_N_at_B_1, vel_at_N_at_B
         )
 
-        """ Updating water depth at links
-        """
+        # Updating water depth at links
         # Using only values where the WSE is above the topographic elevation
         tempB1 = np.where(abs(self._eta) <= abs(self._z - self._threshold_depth), 1, 0)
 
@@ -1898,8 +1882,7 @@ class river_flow_dynamics(Component):
         )
         self._vel = self._vel * self._wet_links
 
-        """ Calculating average water depth at nodes
-        """
+        # Calculating average water depth at nodes
         # If a node is dry, using only surrounding links such that 'WSE' is above 'z'
         # If a node is wet, using all surrounding links even if 'WSE' is below 'z' (jumps)
 
@@ -1955,8 +1938,7 @@ class river_flow_dynamics(Component):
         # Updating wet nodes
         self._wet_nodes = np.where(self._h >= self._threshold_depth, True, False)
 
-        """ Storing values in the grid
-        """
+        # Storing values in the grid
         self._grid.at_node["surface_water__depth"] = self._h
         self._grid.at_link["surface_water__velocity"] = self._vel
         self._grid.at_node["surface_water__elevation"] = self._eta + (
@@ -1971,8 +1953,7 @@ class river_flow_dynamics(Component):
             self._max_elevation + self._additional_z
         )
 
-        """ Storing values at previous time steps
-        """
+        # Storing values at previous time steps
         self._eta_at_N = self._eta.copy()
         self._eta_at_N_1 = self._eta_at_N.copy()
         self._eta_at_N_2 = self._eta_at_N_1.copy()
