@@ -7,6 +7,21 @@
 
 <!-- towncrier release notes start -->
 
+## 2.9.2 (2024-10-17)
+
+
+### 🛠️ Bug Fixes
+
+- Fixed an issue that caused a `TypeError` to be raised when printing numpy arrays using
+  older versions of numpy. [#2018](https://github.com/landlab/landlab/issues/2018)
+
+
+### 🔩 Other Changes and Additions
+
+- Minor improvements to plot_network_and_parcels to allow straightforward compatability with imshowgrid. [#1986](https://github.com/landlab/landlab/issues/1986)
+- Deprecated passing the `at` keyword as the first argument to
+  functions like, for example, :meth:`~.GraphFields.add_ones`. [#1999](https://github.com/landlab/landlab/issues/1999)
+
 ## 2.9.1 (2024-10-10)
 
 
