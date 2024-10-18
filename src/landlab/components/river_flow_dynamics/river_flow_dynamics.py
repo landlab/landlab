@@ -1,4 +1,4 @@
-"""river_flow_dynamics.py
+"""Simulate surface fluid flow based on Casulli and Cheng (1992).
 
 This component implements a semi-implicit, semi-Lagrangian finite-volume approximation of
 the depth-averaged shallow water equations originally proposed by Casulli and Cheng in 1992,
@@ -277,14 +277,12 @@ flow velocity in percentage is:
 
 >>> np.round(np.abs(np.mean(flow_velocity_expected - flow_velocity)) * 100, 0)
 0.0
-
 """
 
 import numpy as np
 import scipy as sp
 
 from landlab import Component
-from landlab import FieldError
 
 
 class river_flow_dynamics(Component):
@@ -306,7 +304,6 @@ class river_flow_dynamics(Component):
     three-dimensional shallow water flow”. International Journal for Numerical Methods
     in Fluids. 15: 629-648.
     https://doi.org/10.1002/fld.1650150602
-
     """
 
     _name = "river_flow_dynamics"
@@ -433,65 +430,47 @@ class river_flow_dynamics(Component):
 
         # Getting topography for further calculations
         self._additional_z = 10  # To set the virtual reference elevation (z=0)
-        self._max_elevation = self._grid["node"]["topographic__elevation"].max()
-        self._z = self._grid["node"]["topographic__elevation"]
-        self._z = (self._z.max() + self._additional_z) - self._z
+        self._max_elevation = self._grid.at_node["topographic__elevation"].max()
+        self._z = (
+            self._max_elevation
+            + self._additional_z
+            - self._grid.at_node["topographic__elevation"]
+        )
 
-        if fixed_entry_nodes is None:
-            fixed_entry_nodes = []
-        self._fixed_entry_nodes = fixed_entry_nodes
-
-        if fixed_entry_links is None:
-            fixed_entry_links = []
-        self._fixed_entry_links = fixed_entry_links
-
-        if entry_nodes_h_values is None:
-            entry_nodes_h_values = []
-        self._entry_nodes_h_values = entry_nodes_h_values
-
-        if entry_links_vel_values is None:
-            entry_links_vel_values = []
-        self._entry_links_vel_values = entry_links_vel_values
+        self._fixed_entry_nodes = [] if fixed_entry_nodes is None else fixed_entry_nodes
+        self._fixed_entry_links = [] if fixed_entry_links is None else fixed_entry_links
+        self._entry_nodes_h_values = (
+            [] if entry_nodes_h_values is None else entry_nodes_h_values
+        )
+        self._entry_links_vel_values = (
+            [] if entry_links_vel_values is None else entry_links_vel_values
+        )
 
         # Creating fields if they don't exist
-        try:
-            self._grid["node"]["surface_water__depth"] = grid.add_zeros(
+        if "surface_water__depth" not in self.grid.at_node:
+            grid.add_zeros(
                 "surface_water__depth",
                 at="node",
                 units=self._info["surface_water__depth"]["units"],
             )
-        except FieldError:
-            self._grid["node"]["surface_water__depth"] = grid.at_node[
-                "surface_water__depth"
-            ]
 
-        try:
-            self._grid["link"]["surface_water__velocity"] = grid.add_zeros(
+        if "surface_water__velocity" not in self.grid.at_link:
+            grid.add_zeros(
                 "surface_water__velocity",
                 at="link",
                 units=self._info["surface_water__velocity"]["units"],
             )
-        except FieldError:
-            self._grid["link"]["surface_water__velocity"] = grid.at_link[
-                "surface_water__velocity"
-            ]
 
-        try:
-            self._grid["node"]["surface_water__elevation"] = grid.add_zeros(
+        if "surface_water__elevation" not in self.grid.at_node:
+            grid.add_field(
                 "surface_water__elevation",
+                self.grid.at_node["surface_water__depth"] - self._z,
                 at="node",
                 units=self._info["surface_water__elevation"]["units"],
             )
-            self._grid["node"]["surface_water__elevation"] = (
-                self._grid["node"]["surface_water__depth"] - self._z
-            )
-        except FieldError:
-            self._grid["node"]["surface_water__elevation"] = grid.at_node[
-                "surface_water__elevation"
-            ]
 
         if surface_water__elevation_at_N_1 is None:
-            self._surface_water__elevation_at_N_1 = np.zeros(self._grid.number_of_nodes)
+            self._surface_water__elevation_at_N_1 = grid.zeros(at="node")
         else:
             if surface_water__elevation_at_N_1.size > 0:
                 if (
@@ -503,12 +482,12 @@ class river_flow_dynamics(Component):
                     )
                 else:
                     raise ValueError(
-                        "surface_water__elevation_at_N_1 \
-                        does not have the same dimensions of the grid's nodes"
+                        "surface_water__elevation_at_N_1"
+                        " does not have the same dimensions of the grid's nodes"
                     )
 
         if surface_water__elevation_at_N_2 is None:
-            self._surface_water__elevation_at_N_2 = np.zeros(self._grid.number_of_nodes)
+            self._surface_water__elevation_at_N_2 = grid.zeros(at="node")
         else:
             if surface_water__elevation_at_N_2.size > 0:
                 if (
@@ -520,12 +499,12 @@ class river_flow_dynamics(Component):
                     )
                 else:
                     raise ValueError(
-                        "surface_water__elevation_at_N_2 \
-                        does not have the same dimensions of the grid's nodes"
+                        "surface_water__elevation_at_N_2"
+                        " does not have the same dimensions of the grid's nodes"
                     )
 
         if surface_water__velocity_at_N_1 is None:
-            self._surface_water__velocity_at_N_1 = np.zeros(self._grid.number_of_links)
+            self._surface_water__velocity_at_N_1 = grid.zeros(at="link")
         else:
             if surface_water__velocity_at_N_1.size > 0:
                 if (
@@ -537,15 +516,15 @@ class river_flow_dynamics(Component):
                     )
                 else:
                     raise ValueError(
-                        "surface_water__velocity_at_N_1 \
-                        does not have the same dimensions of the grid's links"
+                        "surface_water__velocity_at_N_1"
+                        " does not have the same dimensions of the grid's links"
                     )
 
         # Assigning a class variable to the fields
-        self._h = self._grid["node"]["surface_water__depth"]
-        self._vel = self._grid["link"]["surface_water__velocity"]
+        self._h = self._grid.at_node["surface_water__depth"]
+        self._vel = self._grid.at_link["surface_water__velocity"]
         self._vel_at_N_1 = self._surface_water__velocity_at_N_1
-        self._eta = self._grid["node"]["surface_water__elevation"] - (
+        self._eta = self._grid.at_node["surface_water__elevation"] - (
             self._max_elevation + self._additional_z
         )
         self._eta_at_N_1 = self._surface_water__elevation_at_N_1 - (
@@ -592,19 +571,14 @@ class river_flow_dynamics(Component):
 
         self._adjacent_nodes_at_corner_nodes = np.array(
             [
-                [
-                    self._nodes_at_top_edge[-2],
-                    self._nodes_at_right_edge[-2],
-                ],  # Top right
-                [self._nodes_at_top_edge[1], self._nodes_at_left_edge[-2]],  # Top left
-                [
-                    self._nodes_at_left_edge[1],
-                    self._nodes_at_bottom_edge[1],
-                ],  # Bottom left
-                [
-                    self._nodes_at_right_edge[1],
-                    self._nodes_at_bottom_edge[-2],
-                ],  # Bottom right
+                # Top right
+                [self._nodes_at_top_edge[-2], self._nodes_at_right_edge[-2]],
+                # Top left
+                [self._nodes_at_top_edge[1], self._nodes_at_left_edge[-2]],
+                # Bottom left
+                [self._nodes_at_left_edge[1], self._nodes_at_bottom_edge[1]],
+                # Bottom right
+                [self._nodes_at_right_edge[1], self._nodes_at_bottom_edge[-2]],
             ]
         )
 
