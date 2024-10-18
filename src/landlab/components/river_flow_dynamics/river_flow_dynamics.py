@@ -492,30 +492,24 @@ class river_flow_dynamics(Component):
             self._max_elevation + self._additional_z
         )
 
-        # Getting nodes and links at each edge
-        self._nodes_at_right_edge = self._grid.nodes_at_right_edge
-        self._nodes_at_top_edge = self._grid.nodes_at_top_edge
-        self._nodes_at_left_edge = self._grid.nodes_at_left_edge
-        self._nodes_at_bottom_edge = self._grid.nodes_at_bottom_edge
-
-        self._nx = len(self._nodes_at_top_edge)
-        self._ny = len(self._nodes_at_left_edge)
+        self._nx = len(self.grid.nodes_at_top_edge)
+        self._ny = len(self.grid.nodes_at_left_edge)
 
         self._dx = self._grid.dx
         self._dy = self._grid.dy
 
         # Open boundary conditions
         # water can leave the domain at everywhere, only limited by topography
-        self._grid.status_at_node[self._nodes_at_left_edge] = (
+        self.grid.status_at_node[self.grid.nodes_at_left_edge] = (
             self._grid.BC_NODE_IS_FIXED_VALUE
         )
-        self._grid.status_at_node[self._nodes_at_right_edge] = (
+        self.grid.status_at_node[self.grid.nodes_at_right_edge] = (
             self._grid.BC_NODE_IS_FIXED_VALUE
         )
-        self._grid.status_at_node[self._nodes_at_bottom_edge] = (
+        self.grid.status_at_node[self.grid.nodes_at_bottom_edge] = (
             self._grid.BC_NODE_IS_FIXED_VALUE
         )
-        self._grid.status_at_node[self._nodes_at_top_edge] = (
+        self.grid.status_at_node[self.grid.nodes_at_top_edge] = (
             self._grid.BC_NODE_IS_FIXED_VALUE
         )
 
@@ -530,13 +524,13 @@ class river_flow_dynamics(Component):
         self._adjacent_nodes_at_corner_nodes = np.array(
             [
                 # Top right
-                [self._nodes_at_top_edge[-2], self._nodes_at_right_edge[-2]],
+                [self.grid.nodes_at_top_edge[-2], self.grid.nodes_at_right_edge[-2]],
                 # Top left
-                [self._nodes_at_top_edge[1], self._nodes_at_left_edge[-2]],
+                [self.grid.nodes_at_top_edge[1], self.grid.nodes_at_left_edge[-2]],
                 # Bottom left
-                [self._nodes_at_left_edge[1], self._nodes_at_bottom_edge[1]],
+                [self.grid.nodes_at_left_edge[1], self.grid.nodes_at_bottom_edge[1]],
                 # Bottom right
-                [self._nodes_at_right_edge[1], self._nodes_at_bottom_edge[-2]],
+                [self.grid.nodes_at_right_edge[1], self.grid.nodes_at_bottom_edge[-2]],
             ]
         )
 
@@ -1072,25 +1066,28 @@ class river_flow_dynamics(Component):
             tempCalc1 = np.repeat(True, len(keep_tracing))
             # Particle hits the left edge?
             tempCalc2 = np.isin(
-                self._x_at_exit_point, self._grid.x_of_node[self._nodes_at_left_edge]
+                self._x_at_exit_point,
+                self._grid.x_of_node[self.grid.nodes_at_left_edge],
             )
             # If above True, stop tracing for that particle
             tempCalc1 = np.where(tempCalc2, False, tempCalc1)
             # Particle hits the right edge?
             tempCalc2 = np.isin(
-                self._x_at_exit_point, self._grid.x_of_node[self._nodes_at_right_edge]
+                self._x_at_exit_point,
+                self._grid.x_of_node[self.grid.nodes_at_right_edge],
             )
             # If above True, stop tracing for that particle
             tempCalc1 = np.where(tempCalc2, False, tempCalc1)
             # Particle hits the top edge?
             tempCalc2 = np.isin(
-                self._y_at_exit_point, self._grid.y_of_node[self._nodes_at_top_edge]
+                self._y_at_exit_point, self._grid.y_of_node[self.grid.nodes_at_top_edge]
             )
             # If above True, stop tracing for that particle
             tempCalc1 = np.where(tempCalc2, False, tempCalc1)
             # Particle hits the bottom edge?
             tempCalc2 = np.isin(
-                self._y_at_exit_point, self._grid.y_of_node[self._nodes_at_bottom_edge]
+                self._y_at_exit_point,
+                self._grid.y_of_node[self.grid.nodes_at_bottom_edge],
             )
             # If above True, stop tracing for that particle
             tempCalc1 = np.where(tempCalc2, False, tempCalc1)
