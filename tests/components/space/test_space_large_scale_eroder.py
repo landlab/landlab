@@ -1018,6 +1018,240 @@ def test_matches_bedrock_alluvial_solution_PF():
     # %%
 
 
+# %%
+@pytest.mark.slow
+@pytest.mark.skipif(not with_richdem, reason="richdem is not installed")
+def test_matches_bedrock_alluvial_solution_PF_extended_range():
+    """
+    Test that model matches the bedrock-alluvial analytical solution
+    for slope/area relationship at steady state:
+    S=((U * v_s * (1 - F_f)) / (K_sed * A^m) + U / (K_br * A^m))^(1/n).
+
+    Also test that the soil depth everywhere matches the bedrock-alluvial
+    analytical solution at steady state:
+    H = -H_star * ln(1 - (v_s / (K_sed / (K_br * (1 - F_f)) + v_s))).
+    """
+    # %%
+    # set up a 5x5 grid with one open outlet node and low initial elevations.
+    nr = 5
+    nc = 5
+    mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
+
+    z = mg.add_zeros("topographic__elevation", at="node")
+    br = mg.add_zeros("bedrock__elevation", at="node")
+    soil = mg.add_zeros("soil__depth", at="node")
+
+    np.random.seed(seed=5000)
+    mg["node"]["topographic__elevation"] += (
+        mg.node_y / 100000 + mg.node_x / 100000 + np.random.rand(len(mg.node_y)) / 10000
+    )
+
+    mg.set_watershed_boundary_condition_outlet_id(
+        0, mg["node"]["topographic__elevation"], -9999.0
+    )
+    soil[:] += 0.0  # initial condition of no soil depth.
+    br[:] = z[:]
+    z[:] += soil[:]
+
+    # Create a D8 flow handler
+    fa = PriorityFloodFlowRouter(
+        mg, surface="topographic__elevation", flow_metric="D8", suppress_out=True
+    )
+    fa.run_one_step()
+
+    # Parameter values for detachment-limited test
+    K_br = 0.005
+    K_sed = 0.01
+    U = 0.0001
+    dt = 10.0
+    F_f = 0.0
+    m_sp = 0.5
+    n_sp = 1.0
+    v_s = 1.0
+    H_star = 1.0
+
+    # Instantiate the SpaceLargeScaleEroder component...
+    sp = SpaceLargeScaleEroder(
+        mg,
+        K_sed=K_sed,
+        K_br=K_br,
+        F_f=F_f,
+        phi=0.0,
+        H_star=H_star,
+        v_s=v_s,
+        m_sp=m_sp,
+        n_sp=n_sp,
+        sp_crit_sed=0,
+        sp_crit_br=0,
+    )
+
+    # ... and run it to steady state (10000x1-year timesteps).
+    for _ in range(10000):
+        fa.run_one_step()
+        sp.run_one_step(dt=dt)
+        br[mg.core_nodes] += U * dt  # m
+        soil[0] = 0.0  # enforce 0 soil depth at boundary to keep lowering steady
+        z[:] = br[:] + soil[:]
+
+    # compare numerical and analytical slope solutions
+    num_slope = mg.at_node["topographic__steepest_slope"][mg.core_nodes]
+    analytical_slope = np.power(
+        (
+            (U * v_s * (1 - F_f))
+            / (K_sed * np.power(mg.at_node["drainage_area"][mg.core_nodes], m_sp))
+        )
+        + (U / (K_br * np.power(mg.at_node["drainage_area"][mg.core_nodes], m_sp))),
+        1.0 / n_sp,
+    )
+
+    # test for match with analytical slope-area relationship
+    testing.assert_array_almost_equal(
+        num_slope,
+        analytical_slope,
+        decimal=8,
+        err_msg="SpaceLargeScaleEroder bedrock-alluvial slope-area test failed",
+        verbose=True,
+    )
+
+    # compare numerical and analytical soil depth solutions
+    num_h = mg.at_node["soil__depth"][mg.core_nodes]
+    analytical_h = -H_star * np.log(1 - (v_s / (K_sed / (K_br * (1 - F_f)) + v_s)))
+
+    # test for match with analytical sediment depth
+    testing.assert_array_almost_equal(
+        num_h,
+        analytical_h,
+        decimal=5,
+        err_msg="SpaceLargeScaleEroder bedrock-alluvial soil thickness test failed",
+        verbose=True,
+    )
+
+
+# %%
+@pytest.mark.slow
+@pytest.mark.skipif(not with_richdem, reason="richdem is not installed")
+def test_matches_bedrock_alluvial_solution_PF_high_v_high_hstar():
+    """
+    Test that model matches the bedrock-alluvial analytical solution
+    for slope/area relationship at steady state:
+    S=((U * v_s * (1 - F_f)) / (K_sed * A^m) + U / (K_br * A^m))^(1/n).
+    Also test that the soil depth everywhere matches the bedrock-alluvial
+    analytical solution at steady state:
+    H = -H_star * ln(1 - (v_s / (K_sed / (K_br * (1 - F_f)) + v_s))).
+    Also test that the sediment flux at the outlet is:
+    Qs = U * A.
+    """
+    # %%
+    # set up a 5x5 grid with one open outlet node and low initial elevations.
+    nr = 5
+    nc = 5
+    mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
+
+    z = mg.add_zeros("topographic__elevation", at="node")
+    br = mg.add_zeros("bedrock__elevation", at="node")
+    soil = mg.add_zeros("soil__depth", at="node")
+
+    np.random.seed(seed=5000)
+    mg["node"]["topographic__elevation"] += (
+        mg.node_y / 100000 + mg.node_x / 100000 + np.random.rand(len(mg.node_y)) / 10000
+    )
+
+    mg.set_watershed_boundary_condition_outlet_id(
+        0, mg["node"]["topographic__elevation"], -9999.0
+    )
+    soil[:] += 0.0  # initial condition of no soil depth.
+    br[:] = z[:]
+    z[:] += soil[:]
+
+    # Create a D8 flow handler
+    fa = PriorityFloodFlowRouter(
+        mg, surface="topographic__elevation", flow_metric="D8", suppress_out=True
+    )
+    fa.run_one_step()
+
+    # Parameter values for detachment-limited test
+    K_br = 0.005
+    K_sed = 0.01
+    U = 0.0001
+    dt = 10.0
+    F_f = 0.0
+    m_sp = 0.5
+    n_sp = 1.0
+    v_s = 10.0
+    H_star = 2.0
+    phi = 0.0
+
+    # Instantiate the SpaceLargeScaleEroder component...
+    sp = SpaceLargeScaleEroder(
+        mg,
+        K_sed=K_sed,
+        K_br=K_br,
+        F_f=F_f,
+        phi=phi,
+        H_star=H_star,
+        v_s=v_s,
+        m_sp=m_sp,
+        n_sp=n_sp,
+        sp_crit_sed=0,
+        sp_crit_br=0,
+    )
+
+    # ... and run it to steady state (25000x10-year timesteps).
+    for _ in range(25000):
+        fa.run_one_step()
+        sp.run_one_step(dt=dt)
+        br[mg.core_nodes] += U * dt  # m
+        soil[0] = 0.0  # enforce 0 soil depth at boundary to keep lowering steady
+        z[:] = br[:] + soil[:]
+
+    # compare numerical and analytical slope solutions
+    num_slope = mg.at_node["topographic__steepest_slope"][mg.core_nodes]
+    analytical_slope = np.power(
+        (
+            (U * v_s * (1 - F_f))
+            / (K_sed * np.power(mg.at_node["drainage_area"][mg.core_nodes], m_sp))
+        )
+        + (U / (K_br * np.power(mg.at_node["drainage_area"][mg.core_nodes], m_sp))),
+        1.0 / n_sp,
+    )
+
+    # test for match with analytical slope-area relationship
+    testing.assert_array_almost_equal(
+        num_slope,
+        analytical_slope,
+        decimal=8,
+        err_msg="SpaceLargeScaleEroder bedrock-alluvial slope-area test failed",
+        verbose=True,
+    )
+
+    # compare numerical and analytical soil depth solutions
+    num_h = mg.at_node["soil__depth"][mg.core_nodes]
+    analytical_h = -H_star * np.log(1 - (v_s / (K_sed / (K_br * (1 - F_f)) + v_s)))
+
+    # test for match with analytical sediment depth
+    testing.assert_array_almost_equal(
+        num_h,
+        analytical_h,
+        decimal=5,
+        err_msg="SpaceLargeScaleEroder bedrock-alluvial soil thickness test failed",
+        verbose=True,
+    )
+
+    # compare numerical and analytical sediment flux solutions
+    num_sedflux = mg.at_node["sediment__outflux"][mg.core_nodes]
+    analytical_sedflux = U * mg.at_node["drainage_area"][mg.core_nodes] * (1 - phi)
+
+    # test for match with analytical sediment flux
+    testing.assert_array_almost_equal(
+        num_sedflux,
+        analytical_sedflux,
+        decimal=5,
+        err_msg="SpaceLargeScaleEroder bedrock-alluvial sediment flux test failed",
+        verbose=True,
+    )
+
+
+# %%
 @pytest.mark.slow
 def test_MassBalance():
     # %%
@@ -1113,7 +1347,135 @@ def test_MassBalance():
             1e-8 * mg.number_of_nodes,
             err_msg=(
                 "Mass balance error SpaceLargeScaleEroder! Try to resolve by "
+                "decreasing timestep"
+            ),
+            verbose=True,
+        )
+
+        # Check mass balance on effective erosion and deposition values
+        soil_new_calc = (
+            soil_B
+            + (
+                mg.at_node["sediment__deposition_flux"]
+                - mg.at_node["sediment__erosion_flux"]
+            )
+            * dt
+        )
+        np.testing.assert_almost_equal(
+            H[mg.core_nodes], soil_new_calc[mg.core_nodes], decimal=8
+        )
+
+
+# %%
+@pytest.mark.slow
+def test_MassBalance_lower_pore_density():
+    # %%
+    # set up a 15x15 grid with one open outlet node and low initial elevations.
+    nr = 15
+    nc = 15
+    mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
+
+    z = mg.add_zeros("topographic__elevation", at="node")
+    br = mg.add_zeros("bedrock__elevation", at="node")
+    soil = mg.add_zeros("soil__depth", at="node")
+
+    mg["node"]["topographic__elevation"] += (
+        mg.node_y / 100000 + mg.node_x / 100000 + np.random.rand(len(mg.node_y)) / 10000
+    )
+    mg.set_closed_boundaries_at_grid_edges(
+        bottom_is_closed=True,
+        left_is_closed=True,
+        right_is_closed=True,
+        top_is_closed=True,
+    )
+    mg.set_watershed_boundary_condition_outlet_id(
+        0, mg["node"]["topographic__elevation"], -9999.0
+    )
+    soil[:] += 0.0  # initial condition of no soil depth.
+    br[:] = z[:]
+    z[:] += soil[:]
+
+    # Create a D8 flow handler
+    fa = FlowAccumulator(
+        mg, flow_director="D8", depression_finder="DepressionFinderAndRouter"
+    )
+
+    # Parameter values for detachment-limited test
+    K_br = 0.002
+    K_sed = 0.002
+    U = 0.0001
+    dt = 10.0
+    F_f = 0.2  # all detached rock disappears; detachment-ltd end-member
+    m_sp = 0.5
+    n_sp = 1.0
+    v_s = 0.25
+    H_star = 0.1
+
+    # Instantiate the Space component...
+    sp = SpaceLargeScaleEroder(
+        mg,
+        K_sed=K_sed,
+        K_br=K_br,
+        F_f=F_f,
+        phi=0.4,
+        H_star=H_star,
+        v_s=v_s,
+        m_sp=m_sp,
+        n_sp=n_sp,
+        sp_crit_sed=0,
+        sp_crit_br=0,
+    )
+    # Get values before run
+    z = mg.at_node["topographic__elevation"]
+    br = mg.at_node["bedrock__elevation"]
+    H = mg.at_node["soil__depth"]
+    cores = mg.core_nodes
+    area = mg.cell_area_at_node
+
+    # ... and run it to steady state (10000x1-year timesteps).
+    for _ in range(10000):
+        fa.run_one_step()
+        soil_B = cp.deepcopy(H)
+        bed_B = cp.deepcopy(br)
+        vol_SSY_riv, V_leaving_riv = sp.run_one_step(dt=dt)
+        diff_MB = (
+            np.sum((bed_B[cores] - br[cores]) * area[cores])
+            + np.sum((soil_B[cores] - H[cores]) * area[cores]) * (1 - sp._phi)
+            - vol_SSY_riv * dt
+            - V_leaving_riv
+        )
+
+        br[mg.core_nodes] += U * dt  # m
+        soil[0] = 0.0  # enforce 0 soil depth at boundary to keep lowering steady
+        z[:] = br[:] + soil[:]
+
+        # Test Every iteration
+        testing.assert_array_almost_equal(
+            z[cores],
+            br[cores] + H[cores],
+            decimal=5,
+            err_msg="Topography does not equal sum of bedrock and soil! Decrease timestep",
+            verbose=True,
+        )
+        testing.assert_array_less(
+            abs(diff_MB),
+            1e-8 * mg.number_of_nodes,
+            err_msg=(
+                "Mass balance error SpaceLargeScaleEroder! Try to resolve by "
                 "becreasing timestep"
             ),
             verbose=True,
+        )
+
+        # Check mass balance on effective erosion and deposition values
+        soil_new_calc = (
+            soil_B
+            + (
+                mg.at_node["sediment__deposition_flux"]
+                - mg.at_node["sediment__erosion_flux"]
+            )
+            * dt
+        )
+        np.testing.assert_almost_equal(
+            H[mg.core_nodes], soil_new_calc[mg.core_nodes], decimal=8
         )

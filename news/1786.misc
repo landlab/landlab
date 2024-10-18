@@ -1,5 +1,0 @@
-
-Removed the broken ``map_link_vector_to_nodes`` method from
-``ModelGrid``. As a replacement, use
-:func:`~.map_link_vector_components_to_node_raster` for raster grids, and
-:func:`~.map_link_vector_components_to_node_hex` for hex grids.
