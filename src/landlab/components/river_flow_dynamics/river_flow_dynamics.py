@@ -359,9 +359,9 @@ class river_flow_dynamics(Component):
         entry_links_vel_values=None,  # Water velocity at links where flow enters the domain
         pcg_tolerance=1e-05,  # Preconditioned Conjugate Gradient convergence tolerance
         pcg_max_iterations=None,  # Preconditioned Conjugate Gradient max iterations
-        surface_water__elevation_at_N_1=None,  # Surf water elev at prev. time
-        surface_water__elevation_at_N_2=None,  # Surf water elev at prev prev time
-        surface_water__velocity_at_N_1=None,  # Speed of water at prev time
+        surface_water__elevation_at_N_1=0.0,  # Surf water elev at prev. time
+        surface_water__elevation_at_N_2=0.0,  # Surf water elev at prev prev time
+        surface_water__velocity_at_N_1=0.0,  # Speed of water at prev time
     ):
         """Simulate the vertical-averaged surface fluid flow
 
@@ -406,15 +406,12 @@ class river_flow_dynamics(Component):
             Maximum number of iterations for the Preconditioned Conjugate Gradient
             method. Iteration stops after maxiter steps, even if the specified
             tolerance is not achieved. Default: None.
-        surface_water__elevation_at_N_1: float, optional
-            Water surface elevation at time N-1.
-            units: m, mapping: node
-        surface_water__elevation_at_N_2: float, optional
-            Water surface elevation at time N-2.
-            units: m, mapping: node
-        surface_water__velocity_at_N_1: float, optional
-            Speed of water flow above the surface at time N-1",
-            units: m/2, mapping: link
+        surface_water__elevation_at_N_1: array_like of float, optional
+            Water surface elevation at nodes at time N-1 [m].
+        surface_water__elevation_at_N_2: array_like of float, optional
+            Water surface elevation at nodes at time N-2 [m].
+        surface_water__velocity_at_N_1: array_like of float, optional
+            Speed of water flow at links above the surface at time N-1 [m/s].
         """
         super().__init__(grid)
 
@@ -469,56 +466,17 @@ class river_flow_dynamics(Component):
                 units=self._info["surface_water__elevation"]["units"],
             )
 
-        if surface_water__elevation_at_N_1 is None:
-            self._surface_water__elevation_at_N_1 = grid.zeros(at="node")
-        else:
-            if surface_water__elevation_at_N_1.size > 0:
-                if (
-                    surface_water__elevation_at_N_1.shape[0]
-                    == self._grid.number_of_nodes
-                ):
-                    self._surface_water__elevation_at_N_1 = (
-                        surface_water__elevation_at_N_1
-                    )
-                else:
-                    raise ValueError(
-                        "surface_water__elevation_at_N_1"
-                        " does not have the same dimensions of the grid's nodes"
-                    )
+        self._surface_water__elevation_at_N_1 = np.broadcast_to(
+            np.asarray(surface_water__elevation_at_N_1).flat, grid.number_of_nodes
+        )
 
-        if surface_water__elevation_at_N_2 is None:
-            self._surface_water__elevation_at_N_2 = grid.zeros(at="node")
-        else:
-            if surface_water__elevation_at_N_2.size > 0:
-                if (
-                    surface_water__elevation_at_N_2.shape[0]
-                    == self._grid.number_of_nodes
-                ):
-                    self._surface_water__elevation_at_N_2 = (
-                        surface_water__elevation_at_N_2
-                    )
-                else:
-                    raise ValueError(
-                        "surface_water__elevation_at_N_2"
-                        " does not have the same dimensions of the grid's nodes"
-                    )
+        self._surface_water__elevation_at_N_2 = np.broadcast_to(
+            np.asarray(surface_water__elevation_at_N_2).flat, grid.number_of_nodes
+        )
 
-        if surface_water__velocity_at_N_1 is None:
-            self._surface_water__velocity_at_N_1 = grid.zeros(at="link")
-        else:
-            if surface_water__velocity_at_N_1.size > 0:
-                if (
-                    surface_water__velocity_at_N_1.shape[0]
-                    == self._grid.number_of_links
-                ):
-                    self._surface_water__velocity_at_N_1 = (
-                        surface_water__velocity_at_N_1
-                    )
-                else:
-                    raise ValueError(
-                        "surface_water__velocity_at_N_1"
-                        " does not have the same dimensions of the grid's links"
-                    )
+        self._surface_water__velocity_at_N_1 = np.broadcast_to(
+            np.asarray(surface_water__velocity_at_N_1).flat, grid.number_of_links
+        )
 
         # Assigning a class variable to the fields
         self._h = self._grid.at_node["surface_water__depth"]
