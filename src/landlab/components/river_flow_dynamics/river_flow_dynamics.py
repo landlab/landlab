@@ -492,9 +492,6 @@ class river_flow_dynamics(Component):
             self._max_elevation + self._additional_z
         )
 
-        self._nx = len(self.grid.nodes_at_top_edge)
-        self._ny = len(self.grid.nodes_at_left_edge)
-
         self._dx = self._grid.dx
         self._dy = self._grid.dy
 
@@ -675,10 +672,10 @@ class river_flow_dynamics(Component):
         # Defining the set of links that are going to be used
         if objective_links == "horizontal":
             objective_links = self._horizontal_links
-            reshape_pair = (self._ny, self._nx - 1)
+            reshape_pair = (self.grid.shape[0], self.grid.shape[1] - 1)
         elif objective_links == "vertical":
             objective_links = self._vertical_links
-            reshape_pair = (self._ny - 1, self._nx)
+            reshape_pair = (self.grid.shape[0] - 1, self.grid.shape[1])
         # if (objective_links == "horizontal") END
 
         # Coordinates of the current link
