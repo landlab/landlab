@@ -492,9 +492,6 @@ class river_flow_dynamics(Component):
             self._max_elevation + self._additional_z
         )
 
-        self._dx = self._grid.dx
-        self._dy = self._grid.dy
-
         # Open boundary conditions
         # water can leave the domain at everywhere, only limited by topography
         self.grid.status_at_node[self.grid.nodes_at_left_edge] = (
@@ -802,6 +799,7 @@ class river_flow_dynamics(Component):
         trayectories are traced backwards on time. Then, this function returns
         the departure point of the particle at the beginning of the time step.
         """
+        dx, dy = self.grid.dx, self.grid.dy
 
         # Calculating the partial time-step TAUx, TAUy, dt - sum_partial_times
         sum_partial_times = np.zeros_like(self._u_vel_of_particle)
@@ -840,13 +838,13 @@ class river_flow_dynamics(Component):
             # Getting surrounding links for particles located at link positions
             tempCalc1 = np.where(
                 self._u_vel_of_particle >= 0,
-                np.array([self._x_of_particle]) - self._dx / 10,
-                np.array([self._x_of_particle]) + self._dx / 10,
+                np.array([self._x_of_particle]) - dx / 10,
+                np.array([self._x_of_particle]) + dx / 10,
             )
             tempCalc2 = np.where(
                 self._v_vel_of_particle >= 0,
-                np.array([self._y_of_particle]) - self._dy / 10,
-                np.array([self._y_of_particle]) + self._dy / 10,
+                np.array([self._y_of_particle]) - dy / 10,
+                np.array([self._y_of_particle]) + dy / 10,
             )
             tempCalc3 = np.append(tempCalc1, tempCalc2, axis=0)
             tempCalc4 = self._grid.find_nearest_node(tempCalc3, mode="raise")
@@ -883,23 +881,23 @@ class river_flow_dynamics(Component):
 
             x_at_x2 = np.where(
                 self._u_vel_of_particle >= 0,
-                self._grid.x_of_node[nodes_from_particle] + self._dx / 2,
-                self._grid.x_of_node[nodes_from_particle] - self._dx / 2,
+                self._grid.x_of_node[nodes_from_particle] + dx / 2,
+                self._grid.x_of_node[nodes_from_particle] - dx / 2,
             )
             x_at_x1 = np.where(
                 self._u_vel_of_particle >= 0,
-                self._grid.x_of_node[nodes_from_particle] - self._dx / 2,
-                self._grid.x_of_node[nodes_from_particle] + self._dx / 2,
+                self._grid.x_of_node[nodes_from_particle] - dx / 2,
+                self._grid.x_of_node[nodes_from_particle] + dx / 2,
             )
             y_at_y2 = np.where(
                 self._v_vel_of_particle >= 0,
-                self._grid.y_of_node[nodes_from_particle] + self._dy / 2,
-                self._grid.y_of_node[nodes_from_particle] - self._dy / 2,
+                self._grid.y_of_node[nodes_from_particle] + dy / 2,
+                self._grid.y_of_node[nodes_from_particle] - dy / 2,
             )
             y_at_y1 = np.where(
                 self._v_vel_of_particle >= 0,
-                self._grid.y_of_node[nodes_from_particle] - self._dy / 2,
-                self._grid.y_of_node[nodes_from_particle] + self._dy / 2,
+                self._grid.y_of_node[nodes_from_particle] - dy / 2,
+                self._grid.y_of_node[nodes_from_particle] + dy / 2,
             )
 
             # Getting velocity around the particle
@@ -917,8 +915,8 @@ class river_flow_dynamics(Component):
             )
 
             # Calculating gradients for path line tracing
-            gradient_x_direction = (u_vel_at_x2 - u_vel_at_x1) / self._dx
-            gradient_y_direction = (v_vel_at_y2 - v_vel_at_y1) / self._dy
+            gradient_x_direction = (u_vel_at_x2 - u_vel_at_x1) / dx
+            gradient_y_direction = (v_vel_at_y2 - v_vel_at_y1) / dy
 
             # Calculating entry velocity for each particle
             self._u_vel_of_particle = u_vel_at_x2 - gradient_x_direction * (
@@ -1100,6 +1098,7 @@ class river_flow_dynamics(Component):
 
     def run_one_step(self):
         """Calculate water depth and water velocity for a time period dt."""
+        dx, dy = self.grid.dx, self.grid.dy
 
         # Getting velocity as U,V components
         self._u_vel = self._vel_at_N[self._horizontal_links]
@@ -1264,20 +1263,12 @@ class river_flow_dynamics(Component):
 
         # Getting coordinates around the particle
         x_at_2 = self._grid.xy_of_link[link_at_B2][:, 0]
-        x_at_1 = np.where(
-            self._vel_at_N[link_at_B2] >= 0, x_at_2 + self._dx, x_at_2 - self._dx
-        )
-        x_at_3 = np.where(
-            self._vel_at_N[link_at_B2] >= 0, x_at_2 - self._dx, x_at_2 + self._dx
-        )
+        x_at_1 = np.where(self._vel_at_N[link_at_B2] >= 0, x_at_2 + dx, x_at_2 - dx)
+        x_at_3 = np.where(self._vel_at_N[link_at_B2] >= 0, x_at_2 - dx, x_at_2 + dx)
 
         y_at_B = self._grid.xy_of_link[link_at_B2][:, 1]
-        y_at_A = np.where(
-            temp_Vvel[link_at_B2] >= 0, y_at_B + self._dy, y_at_B - self._dy
-        )
-        y_at_C = np.where(
-            temp_Vvel[link_at_B2] >= 0, y_at_B - self._dy, y_at_B + self._dy
-        )
+        y_at_A = np.where(temp_Vvel[link_at_B2] >= 0, y_at_B + dy, y_at_B - dy)
+        y_at_C = np.where(temp_Vvel[link_at_B2] >= 0, y_at_B - dy, y_at_B + dy)
 
         # Calculating the weights W(i,j) for k around x-direction
         W1 = (
@@ -1330,13 +1321,13 @@ class river_flow_dynamics(Component):
             self._eddy_viscosity
             * self._dt
             * (vel_at_B3 - 2 * vel_at_B2 + vel_at_B1)
-            / (self._dx**2)
+            / (dx**2)
         )
         tempCalc2 = (
             self._eddy_viscosity
             * self._dt
             * (vel_at_C2 - 2 * vel_at_B2 + vel_at_A2)
-            / (self._dy**2)
+            / (dy**2)
         )
 
         self._Uvis[tempB2] = tempCalc1 + tempCalc2
@@ -1458,20 +1449,12 @@ class river_flow_dynamics(Component):
 
         # Getting coordinates around the particle
         x_at_2 = self._grid.xy_of_link[link_at_B2][:, 0]
-        x_at_1 = np.where(
-            temp_Uvel[link_at_B2] >= 0, x_at_2 + self._dx, x_at_2 - self._dx
-        )
-        x_at_3 = np.where(
-            temp_Uvel[link_at_B2] >= 0, x_at_2 - self._dx, x_at_2 + self._dx
-        )
+        x_at_1 = np.where(temp_Uvel[link_at_B2] >= 0, x_at_2 + dx, x_at_2 - dx)
+        x_at_3 = np.where(temp_Uvel[link_at_B2] >= 0, x_at_2 - dx, x_at_2 + dx)
 
         y_at_B = self._grid.xy_of_link[link_at_B2][:, 1]
-        y_at_A = np.where(
-            self._vel_at_N[link_at_B2] >= 0, y_at_B + self._dy, y_at_B - self._dy
-        )
-        y_at_C = np.where(
-            self._vel_at_N[link_at_B2] >= 0, y_at_B - self._dy, y_at_B + self._dy
-        )
+        y_at_A = np.where(self._vel_at_N[link_at_B2] >= 0, y_at_B + dy, y_at_B - dy)
+        y_at_C = np.where(self._vel_at_N[link_at_B2] >= 0, y_at_B - dy, y_at_B + dy)
 
         # Calculating the weights W(i,j) for k around x-direction
         W1 = (
@@ -1524,13 +1507,13 @@ class river_flow_dynamics(Component):
             self._eddy_viscosity
             * self._dt
             * (vel_at_B3 - 2 * vel_at_B2 + vel_at_B1)
-            / (self._dx**2)
+            / (dx**2)
         )
         tempCalc2 = (
             self._eddy_viscosity
             * self._dt
             * (vel_at_C2 - 2 * vel_at_B2 + vel_at_A2)
-            / (self._dy**2)
+            / (dy**2)
         )
 
         self._Vvis[tempB2] = tempCalc1 + tempCalc2
@@ -1552,7 +1535,7 @@ class river_flow_dynamics(Component):
         # Computing G-faces
         self._g_links = self._h_at_N_at_links * self._f_vel - self._h_at_N_at_links * (
             1 - self._theta
-        ) * self._g * self._dt / self._dx * self._grid.calc_diff_at_link(self._eta_at_N)
+        ) * self._g * self._dt / dx * self._grid.calc_diff_at_link(self._eta_at_N)
 
         # Using only wet-link values, and setting dry links equal to 0 to avoid
         # using wrong values
@@ -1592,14 +1575,8 @@ class river_flow_dynamics(Component):
         )
         tempCalc2 = (
             self._eta_at_N[self._core_nodes]
-            - (1 - self._theta)
-            * self._dt
-            / self._dx
-            * (tempCalc1[:, 0] - tempCalc1[:, 2])
-            - (1 - self._theta)
-            * self._dt
-            / self._dy
-            * (tempCalc1[:, 1] - tempCalc1[:, 3])
+            - (1 - self._theta) * self._dt / dx * (tempCalc1[:, 0] - tempCalc1[:, 2])
+            - (1 - self._theta) * self._dt / dy * (tempCalc1[:, 1] - tempCalc1[:, 3])
         )
 
         tempCalc1 = (
@@ -1609,8 +1586,8 @@ class river_flow_dynamics(Component):
         )
         b[self._core_nodes] = (
             tempCalc2
-            - self._theta * self._dt / self._dx * (tempCalc1[:, 0] - tempCalc1[:, 2])
-            - self._theta * self._dt / self._dy * (tempCalc1[:, 1] - tempCalc1[:, 3])
+            - self._theta * self._dt / dx * (tempCalc1[:, 0] - tempCalc1[:, 2])
+            - self._theta * self._dt / dy * (tempCalc1[:, 1] - tempCalc1[:, 3])
         )
 
         ## Building 'A' for the left-hand side of the system
@@ -1619,15 +1596,15 @@ class river_flow_dynamics(Component):
             self._h_at_N_at_links[adjacent_links] ** 2 / self._a_links[adjacent_links]
         )
         coefficients = [
-            -tempCalc1[:, 0] * (self._g * self._theta * self._dt / self._dx) ** 2,
-            -tempCalc1[:, 1] * (self._g * self._theta * self._dt / self._dy) ** 2,
-            -tempCalc1[:, 2] * (self._g * self._theta * self._dt / self._dx) ** 2,
-            -tempCalc1[:, 3] * (self._g * self._theta * self._dt / self._dy) ** 2,
+            -tempCalc1[:, 0] * (self._g * self._theta * self._dt / dx) ** 2,
+            -tempCalc1[:, 1] * (self._g * self._theta * self._dt / dy) ** 2,
+            -tempCalc1[:, 2] * (self._g * self._theta * self._dt / dx) ** 2,
+            -tempCalc1[:, 3] * (self._g * self._theta * self._dt / dy) ** 2,
             1
             + (tempCalc1[:, 0] + tempCalc1[:, 2])
-            * (self._g * self._theta * self._dt / self._dx) ** 2
+            * (self._g * self._theta * self._dt / dx) ** 2
             + (tempCalc1[:, 1] + tempCalc1[:, 3])
-            * (self._g * self._theta * self._dt / self._dy) ** 2,
+            * (self._g * self._theta * self._dt / dy) ** 2,
         ]
         coefficients = np.array(coefficients).T
 
@@ -1725,7 +1702,7 @@ class river_flow_dynamics(Component):
         tempCalc2 = eta_at_N_1_at_B_1 - eta_at_N_1_at_B_2
         tempCalc3 = np.where(tempCalc2 == 0, 1, tempCalc2)
 
-        Ce = np.where(tempCalc2 == 0, 0, tempCalc1 / tempCalc3 * (-self._dx / self._dt))
+        Ce = np.where(tempCalc2 == 0, 0, tempCalc1 / tempCalc3 * (-dx / self._dt))
         Ce = np.where(tempCalc2 == 0, 0, Ce)
 
         # eta[open_boundary_nodes] = tempCalc1/tempCalc2
@@ -1766,7 +1743,7 @@ class river_flow_dynamics(Component):
             self._theta
             * self._g
             * self._dt
-            / self._dx
+            / dx
             * (self._grid.calc_diff_at_link(self._eta))
             * self._h_at_N_at_links
             / self._a_links
@@ -1840,7 +1817,7 @@ class river_flow_dynamics(Component):
         tempCalc2 = vel_at_N_1_at_B_1 - vel_at_N_1_at_B_2
         tempCalc3 = np.where(tempCalc2 == 0, 1, tempCalc2)
 
-        Ce = np.where(tempCalc2 == 0, 0, tempCalc1 / tempCalc3 * (-self._dx / self._dt))
+        Ce = np.where(tempCalc2 == 0, 0, tempCalc1 / tempCalc3 * (-dx / self._dt))
         Ce = np.where(tempCalc2 == 0, 0, Ce)
 
         self._vel[open_boundary_active_links] = np.where(
