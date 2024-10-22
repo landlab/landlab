@@ -9,8 +9,6 @@
 :URL: https://landlab.readthedocs.io/en/release/
 :License: MIT
 """
-import numpy as np
-
 from landlab._registry import registry
 from landlab._version import __version__
 from landlab.core.errors import MissingKeyError
@@ -34,8 +32,6 @@ from landlab.plot.imshow import imshow_grid
 from landlab.plot.imshow import imshow_grid_at_node
 from landlab.plot.imshowhs import imshowhs_grid
 from landlab.plot.imshowhs import imshowhs_grid_at_node
-
-np.set_printoptions(legacy="1.25")
 
 cite_as = registry.format_citations
 

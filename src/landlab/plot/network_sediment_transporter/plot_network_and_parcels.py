@@ -44,21 +44,23 @@ def plot_network_and_parcels(
     parcel_size_max=40,
     parcel_alpha=0.5,
     fig=None,
+    output=None,
     **kwargs,
 ):
     """Plot a river network and parcels on the river network.
 
-    Intended to display the results of the NetworkSedimentTransporter component.
+    Intended to display the results of the :class:`~.NetworkSedimentTransporter`
+    component.
 
-    The river network (an instance of NetworkModelGrid) is plotted either as
+    The river network (an instance of :class:`~.NetworkModelGrid`) is plotted either as
     straight links between grid nodes, or (if the network was created using a
     shapefile to set network topology) as sinuous lines representing the actual
     link geometry.
 
-    The parcels (an instance of DataRecord) are represented as dot markers
+    The parcels (an instance of :class:`~.DataRecord`) are represented as dot markers
     along the links, with the marker location set by parcel attribute
     `location_at_link`. The default is to plot the parcel locations at the
-    last timestep in DataRecord, though any time index may be specified.
+    last timestep in :class`~.DataRecord`, though any time index may be specified.
 
     Use of this plotting tool is described in detail in a landlab tutorial.
 
@@ -68,14 +70,14 @@ def plot_network_and_parcels(
         Instance of NetworkModelGrid.
     parcels : DataRecord
         Instance of Landlab DataRecord, with the same attribute requirements as
-        NetworkSedimentTransporter.
+        :class:`~.NetworkSedimentTransporter`.
     parcel_time_index : int, optional
         Parcel time index to plot. Default is last timestep in parcels
-        DataRecord.
+        :class:`~.DataRecord`.
     map_buffer : float, optional
         Increase the plot extent by at least this much. Note, because of axis
         equal, may be more.
-    parcel_filter : array_like of boolean, shape (number_of_parcels, ), optional
+    parcel_filter : array_like of bool, shape (number_of_parcels, ), optional
         Filter to plot only a selection of the parcels.
 
     Other Parameters
@@ -83,60 +85,59 @@ def plot_network_and_parcels(
     network_color : str, optional
         Uniform color for network links.
     link_attribute : array_like or str, optional
-        Value (as either an array or the name of an at-link field) used to set
-        ink color. Categorical options not supported. Must be continuous.
+        Value (as either an array or the name of an *at-link* field) used to set
+        link color. Categorical options not supported. Must be continuous.
     link_attribute_title : str, optional
-        String to use as the title, if link_attribute is a string, it is
+        String to use as the title, if `link_attribute` is a string, it is
         used as the default.
     network_cmap : str, optional
         Name of colormap for network.
-    network_norm : matplotlib color normalizer
-        https://matplotlib.org/3.1.1/tutorials/colors/colormapnorms.html
-        Default is linear between min and max of `link_attribute`.
+    network_norm : matplotlib.colors.Normalize, optional
+        Default is linear between minimum and maximum of `link_attribute`.
     network_linewidth : float, optional
         Width of network lines.
     parcel_color : str, optional
         Constant color used for parcel markers.
     parcel_color_attribute : str, optional
-        Parcel attribute name, Categorical options not supported. Must be continuous.
+        Parcel attribute name, categorical options not supported. Must be continuous.
     parcel_color_attribute_title : str, optional
-        String to use as the legend title. If parcel_color_attribute is a
+        String to use as the legend title. If `parcel_color_attribute` is a
         string, it is used as the default.
     parcel_color_cmap : str, optional
         Name of colormap for variable parcel color.
-    parcel_color_norm : matplotlib color normalizer.
-        https://matplotlib.org/3.1.1/tutorials/colors/colormapnorms.html
-        Default is linear between min and max of parcel_color_attribute.
+    parcel_color_norm : matplotlib.colors.Normalize, optional
+        Default is linear between minimum and maximum of `parcel_color_attribute`.
     parcel_size : float, optional
-        Marker size, in points.
+        Marker size in points.
     parcel_size_attribute: str, optional
-        Parcel attribute name, Categorical options not supported. Must be continuous.
+        Parcel attribute name, categorical options not supported. Must be continuous.
     parcel_size_attribute_title : str, optional
         String to use as the title, if `parcel_size_attribute` is a string, it is
         used as the default.
-    parcel_size_norm : par
-        matplotlib color normalizer.
-        https://matplotlib.org/3.1.1/tutorials/colors/colormapnorms.html
-        Default is linear between min and max of `parcel_size_attribute`.
+    parcel_size_norm : matplotlib.colors.Normalize, optional
+        Default is linear between minimum and maximum of `parcel_size_attribute`.
     parcel_size_min : float, optional
         Specify the smallest size of the dot markers plotted, in
-        units of points (default 5). Use with parcel_size_max. They will be
-        aligned with the limits of parcel_size_norm.
+        units of points (default 5). Use with `parcel_size_max`. They will be
+        aligned with the limits of `parcel_size_norm`.
     parcel_size_max : float, optional
         Specify the largest size of the dot markers plotted, in
         units of points (default 40). Use with `parcel_size_min`. They will be
-        aligned with the limits of parcel_size_norm.
+        aligned with the limits of `parcel_size_norm`.
     parcel_alpha : float, optional
         Specify parcel marker transparency between 0.0 and 1.0.
-    fig :  figure, optional
+    fig :  matplotlib.figure.Figure, optional
         Default is to create a new figure object.
+    output : bool, str, optional
+        If not provided (or ``False``), the image is sent to the imaging buffer to await
+        an explicit call to :func:`~matplotlib.pyplot.show` or
+        :func:`~matplotlib.pyplot.savefig` from outside this function.
+        If a string, `output` should be the path to a file (with file extension) to
+        save the figure to. The function will then call
+        :func:`~matplotlib.pyplot.savefig` itself. If ``True``, the function will call
+        :func:`~matplotlib.pyplot.show` itself once plotting is complete.
     **kwargs :
         Anything else to pass to figure creation.
-
-    Returns
-    -------
-    fig
-        Figure object.
     """
     # part 0 checking and default setting.
 
@@ -198,7 +199,11 @@ def plot_network_and_parcels(
 
     # set up figure, label and legend gridspecs.
     if fig is None:
+        fresh_fig = True
         fig = plt.figure(**kwargs)
+    else:
+        # we'll be adding this plot to existing axes
+        fresh_fig = False
 
     spec = gridspec.GridSpec(
         ncols=1,
@@ -210,7 +215,14 @@ def plot_network_and_parcels(
         figure=fig,
         height_ratios=[1, 0.1, 0.2],
     )
-    ax = fig.add_subplot(spec[0, 0])
+
+    if fresh_fig:
+        ax = fig.add_subplot(spec[0, 0])
+    else:
+        plt.figure(fig)
+        ax = plt.gca()
+        ax.set_subplotspec(spec[0, 0])
+
     if n_legends > 0:
         label_spec = spec[1, 0].subgridspec(
             ncols=2 * n_legends - 1,
@@ -435,7 +447,11 @@ def plot_network_and_parcels(
     # make axes equal
     ax.axis("equal")
 
-    return fig
+    if isinstance(output, str):
+        plt.savefig(output, bbox_inches="tight")
+        plt.clf()
+    elif output:
+        plt.show()
 
 
 def _get_xy_of_polylines(x_of_polylines, y_of_polylines):

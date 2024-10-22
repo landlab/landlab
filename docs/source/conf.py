@@ -127,7 +127,7 @@ html_logo = "_static/landlab_logo.png"
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-    "announcement": "<em>Landlab 2.8 released!</em>",
+    "announcement": "<em>Landlab 2.9 released!</em>",
     "source_repository": "https://github.com/landlab/landlab/",
     "source_branch": "master",
     "source_directory": "docs/source",
@@ -250,6 +250,7 @@ intersphinx_mapping = {
     "numpy": ("https://numpy.org/doc/stable/", None),
     "scipy": ("https://docs.scipy.org/doc/scipy/", None),
     "xarray": ("https://docs.xarray.dev/en/stable/", None),
+    "matplotlib": ("https://matplotlib.org/stable/", None),
 }
 
 with open("../index.toml", "rb") as fp:
