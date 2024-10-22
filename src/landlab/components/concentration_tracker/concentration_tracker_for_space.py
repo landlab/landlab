@@ -444,11 +444,11 @@ class ConcentrationTrackerForSpace(Component):
             else:
                 self._C_sw[node_id] = 0.0
 
-            # Calculate BED erosion/deposition term (requires C_sw from above)            
-            self._BED_ero_depo_term[node_id] = ((self._C_sw[node_id] * D_sw[node_id]
-                                                 - self._concentration[node_id] * Es[node_id])
-                                                / (1 - self._phi)
-                                                )
+            # Calculate BED erosion/deposition term (requires C_sw from above)
+            self._BED_ero_depo_term[node_id] = (
+                self._C_sw[node_id] * D_sw[node_id]
+                - self._concentration[node_id] * Es[node_id]
+            ) / (1 - self._phi)
 
             # Calculate BED concentration
             self._concentration[node_id] = (
