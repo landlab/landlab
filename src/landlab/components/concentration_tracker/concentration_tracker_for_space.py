@@ -28,7 +28,7 @@ class ConcentrationTrackerForSpace(Component):
 
     .. note::
 
-        This component requires the "sediment__influx", "sediment__outflux",
+        This component requires the "sediment__outflux", "bedrock__erosion_flux"
         "sediment__erosion_flux", and "sediment__deposition_flux" fields
         calculated by the :class:`~.SpaceLargeScaleEroder` component. This
         component does not use the typical run_one_step(dt) method. Instead,
@@ -223,14 +223,6 @@ class ConcentrationTrackerForSpace(Component):
             "mapping": "node",
             "doc": "Depth of soil or weathered bedrock",
         },
-        "sediment__influx": {
-            "dtype": float,
-            "intent": "in",
-            "optional": False,
-            "units": "m^3/yr",
-            "mapping": "node",
-            "doc": "flux of sediment into node",
-        },
         "sediment__outflux": {
             "dtype": float,
             "intent": "in",
@@ -238,6 +230,14 @@ class ConcentrationTrackerForSpace(Component):
             "units": "m^3/yr",
             "mapping": "node",
             "doc": "flux of sediment out of node",
+        },
+        "bedrock__erosion_flux": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "m/yr",
+            "mapping": "node",
+            "doc": "erosional flux of bedrock into water column",
         },
         "sediment__erosion_flux": {
             "dtype": float,
