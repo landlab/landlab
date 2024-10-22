@@ -214,8 +214,8 @@ class KinwaveImplicitOverlandFlow(Component):
         runoff_rate : float, optional (defaults to 1 mm/hr)
             Precipitation rate, mm/hr. The value provided is divided by
             3600000.0.
-        roughness : float, defaults to 0.01
-            Manning roughness coefficient; units depend on depth_exp.
+        roughness : float or array of floats (defaults to 0.01)
+            Manning's roughness coefficient(s); units depend on depth_exp.
         changing_topo : boolean, optional (defaults to False)
             Flag indicating whether topography changes between time steps
         depth_exp : float (defaults to 1.5)
@@ -228,8 +228,13 @@ class KinwaveImplicitOverlandFlow(Component):
         super().__init__(grid)
         # Store parameters and do unit conversion
 
+        if isinstance(roughness, str):
+            self._roughness = self._grid.at_node[roughness]
+        else:
+            self._roughness = roughness
+
         self._runoff_rate = runoff_rate / 3600000.0  # convert to m/s
-        self._vel_coef = 1.0 / roughness  # do division now to save time
+        self._vel_coef = 1.0 / self._roughness  # do division now to save time
         self._changing_topo = changing_topo
         self._depth_exp = depth_exp
         self._weight = weight
