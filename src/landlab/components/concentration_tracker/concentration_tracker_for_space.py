@@ -36,8 +36,8 @@ class ConcentrationTrackerForSpace(Component):
         :class:`~.SpaceLargeScaleEroder` step and a stop_tracking(dt) method
         immediately after every :class:`~.SpaceLargeScaleEroder` step.
         See the docstring examples below.
-        
-        The required inputs "phi", "fraction_fines", and "settling_velocity" 
+
+        The required inputs "phi", "fraction_fines", and "settling_velocity"
         must have the same value as those used for the instance of
         :class:`~.SpaceLargeScaleEroder`.
 
@@ -288,13 +288,12 @@ class ConcentrationTrackerForSpace(Component):
     def __init__(
         self,
         grid,
-        phi: float|None=None,
-        fraction_fines: float|None=None,
-        settling_velocity: float|None=None,
+        phi: float | None = None,
+        fraction_fines: float | None = None,
+        settling_velocity: float | None = None,
         concentration_initial=0,
         concentration_in_bedrock=0,
     ):
-        
         """
         Parameters
         ----------
@@ -311,31 +310,34 @@ class ConcentrationTrackerForSpace(Component):
         concentration_in_bedrock: positive float, array, or field name (optional)
             Concentration in bedrock, [-/L^3]
         """
-        
+
         if phi is None:
-            raise ValueError("`phi` is a required input parameter. " 
-                             "It must have the same value as the `phi` input "
-                             "parameter used for the `SpaceLargeScaleEroder` "
-                             "instance to which this component is coupled. "
-                             "See the docstring in each component for details."
-                             )
+            raise ValueError(
+                "`phi` is a required input parameter. "
+                "It must have the same value as the `phi` input "
+                "parameter used for the `SpaceLargeScaleEroder` "
+                "instance to which this component is coupled. "
+                "See the docstring in each component for details."
+            )
         if fraction_fines is None:
-            raise ValueError("`fraction_fines` is a required input parameter. "
-                             "It must have the same value as the same input "
-                             "parameter used for the `SpaceLargeScaleEroder` "
-                             "instance to which this component is coupled. "
-                             "The parameter is named `F_f` in SpaceLargeScaleEroder. "
-                             "See the docstring in each component for details."
-                             )
+            raise ValueError(
+                "`fraction_fines` is a required input parameter. "
+                "It must have the same value as the same input "
+                "parameter used for the `SpaceLargeScaleEroder` "
+                "instance to which this component is coupled. "
+                "The parameter is named `F_f` in SpaceLargeScaleEroder. "
+                "See the docstring in each component for details."
+            )
         if settling_velocity is None:
-            raise ValueError("`settling_velocity` is a required input parameter. "
-                             "It must have the same value as the same input "
-                             "parameter used for the `SpaceLargeScaleEroder` "
-                             "instance to which this component is coupled. "
-                             "It is named `v_s` in SpaceLargeScaleEroder. "
-                             "See the docstring in each component for details."
-                             )
-            
+            raise ValueError(
+                "`settling_velocity` is a required input parameter. "
+                "It must have the same value as the same input "
+                "parameter used for the `SpaceLargeScaleEroder` "
+                "instance to which this component is coupled. "
+                "It is named `v_s` in SpaceLargeScaleEroder. "
+                "See the docstring in each component for details."
+            )
+
         super().__init__(grid)
         # Store grid and parameters
 
