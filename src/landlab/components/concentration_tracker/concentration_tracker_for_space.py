@@ -233,7 +233,7 @@ class ConcentrationTrackerForSpace(Component):
             "optional": False,
             "units": "m^3/yr",
             "mapping": "node",
-            "doc": "flux of sediment out of node",
+            "doc": "Sediment flux (volume per unit time of sediment leaving each node)",
         },
         "bedrock__erosion_flux": {
             "dtype": float,
@@ -241,7 +241,10 @@ class ConcentrationTrackerForSpace(Component):
             "optional": False,
             "units": "m/yr",
             "mapping": "node",
-            "doc": "erosional flux of bedrock into water column",
+            "doc": (
+                "Bedrock erosion flux from bedrock to water column (depth eroded per"
+                " unit time)"
+            ),
         },
         "sediment__erosion_flux": {
             "dtype": float,
@@ -249,7 +252,10 @@ class ConcentrationTrackerForSpace(Component):
             "optional": False,
             "units": "m/yr",
             "mapping": "node",
-            "doc": "erosional flux of sediment from bed to water column",
+            "doc":  (
+                "Sediment erosion flux from bed to water column (depth eroded per"
+                " unit time)"
+            ),
         },
         "sediment__deposition_flux": {
             "dtype": float,
@@ -257,7 +263,10 @@ class ConcentrationTrackerForSpace(Component):
             "optional": False,
             "units": "m/yr",
             "mapping": "node",
-            "doc": "depositional flux of sediment from water column to bed",
+            "doc": (
+                "Sediment deposition flux from water column to bed (depth deposited"
+                " per unit time)"
+            ),
         },
         "topographic__elevation": {
             "dtype": float,
@@ -404,14 +413,14 @@ class ConcentrationTrackerForSpace(Component):
             raise ValueError("Concentration in bedrock cannot be negative")
         self._C_br = return_array_at_node(self._grid, new_val)
 
-    def copy_old_soil_depth(self):
+    def _copy_old_soil_depth(self):
         """Store a copy of soil depth. This is used as the old soil depth when
         calculating changes in concentration.
         """
 
         self._soil__depth_old = self._soil__depth.copy()
 
-    def calc_concentration_watercolumn_and_bed(self, dt):
+    def _calc_concentration_watercolumn_and_bed(self, dt):
         """Calculate change in concentration within sediment transported in
         the water column and within sediment on the bed for a time period 'dt'.
 
@@ -499,7 +508,7 @@ class ConcentrationTrackerForSpace(Component):
         that changes physical properties of bedrock, soil, and/or topography.
         """
 
-        self.copy_old_soil_depth()
+        self._copy_old_soil_depth()
 
     def stop_tracking(self, dt):
         """Calculate changes in concentration that have occurred in the timestep
@@ -513,7 +522,7 @@ class ConcentrationTrackerForSpace(Component):
             The imposed timestep.
         """
 
-        self.calc_concentration_watercolumn_and_bed(dt)
+        self._calc_concentration_watercolumn_and_bed(dt)
 
     def run_one_step(self):
         """run_one_step is not implemented for this component."""
