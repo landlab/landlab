@@ -173,7 +173,6 @@ class TestInputParameters:
         [
             "concentration_initial",
             "concentration_in_bedrock",
-            "concentration_from_weathering",
         ],
     )
     def test_properties_concentrations(self, keyword):
@@ -375,7 +374,7 @@ class TestAnalytical:
         )
         ct.stop_tracking(1)
 
-        assert np.allclose(self.ct._C_sw[8], expected_sw)
+        assert np.allclose(ct._C_sw[8], expected_sw)
         assert np.allclose(
             self.mg.at_node["sediment_property__concentration"][8], expected
         )
@@ -386,6 +385,7 @@ class TestFieldCopy:
     """Test that copied field is a copy, but not a reference."""
 
     def setup_method(self):
+        self.mg = RasterModelGrid((3, 3))
         self.mg.add_zeros("soil__depth", at="node")
         self.mg.add_zeros("sediment__outflux", at="node")
         self.mg.add_zeros("bedrock__erosion_flux", at="node")
