@@ -22,18 +22,18 @@ def test_add_units_missing_field(at, name, unit_str):
     grid = RasterModelGrid((4, 4))
     units(grid, name, at=at, units=unit_str)
     assert grid[at][name] == pytest.approx(0.0)
-    assert grid.field_units(at, name) == unit_str
+    assert grid.field_units(name, at=at) == unit_str
     assert grid[at].units[name] == unit_str
 
 
 def test_add_units_existing_field(at):
     grid = RasterModelGrid((4, 4))
     grid.add_empty("x", at=at, units="NONE")
-    assert grid.field_units(at, "x") == "NONE"
+    assert grid.field_units("x", at=at) == "NONE"
     values = grid[at]["x"].copy()
 
     units(grid, "x", at=at, units="m")
-    assert grid.field_units(at, "x") == "m"
+    assert grid.field_units("x", at=at) == "m"
     assert_array_equal(grid[at]["x"], values)
 
 
@@ -41,10 +41,10 @@ def test_add_units_existing_field(at):
 def test_add_units_without_units(at, name):
     grid = RasterModelGrid((4, 4))
     units(grid, name, at=at, units=None)
-    assert grid.field_units(at, name) == "?"
+    assert grid.field_units(name, at=at) == "?"
 
     units(grid, name, at=at)
-    assert grid.field_units(at, name) == "?"
+    assert grid.field_units(name, at=at) == "?"
 
 
 def test_bad_grid_element_name(four_by_four_raster):

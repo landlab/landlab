@@ -55,7 +55,7 @@ class MassWastingRunout(Component):
     >>> fd.run_one_step()
     >>> nn = mg.number_of_nodes
     >>> depth = np.ones(nn) * 1
-    >>> _ = mg.add_field("node", "soil__thickness", depth)
+    >>> _ = mg.add_field("soil__thickness", depth, at="node")
 
     Define the initial landslide. Any mass_wasting_id value >1 is considered a
     landslide. The landslide extent is defined by assigining all nodes withing

@@ -511,7 +511,7 @@ def test_field_units(units):
     grid = create_grid(params)
     assert grid.at_node["topographic__elevation"] == pytest.approx(0.0)
     assert grid.at_node.units["topographic__elevation"] == units
-    assert grid.field_units("node", "topographic__elevation") == units
+    assert grid.field_units("topographic__elevation", at="node") == units
 
 
 @given(units=text())
@@ -538,4 +538,4 @@ def test_repeated_units(units):
     grid = create_grid(params)
     assert grid.at_node["topographic__elevation"] == pytest.approx(0.0)
     assert grid.at_node.units["topographic__elevation"] == units
-    assert grid.field_units("node", "topographic__elevation") == units
+    assert grid.field_units("topographic__elevation", at="node") == units

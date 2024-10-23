@@ -435,7 +435,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         :meta landlab: boundary-condition
         """
         # get node_data if a field name
-        node_data = self.return_array_or_field_values("node", node_data)
+        node_data = self.return_array_or_field_values(node_data, at="node")
 
         # make ring of no data nodes
         self.status_at_node[self.boundary_nodes] = self.BC_NODE_IS_CLOSED
@@ -508,7 +508,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         :meta landlab: boundary-condition
         """
         # get node_data if a field name
-        node_data = self.return_array_or_field_values("node", node_data)
+        node_data = self.return_array_or_field_values(node_data, at="node")
 
         # make ring of no data nodes
         self.status_at_node[self.boundary_nodes] = self.BC_NODE_IS_CLOSED

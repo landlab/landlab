@@ -60,6 +60,12 @@ repos:
     - flake8-comprehensions
     - flake8-simplify
 
+- repo: https://github.com/mcflugen/heartfelt-hooks
+  rev: v1.3.3
+  hooks:
+  - id: check-whitespace
+  - id: check-heading-levels
+
 - repo: https://github.com/nbQA-dev/nbQA
   rev: 1.8.7
   hooks:
@@ -70,7 +76,7 @@ repos:
       args: ["--extend-ignore=E402"]
       exclude: |
           (?x)^(
-              notebooks/tutorials/making_components/making_components.ipynb
+              docs/source/tutorials/making_components/making_components.ipynb
           )
 
 - repo: https://github.com/kynan/nbstripout

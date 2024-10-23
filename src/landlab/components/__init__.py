@@ -15,6 +15,7 @@ from .dimensionless_discharge import DimensionlessDischarge
 from .discharge_diffuser import DischargeDiffuser
 from .drainage_density import DrainageDensity
 from .erosion_deposition import ErosionDeposition
+from .erosion_deposition import SharedStreamPower
 from .fire_generator import FireGenerator
 from .flexure import Flexure
 from .flexure import Flexure1D
@@ -157,6 +158,7 @@ COMPONENTS = [
     SedDepEroder,
     SedimentPulserAtLinks,
     SedimentPulserEachParcel,
+    SharedStreamPower,
     SimpleSubmarineDiffuser,
     SinkFiller,
     SinkFillerBarnes,

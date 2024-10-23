@@ -119,7 +119,7 @@ _STATUS = defaultdict(
 def _create_missing_field(grid, name, at):
     """Create field of zeros if missing."""
     if name not in grid[at]:
-        grid.add_zeros(at, name)
+        grid.add_zeros(name, at=at)
 
 
 def _where_to_add_values(grid, at, where):
