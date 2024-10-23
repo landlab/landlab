@@ -246,11 +246,11 @@ class KinwaveImplicitOverlandFlow(Component):
 
         # This array holds, for each node, the sum of sqrt(slope) x face width
         # for each link/face.
-        self._grad_width_sum = grid.zeros("node")
+        self._grad_width_sum = grid.zeros(at="node")
 
         # This array holds the prefactor in the algebraic equation that we
         # will find a solution for.
-        self._alpha = grid.zeros("node")
+        self._alpha = grid.zeros(at="node")
 
         # Instantiate flow router
         self._flow_accum = FlowAccumulator(

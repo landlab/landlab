@@ -196,7 +196,7 @@ class PotentialityFlowRouter(Component):
         if self._route_on_diagonals and self._raster:
             self._discharges_at_link = np.empty(grid.number_of_d8)
         else:
-            self._discharges_at_link = self._grid.empty("link")
+            self._discharges_at_link = self._grid.empty(at="link")
 
     def run_one_step(self):
         """Route surface-water flow over a landscape.

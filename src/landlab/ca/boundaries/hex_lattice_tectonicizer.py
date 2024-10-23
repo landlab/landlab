@@ -126,7 +126,9 @@ class HexLatticeTectonicizer:
 
         # If needed, create node-state grid
         if node_state is None:
-            self.node_state = self.grid.add_zeros("node", "node_state_map", dtype=int)
+            self.node_state = self.grid.add_zeros(
+                "node_state_map", at="node", dtype=int
+            )
         else:
             self.node_state = node_state
 
@@ -586,7 +588,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         >>> xnlist.append(Transition((0, 0, 0), (1, 1, 0), 1.0, "test"))
         >>> xnlist.append(Transition((0, 0, 1), (1, 1, 1), 1.0, "test"))
         >>> xnlist.append(Transition((0, 0, 2), (1, 1, 2), 1.0, "test"))
-        >>> nsg = mg.add_zeros("node", "node_state_grid")
+        >>> nsg = mg.add_zeros("node_state_grid", at="node")
         >>> pid = np.arange(25, dtype=int)
         >>> pdata = np.arange(25)
         >>> ohcts = OrientedHexCTS(mg, nsd, xnlist, nsg)
@@ -633,7 +635,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         >>> xnlist.append(Transition((1, 0, 0), (1, 1, 0), 1.0, "frogging"))
         >>> xnlist.append(Transition((1, 0, 1), (1, 1, 1), 1.0, "frogging"))
         >>> xnlist.append(Transition((1, 0, 2), (1, 1, 2), 1.0, "frogging"))
-        >>> nsg = mg.add_zeros("node", "node_state_grid")
+        >>> nsg = mg.add_zeros("node_state_grid", at="node")
         >>> nsg[:10] = 1
         >>> pid = np.arange(25, dtype=int)
         >>> pdata = np.arange(25)
@@ -894,7 +896,7 @@ class LatticeUplifter(HexLatticeTectonicizer):
         ...
         >>> xnlist = []
         >>> xnlist.append(Transition((0, 0, 0), (1, 1, 0), 1.0, "frogging"))
-        >>> nsg = mg.add_zeros("node", "node_state_grid")
+        >>> nsg = mg.add_zeros("node_state_grid", at="node")
         >>> ca = HexCTS(mg, nsd, xnlist, nsg)
 
         >>> lu = LatticeUplifter(opt_block_layer=True)
@@ -1061,9 +1063,9 @@ class LatticeUplifter(HexLatticeTectonicizer):
         ...
         >>> xnlist = []
         >>> xnlist.append(Transition((0, 0, 0), (1, 1, 0), 1.0, "frogging", True))
-        >>> nsg = mg.add_zeros("node", "node_state_grid")
+        >>> nsg = mg.add_zeros("node_state_grid", at="node")
         >>> ca = HexCTS(mg, nsd, xnlist, nsg)
-        >>> pd = mg.add_zeros("node", "propdata")
+        >>> pd = mg.add_zeros("propdata", at="node")
         >>> lu = LatticeUplifter(propid=ca.propid, prop_data=pd)
         >>> lu.node_state[:] = np.arange(len(lu.node_state))
         >>> lu.uplift_interior_nodes(ca, rock_state=25, current_time=0.0)

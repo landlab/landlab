@@ -760,7 +760,7 @@ class DepressionFinderAndRouter(Component):
         max_count = self._grid.number_of_nodes + 1
 
         # Place pit_node at top of depression list
-        nodes_this_depression = self.grid.zeros("node", dtype=int)
+        nodes_this_depression = self.grid.zeros(at="node", dtype=int)
         nodes_this_depression[0] = pit_node
         pit_count = 1
 

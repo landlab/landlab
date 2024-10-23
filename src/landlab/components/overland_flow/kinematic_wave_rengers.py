@@ -176,8 +176,8 @@ class KinematicWaveRengers(Component):
         vert_grads = self.grid.map_mean_of_vertical_active_links_to_node(all_grads)
         self._hozslopept5 = np.fabs(hoz_grads[active]) ** 0.5
         self._vertslopept5 = np.fabs(vert_grads[active]) ** 0.5
-        self._velx = self.grid.zeros("node", dtype=float)
-        self._vely = self.grid.zeros("node", dtype=float)
+        self._velx = self.grid.zeros(at="node", dtype=float)
+        self._vely = self.grid.zeros(at="node", dtype=float)
         self._qy = np.zeros(grid.number_of_nodes + 1, dtype=float)
         self._qx = np.zeros(grid.number_of_nodes + 1, dtype=float)
         self._poshozgrads = hoz_grads > 0.0
@@ -200,7 +200,7 @@ class KinematicWaveRengers(Component):
 
         # ^add this value to the anchor nodes to update the BCs
         # these also need to be mapped to active_IDs:
-        blank_nodes = self.grid.zeros("node", dtype=bool)
+        blank_nodes = self.grid.zeros(at="node", dtype=bool)
         blank_nodes[fixed_grad_nodes] = True
         self._fixed_grad_nodes_active = np.where(blank_nodes[active])[0]
         blank_nodes.fill(False)
@@ -355,7 +355,7 @@ class KinematicWaveRengers(Component):
         fixed_grad_anchors = self.grid.fixed_gradient_boundary_node_anchor_node
         # ^add this value to the anchor nodes to update the BCs
         # these also need to be mapped to active_IDs:
-        blank_nodes = self.grid.zeros("node", dtype=bool)
+        blank_nodes = self.grid.zeros(at="node", dtype=bool)
         blank_nodes[fixed_grad_nodes] = True
         self._fixed_grad_nodes_active = np.where(blank_nodes[active])[0]
         blank_nodes.fill(False)
