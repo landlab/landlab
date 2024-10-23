@@ -252,7 +252,7 @@ class ConcentrationTrackerForSpace(Component):
             "optional": False,
             "units": "m/yr",
             "mapping": "node",
-            "doc":  (
+            "doc": (
                 "Sediment erosion flux from bed to water column (depth eroded per"
                 " unit time)"
             ),
