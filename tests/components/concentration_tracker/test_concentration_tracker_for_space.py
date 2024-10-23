@@ -49,10 +49,10 @@ class TestInputParameters:
         "at,required_field",
         [
             ("node", "soil__depth"),
-            ("node", "sediment__outflux")
-            ("node", "bedrock__erosion_flux")
-            ("node", "sediment__erosion_flux")
-            ("node", "sediment__deposition_flux")
+            ("node", "sediment__outflux"),
+            ("node", "bedrock__erosion_flux"),
+            ("node", "sediment__erosion_flux"),
+            ("node", "sediment__deposition_flux"),
             ("node", "topographic__elevation"),
         ],
     )
