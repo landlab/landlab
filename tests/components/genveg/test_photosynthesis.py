@@ -1,6 +1,6 @@
 import numpy as np
-
 from numpy.testing import assert_allclose
+
 from landlab.components.genveg.photosynthesis import Photosynthesis
 
 photo_object = Photosynthesis(0.9074, _current_day=90)

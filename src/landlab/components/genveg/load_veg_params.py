@@ -4,9 +4,10 @@ May need to change this to output a landlab configured input file
 Want to retain formatted Excel file due to type of data required
 """
 
+import pathlib
+
 import numpy as np
 import pandas as pd
-import pathlib
 import yaml
 from scipy.optimize import curve_fit
 
