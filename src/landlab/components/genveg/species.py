@@ -86,11 +86,10 @@ class Species(object):
                     if plant_factors[key] not in opt_list:
                         msg = "Invalid " + str(key) + " option"
                         raise ValueError(msg)
-            except ValueError:
-                print(
-                    "Unexpected variable name in species parameter dictionary."
-                    "Please check input parameter file"
-                )
+            except KeyError:
+                raise KeyError( 
+                    "Unexpected variable name in species parameter dictionary. Please check input parameter file"
+                )             
 
     def validate_duration_params(self, duration_params):
         if (duration_params["growing_season_start"] < 0) | (

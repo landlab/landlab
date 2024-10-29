@@ -1,5 +1,6 @@
 import numpy as np
 
+import pytest
 from numpy.testing import assert_allclose, assert_almost_equal
 
 from landlab.components.genveg.species import Species
@@ -273,3 +274,23 @@ def test_select_photosythesis_type(example_input_params):
             species_object.select_photosythesis_type(dummy_photosythesis["BTS"], 0.9074),
             cls
         )
+
+def test_validate_plant_factors_raises_errors(example_input_params):
+    # create species class (Note this will run test_validate_plant_factors during init
+    species_object = create_species_object(example_input_params)
+    
+    # create an unexpected variable 
+    dummy_plant_factor = {"unexpected-variable-name": []}
+    with pytest.raises(KeyError) as excinfo:
+        # raising error for try opt_list = plant_factor_options[key]
+        species_object.validate_plant_factors(dummy_plant_factor)
+    # test that the correct message is sent
+    # test_msg =  "Unexpected variable name in species parameter dictionary. Please check input parameter file"
+    assert str(excinfo.value) == "'Unexpected variable name in species parameter dictionary. Please check input parameter file'"
+    
+    # create invalid option
+    dummy_plant_type_factor = {"p_type": "fake-p-type"}
+    with pytest.raises(ValueError) as excinfo:
+        species_object.validate_plant_factors(dummy_plant_type_factor)
+    assert str(excinfo.value) == "Invalid p_type option"
+
