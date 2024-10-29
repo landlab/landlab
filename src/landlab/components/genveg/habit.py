@@ -1,13 +1,16 @@
-from .duration import Annual, Evergreen, Deciduous
-from .check_objects import UnitTestChecks
 import numpy as np
+
+from .check_objects import UnitTestChecks
+from .duration import Annual
+from .duration import Deciduous
+from .duration import Evergreen
 
 rng = np.random.default_rng()
 
 
 # Growth habit classes and selection method
 # Growth habit uses duration properties to assign dormancy and emergence methods
-class Habit(object):
+class Habit:
     def __init__(self, params, green_parts):
         self.grow_params = params["grow_params"]
         duration_params = params["duration_params"]

@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class Photosynthesis(object):
+class Photosynthesis:
     def __init__(
         self,
         latitude,

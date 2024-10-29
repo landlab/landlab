@@ -1,17 +1,17 @@
 -BEGIN HEADER-
-NASA/POWER CERES/MERRA2 Native Resolution Daily Data 
-Dates (month/day/year): 01/01/2010 through 01/01/2016 
-Location: Latitude  45.68   Longitude -123.94 
+NASA/POWER CERES/MERRA2 Native Resolution Daily Data
+Dates (month/day/year): 01/01/2010 through 01/01/2016
+Location: Latitude  45.68   Longitude -123.94
 Elevation from MERRA-2: Average for 0.5 x 0.625 degree lat/lon region = 238.95 meters
-The value for missing source data that cannot be computed or is outside of the sources availability range: -999 
-Parameter(s): 
-ALLSKY_SFC_PAR_TOT     CERES SYN1deg All Sky Surface PAR Total (W/m^2) 
-T2M_MAX                MERRA-2 Temperature at 2 Meters Maximum (C) 
-T2M_MIN                MERRA-2 Temperature at 2 Meters Minimum (C) 
-WS2M                   MERRA-2 Wind Speed at 2 Meters (m/s) 
-GWETTOP                MERRA-2 Surface Soil Wetness (1) 
-GWETROOT               MERRA-2 Root Zone Soil Wetness (1) 
-WD2M                   MERRA-2 Wind Direction at 2 Meters (Degrees) 
+The value for missing source data that cannot be computed or is outside of the sources availability range: -999
+Parameter(s):
+ALLSKY_SFC_PAR_TOT     CERES SYN1deg All Sky Surface PAR Total (W/m^2)
+T2M_MAX                MERRA-2 Temperature at 2 Meters Maximum (C)
+T2M_MIN                MERRA-2 Temperature at 2 Meters Minimum (C)
+WS2M                   MERRA-2 Wind Speed at 2 Meters (m/s)
+GWETTOP                MERRA-2 Surface Soil Wetness (1)
+GWETROOT               MERRA-2 Root Zone Soil Wetness (1)
+WD2M                   MERRA-2 Wind Direction at 2 Meters (Degrees)
 -END HEADER-
 YEAR,DOY,ALLSKY_SFC_PAR_TOT,T2M_MAX,T2M_MIN,WS2M,GWETTOP,GWETROOT,WD2M
 2010,1,9.12,9.98,7.23,2.68,0.88,0.9,210.19

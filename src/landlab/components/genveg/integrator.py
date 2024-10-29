@@ -3,12 +3,14 @@ Plant integration component of GenVeg - this is the part of GenVeg
 that handles interactions between plants and plants and the physical grid
 """
 
-# from landlab.components import Radiation
-from landlab import Component
+import matplotlib as plt
 import numpy as np
 import pandas as pd
+
+# from landlab.components import Radiation
+from landlab import Component
+
 from .growth import PlantGrowth
-import matplotlib as plt
 
 rng = np.random.default_rng()
 

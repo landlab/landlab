@@ -5,27 +5,35 @@ These are used by PlantGrowth to differentiate plant properties
 and processes for species.
 """
 
-from .habit import Forbherb, Graminoid, Shrub, Tree, Vine
-from .form import (
-    Bunch,
-    Colonizing,
-    Multiplestems,
-    Rhizomatous,
-    Singlecrown,
-    Singlestem,
-    Stoloniferous,
-    Thicketforming,
-)
-from .photosynthesis import C3, C4, Cam
-from .check_objects import UnitTestChecks
 import numpy as np
-from sympy import symbols, diff, lambdify, log
+from sympy import diff
+from sympy import lambdify
+from sympy import log
+from sympy import symbols
+
+from .check_objects import UnitTestChecks
+from .form import Bunch
+from .form import Colonizing
+from .form import Multiplestems
+from .form import Rhizomatous
+from .form import Singlecrown
+from .form import Singlestem
+from .form import Stoloniferous
+from .form import Thicketforming
+from .habit import Forbherb
+from .habit import Graminoid
+from .habit import Shrub
+from .habit import Tree
+from .habit import Vine
+from .photosynthesis import C3
+from .photosynthesis import C4
+from .photosynthesis import Cam
 
 rng = np.random.default_rng()
 
 
 # Define species class that inherits composite class methods
-class Species(object):
+class Species:
     def __init__(self, species_params, latitude):
         self.all_parts = list(
             species_params["grow_params"]["glucose_requirement"].keys()
@@ -87,9 +95,9 @@ class Species(object):
                         msg = "Invalid " + str(key) + " option"
                         raise ValueError(msg)
             except KeyError:
-                raise KeyError( 
+                raise KeyError(
                     "Unexpected variable name in species parameter dictionary. Please check input parameter file"
-                )             
+                )
 
     def validate_duration_params(self, duration_params):
         if (duration_params["growing_season_start"] < 0) | (

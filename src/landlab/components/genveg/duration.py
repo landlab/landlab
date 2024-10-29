@@ -6,7 +6,7 @@ rng = np.random.default_rng()
 
 # Duration class and child classes Annual and Perennial
 # (Child classes are Deciduous and Evergreen)
-class Duration(object):
+class Duration:
     def __init__(
         self,
         species_grow_params,

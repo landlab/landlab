@@ -4,9 +4,10 @@ is driven by a photosynthesis model. Vegetation growth depends on the availabili
 of carbohydrate produced by photosynthetically active plant parts.
 """
 
+import numpy as np
+
 from landlab.components.genveg.species import Species
 from landlab.data_record import DataRecord
-import numpy as np
 
 rng = np.random.default_rng()
 
@@ -814,7 +815,7 @@ class PlantGrowth(Species):
         # is too small to grow.
         min_size = self.species_grow_params["min_growth_biomass"]
         total_biomass = self.sum_plant_parts(_new_biomass, parts="growth")
-        dead_plants = np.nonzero((total_biomass < min_size))
+        dead_plants = np.nonzero(total_biomass < min_size)
         if dead_plants[0].size > 0:
             print(str(dead_plants[0].size) + " were too small to survive")
 
