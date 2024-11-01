@@ -4,7 +4,7 @@ rng = np.random.default_rng()
 
 
 # Dispersal classes and selection method
-class Repro(object):
+class Repro:
     def __init__(self, params):
         grow_params = params["grow_params"]
         self.min_size = grow_params["min_growth_biomass"]

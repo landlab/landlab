@@ -1,5 +1,6 @@
-import pytest
 import numpy as np
+import pytest
+
 from landlab import RasterModelGrid
 
 rng = np.random.default_rng()

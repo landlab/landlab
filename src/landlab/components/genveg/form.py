@@ -1,5 +1,8 @@
-from .dispersal import Seed, Random, Clonal
 import numpy as np
+
+from .dispersal import Clonal
+from .dispersal import Random
+from .dispersal import Seed
 
 rng = np.random.default_rng()
 
