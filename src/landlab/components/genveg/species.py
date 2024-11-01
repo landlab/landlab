@@ -100,21 +100,23 @@ class Species:
                 )
 
     def validate_duration_params(self, duration_params):
-        if (duration_params["growing_season_start"] < 0) | (
-            duration_params["growing_season_start"] > 366
+        if (duration_params["growing_season_start"] < 1) | (
+            duration_params["growing_season_start"] > 365
         ):
             msg = "Growing season beginning must be integer values between 1-365"
             raise ValueError(msg)
-        elif (
+
+        if (
             duration_params["growing_season_end"]
             < duration_params["growing_season_start"]
-        ) | (duration_params["growing_season_end"] > 366):
+        ) | (duration_params["growing_season_end"] > 365) | (duration_params["growing_season_end"] < 1):
             msg = (
-                "Growing season end must be between 1-365"
+                "Growing season end must be between 1-365 "
                 "and greater than the growing season beginning"
             )
             raise ValueError(msg)
-        elif (
+
+        if (
             duration_params["senescence_start"]
             < duration_params["growing_season_start"]
         ) | (
