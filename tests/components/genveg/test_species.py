@@ -267,3 +267,34 @@ def test_validate_plant_factors_raises_errors(example_input_params):
     with pytest.raises(ValueError) as excinfo:
         species_object.validate_plant_factors(dummy_plant_type_factor)
     assert str(excinfo.value) == "Invalid p_type option"
+
+
+def test_validate_duration_params_raises_errors(example_input_params):
+    # create Species class (note this will run validate_duration_params during init)
+    species_object = create_species_object(example_input_params)
+
+    # ValueError msg for growing_season_start is between 1-365
+    start_below_bound = {"growing_season_start": 0}
+    start_above_bound = {"growing_season_start": 367}
+    with pytest.raises(ValueError) as excinfo:
+        species_object.validate_duration_params(start_below_bound)
+        species_object.validate_duration_params(start_above_bound)
+    assert str(excinfo.value) == "Growing season beginning must be integer values between 1-365"
+
+    # ValueError for growing_season_end is between 1-365 and greater than growing_season_start
+    end_below_bound = {"growing_season_start": 144, "growing_season_end": 0}
+    end_above_bound = {"growing_season_start": 144, "growing_season_end": 367}
+    end_less_start = {"growing_season_start": 305, "growing_season_end": 144}
+    with pytest.raises(ValueError) as excinfo:
+        species_object.validate_duration_params(end_below_bound)
+        species_object.validate_duration_params(end_above_bound)
+        species_object.validate_duration_params(end_less_start)
+    assert str(excinfo.value) == "Growing season end must be between 1-365 and greater than the growing season beginning"
+
+    # ValueError for senescne being within the growing season
+    senescence_less_start = {"growing_season_start": 273, "growing_season_end": 305, "senescence_start": 144}
+    senescence_greater_end = {"growing_season_start": 144, "growing_season_end": 273, "senescence_start": 305}
+    with pytest.raises(ValueError) as excinfo:
+        species_object.validate_duration_params(senescence_less_start)
+        species_object.validate_duration_params(senescence_greater_end)
+    assert str(excinfo.value) == "Start of senescence must be within the growing season"
