@@ -444,8 +444,14 @@ def test_numerical_stability():
             )
             final_depths.append(grid_test.at_node["surface_water__depth"].copy())
 
-        except AssertionError:
-            raise AssertionError(f"Instability detected with dt={dt}")
+        except AssertionError as err:
+            raise AssertionError(f"Instability detected with dt={dt}") from err
+
+    depth_variations = [
+        np.max(np.abs(d1 - d2)) for d1, d2 in zip(final_depths[:-1], final_depths[1:])
+    ]
+    assert np.all(np.array(depth_variations) < 0.1)
+    assert np.all(np.array(max_velocities) < 10.0)
 
     depth_variations = [
         np.max(np.abs(d1 - d2)) for d1, d2 in zip(final_depths[:-1], final_depths[1:])
