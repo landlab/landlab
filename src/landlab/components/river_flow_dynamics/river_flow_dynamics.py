@@ -6,104 +6,54 @@ and subsequent related work.
 
 Written by Sebastian Bernal and Angel Monsalve.
 
-Last updated: October 18, 2023
-
 Examples
 --------
 
-River Flow Dynamics Simulation Example
-
-This example demonstrates how to simulate river flow dynamics using the Landlab library.
-
-First, import necessary libraries such as NumPy, Matplotlib, and Landlab components.
+This example demonstrates basic usage of the RiverFlowDynamics component to simulate
+a simple channel flow:
 
 >>> import numpy as np
->>> import matplotlib.pyplot as plt
 >>> from landlab import RasterModelGrid
->>> from landlab.components import river_flow_dynamics
->>> from landlab.io import read_esri_ascii
->>> from landlab.plot.imshow import imshow_grid
+>>> from landlab.components import RiverFlowDynamics
 
-Create a rectangular grid for flow dynamics calculations with specified dimensions
-and cell size.
+Create a small grid for demonstration purposes:
 
->>> nRows = 20
->>> nCols = 60
->>> cellSize = 0.1
->>> grid = RasterModelGrid((nRows, nCols), xy_spacing=(cellSize, cellSize))
+>>> grid = RasterModelGrid((8, 6), xy_spacing=0.1)
 
-Defining the Topography: Set up the initial topographic elevation for the grid,
-creating a basic rectangular channel with a slope of 0.01.
+Set up a sloped channel with elevated sides (slope of 0.01).
 
->>> te = grid.add_zeros("topographic__elevation", at="node")
->>> te += 0.059 - 0.01 * grid.x_of_node
->>> te[grid.y_of_node > 1.5] = 1.0
->>> te[grid.y_of_node < 0.5] = 1.0
+>>> z = grid.add_zeros("topographic__elevation", at="node")
+>>> z += 0.005 - 0.01 * grid.x_of_node
+>>> z[grid.y_of_node > 0.5] = 1.0
+>>> z[grid.y_of_node < 0.2] = 1.0
 
-We could visualize the elevation profile using 'imshow_grid'.
-imshow_grid(grid, "topographic__elevation")
-Explore the grid's middle longitudinal section.
+Instantiating the Component. To check the names of the required inputs, use
+the 'input_var_names' class property.
 
->>> middleBedProfile = np.reshape(te, (nRows, nCols))[10, :]
->>> np.round(middleBedProfile, 3)
-array([ 0.059,  0.058,  0.057,  0.056,  0.055,  0.054,  0.053,  0.052,
-        0.051,  0.05 ,  0.049,  0.048,  0.047,  0.046,  0.045,  0.044,
-        0.043,  0.042,  0.041,  0.04 ,  0.039,  0.038,  0.037,  0.036,
-        0.035,  0.034,  0.033,  0.032,  0.031,  0.03 ,  0.029,  0.028,
-        0.027,  0.026,  0.025,  0.024,  0.023,  0.022,  0.021,  0.02 ,
-        0.019,  0.018,  0.017,  0.016,  0.015,  0.014,  0.013,  0.012,
-        0.011,  0.01 ,  0.009,  0.008,  0.007,  0.006,  0.005,  0.004,
-        0.003,  0.002,  0.001, -0.   ])
-
-Instantiating the Component: Initialize the river_flow_dynamics component with
-specified parameters, including the time step and Manning's roughness coefficient.
-The grid will need some data to run the river_flow_dynamics component.
-To check the names of the required inputs, use the 'input_var_names' class property.
-
->>> river_flow_dynamics.input_var_names
+>>> RiverFlowDynamics.input_var_names
 ('surface_water__depth',
  'surface_water__elevation',
  'surface_water__velocity',
  'topographic__elevation')
 
-To determine where these fields are mapped, use 'var_mapping'.
-
->>> river_flow_dynamics.var_mapping
-(('surface_water__depth', 'node'),
- ('surface_water__elevation', 'node'),
- ('surface_water__velocity', 'link'),
- ('topographic__elevation', 'node'))
-
-Create fields of data for each of these input variables. The channel is initially empty,
-so we create the water depth field.
+Initialize required fields:
 
 >>> h = grid.add_zeros("surface_water__depth", at="node")
-
-Water velocity is zero everywhere since there is no water yet.
-
 >>> vel = grid.add_zeros("surface_water__velocity", at="link")
-
-Calculate the initial water surface elevation from water depth and topographic elevation.
-
 >>> wse = grid.add_zeros("surface_water__elevation", at="node")
->>> wse += h + te
+>>> wse += h + z
 
-Specify the nodes at which water enters the domain, and also the associated links.
-These will serve as the inlet boundary conditions for water depth and velocity.
-In this case, water flows from left to right at a depth of 0.5 meters with a velocity
-of 0.45 m/s.
+Set up inlet boundary conditions (left side of channel):
+Water flows from left to right at a depth of 0.5 meters with a velocity of 0.45 m/s.
 
->>> fixed_entry_nodes = np.arange(300, 910, 60)
+>>> fixed_entry_nodes = np.arange(12, 36, 6)
 >>> fixed_entry_links = grid.links_at_node[fixed_entry_nodes][:, 0]
+>>> entry_nodes_h_values = np.full(4, 0.5)
+>>> entry_links_vel_values = np.full(4, 0.45)
 
-Set the fixed values for these entry nodes/links.
+Instantiate 'RiverFlowDynamics'
 
->>> entry_nodes_h_values = np.full(11, 0.5)
->>> entry_links_vel_values = np.full(11, 0.45)
-
-Instantiate 'river_flow_dynamics' with the previously defined arguments.
-
->>> rfd = river_flow_dynamics(
+>>> rfd = RiverFlowDynamics(
 ...     grid,
 ...     dt=0.1,
 ...     mannings_n=0.012,
@@ -122,161 +72,17 @@ Run the simulation for 100 timesteps (equivalent to 10 seconds).
 
 Examine the flow depth at the center of the channel after 10 seconds.
 
-The expected flow depth is:
-
->>> flow_depth_expected = np.array(
-...     [
-...         0.5,
-...         0.491,
-...         0.48,
-...         0.473,
-...         0.467,
-...         0.464,
-...         0.46,
-...         0.458,
-...         0.455,
-...         0.454,
-...         0.452,
-...         0.45,
-...         0.449,
-...         0.448,
-...         0.446,
-...         0.445,
-...         0.443,
-...         0.442,
-...         0.441,
-...         0.439,
-...         0.438,
-...         0.437,
-...         0.435,
-...         0.434,
-...         0.433,
-...         0.431,
-...         0.43,
-...         0.428,
-...         0.427,
-...         0.425,
-...         0.424,
-...         0.422,
-...         0.421,
-...         0.419,
-...         0.418,
-...         0.416,
-...         0.415,
-...         0.413,
-...         0.412,
-...         0.41,
-...         0.409,
-...         0.407,
-...         0.405,
-...         0.404,
-...         0.402,
-...         0.401,
-...         0.399,
-...         0.397,
-...         0.396,
-...         0.394,
-...         0.393,
-...         0.391,
-...         0.389,
-...         0.388,
-...         0.386,
-...         0.384,
-...         0.383,
-...         0.381,
-...         0.379,
-...         0.378,
-...     ]
-... )
-
-The calculated flow_depth is:
-
->>> flow_depth = np.reshape(grid["node"]["surface_water__depth"], (nRows, nCols))[10, :]
-
-The average (absolute) difference between predited and expected in percentage is:
-
->>> np.round(np.abs(np.mean(flow_depth_expected - flow_depth)) * 100, 0)
-0.0
+>>> flow_depth = np.reshape(grid["node"]["surface_water__depth"], (8, 6))[3, :]
+>>> np.round(flow_depth, 3)
+array([0.5  , 0.5  , 0.5  , 0.501, 0.502, 0.502])
 
 And the velocity at links along the center of the channel.
 
-The expected flow velocity is:
-
->>> flow_velocity_expected = np.array(
-...     [
-...         0.45,
-...         0.595,
-...         0.694,
-...         0.754,
-...         0.795,
-...         0.821,
-...         0.838,
-...         0.848,
-...         0.855,
-...         0.858,
-...         0.86,
-...         0.86,
-...         0.858,
-...         0.857,
-...         0.858,
-...         0.86,
-...         0.864,
-...         0.866,
-...         0.866,
-...         0.866,
-...         0.866,
-...         0.867,
-...         0.869,
-...         0.872,
-...         0.874,
-...         0.875,
-...         0.876,
-...         0.878,
-...         0.88,
-...         0.881,
-...         0.882,
-...         0.884,
-...         0.885,
-...         0.886,
-...         0.888,
-...         0.889,
-...         0.89,
-...         0.892,
-...         0.893,
-...         0.894,
-...         0.896,
-...         0.898,
-...         0.898,
-...         0.901,
-...         0.901,
-...         0.9,
-...         0.904,
-...         0.906,
-...         0.902,
-...         0.904,
-...         0.91,
-...         0.907,
-...         0.904,
-...         0.911,
-...         0.911,
-...         0.907,
-...         0.909,
-...         0.913,
-...         0.914,
-...     ]
-... )
-
-The calculated flow velocity is:
-
->>> linksAtCenter = grid.links_at_node[np.array(np.arange(600, 660))][:-1, 0]
+>>> linksAtCenter = grid.links_at_node[np.array(np.arange(24, 30))][:-1, 0]
 >>> flow_velocity = grid["link"]["surface_water__velocity"][linksAtCenter]
->>> flow_velocity = np.round(flow_velocity, 3)
+>>> np.round(flow_velocity, 3)
+array([0.45 , 0.457, 0.455, 0.452, 0.453])
 
-The average (absolute) difference between predited and expected
-flow velocity in percentage is:
-
->>> np.round(np.abs(np.mean(flow_velocity_expected - flow_velocity)) * 100, 0)
-0.0
 """
 
 import numpy as np
@@ -285,7 +91,7 @@ import scipy as sp
 from landlab import Component
 
 
-class river_flow_dynamics(Component):
+class RiverFlowDynamics(Component):
     """Simulate surface fluid flow based on Casulli and Cheng (1992).
 
     This Landlab component simulates surface fluid flow using the approximations of the
@@ -306,7 +112,7 @@ class river_flow_dynamics(Component):
     https://doi.org/10.1002/fld.1650150602
     """
 
-    _name = "river_flow_dynamics"
+    _name = "RiverFlowDynamics"
 
     _unit_agnostic = False
 
