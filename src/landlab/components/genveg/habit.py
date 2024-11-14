@@ -20,7 +20,7 @@ class Habit(object):
         self.morph_params = self._calc_derived_morph_params(params)
 
     def _calc_canopy_area_from_shoot_width(self, shoot_sys_width):
-        UnitTestChecks().is_negative_present(shoot_sys_width, 'shoot_sys_width')
+        UnitTestChecks().is_negative_present(shoot_sys_width, "shoot_sys_width")
         canopy_area = 0.25 * np.pi * shoot_sys_width**2
         return canopy_area
 
@@ -212,9 +212,15 @@ class Graminoid(Habit):
 
         else:
             if params["morph_params"]["allometry_method"] == "default":
-                params["morph_params"]["basal_coeffs"] = empirical_coeffs[duration_val][photo_val]["basal_coeffs"]
-                params["morph_params"]["height_coeffs"] = empirical_coeffs[duration_val][photo_val]["height_coeffs"]
-                params["morph_params"]["canopy_coeffs"] = empirical_coeffs[duration_val][photo_val]["canopy_coeffs"]
+                params["morph_params"]["basal_coeffs"] = empirical_coeffs[duration_val][
+                    photo_val
+                ]["basal_coeffs"]
+                params["morph_params"]["height_coeffs"] = empirical_coeffs[
+                    duration_val
+                ][photo_val]["height_coeffs"]
+                params["morph_params"]["canopy_coeffs"] = empirical_coeffs[
+                    duration_val
+                ][photo_val]["canopy_coeffs"]
 
             (
                 params["morph_params"]["min_basal_dia"],
@@ -267,7 +273,7 @@ class Graminoid(Habit):
         log_canopy_area = log_basal_width_cm = np.zeros_like(basal_width)
         log_basal_width_cm[filter] = np.log(basal_width[filter] * 100)
         log_canopy_area[filter] = (
-            log_basal_width_cm - self.morph_params["canopy_coeffs"]["a"]
+            log_basal_width_cm[filter] - self.morph_params["canopy_coeffs"]["a"]
         ) / self.morph_params["canopy_coeffs"]["b"]
         canopy_area = np.exp(log_canopy_area)
         return canopy_area

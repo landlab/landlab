@@ -44,7 +44,7 @@ class GenVeg(Component, PlantGrowth):
     }
 
     def __init__(
-        self, grid, dt, current_day, vegparams, plant_array=np.empty((0, 19), dtype=[])
+        self, grid, dt, current_day, vegparams, plant_array=np.empty((0, 30), dtype=[])
     ):
         # save grid object to class
         super().__init__(grid)
@@ -103,10 +103,10 @@ class GenVeg(Component, PlantGrowth):
                 species_list = self._grid.at_cell["vegetation__plant_species"][
                     cell_index
                 ]
+                species_list = species_list[~np.isin(species_list, "null")]
                 cell_cover = self._grid.at_cell["vegetation__percent_cover"][cell_index]
                 number_of_species = len(species_list)
                 cover_species = rng.uniform(low=0.5, high=1.0, size=number_of_species)
-                cover_species[species_list == "null"] = 0.0
                 cover_sum = sum(cover_species)
                 species_cover_allocation = cover_species / cover_sum
                 cover_allocation.append(
@@ -421,19 +421,14 @@ class GenVeg(Component, PlantGrowth):
                     + species_new_pups["stem"]
                     + species_parents["pup_cost"]
                 )
-                print("number of plants before adding plants")
-                print(species_obj.n_plants)
+
                 species_obj.update_plants(
                     ["reproductive"],
                     species_parents["pid"],
                     species_parents["reproductive"],
                 )
-                print("number of new plants")
-                print(species_new_pups.shape)
-                species_obj.add_new_plants(species_new_pups)
-                print("number of plants after adding plants")
-                print(species_obj.n_plants)
-                print("Successful dispersal occurred")
+                _rel_time = self._calc_rel_time
+                species_obj.add_new_plants(species_new_pups, _rel_time)
 
             species_obj.update_plants(
                 ["pup_x_loc", "pup_y_loc", "pup_cost"],
