@@ -200,6 +200,13 @@ class TestAnalytical:
         self.mg.add_zeros("soil_production__rate", at="node")
         self.mg.add_zeros("soil__flux", at="link")
 
+    def test_not_implemented(self):
+        """Test that private run_one_step is not implemented"""
+
+        ct = ConcentrationTrackerForDiffusion(self.mg)
+        with pytest.raises(NotImplementedError):
+            ct.run_one_step()
+
     def test_concentration_from_soil_flux(self):
         """
         ConcentrationTrackerForDiffusion should correctly calculate concentration
@@ -220,7 +227,8 @@ class TestAnalytical:
         # Flux of -1 in the middle row should shift all C_sed values left by one node.
 
         ct = ConcentrationTrackerForDiffusion(self.mg)
-        ct.run_one_step(1)
+        ct.start_tracking()
+        ct.stop_tracking(1)
 
         expected = np.asarray(
             [
@@ -256,14 +264,13 @@ class TestAnalytical:
 
         ct = ConcentrationTrackerForDiffusion(self.mg)
 
+        ct.start_tracking()
         # Soil volume is 1 at each node. Soil production rate of 1 doubles volume.
         # This is normally done by the DepthDependentDiffuser. Here, it is forced.
         self.mg.at_node["soil__depth"] += 1.0
-
         # Node 7: C_sed remains 1 because parent bedrock had conc_br of 1.
         # Node 8: C_sed is halved from 1 to 0.5 because parent bedrock had conc_br = 0.
-
-        ct.run_one_step(1)
+        ct.stop_tracking(1)
 
         # Node 7 should have the same concentration as before.
         # Node 8 should have half its previous concentration.
@@ -301,17 +308,16 @@ class TestAnalytical:
             self.mg, concentration_from_weathering=0.0
         )
 
+        ct.start_tracking()
         # Soil volume is 1 at each node. Soil production rate of 1 doubles volume.
         # This is normally done by the DepthDependentDiffuser. Here, it is forced.
         self.mg.at_node["soil__depth"] += 1.0
-
         # conc_w overrides conc_br values. In this case, no concentration is produced by
         # the weathering process, even at Node 7 where conc_br = 1.
 
         # Node 7: C_sed is halved from 1 to 0.5 despite parent bedrock with conc_br = 1.
         # Node 8: C_sed is halved from 1 to 0.5 because conc_w = 0.
-
-        ct.run_one_step(1)
+        ct.stop_tracking(1)
 
         # Node 7 should have half its previous concentration.
         # Node 8 should have half its previous concentration.
@@ -373,7 +379,8 @@ class TestMassBalance:
         )
 
         ct = ConcentrationTrackerForDiffusion(self.mg)
-        ct.run_one_step(1)
+        ct.start_tracking()
+        ct.stop_tracking(1)
 
         total_mass_after = np.sum(
             self.mg.at_node["sediment_property__concentration"]
@@ -397,7 +404,8 @@ class TestMassBalance:
         )
 
         ct = ConcentrationTrackerForDiffusion(self.mg)
-        ct.run_one_step(1)
+        ct.start_tracking()
+        ct.stop_tracking(1)
 
         total_mass_leaving = 1
         total_mass_after = np.sum(
@@ -407,3 +415,33 @@ class TestMassBalance:
         )
 
         assert_allclose(total_mass_before, total_mass_after + total_mass_leaving)
+
+
+# %%
+class TestFieldCopy:
+    """Test that copied field is a copy, but not a reference."""
+
+    def setup_method(self):
+        self.mg = RasterModelGrid((3, 5))
+        self.mg.add_zeros("soil__flux", at="link")
+        self.mg.add_zeros("soil__depth", at="node")
+        self.mg.add_zeros("soil_production__rate", at="node")
+        self.mg.add_zeros("topographic__elevation", at="node")
+
+    def test_copy_is_equal(self):
+        """Test that copied values are equal to copied field."""
+
+        ct = ConcentrationTrackerForDiffusion(self.mg)
+        ct._copy_old_soil_depth()
+
+        assert np.allclose(ct._soil__depth_old, self.mg.at_node["soil__depth"])
+
+    def test_copy_is_not_reference(self):
+        """Test that copy not a reference."""
+
+        ct = ConcentrationTrackerForDiffusion(self.mg)
+        ct._copy_old_soil_depth()
+
+        self.mg.at_node["soil__depth"] += 1
+
+        assert not np.allclose(ct._soil__depth_old, self.mg.at_node["soil__depth"])

@@ -1976,7 +1976,7 @@ def test_find_lowest_node_on_lake_perimeter_c():
     Ensures the key functionality of the cfunc is working.
     """
     mg = RasterModelGrid((7, 7), xy_spacing=0.5)
-    z = mg.add_field("node", "topographic__elevation", mg.node_x.copy())
+    z = mg.add_field("topographic__elevation", mg.node_x.copy(), at="node")
     z += 0.01 * mg.node_y
     mg.at_node["topographic__elevation"].reshape(mg.shape)[2:5, 2:5] *= 0.1
     fr = FlowAccumulator(mg, flow_director="D8")
@@ -1987,7 +1987,7 @@ def test_find_lowest_node_on_lake_perimeter_c():
     flood_status = df.flood_status
     elev = df._elev
     BIG_ELEV = df._BIG_ELEV
-    nodes_this_depression = mg.zeros("node", dtype=int)
+    nodes_this_depression = mg.zeros(at="node", dtype=int)
     nodes_this_depression[0] = 16
     pit_count = 1
 
@@ -2004,7 +2004,7 @@ def test_find_lowest_node_on_lake_perimeter_c():
 def test_all_boundaries_are_closed():
     grid = RasterModelGrid((10, 10), xy_spacing=10.0)
     grid.set_closed_boundaries_at_grid_edges(True, True, True, True)
-    z = grid.add_zeros("node", "topographic__elevation")
+    z = grid.add_zeros("topographic__elevation", at="node")
     z += grid.x_of_node.copy() + grid.y_of_node.copy()
     z[25] -= 40
     fa = FlowAccumulator(
@@ -2040,7 +2040,7 @@ def test_precision_in_cython():
     np_1D_init_topo = np_2D_init_topo.ravel()
 
     mg = RasterModelGrid(map_shape, node_spacing)
-    mg.add_field("node", "topographic__elevation", np_1D_init_topo, units="m")
+    mg.add_field("topographic__elevation", np_1D_init_topo, at="node", units="m")
     mg.set_closed_boundaries_at_grid_edges(False, False, False, False)
     # Set up flow router component and run it once
     flow_router = FlowAccumulator(
