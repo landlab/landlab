@@ -340,11 +340,12 @@ def example_plant_array():
     plants["dead_root"] = plants["root"] * 0.25
     plants["dead_stem"] = plants["stem"] * 0.25
     plants["dead_leaf"] = plants["leaf"] * 0.25
-    plants["dead_root_age"] = rng.uniform(low=0, high=365 * 4, size=plants.size)
-    plants["dead_leaf_age"] = rng.uniform(low=0, high=365 * 4, size=plants.size)
-    plants["dead_stem_age"] = rng.uniform(low=0, high=365 * 4, size=plants.size)
-    plants["dead_reproductive_age"] = rng.uniform(low=0, high=365 * 4, size=plants.size)
     plants["dead_reproductive"] = plants["reproductive"] * 0.25
+    # ran rng.uniform(low=0, high=365*4, size=4) to gain the four below so i can unit test
+    plants["dead_root_age"] = np.array([1094.035397, 267.2368885, 382.4262438, 347.6774074, 1017.381215, 911.6529431, 314.3525663, 982.1220087])
+    plants["dead_leaf_age"] = np.array([1329.561664, 1352.338509, 1238.787392, 1433.019734, 1348.797247, 735.8478796, 1177.379645, 234.6844825]) 
+    plants["dead_stem_age"] = np.array([1315.902291, 1453.913069, 688.1424854, 329.2440673, 1362.62031, 457.1701171, 1377.041709, 1364.471028])
+    plants["dead_reproductive_age"] = np.array([507.8777074, 1121.713079, 204.4386012, 1073.25249, 660.3439315, 426.4383309, 1261.53064, 1085.549562])
     plants["shoot_sys_width"] = rng.uniform(low=0.1, high=3, size=plants.size)
     plants["basal_width"] = rng.uniform(low=0.05, high=1, size=plants.size)
     plants["root_sys_width"] = rng.uniform(low=0.1, high=1, size=plants.size)

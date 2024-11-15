@@ -298,3 +298,58 @@ def test_validate_duration_params_raises_errors(example_input_params):
         species_object.validate_duration_params(senescence_less_start)
         species_object.validate_duration_params(senescence_greater_end)
     assert str(excinfo.value) == "Start of senescence must be within the growing season"
+
+
+def test_litter_decomp_new_biomass_values(example_input_params, example_plant_array):
+    # expected values obtained from excel
+    expected_new_biomass = {
+        'dead_root': np.array([0.011654923, 0.011654923, 0.011654923, 0.011654923, 1.631689185, 1.631689185, 1.631689185, 1.631689185]),
+        'dead_stem': np.array([0.011654923, 1.631689185, 0.011654923, 1.631689185, 0.011654923, 1.631689185, 0.011654923, 1.631689185]),
+        'dead_leaf': np.array([0.011654923, 0.011654923, 1.631689185, 1.631689185, 0.011654923, 0.011654923, 1.631689185, 1.631689185]),
+        'dead_reproductive': np.array([0.815844592, 0.815844592, 0.815844592, 0.815844592, 0.815844592, 0.011654923, 0.011654923, 0.011654923]),
+        'dead_root_age': np.array([1095.035397, 268.2368885, 383.4262438, 348.6774074, 1018.381215, 912.6529431, 315.3525663, 983.1220087]),
+        'dead_stem_age': np.array([1316.902291, 1454.913069, 689.1424854, 330.2440673, 1363.62031, 458.1701171, 1378.041709, 1365.471028]),
+        'dead_leaf_age': np.array([1330.561664, 1353.338509, 1239.787392, 1434.019734, 1349.797247, 736.8478796, 1178.379645, 235.6844825]),
+        'dead_reproductive_age': np.array([508.8777074, 1122.713079, 205.4386012, 1074.25249, 661.3439315, 427.4383309, 1262.53064, 1086.549562])
+    }
+
+    # initialize class
+    species_object = create_species_object(example_input_params)
+    # set dt
+    species_object.dt = np.timedelta64(1, "D")
+    # call litter_decomp
+    new_biomass = species_object.litter_decomp(example_plant_array)
+
+    # tests
+    for k, expected_value in expected_new_biomass.items():
+        assert_allclose(
+            new_biomass[k], expected_value, rtol=0.0001
+        )
+
+
+def test_litter_decomp_bad_values_replaced(example_input_params, example_plant_array):
+    # initialize class
+    species_object = create_species_object(example_input_params)
+    # set dt
+    species_object.dt = np.timedelta64(1, "D")
+    # make a nan value, negative value, and inf value
+    bad_epa_values = example_plant_array
+    bad_epa_values["dead_root"][0] = -0.0125
+    bad_epa_values["dead_stem"][1] = np.nan
+    bad_epa_values["dead_leaf"][2] = np.inf
+
+    # run method
+    new_biomass = species_object.litter_decomp(bad_epa_values)
+
+    # expected values obtained from excel and replace with 0.0 where bad values were
+    expected_new_biomass = {
+        'dead_root': np.array([0.0, 0.011654923, 0.011654923, 0.011654923, 1.631689185, 1.631689185, 1.631689185, 1.631689185]),
+        'dead_stem': np.array([0.011654923, 0.0, 0.011654923, 1.631689185, 0.011654923, 1.631689185, 0.011654923, 1.631689185]),
+        'dead_leaf': np.array([0.011654923, 0.011654923, 0.0, 1.631689185, 0.011654923, 0.011654923, 1.631689185, 1.631689185]),
+    }
+
+    # test
+    for k, expected_values in expected_new_biomass.items():
+        assert_allclose(
+            new_biomass[k], expected_values, rtol=0.0001
+        )
