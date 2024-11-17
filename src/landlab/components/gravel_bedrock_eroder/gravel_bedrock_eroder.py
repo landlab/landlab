@@ -11,7 +11,7 @@ from landlab import Component
 from landlab import HexModelGrid
 from landlab.grid.diagonals import DiagonalsMixIn
 
-use_cfuncs = True
+use_cfuncs = False
 if use_cfuncs:
     from .cfuncs import _calc_sediment_influx
     from .cfuncs import _calc_sediment_rate_of_change
@@ -307,7 +307,7 @@ class GravelBedrockEroder(Component):
         number_of_sediment_classes=1,
         init_fraction_per_class=None,
         abrasion_coefficients=0.0,
-        coarse_fractions_from_plucking=1.0,
+        coarse_fractions_from_plucking=[1.0],
         rock_abrasion_index=0,
     ):
         """Initialize GravelBedrockEroder."""
@@ -667,6 +667,7 @@ class GravelBedrockEroder(Component):
         ...     grid,
         ...     number_of_sediment_classes=3,
         ...     abrasion_coefficients=[0.002, 0.0002, 0.00002],
+        ...     coarse_fractions_from_plucking=[1. / 3., 1. / 3., 1. / 3.]
         ... )
         >>> eroder.calc_transport_rate()
         >>> eroder.calc_abrasion_rate()
@@ -874,7 +875,7 @@ class GravelBedrockEroder(Component):
                 self._dHdt_by_class[i, cores] = self._porosity_factor * (
                     (self._sed_influxes[i, cores] - self._sed_outfluxes[i, cores])
                     / self.grid.area_of_cell[self.grid.cell_at_node[cores]]
-                    + (self._pluck_rate[cores] * self._pluck_coarse_frac[i])
+                    + (self._pluck_rate[cores] * self._pluck_coarse_frac[i, cores])
                     - self._sed_abr_rates[i, cores]
                 )
             self._dHdt[:] = np.sum(self._dHdt_by_class, axis=0)
