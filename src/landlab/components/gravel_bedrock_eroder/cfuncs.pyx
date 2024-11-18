@@ -1,26 +1,21 @@
-import numpy as np
-from cython.parallel import prange
-
 cimport cython
-cimport numpy as np
 
-DTYPE_INT = int
-ctypedef np.int_t DTYPE_INT_t
-
-DTYPE = np.double
-ctypedef np.double_t DTYPE_t
+# https://cython.readthedocs.io/en/stable/src/userguide/fusedtypes.html
+ctypedef fused id_t:
+    cython.integral
+    long long
 
 
 @cython.boundscheck(False)
 def _calc_sediment_influx(
-    DTYPE_INT_t num_sed_classes,
-    DTYPE_INT_t num_core_nodes,
-    np.ndarray[DTYPE_t, ndim=1] sediment_influx,
-    np.ndarray[DTYPE_t, ndim=2] sed_influxes,
-    np.ndarray[DTYPE_t, ndim=1] sediment_outflux,
-    np.ndarray[DTYPE_t, ndim=2] sed_outfluxes,
-    np.ndarray[DTYPE_INT_t, ndim=1] core_nodes,
-    np.ndarray[DTYPE_INT_t, ndim=1] receiver_node,
+    const int num_sed_classes,
+    const int num_core_nodes,
+    cython.floating [:] sediment_influx,
+    cython.floating [:, :] sed_influxes,
+    const cython.floating [:] sediment_outflux,
+    const cython.floating [:, :] sed_outfluxes,
+    const id_t [:] core_nodes,
+    const id_t [:] receiver_node,
 ):
     cdef int i, c, r
 
@@ -36,13 +31,13 @@ def _calc_sediment_influx(
 
 @cython.boundscheck(False)
 def _estimate_max_time_step_size_ext(
-    DTYPE_t upper_limit_dt,
-    DTYPE_INT_t num_nodes,
-    np.ndarray[DTYPE_t, ndim=1] sed_thickness,
-    np.ndarray[DTYPE_t, ndim=1] elev,
-    np.ndarray[DTYPE_t, ndim=1] dHdt,
-    np.ndarray[DTYPE_t, ndim=1] dzdt,
-    np.ndarray[DTYPE_INT_t, ndim=1] receiver_node,
+    const double upper_limit_dt,
+    const int num_nodes,
+    const cython.floating [:] sed_thickness,
+    const cython.floating [:] elev,
+    const cython.floating [:] dHdt,
+    const cython.floating [:] dzdt,
+    const id_t [:] receiver_node,
 ):
     cdef int i, r
     cdef float min_time_to_exhaust_sed, min_time_to_flatten_slope, rate_diff, height_above_rcvr
@@ -63,18 +58,18 @@ def _estimate_max_time_step_size_ext(
 
 @cython.boundscheck(False)
 def _calc_sediment_rate_of_change(
-    DTYPE_INT_t num_sed_classes,
-    DTYPE_INT_t num_core_nodes,
-    DTYPE_t porosity_factor,
-    DTYPE_t area_of_cell,
-    np.ndarray[DTYPE_INT_t, ndim=1] core_nodes,
-    np.ndarray[DTYPE_t, ndim=2] pluck_coarse_frac,
-    np.ndarray[DTYPE_t, ndim=1] dHdt,
-    np.ndarray[DTYPE_t, ndim=1] pluck_rate,
-    np.ndarray[DTYPE_t, ndim=2] dHdt_by_class,
-    np.ndarray[DTYPE_t, ndim=2] sed_influxes,
-    np.ndarray[DTYPE_t, ndim=2] sed_outfluxes,
-    np.ndarray[DTYPE_t, ndim=2] sed_abr_rates,
+    const int num_sed_classes,
+    const int num_core_nodes,
+    const double porosity_factor,
+    const double area_of_cell,
+    const id_t [:] core_nodes,
+    const cython.floating [:, :] pluck_coarse_frac,
+    cython.floating [:] dHdt,
+    const cython.floating [:] pluck_rate,
+    cython.floating [:, :] dHdt_by_class,
+    const cython.floating [:, :] sed_influxes,
+    const cython.floating [:, :] sed_outfluxes,
+    const cython.floating [:, :] sed_abr_rates,
 ):
     cdef int c, i, j
 

@@ -11,7 +11,7 @@ from landlab import Component
 from landlab import HexModelGrid
 from landlab.grid.diagonals import DiagonalsMixIn
 
-use_cfuncs = False
+use_cfuncs = True
 if use_cfuncs:
     from .cfuncs import _calc_sediment_influx
     from .cfuncs import _calc_sediment_rate_of_change
