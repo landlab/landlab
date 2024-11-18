@@ -667,7 +667,7 @@ class GravelBedrockEroder(Component):
         ...     grid,
         ...     number_of_sediment_classes=3,
         ...     abrasion_coefficients=[0.002, 0.0002, 0.00002],
-        ...     coarse_fractions_from_plucking=[1. / 3., 1. / 3., 1. / 3.]
+        ...     coarse_fractions_from_plucking=[1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0],
         ... )
         >>> eroder.calc_transport_rate()
         >>> eroder.calc_abrasion_rate()
