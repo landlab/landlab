@@ -181,9 +181,9 @@ class PlantGrowth(Species):
             * self._grid.area_of_cell
         ).astype(int)
         self.no_data_scalar = (
-            "na",
-            -9999,
-            -9999,
+            "N/A",
+            999999,
+            999999,
             np.nan,
             np.nan,
             np.nan,
@@ -206,11 +206,11 @@ class PlantGrowth(Species):
             np.nan,
             np.nan,
             np.nan,
-            -9999,
+            999999,
             np.nan,
             np.nan,
             np.nan,
-            -9999,
+            999999,
         )
         self.dtypes = [
             ("species", "U10"),
@@ -244,18 +244,14 @@ class PlantGrowth(Species):
             ("pup_cost", float),
             ("item_id", int),
         ]
-        mask_scalar = (1,) * 30
+        mask_scalar = 1
         empty_list = []
         mask = []
         for i in range(max_plants[0]):
             empty_list.append(self.no_data_scalar)
             mask.append(mask_scalar)
-        self.plants = np.ma.array(
-            empty_list,
-            dtype=self.dtypes,
-            mask=mask,
-            fill_value=self.no_data_scalar,
-        )
+        self.plants = np.ma.array(empty_list, mask=mask, dtype=self.dtypes)
+        self.plants.fill_value = self.no_data_scalar
         try:
             (init_plants, self.n_plants) = kwargs.get(
                 ("plant_array", "n_plants"),
@@ -860,38 +856,38 @@ class PlantGrowth(Species):
 
         self.record_plants.dataset["vegetation__species"].values[
             item_ids, self.time_ind
-        ] = self.plants["species"][~self.plants["species"].mask]
+        ] = self.plants["species"][~self.plants["item_id"].mask]
         self.record_plants.dataset["vegetation__root_biomass"].values[
             item_ids, self.time_ind
-        ] = self.plants["root_biomass"][~self.plants["root_biomass"].mask]
+        ] = self.plants["root_biomass"][~self.plants["item_id"].mask]
         self.record_plants.dataset["vegetation__leaf_biomass"].values[
             item_ids, self.time_ind
-        ] = self.plants["leaf_biomass"][~self.plants["leaf_biomass"].mask]
+        ] = self.plants["leaf_biomass"][~self.plants["item_id"].mask]
         self.record_plants.dataset["vegetation__stem_biomass"].values[
             item_ids, self.time_ind
-        ] = self.plants["stem_biomass"][~self.plants["stem_biomass"].mask]
+        ] = self.plants["stem_biomass"][~self.plants["item_id"].mask]
         self.record_plants.dataset["vegetation__repro_biomass"].values[
             item_ids, self.time_ind
-        ] = self.plants["repro_biomass"][~self.plants["repro_biomass"].mask]
+        ] = self.plants["repro_biomass"][~self.plants["item_id"].mask]
         self.record_plants.dataset["vegetation__dead_root_biomass"].values[
             item_ids, self.time_ind
-        ] = self.plants["dead_root"][~self.plants["dead_root"].mask]
+        ] = self.plants["dead_root"][~self.plants["item_id"].mask]
         self.record_plants.dataset["vegetation__dead_leaf_biomass"].values[
             item_ids, self.time_ind
-        ] = self.plants["dead_leaf"][~self.plants["dead_leaf"].mask]
+        ] = self.plants["dead_leaf"][~self.plants["item_id"].mask]
         self.record_plants.dataset["vegetation__dead_stem_biomass"].values[
             item_ids, self.time_ind
-        ] = self.plants["dead_stem"][~self.plants["dead_stem"].mask]
+        ] = self.plants["dead_stem"][~self.plants["item_id"].mask]
         self.record_plants.dataset["vegetation__dead_repro_biomass"].values[
             item_ids, self.time_ind
-        ] = self.plants["dead_reproductive"][~self.plants["dead_reproductive"].mask]
+        ] = self.plants["dead_reproductive"][~self.plants["item_id"].mask]
         self.record_plants.dataset["vegetation__total_leaf_area"].values[
             item_ids, self.time_ind
-        ] = self.plants["total_leaf_area"][~self.plants["total_leaf_area"].mask]
+        ] = self.plants["total_leaf_area"][~self.plants["item_id"].mask]
         self.record_plants.dataset["vegetation__shoot_sys_width"].values[
             item_ids, self.time_ind
-        ] = self.plants["shoot_sys_width"][~self.plants["shoot_sys_width"].mask]
+        ] = self.plants["shoot_sys_width"][~self.plants["item_id"].mask]
         self.record_plants.dataset["vegetation__plant_age"].values[
             item_ids, self.time_ind
-        ] = self.plants["plant_age"][~self.plants["plant_age"].mask]
+        ] = self.plants["plant_age"][~self.plants["item_id"].mask]
         self.time_ind += 1
