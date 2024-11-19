@@ -51,7 +51,8 @@ class Habit:
         return root_sys_width
 
     def _calc_shoot_width_from_canopy_area(self, canopy_area):
-        shoot_width = np.sqrt(4 * canopy_area / np.pi)
+        shoot_width_cm = np.sqrt(4 * canopy_area / np.pi)
+        shoot_width = shoot_width_cm / 100
         return shoot_width
 
     def _select_duration_class(
@@ -262,7 +263,7 @@ class Graminoid(Habit):
             np.log(abg_biomass[filter]) - self.morph_params["basal_coeffs"]["a"]
         ) / self.morph_params["basal_coeffs"]["b"]
         basal_width_cm = np.exp(log_basal_width_cm)
-        basal_width = basal_width_cm * 100
+        basal_width = basal_width_cm / 100
         canopy_area = self._calc_canopy_area(basal_width)
         log_height[filter] = (
             self.morph_params["height_coeffs"]["a"] - log_basal_width_cm[filter]
@@ -276,7 +277,7 @@ class Graminoid(Habit):
         log_canopy_area = log_basal_width_cm = np.zeros_like(basal_width)
         log_basal_width_cm[filter] = np.log(basal_width[filter] * 100)
         log_canopy_area[filter] = (
-            log_basal_width_cm - self.morph_params["canopy_coeffs"]["a"]
+            log_basal_width_cm[filter] - self.morph_params["canopy_coeffs"]["a"]
         ) / self.morph_params["canopy_coeffs"]["b"]
         canopy_area = np.exp(log_canopy_area)
         return canopy_area

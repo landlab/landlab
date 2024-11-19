@@ -726,7 +726,9 @@ class Species:
         plants["root_sys_width"] = self.habit.calc_root_sys_width(
             plants["shoot_sys_width"], plants["shoot_sys_height"]
         )
-        plants = self.habit.duration.set_initial_biomass(plants, in_growing_season)
+        plants = self.habit.duration.set_initial_biomass(
+            plants, in_growing_season
+        )  # what is this doing?
         return plants
 
     def set_new_biomass(self, plants):

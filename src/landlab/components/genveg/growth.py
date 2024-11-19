@@ -172,10 +172,8 @@ class PlantGrowth(Species):
         self._lat_rad = np.radians(_latitude)
         super().__init__(species_params, self._lat_rad)
         self.species_name = self.species_plant_factors["species"]
-
         self.dt = dt
         self.time_ind = 1
-
         event_flags = self.set_event_flags(_current_jday)
         _in_growing_season = event_flags.pop("_in_growing_season")
         max_plants = np.round(
@@ -183,10 +181,10 @@ class PlantGrowth(Species):
             * self.species_morph_params["max_plant_density"]
             * self._grid.area_of_cell
         ).astype(int)
-        scalar = (
-            "na",
-            -9999,
-            -9999,
+        self.no_data_scalar = (
+            "N/A",
+            999999,
+            999999,
             np.nan,
             np.nan,
             np.nan,
@@ -209,54 +207,55 @@ class PlantGrowth(Species):
             np.nan,
             np.nan,
             np.nan,
-            -9999,
+            999999,
             np.nan,
             np.nan,
             np.nan,
-            -9999,
+            999999,
         )
+        self.dtypes = [
+            ("species", "U10"),
+            ("pid", int),
+            ("cell_index", int),
+            ("x_loc", float),
+            ("y_loc", float),
+            (("root", "root_biomass"), float),
+            (("leaf", "leaf_biomass"), float),
+            (("stem", "stem_biomass"), float),
+            (("reproductive", "repro_biomass"), float),
+            ("dead_root", float),
+            ("dead_leaf", float),
+            ("dead_stem", float),
+            ("dead_reproductive", float),
+            ("dead_root_age", float),
+            ("dead_leaf_age", float),
+            ("dead_stem_age", float),
+            ("dead_reproductive_age", float),
+            ("shoot_sys_width", float),
+            ("basal_width", float),
+            ("root_sys_width", float),
+            ("shoot_sys_height", float),
+            ("root_sys_depth", float),
+            ("total_leaf_area", float),
+            ("live_leaf_area", float),
+            ("plant_age", float),
+            ("n_stems", int),
+            ("pup_x_loc", float),
+            ("pup_y_loc", float),
+            ("pup_cost", float),
+            ("item_id", int),
+        ]
+        mask_scalar = 1
         empty_list = []
+        mask = []
         for i in range(max_plants[0]):
-            empty_list.append(scalar)
-        self.plants = np.array(
-            empty_list,
-            dtype=[
-                ("species", "U10"),
-                ("pid", int),
-                ("cell_index", int),
-                ("x_loc", float),
-                ("y_loc", float),
-                (("root", "root_biomass"), float),
-                (("leaf", "leaf_biomass"), float),
-                (("stem", "stem_biomass"), float),
-                (("reproductive", "repro_biomass"), float),
-                ("dead_root", float),
-                ("dead_leaf", float),
-                ("dead_stem", float),
-                ("dead_reproductive", float),
-                ("dead_root_age", float),
-                ("dead_leaf_age", float),
-                ("dead_stem_age", float),
-                ("dead_reproductive_age", float),
-                ("shoot_sys_width", float),
-                ("basal_width", float),
-                ("root_sys_width", float),
-                ("shoot_sys_height", float),
-                ("root_sys_depth", float),
-                ("total_leaf_area", float),
-                ("live_leaf_area", float),
-                ("plant_age", float),
-                ("n_stems", int),
-                ("pup_x_loc", float),
-                ("pup_y_loc", float),
-                ("pup_cost", float),
-                ("item_id", int),
-            ],
-        )
-
+            empty_list.append(self.no_data_scalar)
+            mask.append(mask_scalar)
+        self.plants = np.ma.array(empty_list, mask=mask, dtype=self.dtypes)
+        self.plants.fill_value = self.no_data_scalar
         try:
-            init_plants = kwargs.get(
-                "plant_array",
+            (init_plants, self.n_plants) = kwargs.get(
+                ("plant_array", "n_plants"),
                 self._init_plants_from_grid(
                     _in_growing_season, kwargs["species_cover"]
                 ),
@@ -264,8 +263,9 @@ class PlantGrowth(Species):
         except KeyError:
             msg = "GenVeg requires a pre-populated plant array or a species cover."
             raise ValueError(msg)
-        (self.n_plants,) = init_plants.shape
+
         self.plants[: self.n_plants] = init_plants
+
         self.call = []
         # Create empty Datarecord to store plant data
         # Instantiate data record
@@ -389,34 +389,127 @@ class PlantGrowth(Species):
         self.delta_tot = []
 
     def species_plants(self):
-        return self.plants
+        unmasked_rows = np.nonzero(self.plants["pid"] >= 0)
+        return self.plants[unmasked_rows].filled()
 
     def species_get_variable(self, var_name):
         return self.species_grow_params
 
     def update_plants(self, var_names, pids, var_vals):
-        updated_plants = self.plants
         for idx, var_name in enumerate(var_names):
-            updated_plants[var_name][np.isin(self.plants["pid"], pids)] = var_vals[idx]
-        self.plants = updated_plants
-        return updated_plants
+            self.plants[var_name][np.isin(self.plants["pid"], pids)] = var_vals[idx]
+        return self.plants
 
-    def add_new_plants(self, new_plants_list):
-        old_plants = self.plants
-        print("number of plants versus index max")
-        print(self.n_plants)
-        print(old_plants.shape)
-        last_pid = self.plants["pid"][self.n_plants]
+    def add_new_plants(self, new_plants_list, _rel_time):
+
+        # Reassess this. We need the INDEX of the last nanmax PID
+        last_pid = np.ma.max(self.plants["pid"])
         pids = np.arange(last_pid + 1, last_pid + 1 + new_plants_list.size)
         new_plants_list["pid"] = pids
         new_plants_list["item_id"] = pids
         (n_new_plants,) = new_plants_list.shape
-        # np.concatenate((old_plants, new_plants_list), axis=0)
-        start_index = self.n_plants
-        end_index = n_new_plants + self.n_plants
-        old_plants[start_index:end_index] = new_plants_list
+        start_index = np.flatnonzero(self.plants["pid"] == last_pid).astype(int) + 1
+        end_index = n_new_plants + start_index[0]
+        self.plants[start_index[0] : end_index] = new_plants_list
         self.n_plants += n_new_plants
-        self.plants[: self.n_plants] = old_plants
+        self.record_plants.add_item(
+            time=np.array([_rel_time]),
+            new_item={
+                "grid_element": np.repeat(["cell"], n_new_plants).reshape(
+                    n_new_plants, 1
+                ),
+                "element_id": np.reshape(
+                    self.plants["cell_index"][start_index[0] : end_index],
+                    (n_new_plants, 1),
+                ),
+            },
+            new_item_spec={
+                "vegetation__species": (
+                    ["item_id", "time"],
+                    np.reshape(
+                        self.plants["species"][start_index[0] : end_index],
+                        (n_new_plants, 1),
+                    ),
+                ),
+                "vegetation__root_biomass": (
+                    ["item_id", "time"],
+                    np.reshape(
+                        self.plants["root_biomass"][start_index[0] : end_index],
+                        (n_new_plants, 1),
+                    ),
+                ),
+                "vegetation__leaf_biomass": (
+                    ["item_id", "time"],
+                    np.reshape(
+                        self.plants["leaf_biomass"][start_index[0] : end_index],
+                        (n_new_plants, 1),
+                    ),
+                ),
+                "vegetation__stem_biomass": (
+                    ["item_id", "time"],
+                    np.reshape(
+                        self.plants["stem_biomass"][start_index[0] : end_index],
+                        (n_new_plants, 1),
+                    ),
+                ),
+                "vegetation__repro_biomass": (
+                    ["item_id", "time"],
+                    np.reshape(
+                        self.plants["repro_biomass"][start_index[0] : end_index],
+                        (n_new_plants, 1),
+                    ),
+                ),
+                "vegetation__dead_root_biomass": (
+                    ["item_id", "time"],
+                    np.reshape(
+                        self.plants["dead_root"][start_index[0] : end_index],
+                        (n_new_plants, 1),
+                    ),
+                ),
+                "vegetation__dead_leaf_biomass": (
+                    ["item_id", "time"],
+                    np.reshape(
+                        self.plants["dead_leaf"][start_index[0] : end_index],
+                        (n_new_plants, 1),
+                    ),
+                ),
+                "vegetation__dead_stem_biomass": (
+                    ["item_id", "time"],
+                    np.reshape(
+                        self.plants["dead_stem"][start_index[0] : end_index],
+                        (n_new_plants, 1),
+                    ),
+                ),
+                "vegetation__dead_repro_biomass": (
+                    ["item_id", "time"],
+                    np.reshape(
+                        self.plants["dead_reproductive"][start_index[0] : end_index],
+                        (n_new_plants, 1),
+                    ),
+                ),
+                "vegetation__shoot_sys_width": (
+                    ["item_id", "time"],
+                    np.reshape(
+                        self.plants["shoot_sys_width"][start_index[0] : end_index],
+                        (n_new_plants, 1),
+                    ),
+                ),
+                "vegetation__total_leaf_area": (
+                    ["item_id", "time"],
+                    np.reshape(
+                        self.plants["total_leaf_area"][start_index[0] : end_index],
+                        (n_new_plants, 1),
+                    ),
+                ),
+                "vegetation__plant_age": (
+                    ["item_id", "time"],
+                    np.reshape(
+                        self.plants["plant_age"][start_index[0] : end_index],
+                        (n_new_plants, 1),
+                    ),
+                ),
+            },
+        )
         return self.plants
 
     def _grow(self, _current_jday):
@@ -426,9 +519,9 @@ class PlantGrowth(Species):
         # them in order to update the plant array.
 
         # set up shorthand aliases and reset
-        _last_biomass = self.plants[: self.n_plants]
-        _new_biomass = _last_biomass.copy()
-
+        # look at checking to see if we can use recordmask here
+        _last_biomass = self.plants[~self.plants["pid"].mask].copy()
+        _new_biomass = self.plants[~self.plants["pid"].mask]
         # Decide what processes happen today
         event_flags = self.set_event_flags(_current_jday)
         processes = {
@@ -442,12 +535,10 @@ class PlantGrowth(Species):
         # Run mortality and decompose litter each day
         _new_biomass = self.mortality(_new_biomass, event_flags["_in_growing_season"])
         _new_biomass = self.litter_decomp(_new_biomass)
-
         # Limit growth processes only to live plants
         _total_biomass = self.sum_plant_parts(_new_biomass, parts="total")
         filter = np.nonzero(_total_biomass > 0.0)
-        _last_live_biomass = _last_biomass[filter].copy()
-        _live_biomass = _new_biomass[filter].copy()
+        _new_live_biomass = _new_biomass[filter]
 
         # calculate variables needed to run plant processes
         _par = self._grid["cell"]["radiation__par_tot"][_last_biomass["cell_index"]][
@@ -463,7 +554,7 @@ class PlantGrowth(Species):
             _last_biomass["cell_index"]
         ][filter]
         _new_live_biomass = self.respire(
-            _min_temperature, _max_temperature, _last_live_biomass
+            _min_temperature, _max_temperature, _new_live_biomass
         )
 
         # Change this so for positive delta_tot we allocate by size and
@@ -478,7 +569,7 @@ class PlantGrowth(Species):
             )
             # Future add turnover rate
             _new_live_biomass = self.allocate_biomass_dynamically(
-                _live_biomass, carb_generated_photo
+                _new_live_biomass, carb_generated_photo
             )
         _new_live_biomass = self.kill_small_plants(_new_live_biomass)
         event_flags.pop("_in_growing_season")
@@ -492,11 +583,10 @@ class PlantGrowth(Species):
         _new_live_biomass["plant_age"] += self.dt.astype(float) * np.ones_like(
             _new_live_biomass["plant_age"]
         )
-
+        _new_live_biomass = self.update_morphology(_new_live_biomass)
         _new_biomass[filter] = _new_live_biomass
-        _new_biomass = self.update_morphology(_new_biomass)
         _new_biomass = self.update_dead_biomass(_new_biomass, _last_biomass)
-        self.plants[: self.n_plants] = _new_biomass
+        self.plants[~self.plants["pid"].mask] = _new_biomass
         self.plants, self.n_plants = self.remove_plants()
 
     def _init_plants_from_grid(self, in_growing_season, species_cover):
@@ -507,38 +597,6 @@ class PlantGrowth(Species):
         # Required parameters are a boolean inidicating if the plants are
         # in the active growing season.
         ###
-        dtypes = [
-            ("species", "U10"),
-            ("pid", int),
-            ("cell_index", int),
-            ("x_loc", float),
-            ("y_loc", float),
-            (("root", "root_biomass"), float),
-            (("leaf", "leaf_biomass"), float),
-            (("stem", "stem_biomass"), float),
-            (("reproductive", "repro_biomass"), float),
-            ("dead_root", float),
-            ("dead_leaf", float),
-            ("dead_stem", float),
-            ("dead_reproductive", float),
-            ("dead_root_age", float),
-            ("dead_leaf_age", float),
-            ("dead_stem_age", float),
-            ("dead_reproductive_age", float),
-            ("shoot_sys_width", float),
-            ("basal_width", float),
-            ("root_sys_width", float),
-            ("shoot_sys_height", float),
-            ("root_sys_depth", float),
-            ("total_leaf_area", float),
-            ("live_leaf_area", float),
-            ("plant_age", float),
-            ("n_stems", int),
-            ("pup_x_loc", float),
-            ("pup_y_loc", float),
-            ("pup_cost", float),
-            ("item_id", int),
-        ]
         # move plantlist development to species?
         pidval = 0
         plantlist = []
@@ -617,9 +675,9 @@ class PlantGrowth(Species):
                             )
                         )
                         pidval += 1
-        plant_array = np.array(plantlist, dtype=dtypes)
+        plant_array = np.array(plantlist, dtype=self.dtypes)
         plant_array = self.set_initial_biomass(plant_array, in_growing_season)
-        return plant_array
+        return (plant_array, pidval)
 
     def allocate_biomass_proportionately(
         self, _last_biomass, _total_biomass, delta_tot
@@ -755,12 +813,6 @@ class PlantGrowth(Species):
     def kill_small_plants(self, _new_biomass):
         # This method moved live biomass to dead biomass is the plant
         # is too small to grow.
-
-        # Edit this and figure out when to kill plants
-        # for part in self.all_parts:
-        #    _new_biomass[part][
-        #        _new_biomass[part] < self.species_grow_params["plant_part_min"][part]
-        #    ]
         min_size = self.species_grow_params["min_growth_biomass"]
         total_biomass = self.sum_plant_parts(_new_biomass, parts="growth")
         dead_plants = np.nonzero(total_biomass < min_size)
@@ -782,18 +834,17 @@ class PlantGrowth(Species):
     def remove_plants(self):
         # Plants that have too little dead biomass remaining to track
         # are removed from the plant array and no longer tracked.
-        _old_n_plants = self.n_plants
-        _old_plants = self.plants[:_old_n_plants]
         min_size_dead = 0.1
         min_size_live = self.species_grow_params["min_growth_biomass"]
-        total_live_biomass = self.sum_plant_parts(_old_plants, parts="growth")
-        total_dead_biomass = self.sum_plant_parts(_old_plants, parts="dead")
-        remove_plants = np.nonzero(
-            (total_live_biomass < min_size_live) & (total_dead_biomass < min_size_dead)
+        total_live_biomass = self.sum_plant_parts(self.plants, parts="growth")
+        total_dead_biomass = self.sum_plant_parts(self.plants, parts="dead")
+        remove_plants = np.flatnonzero(
+            (total_dead_biomass < min_size_dead) & (total_live_biomass < min_size_live)
         )
-        n_remove_plants = np.count_nonzero(remove_plants)
-        self.plants = np.delete(_old_plants, remove_plants, axis=None)
-        self.n_plants -= n_remove_plants
+        self.plants[remove_plants] = self.no_data_scalar
+        self.plants[remove_plants] = np.ma.masked
+        remove_array_length = np.count_nonzero(remove_plants)
+        self.n_plants -= remove_array_length
         return self.plants, self.n_plants
 
     def save_plant_output(self, rel_time, save_params):
@@ -802,42 +853,42 @@ class PlantGrowth(Species):
         self.record_plants.add_record(time=np.array([rel_time]))
         self.record_plants.ffill_grid_element_and_id()
 
-        item_ids = self.plants["item_id"]
+        item_ids = self.plants["item_id"][~self.plants["item_id"].mask]
 
         self.record_plants.dataset["vegetation__species"].values[
             item_ids, self.time_ind
-        ] = self.plants["species"]
+        ] = self.plants["species"][~self.plants["item_id"].mask]
         self.record_plants.dataset["vegetation__root_biomass"].values[
             item_ids, self.time_ind
-        ] = self.plants["root_biomass"]
+        ] = self.plants["root_biomass"][~self.plants["item_id"].mask]
         self.record_plants.dataset["vegetation__leaf_biomass"].values[
             item_ids, self.time_ind
-        ] = self.plants["leaf_biomass"]
+        ] = self.plants["leaf_biomass"][~self.plants["item_id"].mask]
         self.record_plants.dataset["vegetation__stem_biomass"].values[
             item_ids, self.time_ind
-        ] = self.plants["stem_biomass"]
+        ] = self.plants["stem_biomass"][~self.plants["item_id"].mask]
         self.record_plants.dataset["vegetation__repro_biomass"].values[
             item_ids, self.time_ind
-        ] = self.plants["repro_biomass"]
+        ] = self.plants["repro_biomass"][~self.plants["item_id"].mask]
         self.record_plants.dataset["vegetation__dead_root_biomass"].values[
             item_ids, self.time_ind
-        ] = self.plants["dead_root"]
+        ] = self.plants["dead_root"][~self.plants["item_id"].mask]
         self.record_plants.dataset["vegetation__dead_leaf_biomass"].values[
             item_ids, self.time_ind
-        ] = self.plants["dead_leaf"]
+        ] = self.plants["dead_leaf"][~self.plants["item_id"].mask]
         self.record_plants.dataset["vegetation__dead_stem_biomass"].values[
             item_ids, self.time_ind
-        ] = self.plants["dead_stem"]
+        ] = self.plants["dead_stem"][~self.plants["item_id"].mask]
         self.record_plants.dataset["vegetation__dead_repro_biomass"].values[
             item_ids, self.time_ind
-        ] = self.plants["dead_reproductive"]
+        ] = self.plants["dead_reproductive"][~self.plants["item_id"].mask]
         self.record_plants.dataset["vegetation__total_leaf_area"].values[
             item_ids, self.time_ind
-        ] = self.plants["total_leaf_area"]
+        ] = self.plants["total_leaf_area"][~self.plants["item_id"].mask]
         self.record_plants.dataset["vegetation__shoot_sys_width"].values[
             item_ids, self.time_ind
-        ] = self.plants["shoot_sys_width"]
+        ] = self.plants["shoot_sys_width"][~self.plants["item_id"].mask]
         self.record_plants.dataset["vegetation__plant_age"].values[
             item_ids, self.time_ind
-        ] = self.plants["plant_age"]
+        ] = self.plants["plant_age"][~self.plants["item_id"].mask]
         self.time_ind += 1
