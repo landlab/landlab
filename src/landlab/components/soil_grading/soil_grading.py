@@ -230,7 +230,7 @@ class SoilGrading(Component):
 
         # Update sizes and distribution limits
         self._grid.at_node["grains_classes__size"][self._grid.nodes] *= self._meansizes
-        if np.size(self._limits) == 1 and self._limits == None:
+        if np.size(self._limits) == 1 and self._limits is None:
             self.set_grading_limits()
         else:
 
@@ -243,7 +243,7 @@ class SoilGrading(Component):
                 np.all(self._limits[:, 1] > self._limits[:, 0])
                 * np.all(np.diff(self._limits[:, 1]) > 0)
                 * np.all(np.diff(self._limits[:, 0]) > 0)
-            ) == False:
+            ) is False:
                 raise ValueError("limits array must in ascending order")
 
         # Transition matrix
@@ -324,7 +324,7 @@ class SoilGrading(Component):
                 if is_numeric:
                     sum_values += int(s)
         is_smaller_than_100 = sum_values <= 100 or "spread" in grading_name
-        if not is_p * is_size * is_numeric * is_smaller_than_100 * is_N == True:
+        if is_p * is_size * is_numeric * is_smaller_than_100 * is_N is False:
             raise ValueError("grading name provided not valid")
 
         # Create grading distribution based on the grading name
@@ -359,7 +359,7 @@ class SoilGrading(Component):
             len(self._fragmentation_pattern) <= len(self._meansizes)
         )
         is_1 = np.sum(self._fragmentation_pattern) <= 1
-        if not is_length * is_1 == True:
+        if not is_length * is_1 is True:
             raise ValueError("fragmentation pattern provided not valid")
 
     def create_transition_mat(self):
