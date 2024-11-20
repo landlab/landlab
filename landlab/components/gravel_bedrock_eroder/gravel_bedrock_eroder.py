@@ -93,6 +93,8 @@ class GravelBedrockEroder(Component):
         Starting thickness for each sediment fraction
     abrasion_coefficients : iterable containing floats (default 0.0 1/m)
         Abrasion coefficients; should be same length as number of sed classes
+    bedrock_abrasion_coefficients : float
+        Abrasion coefficient for bedrock
     coarse_fractions_from_plucking : float or (n_core_nodes,) array of float (default 1.0)
         Fraction(s) of plucked material that becomes part of gravel sediment load
     rock_abrasion_index : int (default 0)
@@ -289,6 +291,7 @@ class GravelBedrockEroder(Component):
         number_of_sediment_classes=1,
         init_thickness_per_class=None,
         abrasion_coefficients=0.0,
+        bedrock_abrasion_coefficient=0.01,
         coarse_fractions_from_plucking=1.0,
         rock_abrasion_index=0,
     ):
@@ -320,6 +323,7 @@ class GravelBedrockEroder(Component):
             plucking_coefficient = plucking_coefficient[self.grid.core_nodes]
         self._plucking_coef = plucking_coefficient
         self._rock_abrasion_index = rock_abrasion_index
+        self._br_abrasion_coef = bedrock_abrasion_coefficient
 
         # Handle sediment classes, abrasion coefficients, and plucking fractions
         # if abrasion_coefficient is not None:
@@ -394,6 +398,9 @@ class GravelBedrockEroder(Component):
         self._sed_abr_rates = np.zeros(
             (number_of_sediment_classes, grid.number_of_nodes)
         )
+        self._br_abrasion_coef = np.zeros(
+            (number_of_sediment_classes, grid.number_of_nodes)
+        )
         self._dHdt_by_class = np.zeros(
             (number_of_sediment_classes, grid.number_of_nodes)
         )
@@ -412,6 +419,7 @@ class GravelBedrockEroder(Component):
 
         self._num_sed_classes = number_of_sediment_classes
         self._abr_coefs = np.array(abrasion_coefficients)
+        self._br_abr_coef = np.array(bedrock_abrasion_coefficient)
         self._pluck_coarse_frac = coarse_fractions_from_plucking
 
     def _setup_length_of_flow_link(self):
@@ -689,10 +697,15 @@ class GravelBedrockEroder(Component):
         >>> np.round(eroder._rock_abrasion_rate[5:7], 10)
         array([  4.40000000e-09,   2.20000000e-09])
         """
-        self._rock_abrasion_rate[:] = (
-            self._sed_abr_rates[self._rock_abrasion_index]
-            * self._rock_exposure_fraction
-        )
+        cores = self._grid.number_of_core_nodes
+        for i in range(self._num_sed_classes):
+            self._rock_abrasion_rate[:] = (
+                self._br_abr_coef
+                * self._rock_exposure_fraction
+                * 0.5
+                *(self._sed_outfluxes[i, cores] + self._sed_influxes[i, cores])
+                * self._flow_link_length_over_cell_area
+            )
 
     def calc_bedrock_plucking_rate(self):
         """Update the rate of bedrock erosion by plucking.
@@ -839,6 +852,7 @@ class GravelBedrockEroder(Component):
                 self._sed_influxes,
                 self._sed_outfluxes,
                 self._sed_abr_rates,
+                self._br_abrasion_coef,
             )
         else:
             cores = self.grid.core_nodes
@@ -847,7 +861,7 @@ class GravelBedrockEroder(Component):
                     (self._sed_influxes[i, cores] - self._sed_outfluxes[i, cores])
                     / self.grid.area_of_cell[self.grid.cell_at_node[cores]]
                     + (self._pluck_rate[cores] * self._pluck_coarse_frac[i])
-                    - self._sed_abr_rates[i, cores]
+                    - self._sed_abr_rates[i, cores] 
                 )
             self._dHdt[:] = np.sum(self._dHdt_by_class, axis=0)
 
@@ -1009,6 +1023,7 @@ class GravelBedrockEroder(Component):
         self.calc_bedrock_plucking_rate()
         if np.amax(self._abr_coefs) > 0.0:
             self.calc_abrasion_rate()
+        if np.amax(self._br_abr_coef) > 0.0:
             self.calc_bedrock_abrasion_rate()
         self.calc_sediment_rate_of_change()
         self._rock_lowering_rate[:] = self._pluck_rate + self._rock_abrasion_rate

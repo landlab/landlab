@@ -75,6 +75,7 @@ def _calc_sediment_rate_of_change(
     np.ndarray[DTYPE_t, ndim=2] sed_influxes,
     np.ndarray[DTYPE_t, ndim=2] sed_outfluxes,
     np.ndarray[DTYPE_t, ndim=2] sed_abr_rates,
+    np.ndarray[DTYPE_t, ndim=2] br_abr_rates,
 ):
     cdef int c, i, j
 
