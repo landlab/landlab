@@ -27,7 +27,6 @@ array([0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001])
 """
 
 import random
-import re
 import warnings
 
 import numpy as np
@@ -126,10 +125,10 @@ class SoilGrading(Component):
     def __init__(
         self,
         grid,
-        meansizes=[0.0001, 0.0005, 0.002],
+        meansizes=(0.0001, 0.0005, 0.002),
         limits=None,
         grains_weight=None,
-        fragmentation_pattern=[0, 1],
+        fragmentation_pattern=(0, 1),
         A_factor=1,
         initial_median_size=None,
         soil_density=2650,
@@ -150,12 +149,13 @@ class SoilGrading(Component):
         limits : float (m)
             2D array with the limits of each size class
         fragmentation_pattern : float (m)
-            A list of floats describes how much mass transfer from a parent grain to daughters.
-            The list must be in a size >=2 and < number of size classes, while the first element is percentage that
-            remains in the parent grain. The other elements are the proportion of parent grain that is weatherd for
-            each daughter size class. The sum of fragmentation pattern list should be <=1.
-            Default value set to [0, 1] which means that the entire mass of parent grain is transffer to the next
-            (smaller) size class.
+            A list of floats describes how much mass transfer from a parent grain to
+            daughters. The list must be in a size >=2 and < number of size classes,
+            while the first element is percentage that remains in the parent grain.
+            The other elements are the proportion of parent grain that is weatherd for
+            each daughter size class. The sum of fragmentation pattern list should
+            be <=1. Default value set to [0, 1] which means that the entire mass of
+            parent grain is transffer to the next (smaller) size class.
         A_factor : float (-. 0-1), optional
             Factor that control the fragmentation rate.
         initial_median_size : float (m), optional
@@ -184,9 +184,13 @@ class SoilGrading(Component):
         self._meansizes = meansizes
         if isinstance(self._meansizes, list):
             self._meansizes = np.array(self._meansizes)
+        elif isinstance(self._meansizes, tuple):
+            self._meansizes = np.array(list(self._meansizes))
         self._limits = limits
         if isinstance(self._limits, list):
             self._limits = np.array(self._limits)
+        if isinstance(self._limits, tuple):
+            self._limits = np.array(list(self._limits))
         self._n_sizes = np.size(meansizes)
         self._fragmentation_pattern = fragmentation_pattern
         self._A_factor = A_factor
@@ -226,7 +230,7 @@ class SoilGrading(Component):
 
         # Update sizes and distribution limits
         self._grid.at_node["grains_classes__size"][self._grid.nodes] *= self._meansizes
-        if np.any(self._limits == None):
+        if np.size(self._limits)==1 and self._limits==None:
             self.set_grading_limits()
         else:
 
@@ -246,11 +250,11 @@ class SoilGrading(Component):
         self.create_transition_mat()
 
         # Update the weight in each size class.
-        # In case grains_weight not provided, the weights will be spread around the initial_median_size
-        # asuuming normal distribution
-        if grains_weight == None:
+        # In case grains_weight not provided, the weights will be spread around
+        # the initial_median_size asuuming normal distribution
+        if grains_weight is None:
             self._CV = CV
-            if initial_median_size == None:
+            if initial_median_size is None:
                 self._initial_median_size = self._meansizes[int(self._n_sizes / 2)]
             else:
                 self._initial_median_size = initial_median_size
@@ -260,7 +264,7 @@ class SoilGrading(Component):
             self._initial_total_soil_weight = initial_total_soil_weight
             self.generate_weight_distribution()
         else:
-            if np.size(grains_weight) != np.size(meansizes):
+            if not np.size(grains_weight) == np.size(meansizes):
                 raise ValueError(
                     "grains_weight and meansizes do not have the same size"
                 )
@@ -291,10 +295,11 @@ class SoilGrading(Component):
         Parameters
         ----------
         grading_name : str
-             Grading name should be provided in the from pX-AAA-BBB-CCC-DDD where X is the total number of daughter
-             particles the grading fractions have, AAAA is the percentage of volume that remains in the parent size
-             fraction after fragmentation, BBB and CCC (and so on) are the proportion of daugther particles in the
-             next (smaller) size classes.
+             Grading name should be provided in the from pX-AAA-BBB-CCC-DDD where X is
+             the total number of daughter particles the grading fractions have, AAAA
+             is the percentage of volume that remains in the parent size fraction
+             after fragmentation, BBB and CCC (and so on) are the proportion of
+             daugther particles in the next (smaller) size classes.
          grain_max_size : float (m)
              The maximal grain size represented in the grading distribution
          power_of : float (-)
@@ -302,8 +307,8 @@ class SoilGrading(Component):
          n_sizes : int (-)
              The number of classes represented in the distribution
          precent_of_volume_in_spread : float (-)
-             The percentage of mass from parent spread between the daughter grains in case of 'spread' flag
-             is found in the grading name.
+             The percentage of mass from parent spread between the daughter grains
+              in case of 'spread' flag is found in the grading name.
         """
 
         # Make sure that grading_name is valid
@@ -319,7 +324,7 @@ class SoilGrading(Component):
                 if is_numeric:
                     sum_values += int(s)
         is_smaller_than_100 = sum_values <= 100 or "spread" in grading_name
-        if is_p * is_size * is_numeric * is_smaller_than_100 * is_N != True:
+        if not is_p * is_size * is_numeric * is_smaller_than_100 * is_N == True:
             raise ValueError("grading name provided not valid")
 
         # Create grading distribution based on the grading name
@@ -354,7 +359,7 @@ class SoilGrading(Component):
             len(self._fragmentation_pattern) <= len(self._meansizes)
         )
         is_1 = np.sum(self._fragmentation_pattern) <= 1
-        if is_length * is_1 != True:
+        if not is_length * is_1 == True:
             raise ValueError("fragmentation pattern provided not valid")
 
     def create_transition_mat(self):
@@ -474,7 +479,8 @@ class SoilGrading(Component):
             grains_weight__distribution = np.zeros_like(self._meansizes)
             grains_weight__distribution[0] = total_soil_weight
             warnings.warn(
-                "Median size requested is smaller than the smallest mean size in the distribution",
+                "Median size requested is smaller than the smallest mean size"
+                "in the distribution",
                 stacklevel=2,
             )
 
@@ -482,7 +488,8 @@ class SoilGrading(Component):
             grains_weight__distribution = np.zeros_like(self._meansizes)
             grains_weight__distribution[-1] = total_soil_weight
             warnings.warn(
-                "Median size requested is larger than the largest mean size in the distribution",
+                "Median size requested is larger than the largest mean size"
+                "in the distribution",
                 stacklevel=2,
             )
 
