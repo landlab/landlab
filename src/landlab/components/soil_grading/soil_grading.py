@@ -230,7 +230,7 @@ class SoilGrading(Component):
 
         # Update sizes and distribution limits
         self._grid.at_node["grains_classes__size"][self._grid.nodes] *= self._meansizes
-        if np.size(self._limits)==1 and self._limits==None:
+        if np.size(self._limits) == 1 and self._limits == None:
             self.set_grading_limits()
         else:
 
