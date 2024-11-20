@@ -1,26 +1,181 @@
 name: Test
 
-on: [push, pull_request]
+on:
+  - push
+  - pull_request
 
-# on:
-#   push:
-#       paths:
-#           - "landlab/**"
-#           - "tests/**"
-#   pull_request:
-#       paths:
-#           - "landlab/**"
-#           - "tests/**"
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
 
 jobs:
-  build-and-test:
+  check-tag:
+    # Run on external PRs, but not on internal PRs, to avoid duplicate runs
+    if: |
+      github.event_name == 'push' ||
+      github.event.pull_request.head.repo.full_name != github.repository
+
+    runs-on: ubuntu-latest
+    outputs:
+      publish_url: ${{ steps.check-publish.outputs.publish_url }}
+
+    steps:
+      - name: Check if this is a release/prerelease
+        id: check-publish
+        run: |
+          tag_name="${GITHUB_REF#refs/tags/}"
+          if [[ "$tag_name" =~ ^v[0-9]+\.[0-9]+\.[0-9]+[ab][0-9]+$ ]]; then
+            publish_url="https://test.pypi.org/legacy/"
+          elif [[ "$tag_name" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            publish_url="https://upload.pypi.org/legacy/"
+          else
+            publish_url="none"
+          fi
+          echo "publish_url=$publish_url" >> "$GITHUB_OUTPUT"
+          echo "tag_name=$tag_name"
+          echo "publish_url=$publish_url"
+
+  build-sdist:
+    name: Build source distribution
+    needs: check-tag
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build sdist
+        run: pipx run build --sdist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build-sdist
+          path: ${{ github.workspace }}/dist/*.tar.gz
+
+  # Until GA has native aarch64 runners, this step is extremely
+  # slow so we run it as a separate job and hope if finishes
+  # around the same time as everything else.
+  build-aarch64:
+    needs: check-tag
+    name: Build aarch64 wheels on ${{ matrix.cibw-only }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - cibw-only: "cp310-manylinux_aarch64"
+            os: "ubuntu-latest"
+          - cibw-only: "cp311-manylinux_aarch64"
+            os: "ubuntu-latest"
+          - cibw-only: "cp312-manylinux_aarch64"
+            os: "ubuntu-latest"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Needed to build aarch64 wheels
+      - name: Set up QEMU
+        if: runner.os == 'Linux'
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: all
+
+      - name: Print build identifiers
+        run: |
+          python -m pip install cibuildwheel
+          python -m cibuildwheel --only ${{ matrix.cibw-only }} --print-build-identifiers
+
+      - name: Build wheels
+        if: ${{ startsWith(needs.check-tag.outputs.publish_url, 'http') }}
+        uses: pypa/cibuildwheel@v2.21.2
+        with:
+          only: ${{ matrix.cibw-only }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build-wheels-${{ matrix.os }}-${{ matrix.cibw-only }}
+          path: ${{ github.workspace }}/wheelhouse/*.whl
+          if-no-files-found: ignore
+
+  build-wheels:
+    name: Build wheels on ${{ matrix.cibw-only }}
+    needs: check-tag
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Linux x86_64
+          - cibw-only: "cp310-manylinux_x86_64"
+            os: "ubuntu-latest"
+          - cibw-only: "cp311-manylinux_x86_64"
+            os: "ubuntu-latest"
+          - cibw-only: "cp312-manylinux_x86_64"
+            os: "ubuntu-latest"
+
+          # Mac x86_64
+          - cibw-only: "cp310-macosx_x86_64"
+            os: "macos-13"
+          - cibw-only: "cp311-macosx_x86_64"
+            os: "macos-13"
+          - cibw-only: "cp312-macosx_x86_64"
+            os: "macos-13"
+
+          # Mac arm64
+          - cibw-only: "cp310-macosx_arm64"
+            os: "macos-14"
+          - cibw-only: "cp311-macosx_arm64"
+            os: "macos-14"
+          - cibw-only: "cp312-macosx_arm64"
+            os: "macos-14"
+
+          # Windows 64bit
+          - cibw-only: "cp310-win_amd64"
+            os: "windows-latest"
+          - cibw-only: "cp311-win_amd64"
+            os: "windows-latest"
+          - cibw-only: "cp312-win_amd64"
+            os: "windows-latest"
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Print build identifiers
+        run: |
+          python -m pip install cibuildwheel
+          python -m cibuildwheel --only ${{ matrix.cibw-only }} --print-build-identifiers
+
+      - name: Install openmp
+        if: runner.os == 'macOS'
+        run: |
+          curl -O https://mac.r-project.org/openmp/openmp-13.0.0-darwin21-Release.tar.gz
+          sudo tar fvxz openmp-13.0.0-darwin21-Release.tar.gz -C /
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.21.2
+        with:
+          only: ${{ matrix.cibw-only }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build-wheels-${{ matrix.os }}-${{ matrix.cibw-only }}
+          path: ${{ github.workspace }}/wheelhouse/*.whl
+
+  test-landlab:
+    needs: build-wheels
     name: Run the tests
-    # We want to run on external PRs, but not on our own internal PRs as they'll be run
-    # by the push to the branch. Without this if check, checks are duplicated since
-    # internal PRs match both the push and pull_request events.
-    if:
-      github.event_name == 'push' || github.event.pull_request.head.repo.full_name !=
-      github.repository
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.10", "3.11", "3.12"]
+        pytest-marker: ["slow", "not slow"]
 
     runs-on: ${{ matrix.os }}
 
@@ -28,58 +183,187 @@ jobs:
       run:
         shell: bash -l {0}
 
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.10", "3.11", "3.12"]
-        pytest-marker: ["slow", "not slow"]
-      fail-fast: false
-
     steps:
       - uses: actions/checkout@v4
-
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: conda-incubator/setup-miniconda@v3
         with:
           python-version: ${{ matrix.python-version }}
           miniforge-variant: Miniforge3
           miniforge-version: latest
           auto-update-conda: true
 
-      - name: Install compilers
-        run: |
-            conda install c-compiler cxx-compiler
-
-      - name: Show conda installation info
-        run: |
-          conda info
-          conda list
-
-      - name: Install and test richdem engine
-        run: |
-          conda install richdem -c conda-forge
-          python -c 'import _richdem'
+      - uses: actions/download-artifact@v4
+        name: Download build artifacts
+        with:
+          pattern: "build-*"
+          merge-multiple: true
+          path: ${{ github.workspace }}/dist
 
       - name: Test
         env:
           HYPOTHESIS_PROFILE: "ci"
+          MPLBACKEND: "Agg"
         run: |
           pip install nox
-          nox -s test --force-pythons="${{ matrix.python-version }}" -- -m "${{ matrix.pytest-marker }}"
+          nox --verbose -s test \
+              --force-pythons=${{ matrix.python-version }} \
+              -- -m '${{ matrix.pytest-marker }}' --path=dist
 
       - name: Coveralls
-        if: matrix.os == 'ubuntu-latest'
+        if: ${{ matrix.os == 'ubuntu-latest' }}
         uses: AndreMiras/coveralls-python-action@develop
         with:
           parallel: true
           flag-name: py${{ matrix.python-version }}-${{ matrix.os }}-${{ matrix.pytest-marker }}
           debug: true
 
+  test-notebooks:
+    needs: build-wheels
+    name: Run the notebook tests
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+        python-version: ["3.12"]
+        pytest-marker: ["slow", "not slow"]
+
+    runs-on: ${{ matrix.os }}
+
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+          miniforge-variant: Miniforge3
+          miniforge-version: latest
+          auto-update-conda: true
+
+      - uses: actions/download-artifact@v4
+        name: Download build artifacts
+        with:
+          pattern: "build-*"
+          merge-multiple: true
+          path: ${{ github.workspace }}/dist
+
+      - name: Test
+        env:
+          OPENTOPOGRAPHY_API_KEY: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
+          MPLBACKEND: "module://matplotlib_inline.backend_inline"
+          PYTEST_ADDOPTS: "--overwrite"
+        run: |
+          pip install matplotlib_inline
+          pip install nox
+          nox --verbose -s test-notebooks \
+              --force-pythons=${{ matrix.python-version }} \
+              -- -m '${{ matrix.pytest-marker }}' --path=dist
+
+      - name: Find executed notebooks
+        run: |
+          for f in $(git diff --name-only); do
+            mkdir -p executed/$(dirname $f);
+            cp $f executed/$(dirname $f);
+          done
+          ls -R executed/
+
+      - name: Upload executed notebooks
+        if: ${{ matrix.os == 'macos-latest' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: notebooks-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.pytest-marker }}
+          path: executed/
+          overwrite: true
+
+  docs:
+    needs: test-notebooks
+    strategy:
+      matrix:
+        os: [macos-latest]
+        python-version: ["3.12"]
+
+    runs-on: ${{ matrix.os }}
+
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+          miniforge-variant: Miniforge3
+          miniforge-version: latest
+          auto-update-conda: true
+
+      - uses: actions/download-artifact@v4
+        name: Download build artifact
+        with:
+          pattern: notebooks-*
+          merge-multiple: true
+
+      - name: Display structure of downloaded files
+        run: ls -R
+
+      - name: install and check pandoc
+        run: |
+          conda install pandoc -c conda-forge
+          pandoc --help
+          pandoc --version
+
+      - name: Build documentation
+        run: |
+          pip install nox
+          pip install -r requirements/docs.txt
+          nox -s docs-build --no-venv
+
+      - name: Create zip
+        run: zip -r docs.zip build/html
+
+      - name: Upload docs
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-${{ matrix.os }}-${{ matrix.python-version }}
+          path: docs.zip
+
   coveralls_finish:
-    needs: build-and-test
+    needs: test-landlab
     runs-on: ubuntu-latest
+
     steps:
       - name: Coveralls Finished
         uses: AndreMiras/coveralls-python-action@develop
         with:
           parallel-finished: true
           debug: true
+
+  publish:
+    needs:
+      - check-tag
+      - test-landlab
+      - test-notebooks
+      - build-sdist
+      - build-aarch64
+    name: "Publish to PyPI/TestPyPI"
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: "build-*"
+          merge-multiple: true
+          path: ${{ github.workspace }}/dist
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        if: ${{ startsWith(needs.check-tag.outputs.publish_url, 'http') }}
+        with:
+          repository-url: ${{ needs.check-tag.outputs.publish_url }}
+          skip-existing: true
+          print-hash: true
+          verify-metadata: false

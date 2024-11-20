@@ -1,31 +1,25 @@
 #! /usr/bin/env python
-
-import os
-import pathlib
-
-import numpy
+import numpy as np
 from Cython.Build import cythonize
 from setuptools import Extension
 from setuptools import setup
 
+with open("cython-files.txt") as fp:
+    cython_files = {fname.strip() for fname in fp.readlines()}
 
-def find_extensions(path="."):
-    extensions = pathlib.Path(path).rglob("*.pyx")
-    return [
+ext_modules = cythonize(
+    [
         Extension(
-            str(ext.with_suffix("")).replace(os.path.sep, "."),
-            [str(ext)],
-            extra_compile_args=["-fopenmp"] if "WITH_OPENMP" in os.environ else [],
-            extra_link_args=["-fopenmp"] if "WITH_OPENMP" in os.environ else [],
+            path[4:-4].replace("/", "."),
+            [path],
+            define_macros=[("NPY_NO_DEPRECATED_API", "1")],
         )
-        for ext in extensions
-    ]
-
+        for path in cython_files
+    ],
+    compiler_directives={"embedsignature": True, "language_level": 3},
+)
 
 setup(
-    include_dirs=[numpy.get_include()],
-    ext_modules=cythonize(
-        find_extensions("landlab") + find_extensions("tests"),
-        compiler_directives={"embedsignature": True, "language_level": 3},
-    ),
+    include_dirs=[np.get_include()],
+    ext_modules=ext_modules,
 )
