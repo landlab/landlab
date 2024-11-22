@@ -1,16 +1,18 @@
-#distutils: language = c++
-#distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION
+# distutils: language = c++
+# distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION
 """ Contains a tool function necessary to init the FlowRouter component.
 """
 
 import numpy as np
 
-cimport cython
 cimport numpy as cnp
 
 
-def _get_start_end_indexes_in_sorted_array(cnp.int64_t [:] sorted_array,
-    cnp.int64_t n_values, cnp.int64_t max_value):
+def _get_start_end_indexes_in_sorted_array(
+    cnp.int64_t [:] sorted_array,
+    cnp.int64_t n_values,
+    cnp.int64_t max_value,
+):
     """ Get the start and end indexes of each value in a nd.array sorted by the value.
     Starts are in return[0, :] and ends in return[1, :].
 
@@ -27,14 +29,19 @@ def _get_start_end_indexes_in_sorted_array(cnp.int64_t [:] sorted_array,
     ------
     void
     """
-    cdef:
-        cnp.int64_t [:, :] idx2
-        cnp.int64_t i, value
+    cdef cnp.int64_t [:, :] idx2
+    cdef cnp.int64_t i
+    cdef cnp.int64_t value
+
     idx2 = np.empty((2, n_values), dtype=np.int64)
     idx2[1, :] = -max_value
     idx2[0, :] = max_value
+
     for i in range(len(sorted_array)):
-            value = sorted_array[i]
-            if i < idx2[0, value]: idx2[0, value] = i #min
-            if i > idx2[1, value]: idx2[1, value] = i #max
+        value = sorted_array[i]
+        if i < idx2[0, value]:
+            idx2[0, value] = i  # min
+        if i > idx2[1, value]:
+            idx2[1, value] = i  # max
+
     return idx2
