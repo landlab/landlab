@@ -9,7 +9,6 @@ import numpy as np
 
 cimport cython
 cimport numpy as cnp
-from libc.stdio cimport printf
 from libcpp cimport bool
 from libcpp.pair cimport pair
 
@@ -201,7 +200,7 @@ cdef void _set_donor_properties(
     cnp.int64_t donor_id,
     cnp.int64_t receiver_id,
     cnp.int64_t [:] sorted_pseudo_tails,
-    const cnp.int64_t [:,:] head_start_end_indexes,
+    const cnp.int64_t [:, :] head_start_end_indexes,
     const cnp.int64_t [:] sorted_dupli_links,
     cnp.float64_t [:] sorted_dupli_gradients,
     cnp.float64_t [:] z,
@@ -351,7 +350,7 @@ cdef void _direct_flow_c(
         # cnp.int64_t [:] tmp_neighbors
         # cnp.int64_t [:] neighbors_to_do
         _priority_queue to_do = _priority_queue(_compare_second)
-        cnp.int64_t receiver_id, donor_id, n, i, j, done_n
+        cnp.int64_t receiver_id, donor_id, i, j, done_n
         # cnp.int64_t [:] neighbors
         pair[cnp.int64_t, cnp.float64_t] node_pair
 
@@ -412,6 +411,7 @@ cdef void _direct_flow_c(
             )
             node_pair = pair[cnp.int64_t, cnp.float64_t](donor_id, z[donor_id])
             to_do.push(node_pair)
+
 
 def _direct_flow(
     cnp.int64_t nodes_n,
