@@ -44,6 +44,17 @@ alternate_emails = [
 ]
 
 [[tool.landlab.credits.author]]
+name = 'Annie Thompson'
+email = 'ann.anwei.thompson@gmail.com'
+aliases = [
+  'annie',
+]
+alternate_emails = [
+  '100159358+anweiii@users.noreply.github.com',
+]
+github = 'anweiii'
+
+[[tool.landlab.credits.author]]
 name = 'Benjamin Campforts'
 email = 'benjamincampforts@gmail.com'
 aliases = [
@@ -51,8 +62,17 @@ aliases = [
 ]
 alternate_emails = [
   'bca@Benjamins-MacBook-Pro.local',
+  'bca@benjamins-mbp.kpn',
 ]
 github = 'BCampforts'
+
+[[tool.landlab.credits.author]]
+name = 'Berkan M'
+email = '49427416+BerkM125@users.noreply.github.com'
+aliases = [
+]
+alternate_emails = [
+]
 
 [[tool.landlab.credits.author]]
 name = 'Charlie Shobe'
@@ -356,6 +376,14 @@ alternate_emails = [
 [[tool.landlab.credits.author]]
 name = 'dependabot[bot]'
 email = '49699333+dependabot[bot]@users.noreply.github.com'
+aliases = [
+]
+alternate_emails = [
+]
+
+[[tool.landlab.credits.author]]
+name = 'pankajiitkgp'
+email = 'pankajmkd@gmail.com'
 aliases = [
 ]
 alternate_emails = [

@@ -13,6 +13,7 @@ from landlab.components import DepthDependentTaylorDiffuser
 from landlab.components import ExponentialWeatherer
 
 
+@pytest.mark.slow
 def test_4x7_grid_vs_analytical_solution():
     """Test against known analytical solution."""
 

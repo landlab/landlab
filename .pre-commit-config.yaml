@@ -20,7 +20,7 @@ repos:
       language: pygrep
 
 - repo: https://github.com/psf/black
-  rev: 24.4.0
+  rev: 24.8.0
   hooks:
   - id: black
     name: black
@@ -47,12 +47,12 @@ repos:
   hooks:
   - id: blackdoc
     description: "Black for doctests"
-    additional_dependencies: ["black==24.4.0"]
+    additional_dependencies: ["black==24.8.0"]
   - id: blackdoc-autoupdate-black
 
 
 - repo: https://github.com/pycqa/flake8
-  rev: 7.0.0
+  rev: 7.1.1
   hooks:
   - id: flake8
     additional_dependencies:
@@ -60,8 +60,14 @@ repos:
     - flake8-comprehensions
     - flake8-simplify
 
+- repo: https://github.com/mcflugen/heartfelt-hooks
+  rev: v1.3.3
+  hooks:
+  - id: check-whitespace
+  - id: check-heading-levels
+
 - repo: https://github.com/nbQA-dev/nbQA
-  rev: 1.8.5
+  rev: 1.8.7
   hooks:
     - id: nbqa-pyupgrade
       args: ["--py310-plus"]
@@ -70,7 +76,7 @@ repos:
       args: ["--extend-ignore=E402"]
       exclude: |
           (?x)^(
-              notebooks/tutorials/making_components/making_components.ipynb
+              docs/source/tutorials/making_components/making_components.ipynb
           )
 
 - repo: https://github.com/kynan/nbstripout
@@ -81,7 +87,7 @@ repos:
       args: [--drop-empty-cells]
 
 - repo: https://github.com/asottile/pyupgrade
-  rev: v3.15.2
+  rev: v3.17.0
   hooks:
   - id: pyupgrade
     args: [--py310-plus]
@@ -111,6 +117,12 @@ repos:
     - id: forbid-new-submodules
     - id: mixed-line-ending
     - id: trailing-whitespace
+    - id: file-contents-sorter
+      files: |
+        (?x)^(
+          cython-files.txt|
+          .*requirements(-\w+)?.(in|txt)
+        )
 
 - repo: https://github.com/regebro/pyroma
   rev: "4.2"
