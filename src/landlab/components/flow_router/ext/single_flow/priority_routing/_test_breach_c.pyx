@@ -26,19 +26,18 @@ import landlab.components.flow_router.ext.single_flow.priority_routing.breach as
 cdef extern from "_priority_queue.hpp" nogil:
     cdef cppclass _priority_queue:
         _priority_queue(...) except +
-        void push(pair[cnp.int64_t, cnp.float_t])
-        pair[cnp.int64_t, cnp.float_t] top() except +
+        void push(pair[cnp.int64_t, cnp.float64_t])
+        pair[cnp.int64_t, cnp.float64_t] top() except +
         void pop()
         bool empty()
         cnp.int64_t size()
 
 
 def test_priority_queue():
-    cdef:
-        pair[cnp.int64_t, cnp.float_t] a = pair[cnp.int64_t, cnp.float_t](0, 1045.3)
-        pair[cnp.int64_t, cnp.float_t] b = pair[cnp.int64_t, cnp.float_t](1, 536.3)
-        pair[cnp.int64_t, cnp.float_t] c = pair[cnp.int64_t, cnp.float_t](2, 2034.12)
-        _priority_queue to_do = _priority_queue(breach_c._compare_second)
+    cdef pair[cnp.int64_t, cnp.float64_t] a = pair[cnp.int64_t, cnp.float64_t](0, 1045.3)
+    cdef pair[cnp.int64_t, cnp.float64_t] b = pair[cnp.int64_t, cnp.float64_t](1, 536.3)
+    cdef pair[cnp.int64_t, cnp.float64_t] c = pair[cnp.int64_t, cnp.float64_t](2, 2034.12)
+    cdef _priority_queue to_do = _priority_queue(breach_c._compare_second)
 
     assert to_do.empty() is True
     to_do.push(a)
@@ -56,7 +55,7 @@ def test_init_flow_direction_queues():
         cnp.int64_t nodes_n = 7
         cnp.int64_t [:] base_level_nodes = np.array([0, 2])
         cnp.int64_t [:] closed_nodes = np.array([5])
-        cnp.float_t [:] z = np.array([4.5, 3.2, 6.7, 13.2, 5.6, 100.3, 45.32])
+        cnp.float64_t [:] z = np.array([4.5, 3.2, 6.7, 13.2, 5.6, 100.3, 45.32])
         _priority_queue to_do = _priority_queue(breach_c._compare_second)
         cnp.int64_t [:] receivers = -1 * np.ones(nodes_n, dtype=int)
         cnp.int64_t [:] outlet_nodes = -1 * np.ones(nodes_n, dtype=int)
@@ -78,14 +77,14 @@ def test_set_flooded_and_outlet():
     # on a grid of 5 nodes
     cdef:
         cnp.int64_t donor_id = 2, bad_index = -1, flooded_status = 3
-        cnp.float_t min_elevation_relative_diff = 1e-2
-        cnp.float_t [:] z = np.array([0.1, 67.1, 42.1, 70.3, 34.5])
+        cnp.float64_t min_elevation_relative_diff = 1e-2
+        cnp.float64_t [:] z = np.array([0.1, 67.1, 42.1, 70.3, 34.5])
         cnp.int64_t [:] receivers = np.array([0, 0, 1, -1, -1])
         cnp.int64_t [:] outlet_nodes = np.array([0, 0, -1, -1, -1])
         cnp.int64_t [:] depression_outlet_nodes = np.array([-1, -1, -1, -1, -1])
         cnp.int64_t [:] flooded_nodes = np.zeros(5, dtype=int)
-        cnp.float_t [:] depression_depths = np.zeros(5, dtype=float)
-        cnp.float_t [:] depression_free_elevations = (
+        cnp.float64_t [:] depression_depths = np.zeros(5, dtype=float)
+        cnp.float64_t [:] depression_free_elevations = (
             np.array([0.1, 67.1, 42.1, 70.3, 34.5])
         )
 
@@ -189,7 +188,7 @@ def test_set_donor_properties():
                 10, 7, 11, 8, 10, 9, 11
             ]
         )
-        cnp.float_t [:] sorted_dupli_gradients = np.array(
+        cnp.float64_t [:] sorted_dupli_gradients = np.array(
             [
                 0.03879335, 0.04387396,
                 0.04387396, 0.08236696, 0.12232775,
@@ -199,13 +198,13 @@ def test_set_donor_properties():
                 0.18134194, 0.30584151, 0.00526324, 0.24540497
             ]
         )
-        cnp.float_t [:] z = np.array(
+        cnp.float64_t [:] z = np.array(
             [
                 2.29047865, 3.60669759, 7.27652998, 1.12667805,
                 6.0777065, 8.15749462, 9.81269383, 0.63744841, 7.99959748
             ]
         )
-        cnp.float_t [:] steepest_slopes = np.zeros(9, dtype=float)
+        cnp.float64_t [:] steepest_slopes = np.zeros(9, dtype=float)
         cnp.int64_t [:] links_to_receivers = -1 * np.ones(9, dtype=int)
 
     breach_c._set_donor_properties(
@@ -293,7 +292,7 @@ def test_direct_flow_c():
     # Grid of 25 nodes
     cdef:
         cnp.int64_t nodes_n = 25, flooded_status = 3, bad_index = -1
-        cnp.float_t min_elevation_relative_diff = 1e-2
+        cnp.float64_t min_elevation_relative_diff = 1e-2
         cnp.int64_t neighbors_max_number = 50
         cnp.int64_t[:] base_level_nodes = np.array(
             [0, 1, 2, 4, 5, 9, 10, 14, 15, 19, 20, 21, 22, 23, 24]
@@ -322,7 +321,7 @@ def test_direct_flow_c():
             ]
         )
         cnp.int64_t[:] sorted_pseudo_tails_0 = np.copy(sorted_pseudo_tails)
-        cnp.float_t[:] sorted_dupli_gradients = np.array(
+        cnp.float64_t[:] sorted_dupli_gradients = np.array(
             [
                 0.1955672,
                 0.04387396, 0.20686654, 0.12232775, 0.04387396,
@@ -343,7 +342,7 @@ def test_direct_flow_c():
                 0.02150023, 0.13452944, 0.22152193, 0.14332401, 0.02150023
             ]
         )
-        cnp.float_t[:] sorted_dupli_gradients_0 = np.copy(sorted_dupli_gradients)
+        cnp.float64_t[:] sorted_dupli_gradients_0 = np.copy(sorted_dupli_gradients)
         cnp.int64_t[:] sorted_dupli_links = np.array(
             [
                 4, 0, 5, 1, 0,
@@ -369,14 +368,14 @@ def test_direct_flow_c():
             ]
         )
         cnp.int64_t[:, :] head_start_end_indexes_0 = np.copy(head_start_end_indexes)
-        cnp.float_t[:] depression_depths = np.zeros(25, dtype=float)
+        cnp.float64_t[:] depression_depths = np.zeros(25, dtype=float)
         cnp.int64_t[:] outlet_nodes = -1 * np.ones(25, dtype=int)
         cnp.int64_t[:] depression_outlet_nodes = -1 * np.ones(25, dtype=int)
         cnp.int64_t[:] flooded_nodes = np.zeros(25, dtype=int)
         cnp.int64_t[:] links_to_receivers = -1 * np.ones(25, dtype=int)
         cnp.int64_t[:] receivers = -1 * np.ones(25, dtype=int)
-        cnp.float_t[:] steepest_slopes = np.zeros(25, dtype=float)
-        cnp.float_t[:] z = np.array(
+        cnp.float64_t[:] steepest_slopes = np.zeros(25, dtype=float)
+        cnp.float64_t[:] z = np.array(
             [
                 2.29047865, 3.60669759, 7.27652998,
                 1.12667805, 6.0777065,
@@ -386,8 +385,8 @@ def test_direct_flow_c():
                 5.92247815, 4.09472964, 7.03500768, 0.38934984, 1.03435662
             ]
         )
-        cnp.float_t[:] depression_free_elevations = z.copy()
-        cnp.float_t[:] z_0 = np.copy(z)
+        cnp.float64_t[:] depression_free_elevations = z.copy()
+        cnp.float64_t[:] z_0 = np.copy(z)
 
     breach_c._direct_flow_c(
         nodes_n,
@@ -498,7 +497,7 @@ def test_direct_flow():
     cdef:
         cnp.int64_t nodes_n = 25, flooded_status = 3, bad_index = -1
         cnp.int64_t neighbors_max_number = 50
-        cnp.float_t min_elevation_relative_diff = 1e-2
+        cnp.float64_t min_elevation_relative_diff = 1e-2
         cnp.int64_t[:] base_level_nodes = np.array(
             [0, 1, 2, 4, 5, 9, 10, 14, 15, 19, 20, 21, 22, 23, 24]
         )
@@ -526,7 +525,7 @@ def test_direct_flow():
             ]
         )
         cnp.int64_t[:] sorted_pseudo_tails_0 = np.copy(sorted_pseudo_tails)
-        cnp.float_t[:] sorted_dupli_gradients = np.array(
+        cnp.float64_t[:] sorted_dupli_gradients = np.array(
             [
                 0.1955672,
                 0.04387396, 0.20686654, 0.12232775, 0.04387396,
@@ -547,7 +546,7 @@ def test_direct_flow():
                 0.02150023, 0.13452944, 0.22152193, 0.14332401, 0.02150023
             ]
         )
-        cnp.float_t[:] sorted_dupli_gradients_0 = np.copy(sorted_dupli_gradients)
+        cnp.float64_t[:] sorted_dupli_gradients_0 = np.copy(sorted_dupli_gradients)
         cnp.int64_t[:] sorted_dupli_links = np.array(
             [
                 4, 0, 5, 1, 0,
@@ -573,14 +572,14 @@ def test_direct_flow():
             ]
         )
         cnp.int64_t[:, :] head_start_end_indexes_0 = np.copy(head_start_end_indexes)
-        cnp.float_t[:] depression_depths = np.zeros(25, dtype=float)
+        cnp.float64_t[:] depression_depths = np.zeros(25, dtype=float)
         cnp.int64_t[:] outlet_nodes = -1 * np.ones(25, dtype=int)
         cnp.int64_t[:] depression_outlet_nodes = -1 * np.ones(25, dtype=int)
         cnp.int64_t[:] flooded_nodes = np.zeros(25, dtype=int)
         cnp.int64_t[:] links_to_receivers = -1 * np.ones(25, dtype=int)
         cnp.int64_t[:] receivers = -1 * np.ones(25, dtype=int)
-        cnp.float_t[:] steepest_slopes = np.zeros(25, dtype=float)
-        cnp.float_t[:] z = np.array(
+        cnp.float64_t[:] steepest_slopes = np.zeros(25, dtype=float)
+        cnp.float64_t[:] z = np.array(
             [
                 2.29047865, 3.60669759, 7.27652998,
                 1.12667805, 6.0777065,
@@ -590,8 +589,8 @@ def test_direct_flow():
                 5.92247815, 4.09472964, 7.03500768, 0.38934984, 1.03435662
             ]
         )
-        cnp.float_t[:] depression_free_elevations = z.copy()
-        cnp.float_t[:] z_0 = np.copy(z)
+        cnp.float64_t[:] depression_free_elevations = z.copy()
+        cnp.float64_t[:] z_0 = np.copy(z)
 
     breach._direct_flow(
         nodes_n,
