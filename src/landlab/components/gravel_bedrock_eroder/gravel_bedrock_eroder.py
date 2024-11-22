@@ -106,7 +106,7 @@ def trans_rate_coeff_empirical(phi, rho_sed_, rho_w, out=None):
 
 # transport rate function
 def calc_transport_rate_empirical(trans_rate_coeff, tau_crit, width, tau, out=None):
-    """Calculate transport rate using methods of Wickert & Schildgen (2019), 
+    """Calculate transport rate using methods of Wickert & Schildgen (2019),
     but using a the empirical formula for channel width and shear stress.
 
     """
