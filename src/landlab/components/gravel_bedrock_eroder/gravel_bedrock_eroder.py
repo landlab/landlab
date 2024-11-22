@@ -11,7 +11,7 @@ from landlab import Component
 from landlab import HexModelGrid
 from landlab.grid.diagonals import DiagonalsMixIn
 
-use_cfuncs = True
+use_cfuncs = False
 if use_cfuncs:
     from .cfuncs import _calc_sediment_influx
     from .cfuncs import _calc_sediment_rate_of_change
@@ -25,6 +25,95 @@ _D8_CHAN_LENGTH_FACTOR = 1.0  # 0.5 * (
 #    1.0 + 2.0**0.5
 # )  # D8 raster: average of straight and diagonal
 
+def calc_chan_width_empirical(coeff, expt, discharge, out=None):
+    """Calculate channel width using empirical formula.
+
+    b = coeff * Q**expt
+
+    Parameters
+    ----------
+    coeff : float
+        Empirical coefficient
+    expt : float
+        Empirical exponent
+    discharge : float
+        Discharge
+    out : array, optional
+        Array to store output
+
+    Returns
+    -------
+    array
+        Channel width
+
+    Examples
+    --------
+    >>> calc_chan_width_empirical(1.0, 0.5, 1.0)
+    1.0
+    >>> calc_chan_width_empirical(6e-8, 0.5, 100.0)
+    6e-7
+    """
+    if out is None:
+        out = np.empty_like(discharge)
+    out[:] = coeff * discharge**expt
+    return out
+
+def calc_tau_empirical(coeff_tau, m_tau, n_tau, discharge, width, slope, out=None):
+    """Calculate shear stress using empirical formula.
+
+    tau = coeff_tau * Q**m_tau / (width * slope**0.5)
+
+    Values used in unit test below are for a 20 m wide channel with a 1% slope and an annual discharge of 10^7 m^3/y.
+    NOTE: had to convert between seconds and years to get coeff_tau=0.08
+
+    Parameters
+    ----------
+    coeff_tau : float
+        Empirical coefficient
+    m_tau : float
+        Empirical exponent
+    discharge : float
+        Discharge
+    width : float
+        Channel width
+    slope : float
+        Channel slope
+    out : array, optional
+        Array to store output
+
+    Returns
+    -------
+    array
+        Shear stress
+
+    Examples
+    --------
+    >>> calc_tau_empirical(1.0, 0.5, 0.5, 1.0, 1.0, 1.0)
+    1.0
+    >>> calc_tau_empirical(0.08, 0.6, 0.7, 1e7, 20, 0.01)
+    8.365
+    """
+    if out is None:
+        out = np.empty_like(discharge)
+    out[:] = coeff_tau * (discharge/width)**m_tau * (slope**n_tau)
+    return out
+
+def tau_crit_empirical(rho_sed, rho_w, grain_size, tau_star_crit, out=None):
+    """Calculate transport rate using Meyer-Peter Mueller"""
+
+def trans_rate_coeff_empirical(phi, rho_sed_, rho_w, out=None):
+    """Calculate transport rate coefficient to use in calc_transport_rate_empirical"""
+
+# transport rate function
+def calc_transport_rate_empirical(trans_rate_coeff, tau_crit, width, tau, out=None):
+    """Calculate transport rate using methods of Wickert & Schildgen (2019), 
+    but using a the empirical formula for channel width and shear stress.
+
+    """
+
+# plucking rate function
+def calc_plucking_rate_empirical(...):
+    """ TBD """
 
 class GravelBedrockEroder(Component):
     """Drainage network evolution of rivers with gravel alluvium overlying bedrock.
@@ -313,7 +402,7 @@ class GravelBedrockEroder(Component):
         coarse_fractions_from_plucking=[1.0],
         rock_abrasion_index=0,
     ):
-        """Initialize GravelBedrockEroder."""
+        """Initialize GravelBedrockEroder. SM: need to add flag and chan coeff and expt"""
 
         if init_fraction_per_class is None:
             init_fraction_per_class = 1.0 / number_of_sediment_classes
@@ -445,11 +534,8 @@ class GravelBedrockEroder(Component):
 
         self._num_sed_classes = number_of_sediment_classes
         self._abr_coefs = np.array(abrasion_coefficients)
-<<<<<<< HEAD:landlab/components/gravel_bedrock_eroder/gravel_bedrock_eroder.py
         self._br_abr_coef = np.array(bedrock_abrasion_coefficient)
-        self._pluck_coarse_frac = coarse_fractions_from_plucking
-=======
->>>>>>> 9986c158352469f127845a502043772c2a8e48e9:src/landlab/components/gravel_bedrock_eroder/gravel_bedrock_eroder.py
+        #self._pluck_coarse_frac = coarse_fractions_from_plucking
 
     def _setup_length_of_flow_link(self):
         """Set up a float or array containing length of the flow link from
@@ -727,7 +813,6 @@ class GravelBedrockEroder(Component):
         >>> np.round(eroder._rock_abrasion_rate[5:7], 10)
         array([4.4e-09, 2.2e-09])
         """
-<<<<<<< HEAD:landlab/components/gravel_bedrock_eroder/gravel_bedrock_eroder.py
         cores = self._grid.number_of_core_nodes
         for i in range(self._num_sed_classes):
             self._rock_abrasion_rate[:] = (
@@ -737,15 +822,6 @@ class GravelBedrockEroder(Component):
                 *(self._sed_outfluxes[i, cores] + self._sed_influxes[i, cores])
                 * self._flow_link_length_over_cell_area
             )
-=======
-        self._rock_abrasion_rate[:] = (
-            self._abr_coefs[self._rock_abrasion_index]
-            * 0.5
-            * (self._sediment_outflux + self._sediment_influx)
-            * self._rock_exposure_fraction
-            * self._flow_link_length_over_cell_area
-        )
->>>>>>> 9986c158352469f127845a502043772c2a8e48e9:src/landlab/components/gravel_bedrock_eroder/gravel_bedrock_eroder.py
 
     def calc_bedrock_plucking_rate(self):
         """Update the rate of bedrock erosion by plucking.
@@ -900,13 +976,8 @@ class GravelBedrockEroder(Component):
                 self._dHdt_by_class[i, cores] = self._porosity_factor * (
                     (self._sed_influxes[i, cores] - self._sed_outfluxes[i, cores])
                     / self.grid.area_of_cell[self.grid.cell_at_node[cores]]
-<<<<<<< HEAD:landlab/components/gravel_bedrock_eroder/gravel_bedrock_eroder.py
-                    + (self._pluck_rate[cores] * self._pluck_coarse_frac[i])
-                    - self._sed_abr_rates[i, cores] 
-=======
                     + (self._pluck_rate[cores] * self._pluck_coarse_frac[i, cores])
                     - self._sed_abr_rates[i, cores]
->>>>>>> 9986c158352469f127845a502043772c2a8e48e9:src/landlab/components/gravel_bedrock_eroder/gravel_bedrock_eroder.py
                 )
             self._dHdt[:] = np.sum(self._dHdt_by_class, axis=0)
 
