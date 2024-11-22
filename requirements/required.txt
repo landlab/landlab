@@ -8,5 +8,5 @@ pyshp==2.3.1
 pyyaml==6.0.1
 rich-click==1.7.3
 scipy==1.14.0
-statsmodels==0.14.1
+statsmodels==0.14.4
 xarray==2024.6.0
