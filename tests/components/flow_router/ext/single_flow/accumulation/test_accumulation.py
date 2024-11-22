@@ -1,4 +1,6 @@
-import test_accumulation_c as accumulation
+from landlab.components.flow_router.ext.single_flow.accumulation import (
+    _test_accumulation_c as accumulation,
+)
 
 
 def test_add_to_upstream_ordered_nodes():
