@@ -31,9 +31,6 @@ STANDARD_NAME = {
     "lithosphere_surface__elevation_increment": (
         "lithosphere_top_surface__increment_of_elevation"
     ),
-    "lithosphere_surface__elevation_increment": (
-        "lithosphere_top_surface__increment_of_elevation"
-    ),
     "plant__age": "plant__age",
     "plant__live_index": None,
     "radiation__incoming_shortwave_flux": (
