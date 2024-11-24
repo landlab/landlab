@@ -1,13 +1,13 @@
-furo==2023.9.10
-ipython==8.17.1
+furo==2024.1.29
+ipython==8.25.0
 myst-parser==2.0.0
-nbsphinx==0.9.3
+nbsphinx==0.9.5
 numpy==2.0.0
 pandoc==2.3
 sphinx-copybutton==0.5.2
 sphinx-inline-tabs==2023.4.21
 sphinx-jinja==2.0.2
 sphinx==7.2.6
-sphinxcontrib-towncrier==0.3.2a0
+sphinxcontrib-towncrier==0.4.0a0
 tomli==2.0.1
 towncrier==23.11.0
