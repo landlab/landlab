@@ -11,7 +11,7 @@ The following is an introduction to their properties and methods:
 
 ```{jinja} llcats
 {% for name in grids|sort %}
-* {{"{"}}class{{"}"}}`~.{{name}}`
+* {{"{"}}class{{"}"}}`landlab.{{name}}`
 {% endfor %}
 ```
 
