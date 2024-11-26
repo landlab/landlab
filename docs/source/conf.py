@@ -2,10 +2,10 @@ import os
 import pathlib
 import re
 import sys
+import tomllib
 from datetime import date
 
 import packaging
-import tomli
 
 
 def get_version_from_file(path):
@@ -255,7 +255,7 @@ intersphinx_mapping = {
 }
 
 with open("../index.toml", "rb") as fp:
-    cats = tomli.load(fp)
+    cats = tomllib.load(fp)
 cats["grids"].pop("ModelGrid")
 
 jinja_contexts = {"llcats": cats}
