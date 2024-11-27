@@ -348,19 +348,18 @@ class SoilGrading(Component):
             ]
         )
         if "spread" in grading_name:
-            precents_to_add = np.ones((1, n_sizes)) * precent_of_volume_in_spread
+            mass_precent_to_spread  = 100 - precents[0] - np.sum(precents[1:])
+            precents_to_add = (np.ones((1, n_sizes-len(precents)))
+                               * precent_of_volume_in_spread)
+            if np.sum(precents_to_add) > mass_precent_to_spread:
+                precents_to_add *=  mass_precent_to_spread/np.sum(precents_to_add)
             precents = np.append(precents, precents_to_add)
         fragmentation_pattern = precents / 100
 
         return meansizes, limits, fragmentation_pattern
 
     def check_fragmentation_pattern(self):
-        # is_length = len(self._fragmentation_pattern) >= 2 * (
-        #     len(self._fragmentation_pattern) <= len(self._meansizes)
-        # )
-        # is_1 = np.sum(self._fragmentation_pattern) <= 1
-        # if not is_length * is_1 is True:
-        #     raise ValueError("fragmentation pattern provided not valid")
+
         if (
             len(self._fragmentation_pattern) < 2
             or len(self._fragmentation_pattern) > len(self._meansizes)
@@ -378,26 +377,21 @@ class SoilGrading(Component):
         self._A = np.zeros((self._n_sizes, self._n_sizes))
         self._A_factor = np.ones_like(self._A) * self._A_factor
 
-        for i in range(self._n_sizes):
+        self._A[0, 0] = -round(1-self._fragmentation_pattern[0] - 
+                               np.sum(self._fragmentation_pattern[1:]),10)
+        for i in range(1, self._n_sizes):
 
-            if i == 0:
-                self._A[i, i] = 0
-            elif i == self._n_sizes:
-                self._A[i, i] = -(1 - (self._fragmentation_pattern[0]))
-            else:
-                self._A[i, i] = -(1 - (self._fragmentation_pattern[0]))
-                cnti = i - 1  # rows
-                cnt = 1
-                while cnti >= 0 and cnt <= (len(self._fragmentation_pattern) - 1):
+            self._A[i, i] = -(1 - (self._fragmentation_pattern[0]))
+            cnti = i - 1  # rows
+            cnt = 1
+            while cnti >= 0 and cnt <= (len(self._fragmentation_pattern) - 1):
+                if cnti == 0 and cnt <= (len(self._fragmentation_pattern) - 2):
+                    self._A[cnti, i] = ((1-self._fragmentation_pattern[0])
+                                        - np.sum(self._fragmentation_pattern[1:cnt]))
+                else:
                     self._A[cnti, i] = self._fragmentation_pattern[cnt]
-                    if cnti == 0 and cnt <= (len(self._fragmentation_pattern) - 1):
-                        self._A[cnti, i] = (
-                            1 - self._fragmentation_pattern[0]
-                        ) - np.sum(self._fragmentation_pattern[1:cnt])
-                        cnt += 1
-                        cnti -= 1
-                    cnt += 1
-                    cnti -= 1
+                cnt += 1
+                cnti -= 1
 
     def set_grading_limits(self):
 
