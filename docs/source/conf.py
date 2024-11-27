@@ -38,6 +38,7 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",
     "sphinx_copybutton",
+    "sphinx_design",
     "sphinx_inline_tabs",
     "sphinxcontrib.towncrier",
     "sphinx_jinja",
