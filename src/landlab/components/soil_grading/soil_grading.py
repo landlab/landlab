@@ -355,11 +355,17 @@ class SoilGrading(Component):
         return meansizes, limits, fragmentation_pattern
 
     def check_fragmentation_pattern(self):
-        is_length = len(self._fragmentation_pattern) >= 2 * (
-            len(self._fragmentation_pattern) <= len(self._meansizes)
-        )
-        is_1 = np.sum(self._fragmentation_pattern) <= 1
-        if not is_length * is_1 is True:
+        # is_length = len(self._fragmentation_pattern) >= 2 * (
+        #     len(self._fragmentation_pattern) <= len(self._meansizes)
+        # )
+        # is_1 = np.sum(self._fragmentation_pattern) <= 1
+        # if not is_length * is_1 is True:
+        #     raise ValueError("fragmentation pattern provided not valid")
+        if (
+                len(self._fragmentation_pattern) < 2
+                or len(self._fragmentation_pattern) > len(self._meansizes)
+                or np.sum(self._fragmentation_pattern) > 1.0
+        ):
             raise ValueError("fragmentation pattern provided not valid")
 
     def create_transition_mat(self):
