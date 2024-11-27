@@ -6,17 +6,17 @@ Landlab utilities
 
 .. autosummary::
 
-    ~landlab.core.utils.radians_to_degrees
-    ~landlab.core.utils.as_id_array
-    ~landlab.core.utils.make_optional_arg_into_id_array
-    ~landlab.core.utils.get_functions_from_module
-    ~landlab.core.utils.add_functions_to_class
-    ~landlab.core.utils.add_module_functions_to_class
-    ~landlab.core.utils.strip_grid_from_method_docstring
-    ~landlab.core.utils.argsort_points_by_x_then_y
-    ~landlab.core.utils.sort_points_by_x_then_y
-    ~landlab.core.utils.anticlockwise_argsort_points
-    ~landlab.core.utils.get_categories_from_grid_methods
+    ~radians_to_degrees
+    ~as_id_array
+    ~make_optional_arg_into_id_array
+    ~get_functions_from_module
+    ~add_functions_to_class
+    ~add_module_functions_to_class
+    ~strip_grid_from_method_docstring
+    ~argsort_points_by_x_then_y
+    ~sort_points_by_x_then_y
+    ~anticlockwise_argsort_points
+    ~get_categories_from_grid_methods
 """
 import errno
 import importlib

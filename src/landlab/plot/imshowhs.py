@@ -5,8 +5,8 @@ Plotting functions
 
 .. autosummary::
 
-    ~landlab.plot.imshowhs.imshowhs_grid
-    ~landlab.plot.imshowhs.imshowhs_grid_at_node
+    ~imshowhs_grid
+    ~imshowhs_grid_at_node
 """
 
 import warnings
