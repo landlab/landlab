@@ -38,6 +38,7 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",
     "sphinx_copybutton",
+    "sphinx_design",
     "sphinx_inline_tabs",
     "sphinxcontrib.towncrier",
     "sphinx_jinja",
@@ -250,6 +251,7 @@ intersphinx_mapping = {
     "numpy": ("https://numpy.org/doc/stable/", None),
     "scipy": ("https://docs.scipy.org/doc/scipy/", None),
     "xarray": ("https://docs.xarray.dev/en/stable/", None),
+    "matplotlib": ("https://matplotlib.org/stable/", None),
 }
 
 with open("../index.toml", "rb") as fp:
