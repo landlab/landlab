@@ -5,9 +5,9 @@ General Landlab decorators
 
 .. autosummary::
 
-    ~landlab.utils.decorators.use_field_name_or_array
-    ~landlab.utils.decorators.make_return_array_immutable
-    ~landlab.utils.decorators.deprecated
+    ~use_field_name_or_array
+    ~make_return_array_immutable
+    ~deprecated
 """
 
 import inspect
