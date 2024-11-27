@@ -362,9 +362,9 @@ class SoilGrading(Component):
         # if not is_length * is_1 is True:
         #     raise ValueError("fragmentation pattern provided not valid")
         if (
-                len(self._fragmentation_pattern) < 2
-                or len(self._fragmentation_pattern) > len(self._meansizes)
-                or np.sum(self._fragmentation_pattern) > 1.0
+            len(self._fragmentation_pattern) < 2
+            or len(self._fragmentation_pattern) > len(self._meansizes)
+            or np.sum(self._fragmentation_pattern) > 1.0
         ):
             raise ValueError("fragmentation pattern provided not valid")
 
