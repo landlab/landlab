@@ -348,11 +348,12 @@ class SoilGrading(Component):
             ]
         )
         if "spread" in grading_name:
-            mass_precent_to_spread  = 100 - precents[0] - np.sum(precents[1:])
-            precents_to_add = (np.ones((1, n_sizes-len(precents)))
-                               * precent_of_volume_in_spread)
+            mass_precent_to_spread = 100 - precents[0] - np.sum(precents[1:])
+            precents_to_add = (
+                np.ones((1, n_sizes - len(precents))) * precent_of_volume_in_spread
+            )
             if np.sum(precents_to_add) > mass_precent_to_spread:
-                precents_to_add *=  mass_precent_to_spread/np.sum(precents_to_add)
+                precents_to_add *= mass_precent_to_spread / np.sum(precents_to_add)
             precents = np.append(precents, precents_to_add)
         fragmentation_pattern = precents / 100
 
@@ -377,8 +378,12 @@ class SoilGrading(Component):
         self._A = np.zeros((self._n_sizes, self._n_sizes))
         self._A_factor = np.ones_like(self._A) * self._A_factor
 
-        self._A[0, 0] = -round(1-self._fragmentation_pattern[0] - 
-                               np.sum(self._fragmentation_pattern[1:]),10)
+        self._A[0, 0] = -round(
+            1
+            - self._fragmentation_pattern[0]
+            - np.sum(self._fragmentation_pattern[1:]),
+            10,
+        )
         for i in range(1, self._n_sizes):
 
             self._A[i, i] = -(1 - (self._fragmentation_pattern[0]))
@@ -386,8 +391,9 @@ class SoilGrading(Component):
             cnt = 1
             while cnti >= 0 and cnt <= (len(self._fragmentation_pattern) - 1):
                 if cnti == 0 and cnt <= (len(self._fragmentation_pattern) - 2):
-                    self._A[cnti, i] = ((1-self._fragmentation_pattern[0])
-                                        - np.sum(self._fragmentation_pattern[1:cnt]))
+                    self._A[cnti, i] = (1 - self._fragmentation_pattern[0]) - np.sum(
+                        self._fragmentation_pattern[1:cnt]
+                    )
                 else:
                     self._A[cnti, i] = self._fragmentation_pattern[cnt]
                 cnt += 1
