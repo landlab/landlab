@@ -225,7 +225,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, windows-latest]
-        python-version: ["3.13"]
+        python-version: ["3.12"]
         pytest-marker: ["slow", "not slow"]
 
     runs-on: ${{ matrix.os }}
