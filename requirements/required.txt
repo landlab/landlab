@@ -1,6 +1,6 @@
 bmipy==2.0.1
 importlib-resources==6.4.0; python_version < '3.12'
-matplotlib==3.9.0
+matplotlib==3.9.2
 netcdf4==1.7.1.post1
 numpy==2.0.0
 pandas==2.2.3
