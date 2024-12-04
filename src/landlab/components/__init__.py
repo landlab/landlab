@@ -71,6 +71,7 @@ from .profiler import ChannelProfiler
 from .profiler import Profiler
 from .profiler import TrickleDownProfiler
 from .radiation import Radiation
+from .river_flow_dynamics import RiverFlowDynamics
 from .sink_fill import SinkFiller
 from .sink_fill import SinkFillerBarnes
 from .soil_moisture import SoilInfiltrationGreenAmpt
@@ -153,6 +154,7 @@ COMPONENTS = [
     PrecipitationDistribution,
     Profiler,
     Radiation,
+    RiverFlowDynamics,
     SedDepEroder,
     SedimentPulserAtLinks,
     SedimentPulserEachParcel,
