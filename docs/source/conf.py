@@ -2,10 +2,10 @@ import os
 import pathlib
 import re
 import sys
+import tomllib
 from datetime import date
 
 import packaging
-import tomli
 
 
 def get_version_from_file(path):
@@ -255,7 +255,7 @@ intersphinx_mapping = {
 }
 
 with open("../index.toml", "rb") as fp:
-    cats = tomli.load(fp)
+    cats = tomllib.load(fp)
 cats["grids"].pop("ModelGrid")
 
 jinja_contexts = {"llcats": cats}
@@ -313,7 +313,7 @@ nbsphinx_thumbnails = (
 
 # This is processed by Jinja2 and inserted before each notebook
 nbsphinx_prolog = """
-{% set docname = 'notebooks/' + env.doc2path(env.docname, base=None) %}
+{% set docname = 'notebooks/' + env.doc2path(env.docname, base=None) | string() %}
 
 .. note::
 

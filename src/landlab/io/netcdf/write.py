@@ -6,7 +6,7 @@ Write netcdf
 
 .. autosummary::
 
-    ~landlab.io.netcdf.write.write_netcdf
+    ~write_netcdf
 """
 import pathlib
 

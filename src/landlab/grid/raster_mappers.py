@@ -6,19 +6,19 @@ Mapping functions unique to raster grids
 
 .. autosummary::
 
-    ~landlab.grid.raster_mappers.map_sum_of_inlinks_to_node
-    ~landlab.grid.raster_mappers.map_mean_of_inlinks_to_node
-    ~landlab.grid.raster_mappers.map_max_of_inlinks_to_node
-    ~landlab.grid.raster_mappers.map_min_of_inlinks_to_node
-    ~landlab.grid.raster_mappers.map_sum_of_outlinks_to_node
-    ~landlab.grid.raster_mappers.map_mean_of_outlinks_to_node
-    ~landlab.grid.raster_mappers.map_max_of_outlinks_to_node
-    ~landlab.grid.raster_mappers.map_min_of_outlinks_to_node
-    ~landlab.grid.raster_mappers.map_mean_of_links_to_node
-    ~landlab.grid.raster_mappers.map_mean_of_horizontal_links_to_node
-    ~landlab.grid.raster_mappers.map_mean_of_horizontal_active_links_to_node
-    ~landlab.grid.raster_mappers.map_mean_of_vertical_links_to_node
-    ~landlab.grid.raster_mappers.map_mean_of_vertical_active_links_to_node
+    ~map_sum_of_inlinks_to_node
+    ~map_mean_of_inlinks_to_node
+    ~map_max_of_inlinks_to_node
+    ~map_min_of_inlinks_to_node
+    ~map_sum_of_outlinks_to_node
+    ~map_mean_of_outlinks_to_node
+    ~map_max_of_outlinks_to_node
+    ~map_min_of_outlinks_to_node
+    ~map_mean_of_links_to_node
+    ~map_mean_of_horizontal_links_to_node
+    ~map_mean_of_horizontal_active_links_to_node
+    ~map_mean_of_vertical_links_to_node
+    ~map_mean_of_vertical_active_links_to_node
 """
 
 import numpy as np

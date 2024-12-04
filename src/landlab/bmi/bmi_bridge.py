@@ -5,7 +5,7 @@ exposes a Basic Modeling Interface.
 
 .. autosummary::
 
-    ~landlab.bmi.bmi_bridge.wrap_as_bmi
+    ~wrap_as_bmi
 
 .. sectionauthor:: Eric Hutton
 """

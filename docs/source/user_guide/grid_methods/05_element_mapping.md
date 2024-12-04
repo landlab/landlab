@@ -23,7 +23,7 @@ nodes.
       :nosignatures:
 
       {% for func in grids[grid]['map'] %}
-        ~{{func}}
+        ~{{func | replace("landlab.", "")}}
       {% endfor %}
   {% endfor %}
 ```
