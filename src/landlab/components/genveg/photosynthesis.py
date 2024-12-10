@@ -15,6 +15,7 @@ class Photosynthesis:
             "co": 210000,
             "spec_factor_25": 2600.0,
             "stomatal_conductance": 1000000000,
+            "crit_water_content": 0.5,
         },
         gauss_integration_params=[
             (0.0469101, 0.1184635),
@@ -38,6 +39,7 @@ class Photosynthesis:
         self.Vc_max_rate = photo_params["vcmax"]
         self.spec_factor_base = photo_params["spec_factor_25"]
         self.stomatal_conductance = photo_params["stomatal_conductance"]
+        self.crit_water_content = photo_params["crit_water_content"]
         self.update_solar_variables(_current_day)
         self.assim_limits_by_temp = self.calculate_assimilation_limits()
 
@@ -344,8 +346,10 @@ class C3(Photosynthesis):
             "ci": 245,
             "co": 210000,
             "spec_factor_base": 2600.0,
+            "stomatal_conductance": 0.2,
         },
     ):
+        photo_params["crit_water_content"] = 0.5
         super().__init__(latitude, photo_params=photo_params)
 
 
@@ -364,6 +368,7 @@ class C4(Photosynthesis):
             "stomatal_conductance": 0.5,
         },
     ):
+        photo_params["crit_water_content"] = 0.3
         super().__init__(latitude, _CO2_atmos=_CO2_atmos, photo_params=photo_params)
         # This will be updated with C4 changes
 

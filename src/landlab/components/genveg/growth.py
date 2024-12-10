@@ -512,7 +512,7 @@ class PlantGrowth(Species):
         )
         return self.plants
 
-    def _grow(self, _current_jday):
+    def _grow(self, _current_jday, _grid_par, _grid_pet, _grid_available_water):
         # This is the primary method in PlantGrowth and is run within each
         # GenVeg run_one_step at each timestep. This method applies new environmental
         # conditions daily from the grid, determines what processes run, and implements
@@ -541,18 +541,34 @@ class PlantGrowth(Species):
         _new_live_biomass = _new_biomass[filter]
 
         # calculate variables needed to run plant processes
-        _par = self._grid["cell"]["radiation__par_tot"][_last_biomass["cell_index"]][
-            filter
-        ]
+        _par = _grid_par[_last_biomass["cell_index"]][filter]
+        _plant_cell_frac = (
+            np.pi
+            / 4
+            * _last_biomass["root_sys_width"][filter] ** 2
+            / self._grid.area_of_cell[_last_biomass["cell_index"]][filter]
+        )
+        _pet = _grid_pet[_last_biomass["cell_index"]][filter] * _plant_cell_frac
+        _available_water = (
+            _grid_available_water[_last_biomass["cell_index"]][filter]
+            * _plant_cell_frac
+        )
         _min_temperature = self._grid["cell"]["air__min_temperature_C"][
             _last_biomass["cell_index"]
         ][filter]
         _max_temperature = self._grid["cell"]["air__max_temperature_C"][
             _last_biomass["cell_index"]
         ][filter]
-        _cell_lai = self._grid["cell"]["vegetation__cell_lai"][
+        _cell_lai = self._grid["cell"]["vegetation__leaf_area_index"][
             _last_biomass["cell_index"]
         ][filter]
+        _current_lai = self.calculate_lai(
+            self.plants["live_leaf_area"], self.plants["shoot_sys_width"]
+        )
+        _transpiration = (
+            _pet * _current_lai[filter] / self.species_morph_params["lai_cr"]
+        )
+        _transpiration[_transpiration > _pet] = _pet[_transpiration > _pet]
         _new_live_biomass = self.respire(
             _min_temperature, _max_temperature, _new_live_biomass
         )
@@ -567,9 +583,18 @@ class PlantGrowth(Species):
                 _new_live_biomass,
                 _current_jday,
             )
+            # check this - may be photo method sensitive
+            carb_generated_photo_adj = (
+                _available_water
+                / self.photosynthesis.crit_water_content
+                * carb_generated_photo
+            )
+            carb_generated_photo_adj[
+                carb_generated_photo_adj > carb_generated_photo
+            ] = carb_generated_photo[carb_generated_photo_adj > carb_generated_photo]
             # Future add turnover rate
             _new_live_biomass = self.allocate_biomass_dynamically(
-                _new_live_biomass, carb_generated_photo
+                _new_live_biomass, carb_generated_photo_adj
             )
         _new_live_biomass = self.kill_small_plants(_new_live_biomass)
         event_flags.pop("_in_growing_season")
