@@ -89,7 +89,7 @@ class GenVeg(Component, PlantGrowth):
                 species_cover_allocation = cover_species / cover_sum
                 cover_allocation.append(
                     dict(zip(species_list, (species_cover_allocation * cell_cover)))
-                )  # This is a list with elements representing each cell - change this to a dict of species holding an array
+                )
 
             # for each species in the parameters file
             for species in vegparams:
@@ -215,7 +215,6 @@ class GenVeg(Component, PlantGrowth):
                             break
 
             for species_obj in self.plant_species:
-                # what are we updating the shoot width and height to? We need to update the morphology estimator
                 species = species_obj.species_plant_factors["species"]
                 update_plants = cell_plants[cell_plants["species"] == species]
                 update_plants = species_obj.update_morphology(update_plants)
@@ -332,32 +331,12 @@ class GenVeg(Component, PlantGrowth):
             )
 
         try:
-            self._PET = self._grid["cell"][
-                "surface__potential_evapotranspiration_rate"
-            ][:].copy()
-        except KeyError:
-            msg = (
-                "Potential evapotranspiration and/or soil moisture fields not found."
-                "GenVeg will use monthly PET values for Atlantic City NJ."
-            )
-            print(msg)
-            # Data from NE Regional Climate Center for Atlantic City NJ
-            # https://www.nrcc.cornell.edu/wxstation/pet/pet.html
-            _days = np.array([14, 45, 73, 104, 134, 165, 195, 226, 257, 287, 318, 348])
-            _days_in_mo = np.array([31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31])
-            _PET_in = np.array(
-                [0.52, 0.76, 1.48, 2.49, 3.75, 4.36, 4.84, 4.18, 2.79, 1.72, 0.87, 0.53]
-            )
-            _PET_mm_day = _PET_in / _days_in_mo * 25.4
-            self._PET = np.interp(
-                self._calc_current_jday(), _days, _PET_mm_day, 365
-            ) * np.ones_like(self._par)
-        try:
             self._wilt_pt = self._grid["cell"]["soil__wilting_point"][:].copy()
             self._field_capacity = self._grid["cell"]["soil__field_capacity"][:].copy()
             self._porosity = self._grid["cell"]["soil__porosity"]
         except KeyError:
             msg = "Default soil physical properties will be used based on soil texture"
+            print(msg)
             try:
                 self._wilt_pt = np.vectorize(
                     soil_texture_defaults["wilting_point"].get
@@ -367,10 +346,11 @@ class GenVeg(Component, PlantGrowth):
                 )(self._grid["cell"]["surface__soil_texture"])
             except KeyError:
                 msg = "No soil texture provided so assuming values for silt loam"
-                self._wilt_pt = np.ones_like(self._PET) * (
+                print(msg)
+                self._wilt_pt = np.ones_like(self._par) * (
                     (soil_texture_defaults["wilting_point"].get)("silt loam")
                 )
-                self._field_capacity = np.ones_like(self._PET) * (
+                self._field_capacity = np.ones_like(self._par) * (
                     soil_texture_defaults["field_capacity"].get
                 )("silt loam")
 
@@ -388,9 +368,7 @@ class GenVeg(Component, PlantGrowth):
         _available_water_frac = _available_water_cell / _max_water_available
         all_plants = []
         for species_obj in self.plant_species:
-            species_obj._grow(
-                _current_jday, self._par, self._PET, _available_water_frac
-            )
+            species_obj._grow(_current_jday, self._par, _available_water_frac)
 
         all_plants = self.combine_plant_arrays()
         all_plants = self.check_for_dispersal_success(all_plants)

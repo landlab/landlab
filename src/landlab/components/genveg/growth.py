@@ -410,7 +410,7 @@ class PlantGrowth(Species):
         (n_new_plants,) = new_plants_list.shape
         start_index = np.flatnonzero(self.plants["pid"] == last_pid).astype(int) + 1
         end_index = n_new_plants + start_index[0]
-        self.plants[start_index[0] : end_index] = new_plants_list
+        self.plants[start_index[0]:end_index] = new_plants_list
         self.n_plants += n_new_plants
         self.record_plants.add_item(
             time=np.array([_rel_time]),
@@ -512,7 +512,7 @@ class PlantGrowth(Species):
         )
         return self.plants
 
-    def _grow(self, _current_jday, _grid_par, _grid_pet, _grid_available_water):
+    def _grow(self, _current_jday, _grid_par, _grid_relative_water_content):
         # This is the primary method in PlantGrowth and is run within each
         # GenVeg run_one_step at each timestep. This method applies new environmental
         # conditions daily from the grid, determines what processes run, and implements
@@ -548,9 +548,8 @@ class PlantGrowth(Species):
             * _last_biomass["root_sys_width"][filter] ** 2
             / self._grid.area_of_cell[_last_biomass["cell_index"]][filter]
         )
-        _pet = _grid_pet[_last_biomass["cell_index"]][filter] * _plant_cell_frac
-        _available_water = (
-            _grid_available_water[_last_biomass["cell_index"]][filter]
+        _relative_water_content = (
+            _grid_relative_water_content[_last_biomass["cell_index"]][filter]
             * _plant_cell_frac
         )
         _min_temperature = self._grid["cell"]["air__min_temperature_C"][
@@ -562,13 +561,6 @@ class PlantGrowth(Species):
         _cell_lai = self._grid["cell"]["vegetation__leaf_area_index"][
             _last_biomass["cell_index"]
         ][filter]
-        _current_lai = self.calculate_lai(
-            self.plants["live_leaf_area"], self.plants["shoot_sys_width"]
-        )
-        _transpiration = (
-            _pet * _current_lai[filter] / self.species_morph_params["lai_cr"]
-        )
-        _transpiration[_transpiration > _pet] = _pet[_transpiration > _pet]
         _new_live_biomass = self.respire(
             _min_temperature, _max_temperature, _new_live_biomass
         )
@@ -585,7 +577,7 @@ class PlantGrowth(Species):
             )
             # check this - may be photo method sensitive
             carb_generated_photo_adj = (
-                _available_water
+                _relative_water_content
                 / self.photosynthesis.crit_water_content
                 * carb_generated_photo
             )
@@ -615,14 +607,14 @@ class PlantGrowth(Species):
         self.plants, self.n_plants = self.remove_plants()
 
     def _init_plants_from_grid(self, in_growing_season, species_cover):
-        # This method initializes the plants in the PlantGrowth class
+        """
+        This method initializes the plants in the PlantGrowth class
         # from the vegetation fields stored on the grid. This method
         # is only called if no initial plant array is parameterized
         # as part of the PlantGrowth initialization.
         # Required parameters are a boolean inidicating if the plants are
         # in the active growing season.
-        ###
-        # move plantlist development to species?
+        """
         pidval = 0
         plantlist = []
         # Loop through grid cells
@@ -707,14 +699,16 @@ class PlantGrowth(Species):
     def allocate_biomass_proportionately(
         self, _last_biomass, _total_biomass, delta_tot
     ):
-        # This method allocates new net biomass amongst growth parts
-        # proportionately based on the relative size of the part. This
-        # method is used outside of the growing season since some plant parts
-        # may not be present while the plant is dormant. The storage redistribution
-        # method is called after initial biomass allocation to redistribute storage
-        # biomass to dormant growth parts as needed.
-        # Required parameter is a numpy array of net biomass change to be applied
-        # to the plant and it returns the structured array _new_biomass.
+        """
+        This method allocates new net biomass amongst growth parts
+        proportionately based on the relative size of the part. This
+        method is used outside of the growing season since some plant parts
+        may not be present while the plant is dormant. The storage redistribution
+        method is called after initial biomass allocation to redistribute storage
+        biomass to dormant growth parts as needed.
+        Required parameter is a numpy array of net biomass change to be applied
+        to the plant and it returns the structured array _new_biomass.
+        """
         _new_biomass = _last_biomass
         _total_biomass = self.sum_plant_parts(_last_biomass, parts="total")
         filter = np.nonzero(_total_biomass != 0)
