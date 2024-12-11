@@ -410,7 +410,7 @@ class PlantGrowth(Species):
         (n_new_plants,) = new_plants_list.shape
         start_index = np.flatnonzero(self.plants["pid"] == last_pid).astype(int) + 1
         end_index = n_new_plants + start_index[0]
-        self.plants[start_index[0]:end_index] = new_plants_list
+        self.plants[start_index[0] : end_index] = new_plants_list
         self.n_plants += n_new_plants
         self.record_plants.add_item(
             time=np.array([_rel_time]),
@@ -533,7 +533,7 @@ class PlantGrowth(Species):
         }
 
         # Run mortality and decompose litter each day
-        _new_biomass = self.mortality(_new_biomass, event_flags["_in_growing_season"])
+        # _new_biomass = self.mortality(_new_biomass, event_flags["_in_growing_season"])
         _new_biomass = self.litter_decomp(_new_biomass)
         # Limit growth processes only to live plants
         _total_biomass = self.sum_plant_parts(_new_biomass, parts="total")
@@ -542,15 +542,8 @@ class PlantGrowth(Species):
 
         # calculate variables needed to run plant processes
         _par = _grid_par[_last_biomass["cell_index"]][filter]
-        _plant_cell_frac = (
-            np.pi
-            / 4
-            * _last_biomass["root_sys_width"][filter] ** 2
-            / self._grid.area_of_cell[_last_biomass["cell_index"]][filter]
-        )
         _relative_water_content = (
             _grid_relative_water_content[_last_biomass["cell_index"]][filter]
-            * _plant_cell_frac
         )
         _min_temperature = self._grid["cell"]["air__min_temperature_C"][
             _last_biomass["cell_index"]
@@ -575,11 +568,10 @@ class PlantGrowth(Species):
                 _new_live_biomass,
                 _current_jday,
             )
-            # check this - may be photo method sensitive
             carb_generated_photo_adj = (
-                _relative_water_content
+                carb_generated_photo
+                * _relative_water_content
                 / self.photosynthesis.crit_water_content
-                * carb_generated_photo
             )
             carb_generated_photo_adj[
                 carb_generated_photo_adj > carb_generated_photo
@@ -719,10 +711,12 @@ class PlantGrowth(Species):
         return _new_biomass
 
     def adjust_biomass_allocation_towards_ideal(self, _new_biomass):
-        # This method adjusts biomass allocation towards the ideal allocation
-        # proportions based on the plant size. If parts of the plant are
-        # removed via herbivory or damage, this allows the plant to utilize
-        # other stored resources to regrow the damaged parts.
+        """
+        This method adjusts biomass allocation towards the ideal allocation
+        proportions based on the plant size. If parts of the plant are
+        removed via herbivory or damage, this allows the plant to utilize
+        other stored resources to regrow the damaged parts.
+        """
         _total_biomass = self.sum_plant_parts(_new_biomass, parts="growth")
         _min_leaf_mass_frac = (
             self.species_grow_params["plant_part_min"]["leaf"] / _total_biomass
@@ -804,8 +798,10 @@ class PlantGrowth(Species):
         return _new_biomass
 
     def set_event_flags(self, _current_jday):
-        # This method sets event flags so required processes are run based
-        # on the day of year.
+        """
+        This method sets event flags so required processes are run based
+        on the day of year.
+        """
         durationdict = self.species_duration_params
         flags_to_test = {
             "_in_growing_season": bool(
