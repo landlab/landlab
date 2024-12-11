@@ -533,7 +533,7 @@ class PlantGrowth(Species):
         }
 
         # Run mortality and decompose litter each day
-        # _new_biomass = self.mortality(_new_biomass, event_flags["_in_growing_season"])
+        _new_biomass = self.mortality(_new_biomass, event_flags["_in_growing_season"])
         _new_biomass = self.litter_decomp(_new_biomass)
         # Limit growth processes only to live plants
         _total_biomass = self.sum_plant_parts(_new_biomass, parts="total")
@@ -542,9 +542,9 @@ class PlantGrowth(Species):
 
         # calculate variables needed to run plant processes
         _par = _grid_par[_last_biomass["cell_index"]][filter]
-        _relative_water_content = (
-            _grid_relative_water_content[_last_biomass["cell_index"]][filter]
-        )
+        _relative_water_content = _grid_relative_water_content[
+            _last_biomass["cell_index"]
+        ][filter]
         _min_temperature = self._grid["cell"]["air__min_temperature_C"][
             _last_biomass["cell_index"]
         ][filter]
