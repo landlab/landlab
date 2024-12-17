@@ -108,7 +108,7 @@ def test_notebooks(session: nox.Session) -> None:
         "--nbmake-timeout=3000",
         *("-n", "auto"),
         "-vvv",
-        *pytest_args
+        *pytest_args,
     )
 
 
