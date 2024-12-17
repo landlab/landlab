@@ -5,6 +5,5 @@ flaky
 hypothesis
 pytest
 pytest-benchmark
-pytest-cov
 pytest-datadir
 pytest-xdist
