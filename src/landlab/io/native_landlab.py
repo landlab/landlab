@@ -6,8 +6,8 @@ Read Landlab native
 
 .. autosummary::
 
-    ~landlab.io.native_landlab.load_grid
-    ~landlab.io.native_landlab.save_grid
+    ~load_grid
+    ~save_grid
 """
 
 import os
