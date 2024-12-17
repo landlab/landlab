@@ -4,6 +4,7 @@ from .bedrock_landslider import BedrockLandslider
 from .carbonate import CarbonateProducer
 from .chi_index import ChiFinder
 from .concentration_tracker import ConcentrationTrackerForDiffusion
+from .concentration_tracker import ConcentrationTrackerForSpace
 from .depression_finder import DepressionFinderAndRouter
 from .depth_dependent_diffusion import DepthDependentDiffuser
 from .depth_dependent_taylor_soil_creep import DepthDependentTaylorDiffuser
@@ -103,6 +104,7 @@ COMPONENTS = [
     ChannelProfiler,
     ChiFinder,
     ConcentrationTrackerForDiffusion,
+    ConcentrationTrackerForSpace,
     DepressionFinderAndRouter,
     DepthDependentDiffuser,
     DepthDependentTaylorDiffuser,
