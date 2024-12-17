@@ -27,10 +27,7 @@ def build(session: nox.Session) -> None:
 
     session.log(f"CC = {os.environ.get('CC', 'NOT FOUND')}")
     if session.virtualenv.venv_backend != "none":
-        session.install(
-            "build",
-            *("-r", PATH["requirements"] / "required.txt"),
-        )
+        session.install("build", "-r", PATH["requirements"] / "required.txt")
 
     session.run("python", "-m", "build", "--outdir", "./build/wheelhouse")
 
@@ -38,15 +35,12 @@ def build(session: nox.Session) -> None:
 @nox.session(python=PYTHON_VERSION, venv_backend="conda")
 def install(session: nox.Session) -> None:
     """Install package"""
+    path_args, other_args = pop_option(session.posargs, "--path")
     if session.virtualenv.venv_backend != "none":
-        path_args, pytest_args = pop_option(session.posargs, "--path")
         os.environ["WITH_OPENMP"] = "1"
         session.log(f"CC = {os.environ.get('CC', 'NOT FOUND')}")
 
-        session.install(
-            *("-r", PATH["requirements"] / "required.txt"),
-            *("-r", PATH["requirements"] / "testing.txt"),
-        )
+        session.install("-r", PATH["requirements"] / "required.txt")
         session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
 
         arg = path_args[0] if path_args else None
@@ -61,55 +55,52 @@ def install(session: nox.Session) -> None:
 
     check_package_versions(session, files=["required.txt", "testing.txt"])
 
+    return other_args
+
 
 @nox.session(python=PYTHON_VERSION, venv_backend="conda")
 def test(session: nox.Session) -> None:
     """Run the tests."""
-    path_args, pytest_args = pop_option(session.posargs, "--path")
+    pytest_args = install(session)
 
-    if session.virtualenv.venv_backend != "none":
-        os.environ["WITH_OPENMP"] = "1"
-        session.log(f"CC = {os.environ.get('CC', 'NOT FOUND')}")
-        session.install(
-            *("-r", PATH["requirements"] / "required.txt"),
-            *("-r", PATH["requirements"] / "testing.txt"),
-        )
-        session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
+    session.install("-r", PATH["requirements"] / "testing.txt")
+    session.run("pytest", "-n", "auto", "-vvv", *pytest_args)
 
-        arg = path_args[0] if path_args else None
-        if arg is None:
-            session.install(".", "--no-deps")
-        elif os.path.isdir(arg):
-            session.install("landlab", f"--find-links={arg}", "--no-deps", "--no-index")
-        elif os.path.isfile(arg):
-            session.install(arg, "--no-deps")
-        else:
-            session.error("--path must be either a wheel for a wheelhouse folder")
 
-    check_package_versions(session, files=["required.txt", "testing.txt"])
+@nox.session(python=PYTHON_VERSION, venv_backend="conda")
+def coverage(session: nox.Session) -> None:
+    """Run coverage."""
+    install(session)
 
-    args = [
-        "pytest",
-        *("-n", "auto"),
-        *("--cov", PROJECT),
-        "-vvv",
-        # *("--dist", "worksteal"),
-    ] + pytest_args
+    session.install("coverage", "-r", PATH["requirements"] / "testing.txt")
+
+    session.run(
+        "coverage", "run", "-m", "pytest", "-vvv", env={"COVERAGE_CORE": "sysmon"}
+    )
 
     if "CI" in os.environ:
-        args.append(f"--cov-report=xml:{ROOT.absolute()!s}/coverage.xml")
-    session.run(*args)
-
-    if "CI" not in os.environ:
+        session.run("coverage", "xml", "-o", os.path.join(ROOT, "coverage.xml"))
+    else:
         session.run("coverage", "report", "--ignore-errors", "--show-missing")
 
 
 @nox.session(name="test-notebooks", python=PYTHON_VERSION, venv_backend="conda")
 def test_notebooks(session: nox.Session) -> None:
     """Run the notebooks."""
-    path_args, pytest_args = pop_option(session.posargs, "--path")
+    if session.virtualenv.venv_backend != "none":
+        session.install(
+            *("-r", PATH["requirements"] / "testing.txt"),
+            *("-r", PATH["requirements"] / "notebooks.txt"),
+        )
+        pytest_args = install(session)
+    else:
+        pytest_args = session.posargs
 
-    args = [
+    check_package_versions(
+        session, files=["required.txt", "testing.txt", "notebooks.txt"]
+    )
+
+    session.run(
         "pytest",
         "notebooks",
         "--nbmake",
@@ -117,36 +108,11 @@ def test_notebooks(session: nox.Session) -> None:
         "--nbmake-timeout=3000",
         *("-n", "auto"),
         "-vvv",
-    ] + pytest_args
-
-    if session.virtualenv.venv_backend != "none":
-        os.environ["WITH_OPENMP"] = "1"
-        session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
-        session.install(
-            "git+https://github.com/mcflugen/nbmake.git@v1.5.4-markers",
-            *("-r", PATH["requirements"] / "required.txt"),
-            *("-r", PATH["requirements"] / "testing.txt"),
-            *("-r", PATH["requirements"] / "notebooks.txt"),
-        )
-
-        arg = path_args[0] if path_args else "."
-        if arg is None:
-            session.install(".", "--no-deps")
-        elif os.path.isdir(arg):
-            session.install("landlab", f"--find-links={arg}", "--no-deps", "--no-index")
-        elif os.path.isfile(arg):
-            session.install(arg, "--no-deps")
-        else:
-            session.error("--path must be either a wheel for a wheelhouse folder")
-
-    check_package_versions(
-        session, files=["required.txt", "testing.txt", "notebooks.txt"]
+        *pytest_args
     )
 
-    session.run(*args)
 
-
-def pop_option(args: list[str], opt: str):
+def pop_option(args: list[str], opt: str) -> tuple[list[str], list[str]]:
     the_rest = []
     opts = []
     for arg in args:
@@ -161,7 +127,7 @@ def pop_option(args: list[str], opt: str):
 @nox.session(name="test-cli")
 def test_cli(session: nox.Session) -> None:
     """Test the command line interface."""
-    session.install(".")
+    install(session)
     session.run("landlab", "--help")
     session.run("landlab", "--version")
     session.run("landlab", "index", "--help")
