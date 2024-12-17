@@ -53,52 +53,29 @@ def install(session: nox.Session) -> None:
 
 
 @nox.session(python=PYTHON_VERSION, venv_backend="conda")
-def install(session: nox.Session) -> None:
-    """Install package"""
-    if session.virtualenv.venv_backend != "none":
-        path_args, pytest_args = pop_option(session.posargs, "--path")
-        os.environ["WITH_OPENMP"] = "1"
-        session.log(f"CC = {os.environ.get('CC', 'NOT FOUND')}")
-
-        session.install(
-            *("-r", PATH["requirements"] / "required.txt"),
-            *("-r", PATH["requirements"] / "testing.txt"),
-        )
-        session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
-
-        arg = path_args[0] if path_args else None
-        if arg is None:
-            session.install(".", "--no-deps")
-        elif os.path.isdir(arg):
-            session.install("landlab", f"--find-links={arg}", "--no-deps", "--no-index")
-        elif os.path.isfile(arg):
-            session.install(arg, "--no-deps")
-        else:
-            session.error("--path must be either a wheel or a wheelhouse folder")
-
-    check_package_versions(session, files=["required.txt", "testing.txt"])
-
-
-@nox.session(python=PYTHON_VERSION, venv_backend="conda")
 def test(session: nox.Session) -> None:
     """Run the tests."""
     session.conda_install("richdem", channel=("conda-forge", "defaults"))
     session.install("-r", PATH["requirements"] / "testing.txt")
     install(session)
 
-    args = [
-        "pytest",
-        *("-n", "auto"),
-        *("--cov", PROJECT),
-        "-vvv",
-    ]
+    session.run("pytest", "-n", "auto", "-vvv")
+
+
+@nox.session(python=PYTHON_VERSION, venv_backend="conda")
+def coverage(session: nox.Session) -> None:
+    """Run coverage."""
+    install(session)
+
+    session.install("coverage", "-r", PATH["requirements"] / "testing.txt")
+
+    session.run(
+        "coverage", "run", "-m", "pytest", "-vvv", env={"COVERAGE_CORE": "sysmon"}
+    )
 
     if "CI" in os.environ:
-        args.append(f"--cov-report=xml:{ROOT.absolute()!s}/coverage.xml")
-
-    session.run(*args)
-
-    if "CI" not in os.environ:
+        session.run("coverage", "xml", "-o", os.path.join(ROOT, "coverage.xml"))
+    else:
         session.run("coverage", "report", "--ignore-errors", "--show-missing")
 
 
