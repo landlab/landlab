@@ -51,8 +51,7 @@ def numpy_diff(children_at_parent, value_at_parent, value_at_child, out):
 
 
 @pytest.mark.parametrize("impl", ["numpy", "cython"])
-@pytest.mark.benchmark(group="diff")
-def test_diff_of_elements_bench(benchmark, impl):
+def test_diff_of_elements_bench(impl):
     rng = np.random.default_rng(seed=1973)
     elements_at_element = rng.integers(-1, 1000, size=(10000, 10))
 
@@ -65,9 +64,7 @@ def test_diff_of_elements_bench(benchmark, impl):
     else:
         func = diff_of_children_at_parent
 
-    benchmark(
-        func, np.asarray(elements_at_element), value_at_parent, value_at_child, actual
-    )
+    func(np.asarray(elements_at_element), value_at_parent, value_at_child, actual)
 
     expected = np.full_like(actual, -999)
     numpy_diff(
@@ -131,8 +128,7 @@ def test_max_of_elements():
 
 
 @pytest.mark.parametrize("impl", ["numpy", "cython"])
-@pytest.mark.benchmark(group="min")
-def test_min_of_elements_bench(benchmark, impl):
+def test_min_of_elements_bench(impl):
     rng = np.random.default_rng(seed=1973)
     elements_at_element = rng.integers(-1, 1000, size=(10000, 10))
 
@@ -144,7 +140,7 @@ def test_min_of_elements_bench(benchmark, impl):
     else:
         func = min_of_children_at_parent
 
-    benchmark(func, np.asarray(elements_at_element), values, actual)
+    func(np.asarray(elements_at_element), values, actual)
 
     expected = np.full_like(actual, -999)
     numpy_min(np.asarray(elements_at_element), values, expected)
@@ -153,8 +149,7 @@ def test_min_of_elements_bench(benchmark, impl):
 
 
 @pytest.mark.parametrize("impl", ["numpy", "cython"])
-@pytest.mark.benchmark(group="max")
-def test_max_of_elements_bench(benchmark, impl):
+def test_max_of_elements_bench(impl):
     rng = np.random.default_rng(seed=1973)
     elements_at_element = rng.integers(-1, 1000, size=(10000, 10))
 
@@ -166,7 +161,7 @@ def test_max_of_elements_bench(benchmark, impl):
     else:
         func = max_of_children_at_parent
 
-    benchmark(func, np.asarray(elements_at_element), values, actual)
+    func(np.asarray(elements_at_element), values, actual)
 
     expected = np.full_like(actual, -999)
     numpy_max(np.asarray(elements_at_element), values, expected)
@@ -175,8 +170,7 @@ def test_max_of_elements_bench(benchmark, impl):
 
 
 @pytest.mark.parametrize("impl", ["numpy", "cython"])
-@pytest.mark.benchmark(group="mean")
-def test_mean_of_elements_bench(benchmark, impl):
+def test_mean_of_elements_bench(impl):
     rng = np.random.default_rng(seed=1973)
     elements_at_element = rng.integers(-1, 1000, size=(10000, 10))
 
@@ -188,7 +182,7 @@ def test_mean_of_elements_bench(benchmark, impl):
     else:
         func = mean_of_children_at_parent
 
-    benchmark(func, np.asarray(elements_at_element), values, actual)
+    func(np.asarray(elements_at_element), values, actual)
 
     expected = np.empty_like(actual)
     numpy_mean(np.asarray(elements_at_element), values, expected)
@@ -226,7 +220,7 @@ def test_count_of_elements_with_missing():
 
 
 @pytest.mark.parametrize("impl", ["numpy", "cython"])
-def test_count_of_elements_benchmark(benchmark, impl):
+def test_count_of_elements_benchmark(impl):
     elements_at_element = np.random.randint(-1, 2, size=10000).reshape((1000, 10))
     actual = np.empty(len(elements_at_element), dtype=int)
 
@@ -235,7 +229,7 @@ def test_count_of_elements_benchmark(benchmark, impl):
     else:
         func = count_of_children_at_parent
 
-    benchmark(func, elements_at_element, actual)
+    func(elements_at_element, actual)
 
     expected = np.sum(elements_at_element != -1, axis=1)
 
