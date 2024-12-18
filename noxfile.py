@@ -89,6 +89,7 @@ def test_notebooks(session: nox.Session) -> None:
     """Run the notebooks."""
     if session.virtualenv.venv_backend != "none":
         session.install(
+            "nbmake",
             *("-r", PATH["requirements"] / "testing.txt"),
             *("-r", PATH["requirements"] / "notebooks.txt"),
         )
