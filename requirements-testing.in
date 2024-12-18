@@ -4,6 +4,5 @@ coverage
 flaky
 hypothesis
 pytest
-pytest-benchmark
 pytest-datadir
 pytest-xdist
