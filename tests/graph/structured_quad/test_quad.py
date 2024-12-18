@@ -132,45 +132,6 @@ def test_layouts_match(method):
     )
 
 
-@mark.skip("speed tests")
-@mark.parametrize(
-    "method",
-    (
-        "links_at_patch",
-        "nodes_at_link",
-        "horizontal_links",
-        "vertical_links",
-        "perimeter_nodes",
-        "links_at_node",
-        "patches_at_link",
-        "link_dirs_at_node",
-        "patches_at_node",
-    ),
-)
-@mark.parametrize("size", (10, 11))
-def test_layouts_cython_is_faster(method, size):
-    from timeit import timeit
-
-    n_rows, n_cols = 3 * 2**size, 4 * 2**size
-
-    def time_method(impl):
-        return timeit(
-            "{impl}.{method}(({n_rows}, {n_cols}))".format(
-                impl=impl, method=method, n_rows=n_rows, n_cols=n_cols
-            ),
-            setup="from landlab.graph.structured_quad.structured_quad import {impl}".format(
-                impl=impl
-            ),
-            number=1,
-        )
-
-    benchmark = time_method("StructuredQuadLayoutPython")
-    time = time_method("StructuredQuadLayoutCython")
-    speedup = benchmark / time
-
-    assert speedup > 1  # or time < 1e-2
-
-
 def test_create():
     """Test creating a quad graph."""
     y = [0, 1, 3, 0, 1, 3, 0, 1, 3]
