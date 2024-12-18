@@ -168,7 +168,6 @@ jobs:
 
   coverage:
     name: Run coverage
-    needs: build-wheels
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -197,7 +196,7 @@ jobs:
           COVERAGE_CORE": "sysmon"
         run: |
           pip install nox
-          nox --verbose -s coverage --force-pythons=3.12 -- --path=dist
+          nox --verbose -s coverage --force-pythons=3.12
 
       - name: Coveralls
         uses: AndreMiras/coveralls-python-action@develop
