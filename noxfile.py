@@ -70,7 +70,13 @@ def coverage(session: nox.Session) -> None:
     session.install("coverage", "-r", PATH["requirements"] / "testing.txt")
 
     session.run(
-        "coverage", "run", "-m", "pytest", "-vvv", env={"COVERAGE_CORE": "sysmon"}
+        "coverage",
+        "run",
+        "--source=landlab",
+        "--module",
+        "pytest",
+        "-vvv",
+        env={"COVERAGE_CORE": "sysmon"},
     )
 
     if "CI" in os.environ:
