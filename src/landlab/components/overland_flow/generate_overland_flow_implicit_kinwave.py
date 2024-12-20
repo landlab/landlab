@@ -269,9 +269,9 @@ class KinwaveImplicitOverlandFlow(Component):
         # Instantiate flow router
         self._flow_accum = FlowAccumulator(
             grid,
-            "topographic__elevation",
+            surface="topographic__elevation",
             flow_director="MFD",
-            partition_method="square_root_of_slope",
+            partition_method="square_root_of_slope"
         )
 
         # Flag to let us know whether this is our first iteration
@@ -295,8 +295,11 @@ class KinwaveImplicitOverlandFlow(Component):
 
     @runoff_rate.setter
     def runoff_rate(self, new_rate):
-        assert new_rate > 0
-        self._runoff_rate = new_rate / 3.6e6  # convert to m/s
+        if isinstance(new_rate, str):
+            self._runoff_rate = self._grid.at_node[new_rate] / 3.6e6
+        else:
+            assert new_rate > 0
+            self._runoff_rate = new_rate / 3.6e6 # convert to m/s
 
     @property
     def vel_coef(self):
@@ -324,7 +327,7 @@ class KinwaveImplicitOverlandFlow(Component):
 
             # Re-route flow, which gives us the downstream-to-upstream
             # ordering
-            self._flow_accum.run_one_step()
+            self._flow_accum.accumulate_flow()
             self._nodes_ordered = self._grid.at_node["flow__upstream_node_order"]
             self._flow_lnks = self._grid.at_node["flow__link_to_receiver_node"]
 
@@ -344,14 +347,14 @@ class KinwaveImplicitOverlandFlow(Component):
             cores = self._grid.core_nodes
             
             # Calculate alpha; try for roughness as a float, else as array of floats
-            if not hasattr(self._vel_coef, "__len__"):
+            if not hasattr(self._roughness, "__len__"):
                 self._alpha[cores] = (
                     self._vel_coef
                     * self._grad_width_sum[cores]
                     * dt
                     / (self._grid.area_of_cell[self._grid.cell_at_node[cores]])
                 )
-            elif hasattr(self._vel_coef, "__len__"):
+            elif hasattr(self._roughness, "__len__"):
                 # if manning's n in a field
                 self._alpha[cores] = (
                     self._vel_coef[cores]
@@ -395,11 +398,11 @@ class KinwaveImplicitOverlandFlow(Component):
                 Heff = self._weight * self._depth[n] + (1.0 - self._weight) * cc
 
                 # Calculate outflow; try for roughness as a float, else as array of floats
-                if not hasattr(self._vel_coef, "__len__"):
+                if not hasattr(self._roughness, "__len__"):
                     outflow = (
                         self._vel_coef * (Heff**self._depth_exp) * self._grad_width_sum[n]
                     )  # this is manning/chezy/darcy
-                elif hasattr(self._vel_coef, "__len__"):
+                elif hasattr(self._roughness, "__len__"):
                     outflow = (
                         self._vel_coef[n] * (Heff**self._depth_exp) * self._grad_width_sum[n]
                     )  # this is manning/chezy/darcy
