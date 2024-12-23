@@ -20,7 +20,7 @@ find in GIS software.
       :nosignatures:
 
       {% for func in grids[grid]['surface'] %}
-        ~{{func}}
+        ~{{func | replace("landlab.", "")}}
       {% endfor %}
   {% endfor %}
 ```

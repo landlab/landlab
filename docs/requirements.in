@@ -3,11 +3,10 @@ ipython
 myst-parser
 nbsphinx
 numpy
-pandoc
 sphinx-copybutton
 sphinx-inline-tabs
 sphinx-jinja
 sphinx>=4
+sphinx_design
 sphinxcontrib.towncrier
-tomli
 towncrier
