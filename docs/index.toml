@@ -3894,6 +3894,43 @@ mapping = 'node'
 optional = false
 units = 'm'
 
+[components.river_flow_dynamics]
+name = 'landlab.components.river_flow_dynamics.river_flow_dynamics.river_flow_dynamics'
+unit_agnostic = false
+summary = 'Simulate surface fluid flow based on Casulli and Cheng (1992).'
+
+[components.river_flow_dynamics.info.surface_water__depth]
+doc = 'Depth of water on the surface'
+dtype = 'float64'
+intent = 'inout'
+mapping = 'node'
+optional = false
+units = 'm'
+
+[components.river_flow_dynamics.info.surface_water__elevation]
+doc = 'Water surface elevation at time N'
+dtype = 'float64'
+intent = 'inout'
+mapping = 'node'
+optional = false
+units = 'm'
+
+[components.river_flow_dynamics.info.surface_water__velocity]
+doc = 'Speed of water flow above the surface'
+dtype = 'float64'
+intent = 'inout'
+mapping = 'link'
+optional = false
+units = 'm/s'
+
+[components.river_flow_dynamics.info.topographic__elevation]
+doc = 'Land surface topographic elevation'
+dtype = 'float64'
+intent = 'in'
+mapping = 'node'
+optional = false
+units = 'm'
+
 # Generated using `landlab index fields`
 [fields]
 
@@ -5083,6 +5120,7 @@ used_by = [
   'landlab.components.overland_flow.generate_overland_flow_Bates.OverlandFlowBates',
   'landlab.components.overland_flow.generate_overland_flow_deAlmeida.OverlandFlow',
   'landlab.components.overland_flow.kinematic_wave_rengers.KinematicWaveRengers',
+  'landlab.components.river_flow_dynamics.river_flow_dynamics.river_flow_dynamics',
   'landlab.components.soil_moisture.infiltrate_soil_green_ampt.SoilInfiltrationGreenAmpt',
 ]
 provided_by = [
@@ -5093,6 +5131,7 @@ provided_by = [
   'landlab.components.overland_flow.kinematic_wave_rengers.KinematicWaveRengers',
   'landlab.components.overland_flow.linear_diffusion_overland_flow_router.LinearDiffusionOverlandFlowRouter',
   'landlab.components.potentiality_flowrouting.route_flow_by_boundary.PotentialityFlowRouter',
+  'landlab.components.river_flow_dynamics.river_flow_dynamics.river_flow_dynamics',
   'landlab.components.soil_moisture.infiltrate_soil_green_ampt.SoilInfiltrationGreenAmpt',
 ]
 
@@ -5133,6 +5172,15 @@ provided_by = [
   'landlab.components.flow_accum.lossy_flow_accumulator.LossyFlowAccumulator',
 ]
 
+[fields.surface_water__elevation]
+desc = 'Water surface elevation at time N'
+used_by = [
+  'landlab.components.river_flow_dynamics.river_flow_dynamics.river_flow_dynamics',
+]
+provided_by = [
+  'landlab.components.river_flow_dynamics.river_flow_dynamics.river_flow_dynamics',
+]
+
 [fields.surface_water__specific_discharge]
 desc = 'rate of seepage to surface'
 used_by = []
@@ -5149,9 +5197,12 @@ provided_by = []
 
 [fields.surface_water__velocity]
 desc = 'Speed of water flow above the surface'
-used_by = []
+used_by = [
+  'landlab.components.river_flow_dynamics.river_flow_dynamics.river_flow_dynamics',
+]
 provided_by = [
   'landlab.components.overland_flow.kinematic_wave_rengers.KinematicWaveRengers',
+  'landlab.components.river_flow_dynamics.river_flow_dynamics.river_flow_dynamics',
 ]
 
 [fields.surface_water_inflow__discharge]
@@ -5219,6 +5270,7 @@ used_by = [
   'landlab.components.potentiality_flowrouting.route_flow_by_boundary.PotentialityFlowRouter',
   'landlab.components.priority_flood_flow_router.priority_flood_flow_router.PriorityFloodFlowRouter',
   'landlab.components.radiation.radiation.Radiation',
+  'landlab.components.river_flow_dynamics.river_flow_dynamics.river_flow_dynamics',
   'landlab.components.sink_fill.fill_sinks.SinkFiller',
   'landlab.components.sink_fill.sink_fill_barnes.SinkFillerBarnes',
   'landlab.components.space.space.Space',
