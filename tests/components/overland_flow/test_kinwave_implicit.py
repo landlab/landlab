@@ -133,8 +133,70 @@ def test_curved_surface():
         )
 
 
+def test_kinwave_runoff_field():
+    """
+    Make sure that runoff_rate can be set with a field (i.e., array), and confirm
+    that this returns the same result as setting with a float of the same magnitude.
+    """
+
+    mg1 = RasterModelGrid((10, 10), xy_spacing=25)
+    mg1.add_zeros("surface_water__depth", at="node")
+    mg1.add_zeros("topographic__elevation", at="node")
+    mg1.set_closed_boundaries_at_grid_edges(True, True, True, True)
+    r1 = 1.0
+    kinwave1 = KinwaveImplicitOverlandFlow(
+        mg1, runoff_rate=r1, roughness=0.03, depth_exp=5 / 3
+    )
+
+    mg2 = RasterModelGrid((10, 10), xy_spacing=25)
+    mg2.add_zeros("surface_water__depth", at="node")
+    mg2.add_zeros("topographic__elevation", at="node")
+    mg2.set_closed_boundaries_at_grid_edges(True, True, True, True)
+    r2 = 1.0 * np.ones(100)
+    mg2.add_field("r2", r2, at="node")
+    kinwave2 = KinwaveImplicitOverlandFlow(
+        mg2, runoff_rate="r2", roughness=0.03, depth_exp=5 / 3
+    )
+
+    kinwave1.run_one_step(100)
+    kinwave2.run_one_step(100)
+    np.testing.assert_equal(kinwave1.depth, kinwave2.depth)
+
+
+def test_kinwave_roughness_field():
+    """
+    Make sure that roughness can be set with a field (i.e., array), and confirm
+    that this returns the same result as setting with a float of the same magnitude.
+    """
+
+    mg1 = RasterModelGrid((10, 10), xy_spacing=25)
+    mg1.add_zeros("surface_water__depth", at="node")
+    mg1.add_zeros("topographic__elevation", at="node")
+    mg1.set_closed_boundaries_at_grid_edges(True, True, True, True)
+    r1 = 0.03
+    kinwave1 = KinwaveImplicitOverlandFlow(
+        mg1, runoff_rate=1.0, roughness=r1, depth_exp=5 / 3
+    )
+
+    mg2 = RasterModelGrid((10, 10), xy_spacing=25)
+    mg2.add_zeros("surface_water__depth", at="node")
+    mg2.add_zeros("topographic__elevation", at="node")
+    mg2.set_closed_boundaries_at_grid_edges(True, True, True, True)
+    r2 = 0.03 * np.ones(100)
+    mg2.add_field("r2", r2, at="node")
+    kinwave2 = KinwaveImplicitOverlandFlow(
+        mg2, runoff_rate=1.0, roughness=r2, depth_exp=5 / 3
+    )
+
+    kinwave1.run_one_step(100)
+    kinwave2.run_one_step(100)
+    np.testing.assert_equal(kinwave1.depth, kinwave2.depth)
+
+
 if __name__ == "__main__":
     test_initialization()
     test_first_iteration()
     test_steady_basic_ramp()
     test_curved_surface()
+    test_kinwave_runoff_field()
+    test_kinwave_roughness_field()
