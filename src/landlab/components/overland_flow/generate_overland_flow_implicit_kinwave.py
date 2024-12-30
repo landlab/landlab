@@ -212,13 +212,13 @@ class KinwaveImplicitOverlandFlow(Component):
         grid : ModelGrid
             Landlab ModelGrid object
         runoff_rate : float or array of floats, optional (defaults to 1 mm/hr)
-            If array of floats, provide the str for where the values are stored
-            on the ModelGrid.
+            If array of floats, provide the field name str for where the values are
+            stored on the ModelGrid.
             Precipitation rate, mm/hr. The value provided is divided by
             3600000.0.
         roughness : float or array of floats (defaults to 0.01)
-            If array of floats, provide the str for where the values are stored
-            on the ModelGrid.
+            If array of floats, provide the field name str for where the values are
+            stored on the ModelGrid.
             Manning's roughness coefficient(s); units depend on depth_exp.
         changing_topo : boolean, optional (defaults to False)
             Flag indicating whether topography changes between time steps
@@ -271,7 +271,7 @@ class KinwaveImplicitOverlandFlow(Component):
             grid,
             surface="topographic__elevation",
             flow_director="MFD",
-            partition_method="square_root_of_slope"
+            partition_method="square_root_of_slope",
         )
 
         # Flag to let us know whether this is our first iteration
@@ -299,7 +299,7 @@ class KinwaveImplicitOverlandFlow(Component):
             self._runoff_rate = self._grid.at_node[new_rate] / 3.6e6
         else:
             assert new_rate > 0
-            self._runoff_rate = new_rate / 3.6e6 # convert to m/s
+            self._runoff_rate = new_rate / 3.6e6  # convert to m/s
 
     @property
     def vel_coef(self):
@@ -345,7 +345,7 @@ class KinwaveImplicitOverlandFlow(Component):
             #
             #   $\alpha = \frac{\Sigma W S^{1/2} \Delta t}{A C_r}$
             cores = self._grid.core_nodes
-            
+
             # Calculate alpha; try for roughness as a float, else as array of floats
             if not hasattr(self._roughness, "__len__"):
                 self._alpha[cores] = (
@@ -400,11 +400,15 @@ class KinwaveImplicitOverlandFlow(Component):
                 # Calculate outflow; try for roughness as a float, else as array of floats
                 if not hasattr(self._roughness, "__len__"):
                     outflow = (
-                        self._vel_coef * (Heff**self._depth_exp) * self._grad_width_sum[n]
+                        self._vel_coef
+                        * (Heff**self._depth_exp)
+                        * self._grad_width_sum[n]
                     )  # this is manning/chezy/darcy
                 elif hasattr(self._roughness, "__len__"):
                     outflow = (
-                        self._vel_coef[n] * (Heff**self._depth_exp) * self._grad_width_sum[n]
+                        self._vel_coef[n]
+                        * (Heff**self._depth_exp)
+                        * self._grad_width_sum[n]
                     )  # this is manning/chezy/darcy
 
                 # Send flow downstream. Here we take total inflow discharge
@@ -424,6 +428,7 @@ class KinwaveImplicitOverlandFlow(Component):
                 # depth, but it does not provide any information about flow
                 # velocity or discharge on links. This could be added as an
                 # optional method, perhaps done just before output.
+
 
 if __name__ == "__main__":
     import doctest
