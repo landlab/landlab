@@ -374,7 +374,8 @@ class KinwaveImplicitOverlandFlow(Component):
                 aa = self._alpha[n]
                 cc = self._depth[n]
 
-                # Calculate parameter ee; try for runoff_rate as a float, else as array of floats
+                # Calculate parameter ee; try for runoff_rate as a float, else as
+                # array of floats
                 if not hasattr(self._runoff_rate, "__len__"):
                     ee = (dt * self._runoff_rate) + (
                         dt
