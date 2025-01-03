@@ -138,10 +138,10 @@ class KinwaveImplicitOverlandFlow(Component):
     >>> rg = RasterModelGrid((4, 5), xy_spacing=10.0)
     >>> z = rg.add_zeros("topographic__elevation", at="node")
     >>> kw = KinwaveImplicitOverlandFlow(rg)
-    >>> round(kw.runoff_rate * 1.0e7, 2)
-    2.78
-    >>> kw.vel_coef  # default value
-    100.0
+    >>> kw.runoff_rate  # default value
+    1.0
+    >>> kw.roughness  # default value
+    0.01
     >>> rg.at_node["surface_water__depth"][6:9]
     array([0., 0., 0.])
 
@@ -211,11 +211,15 @@ class KinwaveImplicitOverlandFlow(Component):
         ----------
         grid : ModelGrid
             Landlab ModelGrid object
-        runoff_rate : float, optional (defaults to 1 mm/hr)
-            Precipitation rate, mm/hr. The value provided is divided by
-            3600000.0.
-        roughness : float, defaults to 0.01
-            Manning roughness coefficient; units depend on depth_exp.
+        runoff_rate : array_like of float or str (defaults to 1 mm/hr)
+            Precipitation rate, mm/hr. If array, you may either provide
+            a numpy array or the field name str of where the values
+            are stored on the nodes of the ModelGrid.
+        roughness : array_like of float or str (defaults to 0.01)
+            Manning's roughness coefficient(s); units depend on depth_exp.
+            If array, you may either provide a numpy array or the field
+            name str of where the values are stored on the nodes of the
+            ModelGrid.
         changing_topo : boolean, optional (defaults to False)
             Flag indicating whether topography changes between time steps
         depth_exp : float (defaults to 1.5)
@@ -228,8 +232,21 @@ class KinwaveImplicitOverlandFlow(Component):
         super().__init__(grid)
         # Store parameters and do unit conversion
 
-        self._runoff_rate = runoff_rate / 3600000.0  # convert to m/s
-        self._vel_coef = 1.0 / roughness  # do division now to save time
+        # Allow runoff_rate and roughness to be distributed, if needed.
+        if isinstance(runoff_rate, float):
+            self._runoff_rate = runoff_rate
+        else:
+            self._runoff_rate = self._grid.return_array_or_field_values(
+                runoff_rate, at="node"
+            )
+
+        if isinstance(roughness, float):
+            self._roughness = roughness
+        else:
+            self._roughness = self._grid.return_array_or_field_values(
+                roughness, at="node"
+            )
+
         self._changing_topo = changing_topo
         self._depth_exp = depth_exp
         self._weight = weight
@@ -255,7 +272,7 @@ class KinwaveImplicitOverlandFlow(Component):
         # Instantiate flow router
         self._flow_accum = FlowAccumulator(
             grid,
-            "topographic__elevation",
+            surface="topographic__elevation",
             flow_director="MFD",
             partition_method="square_root_of_slope",
         )
@@ -269,9 +286,10 @@ class KinwaveImplicitOverlandFlow(Component):
 
         Parameters
         ----------
-        runoff_rate : float, optional (defaults to 1 mm/hr)
-            Precipitation rate, mm/hr. The value provide is divided by
-            3600000.0.
+        runoff_rate : array_like of float or str (defaults to 1 mm/hr)
+            Precipitation rate, mm/hr. If array, you may either provide
+            a numpy array or the field name str of where the values
+            are stored on the nodes of the ModelGrid.
 
         Returns
         -------
@@ -281,13 +299,45 @@ class KinwaveImplicitOverlandFlow(Component):
 
     @runoff_rate.setter
     def runoff_rate(self, new_rate):
-        assert new_rate > 0
-        self._runoff_rate = new_rate / 3600000.0  # convert to m/s
+        if new_rate <= 0.0:
+            raise ValueError(f"runoff_rate must be positive ({new_rate})")
+
+        if isinstance(new_rate, float):
+            self._runoff_rate = new_rate
+        else:
+            self._runoff_rate = self._grid.return_array_or_field_values(
+                new_rate, at="node"
+            )
 
     @property
-    def vel_coef(self):
-        """Velocity coefficient."""
-        return self._vel_coef
+    def roughness(self):
+        """Roughness.
+
+        Parameters
+        ----------
+        roughness : array_like of float or str (defaults to 0.01)
+            Manning's roughness coefficient(s); units depend on depth_exp.
+            If array, you may either provide a numpy array or the field
+            name str of where the values are stored on the nodes of the
+            ModelGrid.
+
+        Returns
+        -------
+        The current value of the roughness.
+        """
+        return self._roughness
+
+    @roughness.setter
+    def roughness(self, new_rough):
+        if new_rough <= 0.0:
+            raise ValueError(f"roughness must be positive ({new_rough})")
+
+        if isinstance(new_rough, float):
+            self._roughness = new_rough
+        else:
+            self._roughness = self._grid.return_array_or_field_values(
+                new_rough, at="node"
+            )
 
     @property
     def depth(self):
@@ -310,7 +360,7 @@ class KinwaveImplicitOverlandFlow(Component):
 
             # Re-route flow, which gives us the downstream-to-upstream
             # ordering
-            self._flow_accum.run_one_step()
+            self._flow_accum.accumulate_flow()
             self._nodes_ordered = self._grid.at_node["flow__upstream_node_order"]
             self._flow_lnks = self._grid.at_node["flow__link_to_receiver_node"]
 
@@ -328,11 +378,18 @@ class KinwaveImplicitOverlandFlow(Component):
             #
             #   $\alpha = \frac{\Sigma W S^{1/2} \Delta t}{A C_r}$
             cores = self._grid.core_nodes
+
+            # Calculate alpha; try for roughness as a float, else as array of floats
+            if np.isscalar(self._roughness):
+                roughness_at_core_nodes = self._roughness
+            else:
+                roughness_at_core_nodes = self._roughness[cores]
+
             self._alpha[cores] = (
-                self._vel_coef
-                * self._grad_width_sum[cores]
+                self._grad_width_sum[cores]
                 * dt
                 / (self._grid.area_of_cell[self._grid.cell_at_node[cores]])
+                / roughness_at_core_nodes
             )
 
         # Zero out inflow discharge
@@ -345,11 +402,20 @@ class KinwaveImplicitOverlandFlow(Component):
                 # Solve for new water depth
                 aa = self._alpha[n]
                 cc = self._depth[n]
-                ee = (dt * self._runoff_rate) + (
+
+                # Calculate parameter ee; try for runoff_rate as a float, else as
+                # array of floats
+                if np.isscalar(self._runoff_rate):
+                    runoff_at_nodes = self._runoff_rate / 3.6e6
+                else:
+                    runoff_at_nodes = self._runoff_rate[n] / 3.6e6
+
+                ee = (dt * runoff_at_nodes) + (
                     dt
                     * self._disch_in[n]
                     / self._grid.area_of_cell[self._grid.cell_at_node[n]]
                 )
+
                 self._depth[n] = newton(
                     water_fn,
                     self._depth[n],
@@ -358,8 +424,17 @@ class KinwaveImplicitOverlandFlow(Component):
 
                 # Calc outflow
                 Heff = self._weight * self._depth[n] + (1.0 - self._weight) * cc
+
+                # Calculate outflow; try for roughness as a float, else as array of floats
+                if np.isscalar(self._roughness):
+                    roughness_at_nodes = self._roughness
+                else:
+                    roughness_at_nodes = self._roughness[n]
+
                 outflow = (
-                    self._vel_coef * (Heff**self._depth_exp) * self._grad_width_sum[n]
+                    (Heff**self._depth_exp)
+                    * self._grad_width_sum[n]
+                    / roughness_at_nodes
                 )  # this is manning/chezy/darcy
 
                 # Send flow downstream. Here we take total inflow discharge
