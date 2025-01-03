@@ -302,7 +302,7 @@ class KinwaveImplicitOverlandFlow(Component):
         if new_rate <= 0.0:
             raise ValueError(f"runoff_rate must be positive ({new_rate})")
 
-        if np.isinstance(new_rate, float):
+        if isinstance(new_rate, float):
             self._runoff_rate = new_rate
         else:
             self._runoff_rate = self._grid.return_array_or_field_values(
