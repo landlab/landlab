@@ -211,21 +211,21 @@ class KinwaveImplicitOverlandFlow(Component):
         ----------
         grid : ModelGrid
             Landlab ModelGrid object
-        runoff_rate : array_like of float or str (defaults to 1 mm/hr)
+        runoff_rate : str or array_like of float
             Precipitation rate, mm/hr. If array, you may either provide
             a numpy array or the field name str of where the values
             are stored on the nodes of the ModelGrid.
-        roughness : array_like of float or str (defaults to 0.01)
+        roughness : str or array_like of float
             Manning's roughness coefficient(s); units depend on depth_exp.
             If array, you may either provide a numpy array or the field
             name str of where the values are stored on the nodes of the
             ModelGrid.
-        changing_topo : boolean, optional (defaults to False)
+        changing_topo : boolean, optional
             Flag indicating whether topography changes between time steps
-        depth_exp : float (defaults to 1.5)
+        depth_exp : float
             Exponent on water depth in velocity equation (3/2 for Darcy/Chezy,
             5/3 for Manning)
-        weight : float (defaults to 1.0)
+        weight : float
             Weighting on depth at new time step versus old time step (1 = all
             implicit; 0 = explicit)
         """
