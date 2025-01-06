@@ -84,17 +84,18 @@ class ConcentrationTrackerForSpace(Component):
     >>> fr = PriorityFloodFlowRouter(mg)
     >>> fr.run_one_step()
     >>> sp = SpaceLargeScaleEroder(mg, phi=0, F_f=0, v_s=1)
-    >>> ct = ConcentrationTrackerForSpace(mg,
-                                          phi=0,
-                                          fraction_fines=0,
-                                          settling_velocity=1,
-                                          )
+    >>> ct = ConcentrationTrackerForSpace(
+    ...     mg,
+    ...     phi=0,
+    ...     fraction_fines=0,
+    ...     settling_velocity=1,
+    ... )
 
     >>> for i in range(40):
-    >>>     fr.run_one_step()
-    >>>     ct.start_tracking()
-    >>>     sp.run_one_step(10.)
-    >>>     ct.stop_tracking(10.)
+    ...     fr.run_one_step()
+    ...     ct.start_tracking()
+    ...     sp.run_one_step(10.)
+    ...     ct.stop_tracking(10.)
 
     Erosion has lowered the topography and reduced channel bed sediment depth.
     >>> np.allclose(mg.at_node["topographic__elevation"][mg.core_nodes],
@@ -163,33 +164,34 @@ class ConcentrationTrackerForSpace(Component):
     >>> fr = PriorityFloodFlowRouter(mg)
     >>> fr.run_one_step()
     >>> sp = SpaceLargeScaleEroder(mg, phi=0, F_f=0, v_s=1)
-    >>> ct = ConcentrationTrackerForSpace(mg,
-                                          phi=0,
-                                          fraction_fines=0,
-                                          settling_velocity=1,
-                                          )
+    >>> ct = ConcentrationTrackerForSpace(
+    ...     mg,
+    ...     phi=0,
+    ...     fraction_fines=0,
+    ...     settling_velocity=1,
+    ... )
 
     # Run SPACE for 1,000 years to generate a fluvial network.
     >>> for i in range(1000):
-    >>>     mg.at_node["bedrock__elevation"][mg.core_nodes] += 0.001
-    >>>     mg.at_node["topographic__elevation"][:] = (
+    ...     mg.at_node["bedrock__elevation"][mg.core_nodes] += 0.001
+    ...     mg.at_node["topographic__elevation"][:] = (
     ...         mg.at_node["soil__depth"] + mg.at_node["bedrock__elevation"]
     ...     )
-    >>>     fr.run_one_step()
-    >>>     sp.run_one_step(1.)
+    ...     fr.run_one_step()
+    ...     sp.run_one_step(1.)
 
     # Set high concentration at a headwater node to trace sediment downstream.
     >>> mg.at_node["sediment_property__concentration"][22] += 1
 
     >>> for i in range(100):
-    >>>     mg.at_node["bedrock__elevation"][mg.core_nodes] += 0.001
-    >>>     mg.at_node["topographic__elevation"][:] = (
+    ...     mg.at_node["bedrock__elevation"][mg.core_nodes] += 0.001
+    ...     mg.at_node["topographic__elevation"][:] = (
     ...         mg.at_node["soil__depth"] + mg.at_node["bedrock__elevation"]
     ...     )
-    >>>     fr.run_one_step()
-    >>>     ct.start_tracking()
-    >>>     sp.run_one_step(1.)
-    >>>     ct.stop_tracking(1.)
+    ...     fr.run_one_step()
+    ...     ct.start_tracking()
+    ...     sp.run_one_step(1.)
+    ...     ct.stop_tracking(1.)
 
     Some high-concentration sediment has been transported from the headwaters
     to be deposited on the channel bed further downstream. We can trace this
