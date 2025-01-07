@@ -211,15 +211,10 @@ class KinwaveImplicitOverlandFlow(Component):
         ----------
         grid : ModelGrid
             Landlab ModelGrid object
-        runoff_rate : str or array_like of float
-            Precipitation rate, mm/hr. If array, you may either provide
-            a numpy array or the field name str of where the values
-            are stored on the nodes of the ModelGrid.
-        roughness : str or array_like of float
+        runoff_rate : array_like of float
+            Precipitation rate, mm/hr.
+        roughness : array_like of float
             Manning's roughness coefficient(s); units depend on depth_exp.
-            If array, you may either provide a numpy array or the field
-            name str of where the values are stored on the nodes of the
-            ModelGrid.
         changing_topo : boolean, optional
             Flag indicating whether topography changes between time steps
         depth_exp : float
@@ -230,23 +225,10 @@ class KinwaveImplicitOverlandFlow(Component):
             implicit; 0 = explicit)
         """
         super().__init__(grid)
-        # Store parameters and do unit conversion
 
-        # Allow runoff_rate and roughness to be distributed, if needed.
-        if isinstance(runoff_rate, float):
-            self._runoff_rate = runoff_rate
-        else:
-            self._runoff_rate = self._grid.return_array_or_field_values(
-                runoff_rate, at="node"
-            )
-
-        if isinstance(roughness, float):
-            self._roughness = roughness
-        else:
-            self._roughness = self._grid.return_array_or_field_values(
-                roughness, at="node"
-            )
-
+        # Store parameters
+        self._runoff_rate = runoff_rate
+        self._roughness = roughness
         self._changing_topo = changing_topo
         self._depth_exp = depth_exp
         self._weight = weight
@@ -286,10 +268,8 @@ class KinwaveImplicitOverlandFlow(Component):
 
         Parameters
         ----------
-        runoff_rate : array_like of float or str (defaults to 1 mm/hr)
-            Precipitation rate, mm/hr. If array, you may either provide
-            a numpy array or the field name str of where the values
-            are stored on the nodes of the ModelGrid.
+        runoff_rate : array_like of float (defaults to 1 mm/hr)
+            Precipitation rate, mm/hr.
 
         Returns
         -------
@@ -299,15 +279,9 @@ class KinwaveImplicitOverlandFlow(Component):
 
     @runoff_rate.setter
     def runoff_rate(self, new_rate):
-        if new_rate <= 0.0:
+        if np.any(new_rate <= 0.0):
             raise ValueError(f"runoff_rate must be positive ({new_rate})")
-
-        if isinstance(new_rate, float):
-            self._runoff_rate = new_rate
-        else:
-            self._runoff_rate = self._grid.return_array_or_field_values(
-                new_rate, at="node"
-            )
+        self._runoff_rate = new_rate
 
     @property
     def roughness(self):
@@ -315,11 +289,8 @@ class KinwaveImplicitOverlandFlow(Component):
 
         Parameters
         ----------
-        roughness : array_like of float or str (defaults to 0.01)
+        roughness : array_like of float (defaults to 0.01)
             Manning's roughness coefficient(s); units depend on depth_exp.
-            If array, you may either provide a numpy array or the field
-            name str of where the values are stored on the nodes of the
-            ModelGrid.
 
         Returns
         -------
@@ -329,15 +300,9 @@ class KinwaveImplicitOverlandFlow(Component):
 
     @roughness.setter
     def roughness(self, new_rough):
-        if new_rough <= 0.0:
+        if np.any(new_rough <= 0.0):
             raise ValueError(f"roughness must be positive ({new_rough})")
-
-        if isinstance(new_rough, float):
-            self._roughness = new_rough
-        else:
-            self._roughness = self._grid.return_array_or_field_values(
-                new_rough, at="node"
-            )
+        self._roughness = new_rough
 
     @property
     def depth(self):
