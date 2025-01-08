@@ -133,7 +133,7 @@ def test_curved_surface():
         )
 
 
-def test_kinwave_runoff_field():
+def test_kinwave_runoff_array():
     """
     Make sure that runoff_rate can be set with an array, and confirm that this
     returns the same result as setting with a float of the same magnitude.
@@ -163,7 +163,7 @@ def test_kinwave_runoff_field():
     np.testing.assert_equal(kinwave1.depth, kinwave2.depth)
 
 
-def test_kinwave_roughness_field():
+def test_kinwave_roughness_array():
     """
     Make sure that roughness can be set with an array, and confirm that this
     returns the same result as setting with a float of the same magnitude.
