@@ -6,9 +6,9 @@ Plotting functions
 
 .. autosummary::
 
-    ~landlab.plot.imshow.imshow_grid
-    ~landlab.plot.imshow.imshow_grid_at_cell
-    ~landlab.plot.imshow.imshow_grid_at_node
+    ~imshow_grid
+    ~imshow_grid_at_cell
+    ~imshow_grid_at_node
 """
 from warnings import warn
 

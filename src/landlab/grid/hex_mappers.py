@@ -6,7 +6,7 @@ Mapping functions unique to hex grids
 
 .. autosummary::
 
-    ~landlab.grid.hex_mappers.map_link_vector_components_to_node_hex
+    ~map_link_vector_components_to_node_hex
 """
 import enum
 
