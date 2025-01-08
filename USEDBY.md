@@ -18,7 +18,7 @@ Gasparini, N. M., Forte, A. M., & Barnhart, K. R. (2024). **Numerically simulate
 
 Guryan, G., Johnson, J., & Gasparini, N. (2024). **Sediment cover modulates landscape erosion patterns and channel steepness in layered rocks: Insights from the SPACE model.** *Journal of Geophysical Research: Earth Surface,* 129(7), e2023JF007509.
 
-Keck, J., Istanbulluoglu, E., Campforts, B., Tucker, G., and Horner-Devine, A. (2024) **A landslide runout model for sediment transport, landscape evolution, and hazard assessment applications**. *Earth Surface Dynamics,* https://doi.org/10.5194/esurf-12-1165-2024.
+Keck, J., Istanbulluoglu, E., Campforts, B., Tucker, G., and Horner-Devine, A. (2024) **A landslide runout model for sediment transport, landscape evolution, and hazard assessment applications**. *Earth Surface Dynamics,* [DOI](https://doi.org/10.5194/esurf-12-1165-2024).
 
 
 Lee, C. H., Seong, Y. B., Weber, J., Ha, S., Kim, D. E., & Yu, B. Y. (2024). **Topographic metrics for unveiling fault segmentation and tectono-geomorphic evolution with insights into the impact of inherited topography, Ulsan Fault Zone, South Korea.** *Earth Surface Dynamics,* 12(5), 1091-1120.
