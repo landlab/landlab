@@ -175,10 +175,10 @@ Phuong J., C. Bandaragoda, E. Istanbulluoglu, C. Beveridge, R. Strauch, L. Setia
 
 Reitman, N.G., Mueller, K.J., Tucker, G.E., Gold, R.D., Briggs, R.D., and Barnhart, K.R. (2019) **Landscape Evolution Models Demonstrate that Offset Channels are Incomplete Records of Strike-Slip Fault Displacement.** *Journal of Geophysical Research: Solid Earth*, 124, [DOI](https://doi.org/10.1029/2019JB018596).
 
-Sharman, G. R., Sylvester, Z., & Covault, J. A. (2019). 
+Sharman, G. R., Sylvester, Z., & Covault, J. A. (2019).
 **Conversion of tectonic and climatic forcings into records of sediment supply and provenance.** *Scientific Reports*, 9(1), 4115, [DOI](https://doi.org/10.1038/s41598-019-39754-6).
 
-Zebari, M., Grützner, C., Navabpour, P., & Ustaszewski, K. (2019). 
+Zebari, M., Grützner, C., Navabpour, P., & Ustaszewski, K. (2019).
 **Relative timing of uplift along the Zagros Mountain Front Flexure (Kurdistan Region of Iraq): Constrained by geomorphic indices and landscape evolution modeling.** *Solid Earth*, 10(3), 663-682
 [DOI](https://doi.org/10.5194/se-10-663-2019).
 
