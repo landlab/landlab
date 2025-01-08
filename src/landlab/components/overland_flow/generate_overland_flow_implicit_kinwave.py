@@ -227,8 +227,8 @@ class KinwaveImplicitOverlandFlow(Component):
         super().__init__(grid)
 
         # Store parameters
-        self._runoff_rate = runoff_rate
-        self._roughness = roughness
+        self._runoff_rate = np.array(runoff_rate)
+        self._roughness = np.array(roughness)
         self._changing_topo = changing_topo
         self._depth_exp = depth_exp
         self._weight = weight
@@ -264,45 +264,33 @@ class KinwaveImplicitOverlandFlow(Component):
 
     @property
     def runoff_rate(self):
-        """Runoff rate.
-
-        Parameters
-        ----------
-        runoff_rate : array_like of float (defaults to 1 mm/hr)
-            Precipitation rate, mm/hr.
-
-        Returns
-        -------
-        The current value of the runoff rate.
-        """
+        """Runoff rate at nodes."""
         return self._runoff_rate
 
     @runoff_rate.setter
     def runoff_rate(self, new_rate):
-        if np.any(new_rate <= 0.0):
-            raise ValueError(f"runoff_rate must be positive ({new_rate})")
-        self._runoff_rate = new_rate
+        if np.isscalar(new_rate):
+            if new_rate < 0.0:
+                raise ValueError("runoff_rate must be positive")
+        else:
+            if np.any(new_rate[self._grid.core_nodes] < 0.0):
+                raise ValueError("runoff_rate must be positive")
+        self._runoff_rate = np.array(new_rate)
 
     @property
     def roughness(self):
-        """Roughness.
-
-        Parameters
-        ----------
-        roughness : array_like of float (defaults to 0.01)
-            Manning's roughness coefficient(s); units depend on depth_exp.
-
-        Returns
-        -------
-        The current value of the roughness.
-        """
+        """Roughness at nodes."""
         return self._roughness
 
     @roughness.setter
     def roughness(self, new_rough):
-        if np.any(new_rough <= 0.0):
-            raise ValueError(f"roughness must be positive ({new_rough})")
-        self._roughness = new_rough
+        if np.isscalar(new_rough):
+            if new_rough < 0.0:
+                raise ValueError("roughness must be positive")
+        else:
+            if np.any(new_rough[self._grid.core_nodes] < 0.0):
+                raise ValueError("roughness must be positive")
+        self._roughness = np.array(new_rough)
 
     @property
     def depth(self):
@@ -345,7 +333,7 @@ class KinwaveImplicitOverlandFlow(Component):
             cores = self._grid.core_nodes
 
             # Calculate alpha; try for roughness as a float, else as array of floats
-            if np.isscalar(self._roughness):
+            if np.ndim(self._roughness) == 0:
                 roughness_at_core_nodes = self._roughness
             else:
                 roughness_at_core_nodes = self._roughness[cores]
@@ -370,7 +358,7 @@ class KinwaveImplicitOverlandFlow(Component):
 
                 # Calculate parameter ee; try for runoff_rate as a float, else as
                 # array of floats
-                if np.isscalar(self._runoff_rate):
+                if np.ndim(self._runoff_rate) == 0:
                     runoff_at_nodes = self._runoff_rate / 3.6e6
                 else:
                     runoff_at_nodes = self._runoff_rate[n] / 3.6e6
@@ -391,7 +379,7 @@ class KinwaveImplicitOverlandFlow(Component):
                 Heff = self._weight * self._depth[n] + (1.0 - self._weight) * cc
 
                 # Calculate outflow; try for roughness as a float, else as array of floats
-                if np.isscalar(self._roughness):
+                if np.ndim(self._roughness) == 0:
                     roughness_at_nodes = self._roughness
                 else:
                     roughness_at_nodes = self._roughness[n]
