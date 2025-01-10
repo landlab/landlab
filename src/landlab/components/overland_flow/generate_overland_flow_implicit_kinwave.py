@@ -265,7 +265,10 @@ class KinwaveImplicitOverlandFlow(Component):
     @property
     def runoff_rate(self):
         """Runoff rate at nodes."""
-        return self._runoff_rate
+        # Return a read-only view of the runoff_rate array
+        read_only_runoff = self._runoff_rate.view()
+        read_only_runoff.flags["WRITEABLE"] = False
+        return read_only_runoff
 
     @runoff_rate.setter
     def runoff_rate(self, new_rate):
@@ -280,7 +283,10 @@ class KinwaveImplicitOverlandFlow(Component):
     @property
     def roughness(self):
         """Roughness at nodes."""
-        return self._roughness
+        # Return a read-only view of the roughness array
+        read_only_roughness = self._roughness.view()
+        read_only_roughness.flags["WRITEABLE"] = False
+        return read_only_roughness
 
     @roughness.setter
     def roughness(self, new_rough):
