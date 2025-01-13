@@ -2,4 +2,4 @@ bmi-topography==0.8.5
 dask[array]==2024.12.1
 holoviews==1.20.0
 jupyter==1.1.1
-mesa[network]==3.0.3
+mesa[network]==3.1.3
