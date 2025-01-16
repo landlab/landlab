@@ -128,7 +128,6 @@ html_logo = "_static/landlab_logo.png"
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-    "announcement": "<em>Landlab 2.9 released!</em>",
     "source_repository": "https://github.com/landlab/landlab/",
     "source_branch": "master",
     "source_directory": "docs/source",
@@ -158,6 +157,13 @@ html_theme_options = {
         },
     ],
 }
+
+if "READTHEDOCS" in os.environ:
+    html_theme_options["announcement"] = (
+        "This documentation is hosted on Read the Docs only for testing. Please use"
+        " <a href='https://landlab.csdms.io'>the main documentation</a>"
+        " instead."
+    )
 
 # Add any paths that contain custom themes here, relative to this directory.
 # html_theme_path = []
