@@ -328,6 +328,7 @@ jobs:
           path: build/html/
 
   deploy-docs:
+    if: github.ref == 'refs/heads/master'
     needs: docs
     environment:
       name: github-pages
