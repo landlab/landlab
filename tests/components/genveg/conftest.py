@@ -120,25 +120,20 @@ def example_input_params():
             },
             "mortality_params": {
                 "coeffs": {
-                    "1": [9837.624573797346, 0.20082011968400607],
-                    "2": [1270116309.000265, 33.52512742454386],
+                    "1": [9837.624573797346, 0.20082011968400607], # still need to find
                 },
-                "duration": {1: 207, 2: 365},
+                "duration": {1: 207},
                 "mort_variable_name": {
-                    "1": "Distance to shore",
-                    "2": "elevation__above_WL",
+                    "1": "temp-range",
                 },
                 "period": {
                     "1": "during growing  season",
-                    "2": "during growing season",
                 },
                 "predictor": {
-                    "1": [30, 40, 50, 55, -9999],
-                    "2": [0, 0.5, 0.6, 0.68, 1.12],
+                    "1": [8.62, 10.35, 12.08, 13.80, 15.53], 
                 },
                 "response": {
-                    "1": [0.01, 0.25, 0.67, 0.9, -9999],
-                    "2": [0, 0, 0.3, 1, 1],
+                    "1": [0.01, 0.25, 0.67, 0.85, 0.99],
                 },
             },
             "photo_params": {
