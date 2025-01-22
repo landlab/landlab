@@ -120,7 +120,7 @@ def example_input_params():
             },
             "mortality_params": {
                 "coeffs": {
-                    "1": [9837.624573797346, 0.20082011968400607], # still need to find
+                    "1": [9837.624573797346, 0.20082011968400607],  # still need to find
                 },
                 "duration": {1: 207},
                 "mort_variable_name": {
@@ -130,7 +130,7 @@ def example_input_params():
                     "1": "during growing  season",
                 },
                 "predictor": {
-                    "1": [8.62, 10.35, 12.08, 13.80, 15.53], 
+                    "1": [8.62, 10.35, 12.08, 13.80, 15.53],
                 },
                 "response": {
                     "1": [0.01, 0.25, 0.67, 0.85, 0.99],
