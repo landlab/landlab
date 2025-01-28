@@ -11,13 +11,13 @@ FlowDirAccPf is introduced [in this paper]()
 
 ## Documentation and installation
 
-Landlab documentation is hosted on this [ReadTheDocs page](https://landlab.readthedocs.io/en/release),
+Landlab documentation is hosted on this [ReadTheDocs page](https://landlab.csdms.io/en/release),
 including instructions to install Landlab. ``FlowDirAccPf`` is installed with
 Landlab.
 
 #TODO
 
-``FlowDirAccPf`` documentation is located [here](https://landlab.readthedocs.io/en/release/reference/components/FlowDirAccPf.html).
+``FlowDirAccPf`` documentation is located [here](https://landlab.csdms.io/en/release/reference/components/FlowDirAccPf.html).
 
 ## FlowDirAccPf tutorial
 
