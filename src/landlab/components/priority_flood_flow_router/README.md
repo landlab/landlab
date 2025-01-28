@@ -11,13 +11,13 @@ FlowDirAccPf is introduced [in this paper]()
 
 ## Documentation and installation
 
-Landlab documentation is hosted on this [ReadTheDocs page](https://landlab.csdms.io/en/release),
+Landlab documentation is hosted on this [ReadTheDocs page](https://landlab.csdms.io/),
 including instructions to install Landlab. ``FlowDirAccPf`` is installed with
 Landlab.
 
 #TODO
 
-``FlowDirAccPf`` documentation is located [here](https://landlab.csdms.io/en/release/reference/components/FlowDirAccPf.html).
+``FlowDirAccPf`` documentation is located [here](https://landlab.csdms.io/generated/api/landlab.components.priority_flood_flow_router.priority_flood_flow_router.html).
 
 ## FlowDirAccPf tutorial
 
