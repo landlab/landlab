@@ -28,7 +28,7 @@ through the following links:
 - [Launch the tutorial](https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/tutorials/species_evolution/Introduction_to_SpeciesEvolver.ipynb)
 as interactive notebook in your browser, with no need to install software,
 launched using Binder.
-- [A static version of the same tutorial](https://nbviewer.jupyter.org/github/landlab/landlab/blob/master/notebooks/tutorials/species_evolution/Introduction_to_SpeciesEvolver.ipynb)
+- [A static version of the same tutorial](https://landlab.csdms.io/tutorials/species_evolution/Introduction_to_SpeciesEvolver.html)
 - All Landlab tutorials can be launched from [this directory](https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/welcome.ipynb) using Binder.
 
 ## Get or give help

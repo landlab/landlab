@@ -92,7 +92,7 @@ and the archive for this manuscript points to the Zenodo archive of v1.5.4.
 The Landlab project maintains a separate repository containing tutorials that
 introduce core concepts and the use of individual submodules. In addition to the
 source code, a [Jupyter Notebook introducing the use of Lithology and
-Litholayers](https://nbviewer.jupyter.org/github/landlab/tutorials/blob/release/lithology/lithology_and_litholayers.ipynb)
+Litholayers](https://landlab.csdms.io/tutorials/lithology/lithology_and_litholayers.html)
 is now part of the Landlab tutorials repository. This tutorial was brought into
 the repository with [Pull Request #
 19](https://github.com/landlab/tutorials/pull/19). The first release version of

@@ -29,7 +29,7 @@ through the following links:
 - [Launch the tutorial](https://mybinder.org/v2/gh/BCampforts/landlab/blob/bc/priority_flood/notebooks/tutorials/PriorityFlood/PriorityFlood_realDEMs.ipynb)
 as interactive notebook in your browser, with no need to install software,
 launched using Binder.
-- [A static version of the same tutorial](https://nbviewer.jupyter.org/github/BCampforts/landlab/blob/bc/priority_flood/notebooks/tutorials/PriorityFlood/PriorityFlood_realDEMs.ipynb)
+- [A static version of the same tutorial](https://landlab.csdms.io/tutorials/flow_direction_and_accumulation/PriorityFlood_realDEMs.html)
 - All Landlab tutorials can be launched from [this directory](https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/welcome.ipynb) using Binder.
 
 ## Get or give help
