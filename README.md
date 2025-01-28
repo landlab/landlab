@@ -51,7 +51,7 @@ at CSDMS to learn more.
 
 ______________________________________________________________________
 
-[Read the documentation on ReadTheDocs!](https://landlab.readthedocs.io/)
+[Read the documentation on ReadTheDocs!](https://landlab.csdms.io/)
 
 ______________________________________________________________________
 
@@ -129,9 +129,9 @@ During workshops and clinics, we sometimes use the
 
 <!-- end-contact -->
 
-[citation guidelines]: https://landlab.readthedocs.io/en/master/citing.html
+[citation guidelines]: https://landlab.csdms.io/en/master/citing.html
 [earthscapehub]: https://csdms.colorado.edu/wiki/JupyterHub
 [explore the notebooks click here]: https://mybinder.org/v2/gh/landlab/landlab/master?filepath=notebooks/welcome.ipynb
-[install landlab from source]: https://landlab.readthedocs.io/en/master/install/developer_install.html
-[installation instructions]: https://landlab.readthedocs.io/en/master/installation.html
+[install landlab from source]: https://landlab.csdms.io/en/master/install/developer_install.html
+[installation instructions]: https://landlab.csdms.io/en/master/installation.html
 [teaching notebooks click here]: https://mybinder.org/v2/gh/landlab/landlab/master?filepath=notebooks/teaching/welcome_teaching.ipynb

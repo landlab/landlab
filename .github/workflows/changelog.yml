@@ -23,6 +23,6 @@ jobs:
         if: contains(github.event.pull_request.labels.*.name, 'skip news') != true
         run: |
           if ! pipx run towncrier check --compare-with origin/${{ github.base_ref }}; then
-          echo "Please see https://landlab.readthedocs.io/en/master/development/contribution/index.html?highlight=towncrier#news-entries for guidance."
+          echo "Please see https://landlab.csdms.io/en/master/development/contribution/index.html?highlight=towncrier#news-entries for guidance."
             false
           fi
