@@ -15,11 +15,11 @@ published February 2020 by the Journal of Open Source Software.
 
 ## Documentation and installation
 
-Landlab documentation is hosted on this [ReadTheDocs page](https://landlab.readthedocs.io/en/release),
+Landlab documentation is hosted on this [ReadTheDocs page](https://landlab.csdms.io/en/release),
 including instructions to install Landlab. SpeciesEvolver is installed with
 Landlab.
 
-SpeciesEvolver documentation is located [here](https://landlab.readthedocs.io/en/release/reference/components/species_evolution.html).
+SpeciesEvolver documentation is located [here](https://landlab.csdms.io/en/release/reference/components/species_evolution.html).
 
 ## SpeciesEvolver tutorial
 
