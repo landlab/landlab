@@ -1,4 +1,4 @@
-""" Implementation of the FramedVoronoiGraph and its static layout:
+"""Implementation of the FramedVoronoiGraph and its static layout:
 HorizontalRectVoronoiGraph. This pattern is inspired from the developments of the HexModelGrid
 
 .. codeauthor:: sebastien lenard

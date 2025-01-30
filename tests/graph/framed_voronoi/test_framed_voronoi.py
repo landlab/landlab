@@ -125,7 +125,7 @@ def test_rect_patches_at_node():
     )
 
 
-@pytest.mark.parametrize("n_cols", [(3)])
+@pytest.mark.parametrize("n_cols", [3])
 @pytest.mark.parametrize("n_rows", (1, 3))
 def test_xy_of_node_rect_horizontal(n_rows, n_cols):
     expected = {
