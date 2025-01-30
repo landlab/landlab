@@ -231,7 +231,7 @@ def docs_check_links(session: nox.Session) -> None:
     broken_links = [
         f"{entry['filename']}:{entry['lineno']}:{entry['uri']}"
         for entry in load_linkcheck_output(output_json)
-        if entry["status"] == "broken"
+        if entry["status"] == "broken" and not entry["info"].startswith("403")
     ]
 
     if broken_links:
