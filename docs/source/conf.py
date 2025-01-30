@@ -319,7 +319,7 @@ nbsphinx_thumbnails = (
 
 # This is processed by Jinja2 and inserted before each notebook
 nbsphinx_prolog = """
-{% set docname = 'notebooks/' + env.doc2path(env.docname, base=None) | string() %}
+{% set docname = 'docs/source/' + env.doc2path(env.docname, base=None) | string() %}
 
 .. note::
 
