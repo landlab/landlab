@@ -2159,7 +2159,7 @@ class ModelGrid(
         code taken from GeospatialPython.com example from December 14th, 2014
         DEJH found what looked like minor sign problems, and adjusted to follow
         the `ArcGIS algorithm
-        <http://help.arcgis.com/en/arcgisdesktop/10.0/help/index.html#/How_Hillshade_works/009z000000z2000000/>`.
+        <https://help.arcgis.com/en/arcgisdesktop/10.0/help/#How_Hillshade_works/009z000000z2000000/>`.
 
         Remember when plotting that bright areas have high values. cmap='Greys'
         will give an apparently inverted color scheme. *cmap='gray'* has white

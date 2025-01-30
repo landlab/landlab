@@ -208,8 +208,6 @@ Rasmussen, C., Richardson, P., Swetnam, T.L., and Tucker, G.E. (2018)
 **Which way do you lean? Using slope aspect variations to understand
 Critical Zone processes and feedbacks.** *Earth Surface Processes and
 Landforms*, [DOI](https://doi.org/10.1002/esp.4306).
-[abstract](https://onlinelibrary.wiley.com/doi/abs/10.1002/esp.4306)
-[paper](https://onlinelibrary.wiley.com/doi/epdf/10.1002/esp.4306)
 
 Schmid, M., Ehlers, T.A., Werner, C., Hickler, T., and Fuentes-Espoz, J.
 P. (2018). **Effect of changing vegetation and precipitation on
@@ -250,7 +248,6 @@ Harbert, S.A., and Owen, L.A. (2017) **Off-fault deformation rate along
 the southern San Andreas fault at Mecca Hills, southern California,
 inferred from landscape modeling of curved drainages.** *Geology*, v.
 46(1), p. 59-62, [DOI](https://doi.org/10.1130/G39820.1).
-[abstract and paper](https://pubs.geoscienceworld.org/gsa/geology/article-abstract/46/1/59/522872/Off-fault-deformation-rate-along-the-southern-San?redirectedFrom=fulltext)
 
 Hobley, D.E.J., Adams, J.M., Nudurupati, S.S., Hutton, E.W.H, Gasparini,
 N.M., Istanbulluoglu, E., and Tucker, G.E., **Creative computing with
