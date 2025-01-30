@@ -132,6 +132,6 @@ During workshops and clinics, we sometimes use the
 [citation guidelines]: https://landlab.csdms.io/about/citing.html
 [earthscapehub]: https://csdms.colorado.edu/wiki/JupyterHub
 [explore the notebooks click here]: https://mybinder.org/v2/gh/landlab/landlab/master?filepath=notebooks/welcome.ipynb
-[install landlab from source]: https://landlab.csdms.io/install/index.html
+[install landlab from source]: https://landlab.csdms.io/install/
 [installation instructions]: https://landlab.csdms.io/installation.html
 [teaching notebooks click here]: https://mybinder.org/v2/gh/landlab/landlab/master?filepath=notebooks/teaching/welcome_teaching.ipynb

@@ -16,7 +16,7 @@ To use this component, you will need to install Landlab. Two options for
 installation are available:
 [a pre-packaged binary](https://landlab.csdms.io/installation.html)
 distributed through PyPI or conda-forge and a
-[source code installation](https://landlab.csdms.io/install/index.html).
+[source code installation](https://landlab.csdms.io/install/).
 
 The dependencies of the Landlab package are described [here](https://landlab.csdms.io/development/practices/dependencies.html).
 
@@ -29,7 +29,7 @@ to this component:
 describing the theory and numerical implementation of this component.
 
 If you are new to Landlab and components, we recommend that you also look at the
-[User Guide](https://landlab.csdms.io/user_guide/index.html),
+[User Guide](https://landlab.csdms.io/user_guide/),
 in particular, the page on the [model grid](https://landlab.csdms.io/user_guide/grid.html), and [components](https://landlab.csdms.io/user_guide/components.html).
 
 ### Tutorials
@@ -47,7 +47,7 @@ to  discover and run its tests. General information about running the Landlab
 tests can be found [here](https://landlab.csdms.io/development/practices/writing_tests.html).
 
 If you want to run the tests locally, you will need to use a
-[source code installation](https://landlab.csdms.io/install/index.html).
+[source code installation](https://landlab.csdms.io/install/).
 
 ### Getting Help
 If you have any questions, comments, issues, or bugs related to this submodule,
