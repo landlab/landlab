@@ -278,6 +278,29 @@ jobs:
           path: executed/
           overwrite: true
 
+  check-links:
+    needs: check-tag
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Pandoc
+        run: sudo apt-get update && sudo apt-get install -y pandoc
+
+      - name: Check documentation links
+        run: |
+          pip install nox
+          nox -s docs-check-links
+
   docs:
     needs: test-notebooks
     strategy:
