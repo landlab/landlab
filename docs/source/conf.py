@@ -73,8 +73,8 @@ project = "landlab"
 copyright = str(date.today().year) + ", The Landlab Team"
 
 v = get_version_from_file(version_file)
-version = f"{v.major}.{v.minor}"
-release = v.public
+version = "master"
+release = f"{v.major}.{v.minor}"
 
 language = "en"
 
@@ -325,7 +325,7 @@ nbsphinx_prolog = """
 
     This page was generated from a jupyter notebook_.
 
-.. _notebook: https://github.com/landlab/landlab/blob/{{ env.config.release|e }}/{{ docname|e }}
+.. _notebook: https://github.com/landlab/landlab/blob/{{ env.config.version|e }}/{{ docname|e }}
 """
 
 nbsphinx_epilog = """
