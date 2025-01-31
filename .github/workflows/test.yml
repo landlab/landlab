@@ -20,20 +20,16 @@ jobs:
       publish_url: ${{ steps.check-publish.outputs.publish_url }}
 
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
       - name: Check if this is a release/prerelease
         id: check-publish
+        uses: ./.github/actions/check-tag/
+      - name: Publish URL
         run: |
-          tag_name="${GITHUB_REF#refs/tags/}"
-          if [[ "$tag_name" =~ ^v[0-9]+\.[0-9]+\.[0-9]+[ab][0-9]+$ ]]; then
-            publish_url="https://test.pypi.org/legacy/"
-          elif [[ "$tag_name" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            publish_url="https://upload.pypi.org/legacy/"
-          else
-            publish_url="none"
-          fi
-          echo "publish_url=$publish_url" >> "$GITHUB_OUTPUT"
-          echo "tag_name=$tag_name"
-          echo "publish_url=$publish_url"
+          echo "publish_url=${{ steps.check-publish.outputs.publish_url }}" >> "$GITHUB_OUTPUT"
+          echo "publish_url=${{ steps.check-publish.outputs.publish_url }}"
 
   build-sdist:
     name: Build source distribution
