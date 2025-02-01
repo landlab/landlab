@@ -1,0 +1,52 @@
+name: "nox -s test-notebooks"
+inputs:
+  python-version:
+    required: true
+  pytest-marker:
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - uses: conda-incubator/setup-miniconda@v3
+      with:
+        python-version: ${{ inputs.python-version }}
+        miniforge-variant: Miniforge3
+        miniforge-version: latest
+        auto-update-conda: true
+
+    - uses: actions/download-artifact@v4
+      name: Download build artifacts
+      with:
+        pattern: "build-*"
+        merge-multiple: true
+        path: ${{ github.workspace }}/dist
+
+    - name: Test
+      env:
+        OPENTOPOGRAPHY_API_KEY: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
+        MPLBACKEND: "module://matplotlib_inline.backend_inline"
+        PYTEST_ADDOPTS: "--overwrite"
+      shell: bash -l {0}
+      run: |
+        pip install matplotlib_inline
+        pip install nox
+        nox --verbose -s test-notebooks \
+            --force-pythons=${{ inputs.python-version }} \
+            -- -m '${{ inputs.pytest-marker }}' --path=dist
+
+    - name: Find executed notebooks
+      shell: bash -l {0}
+      run: |
+        for f in $(git diff --name-only); do
+          mkdir -p executed/$(dirname $f);
+          cp $f executed/$(dirname $f);
+        done
+        ls -R executed/
+
+    - name: Upload executed notebooks
+      if: ${{ runner.os == 'macOS' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: notebooks-${{ runner.os }}-${{ inputs.python-version }}-${{ inputs.pytest-marker }}
+        path: executed/
+        overwrite: true
