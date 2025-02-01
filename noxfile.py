@@ -189,10 +189,7 @@ def docs_build(session: nox.Session) -> None:
     docs_build_api(session)
     docs_build_notebook_index(session)
 
-    if session.virtualenv.venv_backend != "none":
-        session.install("-r", PATH["requirements"] / "docs.txt")
-
-    check_package_versions(session, files=["required.txt", "docs.txt"])
+    session.install("-r", PATH["requirements"] / "docs.txt")
 
     PATH["build"].mkdir(exist_ok=True)
     session.run(

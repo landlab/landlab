@@ -303,12 +303,7 @@ jobs:
 
   docs:
     needs: test-notebooks
-    strategy:
-      matrix:
-        os: [macos-latest]
-        python-version: ["3.12"]
-
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
 
     defaults:
       run:
@@ -316,12 +311,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: conda-incubator/setup-miniconda@v3
+      - name: Use Python 3.12
+        uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
-          miniforge-variant: Miniforge3
-          miniforge-version: latest
-          auto-update-conda: true
+          python-version: '3.12'
 
       - uses: actions/download-artifact@v4
         name: Download build artifact
@@ -332,17 +325,13 @@ jobs:
       - name: Display structure of downloaded files
         run: ls -R
 
-      - name: install and check pandoc
-        run: |
-          conda install pandoc -c conda-forge
-          pandoc --help
-          pandoc --version
+      - name: Install Pandoc
+        run: sudo apt-get update && sudo apt-get install -y pandoc
 
       - name: Build documentation
         run: |
           pip install nox
-          pip install -r requirements/docs.txt
-          nox -s docs-build --no-venv
+          nox -s docs-build
 
       - name: Upload static files as artifact
         id: deployment
