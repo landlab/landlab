@@ -53,12 +53,7 @@ source_suffix = ".rst"
 # The encoding of source files.
 # source_encoding = 'utf-8-sig'
 
-if os.getenv("GITHUB_ACTIONS"):
-    linkcheck_ignore = [
-        r"https://doi.org/*",
-        r"https://dx.doi.org/*",
-    ]
-    linkcheck_retries = 5
+linkcheck_retries = 5
 
 master_doc = "index"
 
