@@ -32,19 +32,12 @@ jobs:
           echo "publish_url=${{ steps.check-publish.outputs.publish_url }}"
 
   build-sdist:
-    name: Build source distribution
     needs: check-tag
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Build sdist
-        run: pipx run build --sdist
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: build-sdist
-          path: ${{ github.workspace }}/dist/*.tar.gz
+      - name: Build a source distribution
+        uses: ./.github/actions/build-sdist/
 
   # Until GA has native aarch64 runners, this step is extremely
   # slow so we run it as a separate job and hope if finishes
