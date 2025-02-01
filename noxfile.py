@@ -43,11 +43,12 @@ def test(session: nox.Session) -> None:
     if session.virtualenv.venv_backend != "none":
         os.environ["WITH_OPENMP"] = "1"
         session.log(f"CC = {os.environ.get('CC', 'NOT FOUND')}")
-        session.install(
-            *("-r", PATH["requirements"] / "required.txt"),
-            *("-r", PATH["requirements"] / "testing.txt"),
+        session.install("-r", PATH["requirements"] / "testing.txt")
+        session.conda_install(
+            "richdem",
+            f"--file={PATH['requirements'] / 'required.txt'}",
+            channel=["nodefaults", "conda-forge"],
         )
-        session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
 
         arg = path_args[0] if path_args else None
         if arg is None:
@@ -57,7 +58,7 @@ def test(session: nox.Session) -> None:
         elif os.path.isfile(arg):
             session.install(arg, "--no-deps")
         else:
-            session.error("--path must be either a wheel for a wheelhouse folder")
+            session.error("--path must be either a wheel or a wheelhouse folder")
 
     check_package_versions(session, files=["required.txt", "testing.txt"])
 
@@ -94,10 +95,13 @@ def test_notebooks(session: nox.Session) -> None:
 
     if session.virtualenv.venv_backend != "none":
         os.environ["WITH_OPENMP"] = "1"
-        session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
+        session.conda_install(
+            "richdem",
+            f"--file={PATH['requirements'] / 'required.txt'}",
+            channel=["nodefaults", "conda-forge"],
+        )
         session.install(
             "git+https://github.com/mcflugen/nbmake.git@v1.5.4-markers",
-            *("-r", PATH["requirements"] / "required.txt"),
             *("-r", PATH["requirements"] / "testing.txt"),
             *("-r", PATH["requirements"] / "notebooks.txt"),
         )
