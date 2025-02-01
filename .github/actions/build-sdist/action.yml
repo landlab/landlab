@@ -1,0 +1,13 @@
+name: "Build a source distribution"
+runs:
+  using: "composite"
+  steps:
+    - name: Build source distribution
+      id: build-sdist
+      shell: bash -l {0}
+      run: pipx run build --sdist
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: build-sdist
+        path: ${{ github.workspace }}/dist/*
