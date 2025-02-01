@@ -147,58 +147,16 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, windows-latest]
-        python-version: ["3.12"]
         pytest-marker: ["slow", "not slow"]
 
     runs-on: ${{ matrix.os }}
 
-    defaults:
-      run:
-        shell: bash -l {0}
-
     steps:
       - uses: actions/checkout@v4
-      - uses: conda-incubator/setup-miniconda@v3
+      - uses: ./.github/actions/run-notebooks
         with:
-          python-version: ${{ matrix.python-version }}
-          miniforge-variant: Miniforge3
-          miniforge-version: latest
-          auto-update-conda: true
-
-      - uses: actions/download-artifact@v4
-        name: Download build artifacts
-        with:
-          pattern: "build-*"
-          merge-multiple: true
-          path: ${{ github.workspace }}/dist
-
-      - name: Test
-        env:
-          OPENTOPOGRAPHY_API_KEY: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
-          MPLBACKEND: "module://matplotlib_inline.backend_inline"
-          PYTEST_ADDOPTS: "--overwrite"
-        run: |
-          pip install matplotlib_inline
-          pip install nox
-          nox --verbose -s test-notebooks \
-              --force-pythons=${{ matrix.python-version }} \
-              -- -m '${{ matrix.pytest-marker }}' --path=dist
-
-      - name: Find executed notebooks
-        run: |
-          for f in $(git diff --name-only); do
-            mkdir -p executed/$(dirname $f);
-            cp $f executed/$(dirname $f);
-          done
-          ls -R executed/
-
-      - name: Upload executed notebooks
-        if: ${{ matrix.os == 'macos-latest' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: notebooks-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.pytest-marker }}
-          path: executed/
-          overwrite: true
+          python-version: "3.12"
+          pytest-marker: ${{ matrix.pytest-marker }}
 
   check-links:
     needs: check-tag
