@@ -4,6 +4,8 @@ inputs:
     required: true
   pytest-marker:
     required: true
+  opentopography-api-key:
+    required: true
 runs:
   using: "composite"
   steps:
@@ -23,7 +25,7 @@ runs:
 
     - name: Test
       env:
-        OPENTOPOGRAPHY_API_KEY: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
+        OPENTOPOGRAPHY_API_KEY: ${{ inputs.opentopography-api-key }}
         MPLBACKEND: "module://matplotlib_inline.backend_inline"
         PYTEST_ADDOPTS: "--overwrite"
       shell: bash -l {0}
