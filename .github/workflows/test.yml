@@ -31,6 +31,23 @@ jobs:
           echo "publish_url=${{ steps.check-publish.outputs.publish_url }}" >> "$GITHUB_OUTPUT"
           echo "publish_url=${{ steps.check-publish.outputs.publish_url }}"
 
+  quick-test:
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/build-bdist/
+        with:
+          cibw-only: "cp312-manylinux_x86_64"
+      - uses: ./.github/actions/run-tests/
+        with:
+          python-version: "3.12"
+          pytest-marker: "not slow"
+      - uses: ./.github/actions/run-notebooks/
+        with:
+          python-version: "3.12"
+          pytest-marker: "not slow"
+          opentopography-api-key: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
+
   build-sdist:
     needs: check-tag
     runs-on: ubuntu-latest
