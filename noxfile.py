@@ -4,6 +4,7 @@ import json
 import os
 import pathlib
 import shutil
+import sys
 
 import nox
 from packaging.requirements import Requirement
@@ -94,7 +95,12 @@ def test_notebooks(session: nox.Session) -> None:
 
     if session.virtualenv.venv_backend != "none":
         os.environ["WITH_OPENMP"] = "1"
-        session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
+        session.conda_install(
+            "gmt",
+            "libgdal-jp2openjpeg",
+            "richdem",
+            channel=["nodefaults", "conda-forge"],
+        )
         session.install(
             "git+https://github.com/mcflugen/nbmake.git@v1.5.4-markers",
             *("-r", PATH["requirements"] / "required.txt"),
@@ -116,7 +122,27 @@ def test_notebooks(session: nox.Session) -> None:
         session, files=["required.txt", "testing.txt", "notebooks.txt"]
     )
 
-    session.run(*args)
+    base_path = session.env.get(
+        "VIRTUAL_ENV", session.env.get("CONDA_PREFIX", sys.prefix)
+    )
+    for path in (
+        os.path.join(base_path, "Library", "bin", "gdalplugins"),
+        os.path.join(base_path, "lib", "gdalplugins"),
+    ):
+        if os.path.exists(path):
+            gdal_driver_path = path
+            break
+    else:
+        gdal_driver_path = None
+    session.log(
+        f"GDAL_DRIVER_PATH = {gdal_driver_path if gdal_driver_path else 'NOT FOUND'!r}"
+    )
+    if gdal_driver_path:
+        session.log(os.linesep.join(os.listdir(gdal_driver_path)))
+
+    session.run(
+        *args, env={"GDAL_DRIVER_PATH": gdal_driver_path} if gdal_driver_path else None
+    )
 
 
 def pop_option(args: list[str], opt: str):
