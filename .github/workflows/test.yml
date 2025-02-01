@@ -157,6 +157,7 @@ jobs:
         with:
           python-version: "3.12"
           pytest-marker: ${{ matrix.pytest-marker }}
+          opentopography-api-key: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
 
   check-links:
     needs: check-tag
