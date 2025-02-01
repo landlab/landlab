@@ -132,43 +132,12 @@ jobs:
 
     runs-on: ${{ matrix.os }}
 
-    defaults:
-      run:
-        shell: bash -l {0}
-
     steps:
       - uses: actions/checkout@v4
-      - uses: conda-incubator/setup-miniconda@v3
+      - uses: ./.github/actions/run-tests
         with:
           python-version: ${{ matrix.python-version }}
-          miniforge-variant: Miniforge3
-          miniforge-version: latest
-          auto-update-conda: true
-
-      - uses: actions/download-artifact@v4
-        name: Download build artifacts
-        with:
-          pattern: "build-*"
-          merge-multiple: true
-          path: ${{ github.workspace }}/dist
-
-      - name: Test
-        env:
-          HYPOTHESIS_PROFILE: "ci"
-          MPLBACKEND: "Agg"
-        run: |
-          pip install nox
-          nox --verbose -s test \
-              --force-pythons=${{ matrix.python-version }} \
-              -- -m '${{ matrix.pytest-marker }}' --path=dist
-
-      - name: Coveralls
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        uses: AndreMiras/coveralls-python-action@develop
-        with:
-          parallel: true
-          flag-name: py${{ matrix.python-version }}-${{ matrix.os }}-${{ matrix.pytest-marker }}
-          debug: true
+          pytest-marker: ${{ matrix.pytest-marker }}
 
   test-notebooks:
     needs: build-wheels
