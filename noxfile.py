@@ -65,6 +65,7 @@ def test(session: nox.Session) -> None:
         "pytest",
         *("-n", "auto"),
         *("--cov", PROJECT),
+        *("--cov", "test"),
         "-vvv",
         # *("--dist", "worksteal"),
     ] + pytest_args
