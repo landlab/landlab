@@ -32,12 +32,12 @@ jobs:
           echo "publish_url=${{ steps.check-publish.outputs.publish_url }}"
 
   quick-test:
-    runs-on: "ubuntu-latest"
+    runs-on: "macos-14"
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/build-bdist/
         with:
-          cibw-only: "cp312-manylinux_x86_64"
+          cibw-only: "cp312-macosx_arm64"
       - uses: ./.github/actions/run-tests/
         with:
           python-version: "3.12"
