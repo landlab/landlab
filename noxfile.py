@@ -66,7 +66,6 @@ def test(session: nox.Session) -> None:
         *("-n", "auto"),
         *("--cov", PROJECT),
         *("--cov", "test"),
-        "-vvv",
         # *("--dist", "worksteal"),
     ] + pytest_args
 
@@ -90,7 +89,6 @@ def test_notebooks(session: nox.Session) -> None:
         "--nbmake-kernel=python3",
         "--nbmake-timeout=3000",
         *("-n", "auto"),
-        "-vvv",
     ] + pytest_args
 
     if session.virtualenv.venv_backend != "none":
