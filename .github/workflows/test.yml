@@ -32,6 +32,7 @@ jobs:
           echo "publish_url=${{ steps.check-publish.outputs.publish_url }}"
 
   quick-test:
+    needs: check-tag
     runs-on: "macos-14"
     steps:
       - uses: actions/checkout@v4
