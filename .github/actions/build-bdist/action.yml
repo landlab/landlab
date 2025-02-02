@@ -32,3 +32,4 @@ runs:
       with:
         name: build-wheels-${{ runner.os }}-${{ inputs.cibw-only }}
         path: ${{ github.workspace }}/wheelhouse/*.whl
+        overwrite: true
