@@ -319,7 +319,6 @@ jobs:
       - test-landlab
       - test-notebooks
       - build-sdist
-      - build-aarch64
     name: "Publish to PyPI/TestPyPI"
     runs-on: ubuntu-latest
 
