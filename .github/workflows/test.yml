@@ -114,6 +114,13 @@ jobs:
           - cibw-only: "cp312-manylinux_x86_64"
             os: "ubuntu-latest"
 
+          - cibw-only: "cp310-manylinux_aarch64"
+            os: "ubuntu-24.04-arm"
+          - cibw-only: "cp311-manylinux_aarch64"
+            os: "ubuntu-24.04-arm"
+          - cibw-only: "cp312-manylinux_aarch64"
+            os: "ubuntu-24.04-arm"
+
           # Mac x86_64
           - cibw-only: "cp310-macosx_x86_64"
             os: "macos-13"
