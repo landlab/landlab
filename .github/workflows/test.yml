@@ -1,8 +1,8 @@
 name: Test
 
 on:
-  - push
-  - pull_request
+  - pull_request:
+    types: [ready_for_review]
 
 concurrency:
   group: ${{ github.ref }}-${{ github.workflow }}
@@ -13,8 +13,12 @@ jobs:
     # Run on external PRs, but not on internal PRs, to avoid duplicate runs
     if: |
       github.event_name == 'push' ||
-      (github.event.pull_request.draft == false && github.event.pull_request.head.repo.full_name != github.repository)
+      github.event.pull_request.head.repo.full_name != github.repository
 
+    if: |
+      github.event_name == 'push' ||
+      github.event.pull_request.head.repo.full_name != github.repository
+      && github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     outputs:
       publish_url: ${{ steps.check-publish.outputs.publish_url }}
