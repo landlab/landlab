@@ -50,54 +50,6 @@ jobs:
           name: build-sdist
           path: ${{ github.workspace }}/dist/*.tar.gz
 
-  # Until GA has native aarch64 runners, this step is extremely
-  # slow so we run it as a separate job and hope if finishes
-  # around the same time as everything else.
-  build-aarch64:
-    needs: check-tag
-    name: Build aarch64 wheels on ${{ matrix.cibw-only }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - cibw-only: "cp310-manylinux_aarch64"
-            os: "ubuntu-latest"
-          - cibw-only: "cp311-manylinux_aarch64"
-            os: "ubuntu-latest"
-          - cibw-only: "cp312-manylinux_aarch64"
-            os: "ubuntu-latest"
-    steps:
-      - uses: actions/checkout@v4
-      - name: Use Python 3.12
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      # Needed to build aarch64 wheels
-      - name: Set up QEMU
-        if: runner.os == 'Linux'
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: all
-
-      - name: Print build identifiers
-        run: |
-          python -m pip install cibuildwheel
-          python -m cibuildwheel --only ${{ matrix.cibw-only }} --print-build-identifiers
-
-      - name: Build wheels
-        if: ${{ startsWith(needs.check-tag.outputs.publish_url, 'http') }}
-        uses: pypa/cibuildwheel@v2.21.2
-        with:
-          only: ${{ matrix.cibw-only }}
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: build-wheels-${{ matrix.os }}-${{ matrix.cibw-only }}
-          path: ${{ github.workspace }}/wheelhouse/*.whl
-          if-no-files-found: ignore
-
   build-wheels:
     name: Build wheels on ${{ matrix.cibw-only }}
     needs: check-tag
