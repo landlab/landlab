@@ -366,7 +366,6 @@ jobs:
       - test-notebooks
       - test-richdem
       - build-sdist
-      - build-aarch64
     name: "Publish to PyPI/TestPyPI"
     runs-on: ubuntu-latest
 
