@@ -1,0 +1,41 @@
+name: "Run tests"
+inputs:
+  python-version:
+    required: true
+  pytest-marker:
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - uses: conda-incubator/setup-miniconda@v3
+      with:
+        python-version: ${{ inputs.python-version }}
+        miniforge-variant: Miniforge3
+        miniforge-version: latest
+        auto-update-conda: true
+
+    - uses: actions/download-artifact@v4
+      name: Download build artifacts
+      with:
+        pattern: "build-*"
+        merge-multiple: true
+        path: ${{ github.workspace }}/dist
+
+    - name: Test
+      env:
+        HYPOTHESIS_PROFILE: "ci"
+        MPLBACKEND: "Agg"
+      shell: bash -l {0}
+      run: |
+        pip install nox
+        nox --verbose -s test \
+            --force-pythons=${{ inputs.python-version }} \
+            -- -m '${{ inputs.pytest-marker }}' --path=dist
+
+    - name: Coveralls
+      if: ${{ runner.os == 'Linux' }}
+      uses: AndreMiras/coveralls-python-action@develop
+      with:
+        parallel: true
+        flag-name: py${{ inputs.python-version }}-${{ runner.os }}-${{ inputs.pytest-marker }}
+        debug: true

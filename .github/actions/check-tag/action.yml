@@ -1,0 +1,20 @@
+name: "Check for a version tag"
+outputs:
+  publish_url:
+    description: "The publish URL"
+runs:
+  using: "composite"
+  steps:
+    - name: Check if this is a release/prerelease
+      id: check-publish
+      shell: bash -l {0}
+      run: |
+        tag_name="${GITHUB_REF#refs/tags/}"
+        if [[ "$tag_name" =~ ^v[0-9]+\.[0-9]+\.[0-9]+[ab][0-9]+$ ]]; then
+          publish_url="https://test.pypi.org/legacy/"
+        elif [[ "$tag_name" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          publish_url="https://upload.pypi.org/legacy/"
+        else
+          publish_url="none"
+        fi
+        echo "publish_url=$publish_url" >> "$GITHUB_OUTPUT"
