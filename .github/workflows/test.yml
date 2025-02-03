@@ -1,7 +1,8 @@
 name: Test
 
 on:
-  - pull_request
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
 
 concurrency:
   group: ${{ github.ref }}-${{ github.workflow }}
