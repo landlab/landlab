@@ -56,7 +56,7 @@ text = "MIT"
 
 [project.urls]
 homepage = "https://github.com/landlab"
-documentation = "https://landlab.readthedocs.io"
+documentation = "https://landlab.csdms.io"
 repository = "https://github.com/landlab"
 changelog = "https://github.com/landlab/landlab/blob/develop/CHANGES.md"
 

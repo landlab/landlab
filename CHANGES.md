@@ -437,7 +437,7 @@
 ### 📖 Documentation Enhancements
 
 - Added missing documentation files for `BedrockLandslider` and `SpaceLargeScaleEroder`. ([#1373](https://github.com/landlab/landlab/issues/1373))
-- Set up *\[towncrier\](https://towncrier.readthedocs.io/en/actual-freaking-docs/)*
+- Set up *\[towncrier\](https://towncrier.readthedocs.io/)*
   to update and manage the *landlab* changelog. New fragments are placed in the
   `news/` folder. ([#1396](https://github.com/landlab/landlab/issues/1396))
 
