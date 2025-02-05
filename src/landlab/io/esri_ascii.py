@@ -6,12 +6,12 @@ ESRI ASCII functions
 
 .. autosummary::
 
-    ~landlab.io.esri_ascii.dump
-    ~landlab.io.esri_ascii.lazy_load
-    ~landlab.io.esri_ascii.lazy_loads
-    ~landlab.io.esri_ascii.load
-    ~landlab.io.esri_ascii.loads
-    ~landlab.io.esri_ascii.parse
+    ~dump
+    ~lazy_load
+    ~lazy_loads
+    ~load
+    ~loads
+    ~parse
 """
 from __future__ import annotations
 

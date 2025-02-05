@@ -6,25 +6,25 @@ Base component class methods
 
 .. autosummary::
 
-    ~landlab.core.model_component.Component.name
-    ~landlab.core.model_component.Component.from_path
-    ~landlab.core.model_component.Component.unit_agnostic
-    ~landlab.core.model_component.Component.units
-    ~landlab.core.model_component.Component.definitions
-    ~landlab.core.model_component.Component.input_var_names
-    ~landlab.core.model_component.Component.output_var_names
-    ~landlab.core.model_component.Component.optional_var_names
-    ~landlab.core.model_component.Component.var_type
-    ~landlab.core.model_component.Component.var_units
-    ~landlab.core.model_component.Component.var_definition
-    ~landlab.core.model_component.Component.var_mapping
-    ~landlab.core.model_component.Component.var_loc
-    ~landlab.core.model_component.Component.var_help
-    ~landlab.core.model_component.Component.initialize_output_fields
-    ~landlab.core.model_component.Component.initialize_optional_output_fields
-    ~landlab.core.model_component.Component.shape
-    ~landlab.core.model_component.Component.grid
-    ~landlab.core.model_component.Component.coords
+    ~Component.name
+    ~Component.from_path
+    ~Component.unit_agnostic
+    ~Component.units
+    ~Component.definitions
+    ~Component.input_var_names
+    ~Component.output_var_names
+    ~Component.optional_var_names
+    ~Component.var_type
+    ~Component.var_units
+    ~Component.var_definition
+    ~Component.var_mapping
+    ~Component.var_loc
+    ~Component.var_help
+    ~Component.initialize_output_fields
+    ~Component.initialize_optional_output_fields
+    ~Component.shape
+    ~Component.grid
+    ~Component.coords
 """
 
 import os

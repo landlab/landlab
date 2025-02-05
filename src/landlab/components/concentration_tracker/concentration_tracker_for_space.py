@@ -52,7 +52,7 @@ class ConcentrationTrackerForSpace(Component):
     >>> from landlab.components import SpaceLargeScaleEroder
     >>> from landlab.components import ConcentrationTrackerForSpace
 
-    >>> mg = RasterModelGrid((3, 5),xy_spacing=10.)
+    >>> mg = RasterModelGrid((3, 5), xy_spacing=10.0)
 
     >>> mg.set_status_at_node_on_edges(
     ...     right=NodeStatus.CLOSED,
@@ -71,7 +71,7 @@ class ConcentrationTrackerForSpace(Component):
     ...     [0.0, 0.0, 0.0, 1.0, 0.0],
     ...     [0.0, 0.0, 0.0, 0.0, 0.0],
     ... ]
-    >>> mg.at_node["soil__depth"] =  [
+    >>> mg.at_node["soil__depth"] = [
     ...     [1.0, 1.0, 1.0, 1.0, 1.0],
     ...     [1.0, 1.0, 1.0, 1.0, 1.0],
     ...     [1.0, 1.0, 1.0, 1.0, 1.0],
@@ -84,37 +84,45 @@ class ConcentrationTrackerForSpace(Component):
     >>> fr = PriorityFloodFlowRouter(mg)
     >>> fr.run_one_step()
     >>> sp = SpaceLargeScaleEroder(mg, phi=0, F_f=0, v_s=1)
-    >>> ct = ConcentrationTrackerForSpace(mg,
-                                          phi=0,
-                                          fraction_fines=0,
-                                          settling_velocity=1,
-                                          )
+    >>> ct = ConcentrationTrackerForSpace(
+    ...     mg,
+    ...     phi=0,
+    ...     fraction_fines=0,
+    ...     settling_velocity=1,
+    ... )
 
     >>> for i in range(40):
-    >>>     fr.run_one_step()
-    >>>     ct.start_tracking()
-    >>>     sp.run_one_step(10.)
-    >>>     ct.stop_tracking(10.)
+    ...     fr.run_one_step()
+    ...     ct.start_tracking()
+    ...     sp.run_one_step(10.0)
+    ...     ct.stop_tracking(10.0)
+    ...
 
     Erosion has lowered the topography and reduced channel bed sediment depth.
-    >>> np.allclose(mg.at_node["topographic__elevation"][mg.core_nodes],
-    ...             np.array([1.00292211, 1.00902572, 1.0258774]))
+    >>> np.allclose(
+    ...     mg.at_node["topographic__elevation"][mg.core_nodes],
+    ...     np.array([1.00292211, 1.00902572, 1.0258774]),
+    ... )
     True
-    >>> np.allclose(mg.at_node["soil__depth"][mg.core_nodes],
-    ...             np.array([0.90294696, 0.80909071, 0.72601329]))
+    >>> np.allclose(
+    ...     mg.at_node["soil__depth"][mg.core_nodes],
+    ...     np.array([0.90294696, 0.80909071, 0.72601329]),
+    ... )
     True
 
     Some high-concentration sediment has been transported from upstream to be
     deposited on the channel bed further downstream.
-    >>> np.allclose(mg.at_node["sediment_property__concentration"][mg.core_nodes],
-    ...             np.array([0.0496547, 0.0997232, 0.9999151]))
+    >>> np.allclose(
+    ...     mg.at_node["sediment_property__concentration"][mg.core_nodes],
+    ...     np.array([0.0496547, 0.0997232, 0.9999151]),
+    ... )
     True
 
 
     Now, a 2-D landscape with stream channels. All boundaries are closed except
     for Node 0, which is the outlet of the catchment.
 
-    >>> mg = RasterModelGrid((6, 6),xy_spacing=10.)
+    >>> mg = RasterModelGrid((6, 6), xy_spacing=10.0)
 
     >>> mg.set_status_at_node_on_edges(
     ...     right=NodeStatus.CLOSED,
@@ -140,7 +148,7 @@ class ConcentrationTrackerForSpace(Component):
     ...     [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
     ...     [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
     ... ]
-    >>> mg.at_node["soil__depth"] =  [
+    >>> mg.at_node["soil__depth"] = [
     ...     [1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
     ...     [1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
     ...     [1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
@@ -151,55 +159,63 @@ class ConcentrationTrackerForSpace(Component):
 
     # Add noise to the bedrock to create some topographic structure.
     >>> np.random.seed(5)
-    >>> mg.add_zeros("bedrock__elevation", at='node')
+    >>> mg.add_zeros("bedrock__elevation", at="node")
     >>> mg.at_node["bedrock__elevation"] += np.random.rand(mg.number_of_nodes) / 100
     >>> mg.at_node["bedrock__elevation"][0] = 0
 
     >>> mg.at_node["topographic__elevation"] = (
     ...     mg.at_node["soil__depth"] + mg.at_node["bedrock__elevation"]
-    ...     )
+    ... )
 
     # Instantiate components.
     >>> fr = PriorityFloodFlowRouter(mg)
     >>> fr.run_one_step()
     >>> sp = SpaceLargeScaleEroder(mg, phi=0, F_f=0, v_s=1)
-    >>> ct = ConcentrationTrackerForSpace(mg,
-                                          phi=0,
-                                          fraction_fines=0,
-                                          settling_velocity=1,
-                                          )
+    >>> ct = ConcentrationTrackerForSpace(
+    ...     mg,
+    ...     phi=0,
+    ...     fraction_fines=0,
+    ...     settling_velocity=1,
+    ... )
 
     # Run SPACE for 1,000 years to generate a fluvial network.
     >>> for i in range(1000):
-    >>>     mg.at_node["bedrock__elevation"][mg.core_nodes] += 0.001
-    >>>     mg.at_node["topographic__elevation"][:] = (
+    ...     mg.at_node["bedrock__elevation"][mg.core_nodes] += 0.001
+    ...     mg.at_node["topographic__elevation"][:] = (
     ...         mg.at_node["soil__depth"] + mg.at_node["bedrock__elevation"]
     ...     )
-    >>>     fr.run_one_step()
-    >>>     sp.run_one_step(1.)
+    ...     fr.run_one_step()
+    ...     sp.run_one_step(1.0)
+    ...
 
     # Set high concentration at a headwater node to trace sediment downstream.
     >>> mg.at_node["sediment_property__concentration"][22] += 1
 
     >>> for i in range(100):
-    >>>     mg.at_node["bedrock__elevation"][mg.core_nodes] += 0.001
-    >>>     mg.at_node["topographic__elevation"][:] = (
+    ...     mg.at_node["bedrock__elevation"][mg.core_nodes] += 0.001
+    ...     mg.at_node["topographic__elevation"][:] = (
     ...         mg.at_node["soil__depth"] + mg.at_node["bedrock__elevation"]
     ...     )
-    >>>     fr.run_one_step()
-    >>>     ct.start_tracking()
-    >>>     sp.run_one_step(1.)
-    >>>     ct.stop_tracking(1.)
+    ...     fr.run_one_step()
+    ...     ct.start_tracking()
+    ...     sp.run_one_step(1.0)
+    ...     ct.stop_tracking(1.0)
+    ...
 
     Some high-concentration sediment has been transported from the headwaters
     to be deposited on the channel bed further downstream. We can trace this
     sediment and see where the channel lies within the landscape.
-    >>> np.allclose(mg.at_node["sediment_property__concentration"][mg.core_nodes],
-    ...             np.array([0.0288311, 0.0447778, 0.       , 0.       ,
-    ...                       0.       , 0.       , 0.0598574, 0.       ,
-    ...                       0.       , 0.       , 0.       , 0.9548471,
-    ...                       0.       , 0.       , 0.       , 0.       ,
-    ...                       ]))
+    >>> np.allclose(
+    ...     mg.at_node["sediment_property__concentration"][mg.core_nodes],
+    ...     np.array(
+    ...         [
+    ...             [0.0288311, 0.0447778, 0.0, 0.0],
+    ...             [0.0, 0.0, 0.0598574, 0.0],
+    ...             [0.0, 0.0, 0.0, 0.9548471],
+    ...             [0.0, 0.0, 0.0, 0.0],
+    ...         ]
+    ...     ).flatten(),
+    ... )
     True
 
     References

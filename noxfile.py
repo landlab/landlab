@@ -189,10 +189,7 @@ def docs_build(session: nox.Session) -> None:
     docs_build_api(session)
     docs_build_notebook_index(session)
 
-    if session.virtualenv.venv_backend != "none":
-        session.install("-r", PATH["requirements"] / "docs.txt")
-
-    check_package_versions(session, files=["required.txt", "docs.txt"])
+    session.install("-r", PATH["requirements"] / "docs.txt")
 
     PATH["build"].mkdir(exist_ok=True)
     session.run(
@@ -205,6 +202,49 @@ def docs_build(session: nox.Session) -> None:
         PATH["build"] / "html",
     )
     session.log(f"generated docs at {PATH['build'] / 'html'!s}")
+
+
+@nox.session(name="docs-check-links")
+def docs_check_links(session: nox.Session) -> None:
+    """Check for working links in the docs."""
+    docs_build_api(session)
+    docs_build_notebook_index(session)
+
+    session.install("-r", PATH["requirements"] / "docs.txt")
+
+    PATH["build"].mkdir(exist_ok=True)
+    session.run(
+        "sphinx-build",
+        *("-j", "auto"),
+        *("-b", "linkcheck"),
+        "--keep-going",
+        PATH["docs"] / "source",
+        PATH["build"] / "html",
+        success_codes=(0, 1),
+    )
+
+    output_json = PATH["build"] / "html" / "output.json"
+
+    broken_links = [
+        f"{entry['filename']}:{entry['lineno']}:{entry['uri']}"
+        for entry in load_linkcheck_output(output_json)
+        if entry["status"] == "broken" and not entry["info"].startswith("403")
+    ]
+
+    if broken_links:
+        print("\n".join(sorted(broken_links)))
+        session.error(
+            f"{len(broken_links)} broken links were found."
+            f" see {output_json} for a complete log"
+        )
+    else:
+        session.log("no broken links were found")
+
+
+def load_linkcheck_output(filepath):
+    with open(filepath) as stream:
+        entries = [json.loads(line) for line in stream.readlines()]
+    return entries
 
 
 @nox.session(name="docs-build-api")

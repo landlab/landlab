@@ -4,11 +4,11 @@ The NetworkSedimentTransporter is a lagrangian model for sediment transport on a
 
 ## Documentation and installation
 
-Landlab documentation is hosted on this [ReadTheDocs page](https://landlab.readthedocs.io/en/release),
+Landlab documentation is hosted on this [ReadTheDocs page](https://landlab.csdms.io/),
 including instructions to install Landlab. NetworkSedimentTransporter is installed with
 Landlab.
 
-NetworkSedimentTransporter documentation is located [here](https://landlab.readthedocs.io/en/master/reference/components/network_sediment_transporter.html).
+NetworkSedimentTransporter documentation is located [here](https://landlab.csdms.io/generated/api/landlab.components.network_sediment_transporter.network_sediment_transporter.html).
 
 ## NetworkSedimentTransporter tutorial
 

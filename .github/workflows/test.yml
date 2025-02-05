@@ -278,14 +278,9 @@ jobs:
           path: executed/
           overwrite: true
 
-  docs:
-    needs: test-notebooks
-    strategy:
-      matrix:
-        os: [macos-latest]
-        python-version: ["3.12"]
-
-    runs-on: ${{ matrix.os }}
+  check-links:
+    needs: check-tag
+    runs-on: ubuntu-latest
 
     defaults:
       run:
@@ -293,12 +288,33 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: conda-incubator/setup-miniconda@v3
+      - name: Use Python 3.12
+        uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
-          miniforge-variant: Miniforge3
-          miniforge-version: latest
-          auto-update-conda: true
+          python-version: '3.12'
+
+      - name: Install Pandoc
+        run: sudo apt-get update && sudo apt-get install -y pandoc
+
+      - name: Check documentation links
+        run: |
+          pip install nox
+          nox -s docs-check-links
+
+  docs:
+    needs: test-notebooks
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
 
       - uses: actions/download-artifact@v4
         name: Download build artifact
@@ -309,26 +325,36 @@ jobs:
       - name: Display structure of downloaded files
         run: ls -R
 
-      - name: install and check pandoc
-        run: |
-          conda install pandoc -c conda-forge
-          pandoc --help
-          pandoc --version
+      - name: Install Pandoc
+        run: sudo apt-get update && sudo apt-get install -y pandoc
 
       - name: Build documentation
         run: |
           pip install nox
-          pip install -r requirements/docs.txt
-          nox -s docs-build --no-venv
+          nox -s docs-build
 
-      - name: Create zip
-        run: zip -r docs.zip build/html
-
-      - name: Upload docs
-        uses: actions/upload-artifact@v4
+      - name: Upload static files as artifact
+        id: deployment
+        uses: actions/upload-pages-artifact@v3
         with:
-          name: docs-${{ matrix.os }}-${{ matrix.python-version }}
-          path: docs.zip
+          path: build/html/
+
+  deploy-docs:
+    if: github.ref == 'refs/heads/master'
+    needs: docs
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
 
   coveralls_finish:
     needs: test-landlab

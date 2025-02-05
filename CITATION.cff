@@ -104,7 +104,7 @@ identifiers:
     value: 10.5281/zenodo.595872
     description: The concept DOI for the collection containing all versions of landlab.
 repository-code: "https://github.com/landlab/landlab"
-url: "https://landlab.readthedocs.io"
+url: "https://landlab.csdms.io"
 date-released: "2020-04-29"
 keywords:
   - "bmi"

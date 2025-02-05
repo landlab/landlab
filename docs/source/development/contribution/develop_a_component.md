@@ -35,13 +35,7 @@ have finished reading the documentation, consider making an
 [Issue](https://github.com/landlab/landlab/issues/) to ask the
 development team for help.
 
-We recommend that you review the Landlab development practices:
-
-```{toctree}
-:maxdepth: 2
-
-../practices/index
-```
+We recommend that you review the Landlab [development practices](/development/practices/index).
 
 ## Files structure
 
