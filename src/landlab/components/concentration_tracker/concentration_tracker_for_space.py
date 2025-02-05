@@ -471,7 +471,7 @@ class ConcentrationTrackerForSpace(Component):
         WC_Er_term = (1 - self._fraction_fines) * Er * self._cell_area
         WC_denominator_term = np.ones(np.shape(q))
         WC_denominator_term[q != 0] = (
-            1 + self._settling_velocity * self._cell_area / q[q != 0]
+            1 + self._settling_velocity * self._cell_area[q != 0] / q[q != 0]
         )
         BED_C_local_term = self._concentration * old_depth_over_new
 
