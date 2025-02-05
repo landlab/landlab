@@ -363,7 +363,7 @@ class ConcentrationTrackerForSpace(Component):
         self._Qs_out = self._grid.at_node["sediment__outflux"]
 
         # Define variables used for internal calculations
-        self._cell_area = self._grid.dx * self._grid.dy
+        self._cell_area = self._grid.dx * self._grid.dy   #!!!!!!!!!!!!!!!!!!!!
         self._C_sw = np.zeros(self._grid.number_of_nodes)
         self._QsCsw_in = np.zeros(self._grid.number_of_nodes)
         self._QsCsw_out = np.zeros(self._grid.number_of_nodes)
