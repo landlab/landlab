@@ -20,7 +20,7 @@ PATH = {
 }
 
 
-@nox.session(python=PYTHON_VERSION, venv_backend="conda")
+@nox.session
 def build(session: nox.Session) -> None:
     """Build sdist and wheel dists."""
     os.environ["WITH_OPENMP"] = "1"
@@ -392,7 +392,7 @@ def locks(session: nox.Session) -> None:
     # session.run("conda-lock", "lock", "--mamba", "--kind=lock")
 
 
-@nox.session(name="sync-requirements", python=PYTHON_VERSION, venv_backend="conda")
+@nox.session(name="sync-requirements")
 def sync_requirements(session: nox.Session) -> None:
     """Sync requirements.in with pyproject.toml."""
     with open("requirements.in", "w") as fp:
