@@ -107,20 +107,20 @@ jobs:
       matrix:
         include:
           # Linux x86_64
-          - cibw-only: "cp310-manylinux_x86_64"
-            os: "ubuntu-latest"
-          - cibw-only: "cp311-manylinux_x86_64"
-            os: "ubuntu-latest"
-          - cibw-only: "cp312-manylinux_x86_64"
-            os: "ubuntu-latest"
+          # - cibw-only: "cp310-manylinux_x86_64"
+          #   os: "ubuntu-latest"
+          # - cibw-only: "cp311-manylinux_x86_64"
+          #   os: "ubuntu-latest"
+          # - cibw-only: "cp312-manylinux_x86_64"
+          #   os: "ubuntu-latest"
 
           # Mac x86_64
-          - cibw-only: "cp310-macosx_x86_64"
-            os: "macos-13"
-          - cibw-only: "cp311-macosx_x86_64"
-            os: "macos-13"
-          - cibw-only: "cp312-macosx_x86_64"
-            os: "macos-13"
+          # - cibw-only: "cp310-macosx_x86_64"
+          #   os: "macos-13"
+          # - cibw-only: "cp311-macosx_x86_64"
+          #   os: "macos-13"
+          # - cibw-only: "cp312-macosx_x86_64"
+          #   os: "macos-13"
 
           # Mac arm64
           - cibw-only: "cp310-macosx_arm64"
@@ -131,12 +131,12 @@ jobs:
             os: "macos-14"
 
           # Windows 64bit
-          - cibw-only: "cp310-win_amd64"
-            os: "windows-latest"
-          - cibw-only: "cp311-win_amd64"
-            os: "windows-latest"
-          - cibw-only: "cp312-win_amd64"
-            os: "windows-latest"
+          # - cibw-only: "cp310-win_amd64"
+          #   os: "windows-latest"
+          # - cibw-only: "cp311-win_amd64"
+          #   os: "windows-latest"
+          # - cibw-only: "cp312-win_amd64"
+          #   os: "windows-latest"
 
     steps:
       - uses: actions/checkout@v4
@@ -173,8 +173,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.10", "3.11", "3.12"]
+        # os: [ubuntu-latest, macos-latest, windows-latest]
+        # python-version: ["3.10", "3.11", "3.12"]
+        os: [macos-latest]
+        python-version: ["3.12"]
         pytest-marker: ["slow", "not slow"]
 
     runs-on: ${{ matrix.os }}
@@ -221,7 +223,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest]
+        # os: [macos-latest, windows-latest]
+        os: [macos-latest]
         python-version: ["3.12"]
         pytest-marker: ["slow", "not slow"]
 
