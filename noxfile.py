@@ -35,7 +35,7 @@ def build(session: nox.Session) -> None:
     session.run("python", "-m", "build", "--outdir", "./build/wheelhouse")
 
 
-@nox.session(python=PYTHON_VERSION, venv_backend="conda")
+@nox.session
 def test(session: nox.Session) -> None:
     """Run the tests."""
     path_args, pytest_args = pop_option(session.posargs, "--path")
@@ -47,7 +47,7 @@ def test(session: nox.Session) -> None:
             *("-r", PATH["requirements"] / "required.txt"),
             *("-r", PATH["requirements"] / "testing.txt"),
         )
-        session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
+        # session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
 
         arg = path_args[0] if path_args else None
         if arg is None:
@@ -77,7 +77,7 @@ def test(session: nox.Session) -> None:
         session.run("coverage", "report", "--ignore-errors", "--show-missing")
 
 
-@nox.session(name="test-notebooks", python=PYTHON_VERSION, venv_backend="conda")
+@nox.session(name="test-notebooks")
 def test_notebooks(session: nox.Session) -> None:
     """Run the notebooks."""
     path_args, pytest_args = pop_option(session.posargs, "--path")
@@ -94,7 +94,7 @@ def test_notebooks(session: nox.Session) -> None:
 
     if session.virtualenv.venv_backend != "none":
         os.environ["WITH_OPENMP"] = "1"
-        session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
+        # session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
         session.install(
             "git+https://github.com/mcflugen/nbmake.git@v1.5.4-markers",
             *("-r", PATH["requirements"] / "required.txt"),
