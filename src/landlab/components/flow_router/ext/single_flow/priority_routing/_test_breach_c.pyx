@@ -34,9 +34,13 @@ cdef extern from "_priority_queue.hpp" nogil:
 
 
 def test_priority_queue():
-    cdef pair[cnp.int64_t, cnp.float64_t] a = pair[cnp.int64_t, cnp.float64_t](0, 1045.3)
+    cdef pair[cnp.int64_t, cnp.float64_t] a = pair[cnp.int64_t, cnp.float64_t](
+        0, 1045.3
+    )
     cdef pair[cnp.int64_t, cnp.float64_t] b = pair[cnp.int64_t, cnp.float64_t](1, 536.3)
-    cdef pair[cnp.int64_t, cnp.float64_t] c = pair[cnp.int64_t, cnp.float64_t](2, 2034.12)
+    cdef pair[cnp.int64_t, cnp.float64_t] c = pair[cnp.int64_t, cnp.float64_t](
+        2, 2034.12
+    )
     cdef _priority_queue to_do = _priority_queue(breach_c._compare_second)
 
     assert to_do.empty() is True
