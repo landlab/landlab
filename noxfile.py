@@ -51,11 +51,11 @@ def test(session: nox.Session) -> None:
 
         arg = path_args[0] if path_args else None
         if arg is None:
-            session.install(".", "--no-deps")
+            session.install(".", "-vvv", "--no-deps")
         elif os.path.isdir(arg):
-            session.install("landlab", f"--find-links={arg}", "--no-deps", "--no-index")
+            session.install("landlab", "-vvv", f"--find-links={arg}", "--no-deps", "--no-index", "--only-binary=landlab")
         elif os.path.isfile(arg):
-            session.install(arg, "--no-deps")
+            session.install(arg, "-vvv", "--no-deps")
         else:
             session.error("--path must be either a wheel for a wheelhouse folder")
 
