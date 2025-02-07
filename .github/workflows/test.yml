@@ -203,9 +203,11 @@ jobs:
         env:
           HYPOTHESIS_PROFILE: "ci"
           MPLBACKEND: "Agg"
+          SYSTEM_VERSION_COMPAT: 0
         run: |
           pip install nox
           nox --verbose -s test \
+              --force-python=${{ matrix.python-version }} \
               -- -m '${{ matrix.pytest-marker }}' --path=dist
 
       - name: Coveralls
@@ -257,6 +259,7 @@ jobs:
           pip install matplotlib_inline
           pip install nox
           nox --verbose -s test-notebooks \
+              --force-python=${{ matrix.python-version }} \
               -- -m '${{ matrix.pytest-marker }}' --path=dist
 
       - name: Find executed notebooks
