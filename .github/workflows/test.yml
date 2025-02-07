@@ -204,7 +204,6 @@ jobs:
         run: |
           pip install nox
           nox --verbose -s test \
-              --force-pythons=${{ matrix.python-version }} \
               -- -m '${{ matrix.pytest-marker }}' --path=dist
 
       - name: Coveralls
@@ -255,7 +254,6 @@ jobs:
           pip install matplotlib_inline
           pip install nox
           nox --verbose -s test-notebooks \
-              --force-pythons=${{ matrix.python-version }} \
               -- -m '${{ matrix.pytest-marker }}' --path=dist
 
       - name: Find executed notebooks
