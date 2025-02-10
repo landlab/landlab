@@ -88,6 +88,49 @@ def test_notebooks(session: nox.Session) -> None:
     )
 
 
+@nox.session(name="test-richdem", venv_backend="conda")
+def test_richdem(session: nox.Session) -> None:
+    """Run richdem tests."""
+    path_args, pytest_args = pop_option(session.posargs, "--path")
+
+    args = [
+        "pytest",
+        *("-m", "richdem"),
+        "test",
+        "notebooks",
+        "--nbmake",
+        "--nbmake-kernel=python3",
+        "--nbmake-timeout=3000",
+        *("-n", "auto"),
+        "-vvv",
+    ] + pytest_args
+
+    if session.virtualenv.venv_backend != "none":
+        os.environ["WITH_OPENMP"] = "1"
+        session.conda_install(
+            "richdem",
+            f"--file={PATH['requirements'] / 'testing.txt'}",
+            f"--file={PATH['requirements'] / 'notebooks.txt'}",
+            channel=["nodefaults", "conda-forge"],
+        )
+        session.install(
+            "git+https://github.com/mcflugen/nbmake.git@v1.5.4-markers",
+            *("-r", PATH["requirements"] / "required.txt"),
+        )
+
+        arg = path_args[0] if path_args else "."
+        if arg is None:
+            session.install(".", "--no-deps")
+        elif os.path.isdir(arg):
+            session.install("landlab", f"--find-links={arg}", "--no-deps", "--no-index")
+        elif os.path.isfile(arg):
+            session.install(arg, "--no-deps")
+        else:
+            session.error("--path must be either a wheel for a wheelhouse folder")
+
+    session.run(*args)
+
+
 @nox.session(name="test-cli")
 def test_cli(session: nox.Session) -> None:
     """Test the command line interface."""
