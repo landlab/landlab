@@ -278,6 +278,52 @@ jobs:
           path: executed/
           overwrite: true
 
+  test-richdem:
+    needs: build-wheels
+    name: Run the richdem tests
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # os: [macos-latest, windows-latest]
+        os: [macos-latest]
+        python-version: ["3.12"]
+
+    runs-on: ${{ matrix.os }}
+
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+          miniforge-variant: Miniforge3
+          miniforge-version: latest
+          auto-update-conda: true
+          channels: conda-forge,defaults
+
+      - uses: actions/download-artifact@v4
+        name: Download build artifacts
+        with:
+          pattern: "build-wheels-*"
+          merge-multiple: true
+          path: ${{ github.workspace }}/dist
+
+      - name: Test
+        env:
+          OPENTOPOGRAPHY_API_KEY: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
+          MPLBACKEND: "module://matplotlib_inline.backend_inline"
+          PYTEST_ADDOPTS: "--overwrite"
+        run: |
+          pip install matplotlib_inline
+          pip install nox
+          nox --verbose -s test-richdem \
+              --force-python=${{ matrix.python-version }} \
+              -- --path=dist
+
   check-links:
     needs: check-tag
     runs-on: ubuntu-latest
@@ -372,6 +418,7 @@ jobs:
       - check-tag
       - test-landlab
       - test-notebooks
+      - test-richdem
       - build-sdist
       - build-aarch64
     name: "Publish to PyPI/TestPyPI"
