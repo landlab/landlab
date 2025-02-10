@@ -549,7 +549,7 @@ class FlowRouter(Component):
         self._pseudo_tail_nodes = pseudo_tail_nodes = np.concatenate(
             (tail_nodes, head_nodes)
         )
-        idx = np.argsort(pseudo_head_nodes)
+        idx = np.argsort(pseudo_head_nodes, stable=True)
         self._sorted_pseudo_heads = sorted_pseudo_heads = pseudo_head_nodes[
             idx
         ]  # noqa: E501
