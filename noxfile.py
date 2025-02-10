@@ -95,6 +95,7 @@ def test_richdem(session: nox.Session) -> None:
 
     args = [
         "pytest",
+        "tests",
         "notebooks",
         "--nbmake",
         "--nbmake-kernel=python3",
