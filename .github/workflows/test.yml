@@ -123,11 +123,11 @@ jobs:
           #   os: "macos-13"
 
           # Mac arm64
-          - cibw-only: "cp310-macosx_arm64"
-            os: "macos-14"
           - cibw-only: "cp311-macosx_arm64"
             os: "macos-14"
           - cibw-only: "cp312-macosx_arm64"
+            os: "macos-14"
+          - cibw-only: "cp313-macosx_arm64"
             os: "macos-14"
 
           # Windows 64bit
