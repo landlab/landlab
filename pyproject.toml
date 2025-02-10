@@ -126,6 +126,7 @@ doctest_optionflags = [
 ]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "richdem: marks tests that use richdem (deselect with '-m \"not richdem\"')",
     "notebook: marks tests as notebook (deselect with '-m \"not notebook\"')"
 ]
 
