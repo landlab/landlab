@@ -95,12 +95,11 @@ def test_richdem(session: nox.Session) -> None:
 
     args = [
         "pytest",
-        *("-m", "richdem"),
-        "test",
         "notebooks",
         "--nbmake",
         "--nbmake-kernel=python3",
         "--nbmake-timeout=3000",
+        *("-m", "richdem"),
         *("-n", "auto"),
         "-vvv",
     ] + pytest_args
