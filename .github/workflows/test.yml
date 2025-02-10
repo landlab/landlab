@@ -176,7 +176,7 @@ jobs:
         # os: [ubuntu-latest, macos-latest, windows-latest]
         # python-version: ["3.10", "3.11", "3.12"]
         os: [macos-latest]
-        python-version: ["3.12"]
+        python-version: ["3.13"]
         pytest-marker: ["slow", "not slow"]
 
     runs-on: ${{ matrix.os }}
@@ -227,7 +227,7 @@ jobs:
       matrix:
         # os: [macos-latest, windows-latest]
         os: [macos-latest]
-        python-version: ["3.12"]
+        python-version: ["3.13"]
         pytest-marker: ["slow", "not slow"]
 
     runs-on: ${{ matrix.os }}
