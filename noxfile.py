@@ -138,15 +138,12 @@ def test_richdem(session: nox.Session) -> None:
 
     if session.virtualenv.venv_backend != "none":
         os.environ["WITH_OPENMP"] = "1"
-        session.conda_install(
-            "richdem",
-            f"--file={PATH['requirements'] / 'testing.txt'}",
-            f"--file={PATH['requirements'] / 'notebooks.txt'}",
-            channel=["nodefaults", "conda-forge"],
-        )
+        session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
         session.install(
             "git+https://github.com/mcflugen/nbmake.git@v1.5.4-markers",
             *("-r", PATH["requirements"] / "required.txt"),
+            *("-r", PATH["requirements"] / "testing.txt"),
+            *("-r", PATH["requirements"] / "notebooks.txt"),
         )
 
         arg = path_args[0] if path_args else "."
