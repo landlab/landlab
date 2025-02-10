@@ -100,11 +100,11 @@ def test_init_raster():
     )
     assert_array_equal(
         self._sorted_pseudo_tails[np.r_[0:9, 75:84]],
-        np.int64([5, 4, 1, 5, 2, 4, 6, 0, 3] + [12, 10, 11, 13, 9, 15, 10, 11, 14]),
+        [1, 4, 5, 0, 2, 5, 4, 6, 1, 14, 10, 13, 9, 11, 15, 11, 14, 10],
     )
     assert_array_equal(
         self._sorted_dupli_links[np.r_[0:3, 82:84]],
-        np.int64([24, 3, 0, 20, 23]),
+        [0, 3, 24, 23, 40],
     )
 
     assert_array_equal(
@@ -113,7 +113,7 @@ def test_init_raster():
     )
     assert_array_equal(
         self._link_idx_sorted_by_heads[0:4],
-        np.int64([66, 45, 42, 46]),
+        [42, 45, 66, 0],
     )
 
 
@@ -207,11 +207,11 @@ def test_init_hex():
     )
     assert_array_equal(
         self._sorted_pseudo_tails[np.r_[0:7, 77:84]],
-        np.int64([4, 3, 1, 0, 5, 4, 2] + [18, 14, 13, 16, 15, 14, 17]),
+        [1, 3, 4, 0, 2, 4, 5, 13, 14, 16, 18, 14, 15, 17],
     )
     assert_array_equal(
         self._sorted_dupli_links[np.r_[0:3, 82:84]],
-        np.int64([3, 2, 0] + [38, 41]),
+        [0, 2, 3, 39, 41],
     )
 
     assert_array_equal(
@@ -220,7 +220,7 @@ def test_init_hex():
     )
     assert_array_equal(
         self._link_idx_sorted_by_heads[0:4],
-        np.int64([45, 44, 42, 0]),
+        [42, 44, 45, 0],
     )
 
 

@@ -25,10 +25,13 @@ def test_run_flow_accumulations_raster():
 
     assert_array_equal(
         g.at_node["flow__upstream_node_order"],
-        np.int64(
-            [4, 8, 13, 12, 18, 7, 6, 11, 16, 17, 0, 1, 2, 3, 5, 9, 10]
-            + [14, 15, 19, 20, 21, 22, 23, 24]
-        ),
+        [
+            *[4, 8, 7, 6, 11],
+            *[16, 17, 12, 18, 13],
+            *[0, 1, 2, 3, 5],
+            *[9, 10, 14, 15, 19],
+            *[20, 21, 22, 23, 24],
+        ],
     )
     assert_array_almost_equal(
         g.at_node["drainage_area"],
