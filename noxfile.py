@@ -55,6 +55,7 @@ def install(session: nox.Session) -> None:
 @nox.session(python=PYTHON_VERSION, venv_backend="conda")
 def test(session: nox.Session) -> None:
     """Run the tests."""
+    session.conda_install("richdem", channel=("conda-forge", "defaults"))
     session.install("-r", PATH["requirements"] / "testing.txt")
     install(session)
 
@@ -77,6 +78,7 @@ def test(session: nox.Session) -> None:
 @nox.session(name="test-notebooks", python=PYTHON_VERSION, venv_backend="conda")
 def test_notebooks(session: nox.Session) -> None:
     """Run the notebooks."""
+    session.conda_install("richdem", channel=("conda-forge", "defaults"))
     session.install(
         "git+https://github.com/mcflugen/nbmake.git@v1.5.4-markers",
         *("-r", PATH["requirements"] / "testing.txt"),
