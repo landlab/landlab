@@ -110,7 +110,7 @@ def pop_option(args: list[str], opt: str):
 @nox.session(name="test-cli")
 def test_cli(session: nox.Session) -> None:
     """Test the command line interface."""
-    session.install(".")
+    install(session)
     session.run("landlab", "--help")
     session.run("landlab", "--version")
     session.run("landlab", "index", "--help")
