@@ -21,16 +21,21 @@ PATH = {
 
 
 @nox.session(python=PYTHON_VERSION, venv_backend="conda")
-def build(session: nox.Session) -> None:
+def build(session: nox.Session) -> str:
     """Build sdist and wheel dists."""
+    outdir = str(PATH["build"] / "wheelhouse")
+
     os.environ["WITH_OPENMP"] = "1"
 
     session.log(f"CC = {os.environ.get('CC', 'NOT FOUND')}")
-    if session.virtualenv.venv_backend != "none":
-        session.install(
-            "build",
-            *("-r", PATH["requirements"] / "required.txt"),
-        )
+    session.install(
+        "build",
+        *("-r", PATH["requirements"] / "required.txt"),
+    )
+
+    session.run("python", "-m", "build", "--outdir", outdir)
+
+    return outdir
 
     session.run("python", "-m", "build", "--outdir", "./build/wheelhouse")
 
