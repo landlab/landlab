@@ -208,7 +208,7 @@ jobs:
           pip install nox
           nox --verbose -s test \
               --force-pythons=${{ matrix.python-version }} \
-              -- -m '${{ matrix.pytest-marker }}' --path=dist
+              -- dist/
 
       - name: Coveralls
         if: ${{ matrix.os == 'ubuntu-latest' }}
@@ -261,7 +261,7 @@ jobs:
           pip install nox
           nox --verbose -s test-notebooks \
               --force-pythons=${{ matrix.python-version }} \
-              -- -m '${{ matrix.pytest-marker }}' --path=dist
+              -- dist/
 
       - name: Find executed notebooks
         run: |
