@@ -940,7 +940,7 @@ class FlowRouter(Component):
         """D, in python, this way is 10xtimes faster than the way of updating
         with index handling array of nodes sorted from downstream to upstream
         (construction of a stack)."""
-        donors = nodes[receivers.argsort()]
+        donors = nodes[receivers.argsort(stable=True)]
 
         """ the stack. Beware to set values use [:] otherwise
         upstream_ordered_nodes will point to a new array and not
