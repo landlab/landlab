@@ -37,7 +37,19 @@ def build(session: nox.Session) -> str:
 
     return outdir
 
-    session.run("python", "-m", "build", "--outdir", "./build/wheelhouse")
+
+@nox.session(python=PYTHON_VERSION)
+def install(session: nox.Session) -> None:
+    arg = session.posargs[0] if session.posargs else build(session)
+
+    session.install("-r", PATH["requirements"] / "required.txt")
+
+    if os.path.isdir(arg):
+        session.install("landlab", f"--find-links={arg}", "--no-deps", "--no-index")
+    elif os.path.isfile(arg):
+        session.install(arg, "--no-deps")
+    else:
+        session.error("first argument must be either a wheel or a wheelhouse folder")
 
 
 @nox.session(python=PYTHON_VERSION, venv_backend="conda")
