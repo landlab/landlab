@@ -203,6 +203,7 @@ jobs:
         env:
           HYPOTHESIS_PROFILE: "ci"
           MPLBACKEND: "Agg"
+          PYTEST_ADDOPTS: "-m '${{ matrix.pytest-marker }}'"
         run: |
           pip install nox
           nox --verbose -s test \
@@ -254,7 +255,7 @@ jobs:
         env:
           OPENTOPOGRAPHY_API_KEY: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
           MPLBACKEND: "module://matplotlib_inline.backend_inline"
-          PYTEST_ADDOPTS: "--overwrite"
+          PYTEST_ADDOPTS: "--overwrite -m '${{ matrix.pytest-marker }}'"
         run: |
           pip install matplotlib_inline
           pip install nox
