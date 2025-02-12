@@ -65,9 +65,9 @@ def test(session: nox.Session) -> None:
 @nox.session(python=PYTHON_VERSION, venv_backend="conda")
 def coverage(session: nox.Session) -> None:
     """Run coverage."""
-    install(session)
-
+    session.conda_install("richdem", channel=("conda-forge", "defaults"))
     session.install("coverage", "-r", PATH["requirements"] / "testing.txt")
+    install(session)
 
     session.run(
         "coverage",
