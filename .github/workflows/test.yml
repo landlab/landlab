@@ -197,7 +197,7 @@ jobs:
           COVERAGE_CORE": "sysmon"
         run: |
           pip install nox
-          nox --verbose -s coverage --force-pythons=3.12 -- --path=dist
+          nox --verbose -s coverage --force-pythons=3.12 -- dist/
 
       - name: Coveralls
         uses: AndreMiras/coveralls-python-action@develop
