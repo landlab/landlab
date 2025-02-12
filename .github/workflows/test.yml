@@ -168,7 +168,7 @@ jobs:
 
   coverage:
     name: Run coverage
-    needs: build-wheels
+    needs: check-tag
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -196,8 +196,12 @@ jobs:
           MPLBACKEND: "Agg"
           COVERAGE_CORE": "sysmon"
         run: |
-          pip install nox
-          nox --verbose -s coverage --force-pythons=3.12 -- dist/
+          conda install richdem
+          pip install -r requirements/testing.txt -r requirements/required.txt
+          pip install -e .
+          coverage run --source=landlab --module pytest
+          coverage report --ignore-errors --show-missing
+          coverage xml -o coverage.xml
 
       - name: Coveralls
         uses: AndreMiras/coveralls-python-action@develop
