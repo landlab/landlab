@@ -183,15 +183,18 @@ jobs:
           miniforge-version: latest
           auto-update-conda: true
 
-      - name: Test
+      - name: Install
+        run: |
+          conda install richdem
+          pip install -r requirements/testing.txt -r requirements/required.txt
+          pip install -e .
+
+      - name: Coverage
         env:
           HYPOTHESIS_PROFILE: "ci"
           MPLBACKEND: "Agg"
           COVERAGE_CORE": "sysmon"
         run: |
-          conda install richdem
-          pip install -r requirements/testing.txt -r requirements/required.txt
-          pip install -e .
           coverage run --source=landlab --module pytest
           coverage report --ignore-errors --show-missing
           coverage xml -o coverage.xml
