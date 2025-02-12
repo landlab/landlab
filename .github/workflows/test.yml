@@ -166,6 +166,46 @@ jobs:
           name: build-wheels-${{ matrix.os }}-${{ matrix.cibw-only }}
           path: ${{ github.workspace }}/wheelhouse/*.whl
 
+  coverage:
+    name: Run coverage
+    needs: check-tag
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          python-version: "3.12"
+          miniforge-variant: Miniforge3
+          miniforge-version: latest
+          auto-update-conda: true
+
+      - name: Install
+        run: |
+          conda install richdem
+          pip install -r requirements/testing.txt -r requirements/required.txt
+          pip install -e .
+
+      - name: Coverage
+        env:
+          HYPOTHESIS_PROFILE: "ci"
+          MPLBACKEND: "Agg"
+          COVERAGE_CORE": "sysmon"
+        run: |
+          coverage run --source=landlab --module pytest
+          coverage report --ignore-errors --show-missing
+          coverage xml -o coverage.xml
+
+      - name: Coveralls
+        uses: AndreMiras/coveralls-python-action@develop
+        with:
+          parallel: false
+          flag-name: py${{ matrix.python-version }}-${{ matrix.os }}-${{ matrix.pytest-marker }}
+          debug: true
+
   test-landlab:
     needs: build-wheels
     name: Run the tests
@@ -176,6 +216,10 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ["3.10", "3.11", "3.12"]
         pytest-marker: ["slow", "not slow"]
+        exclude:
+          # This is tested in the coverage job
+          - os: ubuntu-latest
+            python-version: "3.12"
 
     runs-on: ${{ matrix.os }}
 
@@ -209,14 +253,6 @@ jobs:
           nox --verbose -s test \
               --force-pythons=${{ matrix.python-version }} \
               -- dist/
-
-      - name: Coveralls
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        uses: AndreMiras/coveralls-python-action@develop
-        with:
-          parallel: true
-          flag-name: py${{ matrix.python-version }}-${{ matrix.os }}-${{ matrix.pytest-marker }}
-          debug: true
 
   test-notebooks:
     needs: build-wheels
@@ -358,7 +394,7 @@ jobs:
         uses: actions/deploy-pages@v4
 
   coveralls_finish:
-    needs: test-landlab
+    needs: coverage
     runs-on: ubuntu-latest
 
     steps:
@@ -371,6 +407,7 @@ jobs:
   publish:
     needs:
       - check-tag
+      - coverage
       - test-landlab
       - test-notebooks
       - build-sdist

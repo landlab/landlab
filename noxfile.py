@@ -59,19 +59,29 @@ def test(session: nox.Session) -> None:
     session.install("-r", PATH["requirements"] / "testing.txt")
     install(session)
 
-    args = [
+    session.run("pytest", "-n", "auto", "-vvv")
+
+
+@nox.session(python=PYTHON_VERSION, venv_backend="conda")
+def coverage(session: nox.Session) -> None:
+    """Run coverage."""
+    session.conda_install("richdem", channel=("conda-forge", "defaults"))
+    session.install("coverage", "-r", PATH["requirements"] / "testing.txt")
+    install(session)
+
+    session.run(
+        "coverage",
+        "run",
+        "--source=landlab",
+        "--module",
         "pytest",
-        *("-n", "auto"),
-        *("--cov", PROJECT),
         "-vvv",
-    ]
+        env={"COVERAGE_CORE": "sysmon"},
+    )
 
     if "CI" in os.environ:
-        args.append(f"--cov-report=xml:{ROOT.absolute()!s}/coverage.xml")
-
-    session.run(*args)
-
-    if "CI" not in os.environ:
+        session.run("coverage", "xml", "-o", os.path.join(ROOT, "coverage.xml"))
+    else:
         session.run("coverage", "report", "--ignore-errors", "--show-missing")
 
 
