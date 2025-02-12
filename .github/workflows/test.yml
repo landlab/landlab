@@ -202,7 +202,7 @@ jobs:
       - name: Coveralls
         uses: AndreMiras/coveralls-python-action@develop
         with:
-          parallel: true
+          parallel: false
           flag-name: py${{ matrix.python-version }}-${{ matrix.os }}-${{ matrix.pytest-marker }}
           debug: true
 
