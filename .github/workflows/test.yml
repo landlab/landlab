@@ -58,44 +58,21 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Linux x86_64
-          - cibw-only: "cp310-manylinux_x86_64"
-            os: "ubuntu-latest"
-          - cibw-only: "cp311-manylinux_x86_64"
-            os: "ubuntu-latest"
-          - cibw-only: "cp312-manylinux_x86_64"
-            os: "ubuntu-latest"
-
-          - cibw-only: "cp310-manylinux_aarch64"
-            os: "ubuntu-24.04-arm"
-          - cibw-only: "cp311-manylinux_aarch64"
-            os: "ubuntu-24.04-arm"
-          - cibw-only: "cp312-manylinux_aarch64"
-            os: "ubuntu-24.04-arm"
-
-          # Mac x86_64
-          - cibw-only: "cp310-macosx_x86_64"
-            os: "macos-13"
-          - cibw-only: "cp311-macosx_x86_64"
-            os: "macos-13"
-          - cibw-only: "cp312-macosx_x86_64"
-            os: "macos-13"
-
-          # Mac arm64
-          - cibw-only: "cp310-macosx_arm64"
-            os: "macos-14"
-          - cibw-only: "cp311-macosx_arm64"
-            os: "macos-14"
-          - cibw-only: "cp312-macosx_arm64"
-            os: "macos-14"
-
-          # Windows 64bit
-          - cibw-only: "cp310-win_amd64"
-            os: "windows-latest"
-          - cibw-only: "cp311-win_amd64"
-            os: "windows-latest"
-          - cibw-only: "cp312-win_amd64"
-            os: "windows-latest"
+          - { os: macos-13, cibw-only: cp310-macosx_x86_64 }
+          - { os: macos-13, cibw-only: cp311-macosx_x86_64 }
+          - { os: macos-13, cibw-only: cp312-macosx_x86_64 }
+          - { os: macos-14, cibw-only: cp310-macosx_arm64 }
+          - { os: macos-14, cibw-only: cp311-macosx_arm64 }
+          - { os: macos-14, cibw-only: cp312-macosx_arm64 }
+          - { os: ubuntu-24.04, cibw-only: cp310-manylinux_x86_64 }
+          - { os: ubuntu-24.04, cibw-only: cp311-manylinux_x86_64 }
+          - { os: ubuntu-24.04, cibw-only: cp312-manylinux_x86_64 }
+          - { os: ubuntu-24.04-arm, cibw-only: cp310-manylinux_aarch64 }
+          - { os: ubuntu-24.04-arm, cibw-only: cp311-manylinux_aarch64 }
+          - { os: ubuntu-24.04-arm, cibw-only: cp312-manylinux_aarch64 }
+          - { os: windows-2022, cibw-only: cp310-win_amd64 }
+          - { os: windows-2022, cibw-only: cp311-win_amd64 }
+          - { os: windows-2022, cibw-only: cp312-win_amd64 }
 
     steps:
       - uses: actions/checkout@v4
