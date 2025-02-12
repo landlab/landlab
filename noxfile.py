@@ -97,18 +97,6 @@ def test_notebooks(session: nox.Session) -> None:
     )
 
 
-def pop_option(args: list[str], opt: str):
-    the_rest = []
-    opts = []
-    for arg in args:
-        if arg.startswith(f"{opt}="):
-            _, value = arg.split("=", maxsplit=1)
-            opts += glob.glob(value)
-        else:
-            the_rest.append(arg)
-    return opts, the_rest
-
-
 @nox.session(name="test-cli")
 def test_cli(session: nox.Session) -> None:
     """Test the command line interface."""
