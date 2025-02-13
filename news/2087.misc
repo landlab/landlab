@@ -1,0 +1,3 @@
+Removed the benchmarks from our unit tests, as they'll be moved to a separate
+repostory. This reduces the amount of time our continuous integration
+tests take to run.
