@@ -98,6 +98,14 @@ def test_channel_segment_add_upstream_node():
     assert upstream.downstream is segment
 
 
+@given(segment=lists(integers(), min_size=2, max_size=1024))
+def test_channel_one_segment(segment):
+    root = ChannelSegment(segment)
+
+    assert root.count_segments(direction="upstream") == 0
+    assert root.count_segments(direction="downstream") == 0
+
+
 @given(segments=lists(lists(integers(), min_size=2, max_size=1024), min_size=1))
 def test_channel_segment_many_upstream(segments):
     segments = [ChannelSegment(segment) for segment in segments]
