@@ -481,8 +481,9 @@ def test_reduce_to_fewest_nodes_stay_the_same(x, spacing):
 def test_reduce_nodes_min_max_spacing(spacing):
     distance_along_segment = np.cumsum(spacing)
 
-    if np.any(np.diff(distance_along_segment) <= 0):
-        raise ValueError(f"array not sorted ({distance_along_segment})")
+    assert np.all(
+        np.diff(distance_along_segment) > 0
+    ), f"array not sorted ({distance_along_segment})"
 
     nodes = _reduce_nodes(distance_along_segment, spacing=spacing.min())
     assert np.all(nodes == np.arange(len(spacing)))
@@ -504,8 +505,9 @@ def test_reduce_nodes_min_max_spacing(spacing):
 def test_reduce_to_fewest_nodes_min_max_spacing(spacing):
     distance_along_segment = np.cumsum(spacing)
 
-    if np.any(np.diff(distance_along_segment) <= 0):
-        raise ValueError(f"array not sorted ({distance_along_segment})")
+    assert np.all(
+        np.diff(distance_along_segment) > 0
+    ), f"array not sorted ({distance_along_segment})"
 
     xy_of_node = list(zip(distance_along_segment, [0.0] * len(distance_along_segment)))
     min_spacing = np.diff(distance_along_segment).min()
