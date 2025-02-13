@@ -75,6 +75,22 @@ def test_runoff_and_roughness_setter(var, value):
     assert np.all(grid.at_node["surface_water__depth"] == expected)
 
 
+@pytest.mark.parametrize("var", ("runoff_rate", "roughness"))
+def test_runoff_rate_is_read_only(var):
+    grid = RasterModelGrid((5, 5))
+    grid.add_field("topographic__elevation", 0.1 * grid.node_y, at="node")
+
+    kwargs = {var: np.full(grid.number_of_nodes, 2.0)}
+    kw = KinwaveImplicitOverlandFlow(grid, **kwargs)
+    assert (
+        np.all(getattr(kw, var) == kwargs[var])
+        and getattr(kw, var) is not kwargs[var]
+    )
+
+    with pytest.raises(ValueError):
+        getattr(kw, var)[:] = 1.0
+
+
 def test_first_iteration():
     """Test stuff that happens only on first iteration"""
 
