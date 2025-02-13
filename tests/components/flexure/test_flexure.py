@@ -12,10 +12,9 @@ from landlab.components import Flexure
 from landlab.components.flexure._ext.flexure2d import subside_loads
 
 
-@pytest.mark.benchmark(group="grid-size")
 @pytest.mark.parametrize("n", [4, 5, 6, 7, 8, 9, 10])
 @pytest.mark.parametrize("method", ["old", "new", "cython"])
-def test_one_load_bench(benchmark, n, method):
+def test_one_load_bench(n, method):
     load_0 = 1e9
 
     size = 2**n + 1
@@ -53,7 +52,7 @@ def test_one_load_bench(benchmark, n, method):
         )
         kwds = {}
 
-    benchmark(func, *args, **kwds)
+    func(*args, **kwds)
 
     assert_array_almost_equal(w, w[:, ::-1])
     assert_array_almost_equal(w, w[::-1, :])
@@ -63,146 +62,8 @@ def test_one_load_bench(benchmark, n, method):
     )
 
 
-@pytest.mark.slow
-@pytest.mark.benchmark(group="number-of-loads")
-@pytest.mark.parametrize("n_loads", [0, 1, 2, 3, 4, 5, 6, 7, 8])
-@pytest.mark.parametrize("method", ["old", "new", "cython"])
-def test_number_of_loads_bench(benchmark, n_loads, method):
-    load_0 = 1e9
-
-    n = 8
-    size = 2**n + 1
-
-    grid = RasterModelGrid((size, size), xy_spacing=10.0)
-    grid.add_zeros("lithosphere__overlying_pressure_increment", at="node")
-    flex = Flexure(grid, method="flexure")
-
-    w = np.zeros((size, size))
-
-    nodes = np.arange(0, size * size, 2 ** (n - n_loads))
-    n_loads = len(nodes)
-
-    loads = np.full(n_loads, load_0)
-    row_col_of_load = np.unravel_index(nodes, w.shape)
-
-    if method == "old":
-        load_grid = grid.zeros(at="node").reshape(grid.shape)
-        load_grid[row_col_of_load] = load_0
-
-        func = flex.subside_loads_slow
-        args = (load_grid,)
-        kwds = {"out": w}
-    elif method == "new":
-        func = flex.subside_loads
-        args = (loads, row_col_of_load)
-        kwds = {"out": w}
-    else:
-        func = subside_loads
-        args = (
-            w,
-            flex._r,
-            loads,
-            row_col_of_load[0],
-            row_col_of_load[1],
-            flex.alpha,
-            flex.gamma_mantle,
-        )
-        kwds = {}
-
-    benchmark(func, *args, **kwds)
-
-
-@pytest.mark.benchmark(group="row-col-of-grid")
-@pytest.mark.parametrize("n_loads", [0, 1, 2, 3, 4, 5, 6, 7, 8])
-def test_subside_loads_with_row_col_bench(benchmark, n_loads):
-    n, load_0 = 8, 1e9
-
-    size = 2**n + 1
-
-    grid = RasterModelGrid((size, size), xy_spacing=10.0)
-    grid.add_zeros("lithosphere__overlying_pressure_increment", at="node")
-    flex = Flexure(grid, method="flexure")
-
-    nodes = np.arange(0, size * size, 2 ** (n - n_loads))
-    n_loads = len(nodes)
-
-    loads = np.full(n_loads, load_0)
-    row_col_of_load = np.unravel_index(nodes, grid.shape)
-
-    dz = grid.zeros(at="node")
-    benchmark(flex.subside_loads, loads, row_col_of_load=row_col_of_load, out=dz)
-
-
-@pytest.mark.benchmark(group="row-col-of-grid")
-@pytest.mark.parametrize("n_loads", [0, 1, 2, 3, 4, 5, 6, 7, 8])
-def test_subside_loads_without_row_col_bench(benchmark, n_loads):
-    n, load_0 = 8, 1e9
-
-    size = 2**n + 1
-
-    grid = RasterModelGrid((size, size), xy_spacing=10.0)
-    grid.add_zeros("lithosphere__overlying_pressure_increment", at="node")
-    flex = Flexure(grid, method="flexure")
-
-    loads = grid.zeros(at="node")
-
-    nodes = np.arange(0, size * size, 2 ** (n - n_loads))
-    n_loads = len(nodes)
-    loads[nodes] = load_0
-
-    actual = grid.zeros(at="node")
-    benchmark(
-        flex.subside_loads, loads.reshape(grid.shape), row_col_of_load=None, out=actual
-    )
-
-
-@pytest.mark.slow
-@pytest.mark.benchmark(group="speedup")
 @pytest.mark.parametrize("method", ["subside_loads", "subside_loads_slow"])
-@pytest.mark.parametrize("n_loads", [0, 1, 2, 3, 4, 5, 6, 7, 8])
-def test_flexure_loads_everywhere(benchmark, method, n_loads):
-    n, load_0 = 8, 1e9
-
-    size = 2**n + 1
-
-    grid = RasterModelGrid((size, size), xy_spacing=10.0)
-    grid.add_zeros("lithosphere__overlying_pressure_increment", at="node")
-    flex = Flexure(grid, method="flexure")
-
-    loads = grid.zeros(at="node")
-    nodes = np.arange(0, size * size, 2 ** (n - n_loads))
-    n_loads = len(nodes)
-    loads[nodes] = load_0
-
-    dz = np.zeros((size, size))
-    benchmark(getattr(flex, method), loads, out=dz)
-
-    # assert_array_almost_equal(dz, dz[:, ::-1])
-    # assert_array_almost_equal(dz, dz[::-1, :])
-
-
-# @pytest.mark.benchmark(group="speedup")
-# @pytest.mark.parametrize("method", ["subside_loads", "subside_loads_slow"])
-# def test_flexure_loads_somewhere(benchmark, method):
-#     n, load_0 = 8, 1e9
-
-#     size = 2**n + 1
-
-#     grid = RasterModelGrid((size, size), xy_spacing=10.0)
-#     grid.add_zeros("lithosphere__overlying_pressure_increment", at="node")
-#     flex = Flexure(grid, method="flexure")
-
-#     loads = grid.zeros(at="node").reshape(grid.shape)
-#     loads[:size//2, :size//2] = load_0
-#     # loads.fill(load_0)
-
-#     dz = np.zeros((size, size))
-#     benchmark(getattr(flex, method), loads, out=dz)
-
-
-@pytest.mark.benchmark(group="speedup")
-@pytest.mark.parametrize("method", ["subside_loads", "subside_loads_slow"])
-def test_flexure_deflection_is_proportional_to_load(benchmark, method):
+def test_flexure_deflection_is_proportional_to_load(method):
     n, load_0 = 8, 1e9
 
     size = 2**n + 1
@@ -223,7 +84,7 @@ def test_flexure_deflection_is_proportional_to_load(benchmark, method):
     assert_array_almost_equal(actual, expected * 10.0)
 
 
-def test_update_bench(benchmark):
+def test_update_bench():
     n, load_0 = 10, 1e9
 
     n_rows = 2**n + 1
@@ -236,7 +97,7 @@ def test_update_bench(benchmark):
     grid.at_node["lithosphere__overlying_pressure_increment"].reshape(grid.shape)[
         2 ** (n - 1), 2 ** (n - 1)
     ] = load_0
-    benchmark(flex.update)
+    flex.update()
     dz = flex.grid.at_node["lithosphere_surface__elevation_increment"].reshape(
         grid.shape
     )
