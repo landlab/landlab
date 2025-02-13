@@ -227,8 +227,8 @@ class KinwaveImplicitOverlandFlow(Component):
         super().__init__(grid)
 
         # Store parameters
-        self._runoff_rate = np.array(runoff_rate)
-        self._roughness = np.array(roughness)
+        self.runoff_rate = runoff_rate
+        self.roughness = roughness
         self._changing_topo = changing_topo
         self._depth_exp = depth_exp
         self._weight = weight
