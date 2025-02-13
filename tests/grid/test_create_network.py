@@ -106,7 +106,7 @@ def test_channel_one_segment(segment):
     assert root.count_segments(direction="downstream") == 0
 
 
-@given(segments=lists(lists(integers(), min_size=2, max_size=1024), min_size=1))
+@given(segments=lists(lists(integers(), min_size=2, max_size=1024), min_size=2))
 def test_channel_segment_many_upstream(segments):
     segments = [ChannelSegment(segment) for segment in segments]
     root = segments[0]
@@ -117,7 +117,7 @@ def test_channel_segment_many_upstream(segments):
     assert root.count_segments(direction="downstream") == 0
 
 
-@given(segments=lists(lists(integers(), min_size=2, max_size=1024), min_size=1))
+@given(segments=lists(lists(integers(), min_size=2, max_size=1024), min_size=2))
 def test_channel_segment_many_flat_upstream(segments):
     segments = [ChannelSegment(segment) for segment in segments]
     root = segments[0]
@@ -130,7 +130,7 @@ def test_channel_segment_many_flat_upstream(segments):
     assert root.count_segments(direction="downstream") == 0
 
 
-@given(segments=lists(lists(integers(), min_size=2, max_size=1024), min_size=1))
+@given(segments=lists(lists(integers(), min_size=2, max_size=1024), min_size=2))
 def test_channel_segment_many_downstream(segments):
     segments = [ChannelSegment(segment) for segment in segments]
     root = segments[0]
