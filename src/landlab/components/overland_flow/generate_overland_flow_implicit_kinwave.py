@@ -415,9 +415,3 @@ class KinwaveImplicitOverlandFlow(Component):
                 # depth, but it does not provide any information about flow
                 # velocity or discharge on links. This could be added as an
                 # optional method, perhaps done just before output.
-
-
-if __name__ == "__main__":
-    import doctest
-
-    doctest.testmod()
