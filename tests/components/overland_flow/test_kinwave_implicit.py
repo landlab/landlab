@@ -42,6 +42,20 @@ def test_zero_runoff_rate():
     assert np.all(grid.at_node["surface_water__depth"] == 0.0)
 
 
+@pytest.mark.parametrize("var", ("runoff_rate", "roughness"))
+@pytest.mark.parametrize("bad_value", (-1.0, [-1.0] * 25))
+def test_negative_runoff_and_roughness(var, bad_value):
+    grid = RasterModelGrid((5, 5))
+    grid.add_field("topographic__elevation", 0.1 * grid.node_y, at="node")
+
+    with pytest.raises(ValueError):
+        KinwaveImplicitOverlandFlow(grid, **{var: bad_value})
+
+    kw = KinwaveImplicitOverlandFlow(grid, **{var: 1.0})
+    with pytest.raises(ValueError):
+        setattr(kw, var, bad_value)
+
+
 def test_first_iteration():
     """Test stuff that happens only on first iteration"""
 
