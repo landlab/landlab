@@ -8,6 +8,7 @@ Created on Sat Apr  1 10:49:33 2017
 """
 
 import numpy as np
+import pytest
 
 from landlab import RasterModelGrid
 from landlab.components import KinwaveImplicitOverlandFlow
@@ -29,6 +30,16 @@ def test_initialization():
     # Re-initialize, this time with fields already existing in the grid
     # (this triggers the "if" instead of "else" in the field setup in init)
     kw = KinwaveImplicitOverlandFlow(rg)
+
+
+def test_zero_runoff_rate():
+    grid = RasterModelGrid((5, 5))
+    grid.add_field("topographic__elevation", 0.1 * grid.node_y, at="node")
+
+    kw = KinwaveImplicitOverlandFlow(grid, runoff_rate=0.0)
+    kw.run_one_step(1.0)
+
+    assert np.all(grid.at_node["surface_water__depth"] == 0.0)
 
 
 def test_first_iteration():
