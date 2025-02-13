@@ -203,19 +203,17 @@ jobs:
         env:
           HYPOTHESIS_PROFILE: "ci"
           MPLBACKEND: "Agg"
+          PYTEST_ADDOPTS: "-m '${{ matrix.pytest-marker }}'"
         run: |
           pip install nox
           nox --verbose -s test \
               --force-pythons=${{ matrix.python-version }} \
-              -- -m '${{ matrix.pytest-marker }}' --path=dist
+              -- dist/
 
-      - name: Coveralls
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        uses: AndreMiras/coveralls-python-action@develop
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
         with:
-          parallel: true
-          flag-name: py${{ matrix.python-version }}-${{ matrix.os }}-${{ matrix.pytest-marker }}
-          debug: true
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   test-notebooks:
     needs: build-wheels
@@ -254,13 +252,13 @@ jobs:
         env:
           OPENTOPOGRAPHY_API_KEY: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
           MPLBACKEND: "module://matplotlib_inline.backend_inline"
-          PYTEST_ADDOPTS: "--overwrite"
+          PYTEST_ADDOPTS: "--overwrite -m '${{ matrix.pytest-marker }}'"
         run: |
           pip install matplotlib_inline
           pip install nox
           nox --verbose -s test-notebooks \
               --force-pythons=${{ matrix.python-version }} \
-              -- -m '${{ matrix.pytest-marker }}' --path=dist
+              -- dist/
 
       - name: Find executed notebooks
         run: |
@@ -355,17 +353,6 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
-  coveralls_finish:
-    needs: test-landlab
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Coveralls Finished
-        uses: AndreMiras/coveralls-python-action@develop
-        with:
-          parallel-finished: true
-          debug: true
 
   publish:
     needs:
