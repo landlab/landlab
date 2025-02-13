@@ -63,10 +63,9 @@ changelog = "https://github.com/landlab/landlab/blob/develop/CHANGES.md"
 [project.optional-dependencies]
 dev = ["nox"]
 testing = [
-  "coveralls",
+  "coverage",
   "hypothesis",
   "pytest",
-  "pytest-cov",
   "pytest-datadir",
   "pytest-xdist",
 ]

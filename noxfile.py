@@ -59,20 +59,9 @@ def test(session: nox.Session) -> None:
     session.install("-r", PATH["requirements"] / "testing.txt")
     install(session)
 
-    args = [
-        "pytest",
-        *("-n", "auto"),
-        *("--cov", PROJECT),
-        "-vvv",
-    ]
-
-    if "CI" in os.environ:
-        args.append(f"--cov-report=xml:{ROOT.absolute()!s}/coverage.xml")
-
-    session.run(*args)
-
-    if "CI" not in os.environ:
-        session.run("coverage", "report", "--ignore-errors", "--show-missing")
+    session.run("coverage", "run", "--branch", "--module", "pytest")
+    session.run("coverage", "report", "--ignore-errors", "--show-missing")
+    session.run("coverage", "xml", "-o", "coverage.xml")
 
 
 @nox.session(name="test-notebooks", python=PYTHON_VERSION, venv_backend="conda")
