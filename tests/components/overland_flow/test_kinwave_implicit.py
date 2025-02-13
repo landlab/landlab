@@ -83,8 +83,7 @@ def test_runoff_rate_is_read_only(var):
     kwargs = {var: np.full(grid.number_of_nodes, 2.0)}
     kw = KinwaveImplicitOverlandFlow(grid, **kwargs)
     assert (
-        np.all(getattr(kw, var) == kwargs[var])
-        and getattr(kw, var) is not kwargs[var]
+        np.all(getattr(kw, var) == kwargs[var]) and getattr(kw, var) is not kwargs[var]
     )
 
     with pytest.raises(ValueError):
