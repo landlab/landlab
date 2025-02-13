@@ -59,7 +59,9 @@ def test(session: nox.Session) -> None:
     session.install("-r", PATH["requirements"] / "testing.txt")
     install(session)
 
-    session.run("coverage", "run", "--branch", "--module", "pytest")
+    session.run(
+        "coverage", "run", "--source=landlab,tests", "--branch", "--module", "pytest"
+    )
     session.run("coverage", "report", "--ignore-errors", "--show-missing")
     session.run("coverage", "xml", "-o", "coverage.xml")
 
