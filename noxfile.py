@@ -113,6 +113,8 @@ def test_richdem(session: nox.Session) -> None:
         *("-n", "auto"),
         "-vvv",
     )
+    session.run("coverage", "report", "--ignore-errors", "--show-missing")
+    session.run("coverage", "xml", "-o", "coverage.xml")
 
 
 @nox.session(name="test-cli")
