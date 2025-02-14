@@ -1,6 +1,6 @@
 coverage==7.6.12
 flaky==3.7.0
-hypothesis==6.119.4
+hypothesis==6.125.3
 pytest==8.0.1
 pytest-datadir==1.5.0
 pytest-xdist==3.5.0
