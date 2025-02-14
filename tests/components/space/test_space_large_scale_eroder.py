@@ -705,6 +705,7 @@ def test_can_run_with_hex():
         z[mg.core_nodes] += U * dt
 
 
+@pytest.mark.richdem
 @pytest.mark.skipif(not with_richdem, reason="richdem is not installed")
 def test_matches_detachment_solution_PF():
     # %%
@@ -790,6 +791,7 @@ def test_matches_detachment_solution_PF():
 
 # %%
 @pytest.mark.slow
+@pytest.mark.richdem
 @pytest.mark.skipif(not with_richdem, reason="richdem is not installed")
 def test_matches_transport_solution_PF():
     """
@@ -906,6 +908,7 @@ def test_matches_transport_solution_PF():
 
 # %%
 @pytest.mark.slow
+@pytest.mark.richdem
 @pytest.mark.skipif(not with_richdem, reason="richdem is not installed")
 def test_matches_bedrock_alluvial_solution_PF():
     """
@@ -1020,6 +1023,7 @@ def test_matches_bedrock_alluvial_solution_PF():
 
 # %%
 @pytest.mark.slow
+@pytest.mark.richdem
 @pytest.mark.skipif(not with_richdem, reason="richdem is not installed")
 def test_matches_bedrock_alluvial_solution_PF_extended_range():
     """
@@ -1129,6 +1133,7 @@ def test_matches_bedrock_alluvial_solution_PF_extended_range():
 
 # %%
 @pytest.mark.slow
+@pytest.mark.richdem
 @pytest.mark.skipif(not with_richdem, reason="richdem is not installed")
 def test_matches_bedrock_alluvial_solution_PF_high_v_high_hstar():
     """

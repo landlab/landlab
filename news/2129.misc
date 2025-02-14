@@ -1,0 +1,3 @@
+Improved the speed of the continuous integration tests by switching to using
+the *setup-python* action and running the *richdem* tests as their own job
+using a *conda* environment.

@@ -19,6 +19,7 @@ else:
     with_richdem = True
 
 
+@pytest.mark.richdem
 @pytest.mark.skipif(not with_richdem, reason="richdem is not installed")
 def test_topography_rasterGrid():
     # %%
@@ -51,6 +52,7 @@ def test_topography_rasterGrid():
     )
 
 
+@pytest.mark.richdem
 @pytest.mark.skipif(not with_richdem, reason="richdem is not installed")
 def test_topo_soil_rasterGrid():
     # %%
