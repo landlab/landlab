@@ -59,7 +59,13 @@ def test(session: nox.Session) -> None:
     install(session)
 
     session.run(
-        "coverage", "run", "--source=landlab,tests", "--branch", "--module", "pytest"
+        "coverage",
+        "run",
+        "--source=landlab,tests",
+        "--branch",
+        "--module",
+        "pytest",
+        env={"PYTEST_ADDOPTS": os.environ.get("PYTEST_ADDOPTS", "-m 'not richdem'")},
     )
     session.run("coverage", "report", "--ignore-errors", "--show-missing")
     session.run("coverage", "xml", "-o", "coverage.xml")
@@ -83,6 +89,7 @@ def test_notebooks(session: nox.Session) -> None:
         "--nbmake-timeout=3000",
         *("-n", "auto"),
         "-vvv",
+        env={"PYTEST_ADDOPTS": os.environ.get("PYTEST_ADDOPTS", "-m 'not richdem'")},
     )
 
 
