@@ -517,17 +517,21 @@ def list_wheels(session):
 
 @nox.session(name="list-ci-matrix")
 def list_ci_matrix(session):
+    """Create a matrix entry for a gha workflow that builds wheels"""
+
     def _os_from_wheel(name):
         if "linux" in name:
-            return "linux"
+            return "ubuntu-" + ("24.04" if name.endswith("x86_64") else "24.04-arm")
         elif "macos" in name:
-            return "macos"
+            return "macos-" + ("13" if name.endswith("x86_64") else "14")
         elif "win" in name:
-            return "windows"
+            return "windows-2022"
 
-    for wheel in _get_wheels(session):
-        print(f"- cibw-only: {wheel}")
-        print(f"  os: {_os_from_wheel(wheel)}")
+    include_lines = [
+        f"- {{ os: {_os_from_wheel(wheel)}, cibw-only: {wheel} }}"
+        for wheel in _get_wheels(session)
+    ]
+    print("\n".join(sorted(include_lines)))
 
 
 def _get_wheels(session):
