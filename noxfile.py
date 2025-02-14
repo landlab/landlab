@@ -98,6 +98,11 @@ def test_richdem(session: nox.Session) -> None:
     install(session)
 
     session.run(
+        "coverage",
+        "run",
+        "--source=landlab,tests",
+        "--branch",
+        "--module",
         "pytest",
         "tests",
         "notebooks",
