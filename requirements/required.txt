@@ -2,7 +2,7 @@ bmipy==2.0.1
 importlib-resources==6.4.0; python_version < '3.12'
 matplotlib==3.10.0
 netcdf4==1.7.2
-numpy==2.2.0
+numpy==2.2.3
 pandas==2.2.3
 pyshp==2.3.1
 pyyaml==6.0.2
