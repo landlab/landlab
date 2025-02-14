@@ -317,6 +317,11 @@ jobs:
               --force-pythons=${{ matrix.python-version }} \
               -- dist/
 
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
   check-links:
     needs: check-tag
     runs-on: ubuntu-latest
