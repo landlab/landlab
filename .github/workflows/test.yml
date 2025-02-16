@@ -82,8 +82,9 @@ jobs:
           upload-name: build-wheels-${{ matrix.cibw-only }}
 
   test-landlab:
-    needs: build-wheels
     name: Run the tests
+    needs: build-wheels
+    runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
@@ -92,41 +93,13 @@ jobs:
         python-version: ["3.11", "3.12", "3.13"]
         pytest-marker: ["slow", "not slow"]
 
-    runs-on: ${{ matrix.os }}
-
-    defaults:
-      run:
-        shell: bash -l {0}
-
     steps:
       - uses: actions/checkout@v4
-      - name: Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - uses: ./.github/actions/run-test/
         with:
           python-version: ${{ matrix.python-version }}
-
-      - uses: actions/download-artifact@v4
-        name: Download build artifacts
-        with:
-          pattern: "build-*"
-          merge-multiple: true
-          path: ${{ github.workspace }}/dist
-
-      - name: Test
-        env:
-          HYPOTHESIS_PROFILE: "ci"
-          MPLBACKEND: "Agg"
-          PYTEST_ADDOPTS: "-m '${{ matrix.pytest-marker }} and not richdem'"
-        run: |
-          pip install nox
-          nox --verbose -s test \
-              --force-pythons=${{ matrix.python-version }} \
-              -- dist/
-
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+          nox-session: "test"
+          pytest-addopts: "-m '${{ matrix.pytest-marker }} and not richdem'"
 
   test-notebooks:
     needs: build-wheels
