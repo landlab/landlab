@@ -6,7 +6,7 @@ inputs:
     required: true
   nox-session:
     required: true
-  codedov-token:
+  codecov-token:
     required: true
 
 runs:
