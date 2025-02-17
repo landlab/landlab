@@ -1,0 +1,3 @@
+
+Enhanced the continuous integration workflows to automatically
+cancel any ongoing tests when new changes are pushed to the same branch.

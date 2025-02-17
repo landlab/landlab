@@ -1,22 +1,22 @@
-import numpy as np
-
 cimport cython
-cimport numpy as np
+from libc.stdint cimport uint8_t
 
-DTYPE = int
-ctypedef np.int_t DTYPE_INT_t
-DTYPE_FLOAT = np.double
-ctypedef np.double_t DTYPE_FLOAT_t
+# https://cython.readthedocs.io/en/stable/src/userguide/fusedtypes.html
+ctypedef fused id_t:
+    cython.integral
+    long long
 
 
 @cython.boundscheck(False)
-def _calc_dists_to_channel(np.ndarray[np.uint8_t, ndim=1] ch_network,
-                           np.ndarray[DTYPE_INT_t, ndim=1] flow_receivers,
-                           np.ndarray[DTYPE_INT_t, ndim=1] upstream_order,
-                           np.ndarray[DTYPE_FLOAT_t, ndim=1] link_lengths,
-                           np.ndarray[DTYPE_INT_t, ndim=1] stack_links,
-                           np.ndarray[DTYPE_FLOAT_t, ndim=1] dist_to_ch,
-                           DTYPE_INT_t num_nodes):
+def _calc_dists_to_channel(
+    uint8_t [:] ch_network,
+    id_t [:] flow_receivers,
+    id_t [:] upstream_order,
+    const cython.floating [:] link_lengths,
+    id_t [:] stack_links,
+    cython.floating [:] dist_to_ch,
+    long num_nodes,
+):
     """Calculate distance to nearest channel.
 
     Calculate the distances to the closest channel node for all nodes in the
@@ -37,10 +37,10 @@ def _calc_dists_to_channel(np.ndarray[np.uint8_t, ndim=1] ch_network,
     num_nodes : int
         The number of nodes.
     """
-    cdef DTYPE_INT_t node
-    cdef DTYPE_INT_t node_iter
-    cdef DTYPE_INT_t flag
-    cdef DTYPE_FLOAT_t distance
+    cdef long node
+    cdef long node_iter
+    cdef long flag
+    cdef double distance
 
     for i in range(num_nodes):
         node = upstream_order[i]

@@ -91,8 +91,8 @@ def flow_directions(
     # Setup
     num_nodes = len(elev)
     steepest_slope = np.zeros(num_nodes)
-    receiver = np.arange(num_nodes)
-    receiver_link = BAD_INDEX_VALUE + np.zeros(num_nodes, dtype=int)
+    receiver = np.arange(num_nodes, dtype=active_links.dtype)
+    receiver_link = np.full(num_nodes, BAD_INDEX_VALUE, dtype=active_links.dtype)
 
     # For each link, find the higher of the two nodes. The higher is the
     # potential donor, and the lower is the potential receiver. If the slope
@@ -103,7 +103,6 @@ def flow_directions(
     # NOTE: MAKE SURE WE ARE ONLY LOOKING AT ACTIVE LINKS
     # THIS REMAINS A PROBLEM AS OF DEJH'S EFFORTS, MID MARCH 14.
     # overridden as part of fastscape_stream_power
-
     adjust_flow_receivers(
         tail_node,
         head_node,

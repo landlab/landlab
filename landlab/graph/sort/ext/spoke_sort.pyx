@@ -9,6 +9,7 @@ from libc.stdlib cimport malloc
 
 from .argsort cimport argsort_flt
 
+# https://cython.readthedocs.io/en/stable/src/userguide/fusedtypes.html
 ctypedef fused id_t:
     cython.integral
     long long

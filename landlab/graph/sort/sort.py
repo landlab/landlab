@@ -492,7 +492,8 @@ def sort_links(nodes_at_link, nodes, midpoint_of_link=None):
     """
     from ..quantity.ext.of_link import calc_midpoint_of_link
 
-    y_of_node, x_of_node = np.asfarray(nodes[0]), np.asfarray(nodes[1])
+    y_of_node = np.asarray(nodes[0], dtype=float)
+    x_of_node = np.asarray(nodes[1], dtype=float)
 
     if midpoint_of_link is None:
         midpoint_of_link = np.empty((len(nodes_at_link), 2), dtype=float)

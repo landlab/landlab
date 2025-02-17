@@ -6,6 +6,7 @@ import pathlib
 import re
 import sys
 import textwrap
+from collections import Counter
 from collections import defaultdict
 from collections.abc import Iterable
 from functools import partial
@@ -248,7 +249,7 @@ def build(ctx):
     if len(authors) == 0:
         err(f"missing or empty credits file ({credits_file})")
 
-    commits = defaultdict(int)
+    commits = Counter()
     for author in commit_authors.splitlines():
         canonical_name = authors.find_author(author.strip()).name
         commits[canonical_name] += 1
@@ -396,7 +397,7 @@ def authors_list(ctx, file):
         out(f"reading authors from {file}")
     authors = AuthorList.from_toml(file)
 
-    commits = defaultdict(int)
+    commits = Counter()
     for author in commit_authors.splitlines():
         canonical_name = authors.find_author(author.strip()).name
         commits[canonical_name] += 1
@@ -455,7 +456,7 @@ def grids(ctx):
             print("]")
 
     if verbose and not silent:
-        summary = defaultdict(int)
+        summary = Counter()
         for cats in index["grids"].values():
             for cat, funcs in cats.items():
                 summary[cat] += len(funcs)

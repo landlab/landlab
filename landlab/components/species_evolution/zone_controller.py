@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """ZoneController of SpeciesEvolver."""
 import numpy as np
-from scipy.ndimage.measurements import label
+from scipy.ndimage import label
 
 from .record import Record
 from .zone import Zone
