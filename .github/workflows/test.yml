@@ -11,11 +11,7 @@ concurrency:
 
 jobs:
   check-tag:
-    # Run on external PRs, but not on internal PRs, to avoid duplicate runs
-    if: |
-      github.event_name == 'push' ||
-      github.event.pull_request.head.repo.full_name != github.repository
-
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     outputs:
       publish_url: ${{ steps.check-publish.outputs.publish_url }}
