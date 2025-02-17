@@ -29,11 +29,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/run-tests/
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          HYPOTHESIS_PROFILE: "ci"
+          MPLBACKEND: "Agg"
+          PYTEST-ADDOPTS: "-m 'not richdem'"
         with:
           python-version: "3.13"
           nox-session: "test"
-          pytest-addopts: "-m 'not richdem'"
-          codecov-token: ${{ secrets.CODECOV_TOKEN }}
 
   run-notebooks:
     needs: build
