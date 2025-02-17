@@ -32,7 +32,7 @@ jobs:
         with:
           python-version: "3.13"
           nox-session: "test"
-          pytest-addopts: "-m 'not slow and not richdem'"
+          pytest-addopts: "-m 'not richdem'"
           codecov-token: ${{ secrets.CODECOV_TOKEN }}
 
   run-notebooks:
@@ -44,5 +44,5 @@ jobs:
         with:
           python-version: "3.13"
           nox-session: "test-notebooks"
-          pytest-addopts: "--overwrite -m 'not slow and not richdem'"
+          pytest-addopts: "--overwrite -m 'not richdem'"
           opentopography-api-key: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
