@@ -44,8 +44,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/run-notebooks/
+        env:
+          OPENTOPOGRAPHY_API_KEY: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          MPLBACKEND: "module://matplotlib_inline.backend_inline"
+          PYTEST_ADDOPTS: "--overwrite -m 'not richdem'"
         with:
           python-version: "3.13"
           nox-session: "test-notebooks"
-          pytest-addopts: "--overwrite -m 'not richdem'"
-          opentopography-api-key: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
