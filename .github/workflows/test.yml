@@ -100,6 +100,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
           nox-session: "test"
           pytest-addopts: "-m '${{ matrix.pytest-marker }} and not richdem'"
+          codecov-token: ${{ secrets.CODECOV_TOKEN }}
 
   test-notebooks:
     needs: build-wheels
