@@ -5,7 +5,10 @@ inputs:
   pytest-addopts:
     required: true
   nox-session:
-    requireed: true
+    required: true
+  codedov-token:
+    required: true
+
 runs:
   using: "composite"
   steps:
@@ -37,4 +40,4 @@ runs:
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v5
       with:
-        token: ${{ secrets.CODECOV_TOKEN }}
+        token: ${{ inputs.codecov-token }}
