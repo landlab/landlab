@@ -10,6 +10,9 @@ inputs:
   upload-name:
     required: false
     default: ''
+  opentopography-api-key:
+    required: false
+    default: ''
 runs:
   using: "composite"
   steps:
