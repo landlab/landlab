@@ -33,7 +33,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
           HYPOTHESIS_PROFILE: "ci"
           MPLBACKEND: "Agg"
-          PYTEST-ADDOPTS: "-m 'not richdem'"
+          PYTEST_ADDOPTS: "-m 'not richdem'"
         with:
           python-version: "3.13"
           nox-session: "test"
