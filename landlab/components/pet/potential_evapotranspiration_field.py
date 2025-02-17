@@ -198,10 +198,7 @@ class PotentialEvapotranspiration(Component):
         """
         super().__init__(grid)
 
-        # For potential node to cell mapping operations
-        # Furthermore internal Radiation should not be sharing the same grid
-        # as the PET component, as Radiation-generated fields should not
-        # exist on the grid used by PET (e.g extraterrestrial radiation)
+        # Grid copy is used for node to cell mapping operations
         self._gridCopy = copy.deepcopy(self._grid)
 
         self._current_time = current_time
@@ -223,7 +220,7 @@ class PotentialEvapotranspiration(Component):
         self._y = psychometric_const
         self._sigma = stefan_boltzmann_const
         self._Gsc = solar_const
-        self._phi = (np.pi / 180.0) * latitude
+        self._latitude = latitude
         self._Krs = adjustment_coeff
         self._LT = lt
         self._LAI = self._validate_lai(LAI)
@@ -236,26 +233,25 @@ class PotentialEvapotranspiration(Component):
 
         self.initialize_output_fields()
 
-        # Make sure Tmin and Tmax are valid and provided
         self.Tmin, self.Tmax = self._validate_temperature_range(Tmin, Tmax)
 
-        # If provided with Tmin Tmax, use this. If tmin tmax provided but not this,
-        # use Tmin Tmax average
+        # If user provides Tmin/Tmax and not Tavg, calculate Tavg
         if not isinstance(Tavg, np.ndarray) and Tavg == 17.5:
             self.Tavg = (self._Tmin + self._Tmax) / 2
         else:
             self.Tavg = Tavg
 
+        # Import Radiation to instantiate an internal radiation component
         from landlab.components import Radiation
 
         if "topographic__elevation" not in self._gridCopy.at_node.keys():
             self._gridCopy.add_zeros("topographic__elevation", at="node")
 
-        # Compute radiation field to use throughout the component
+        # Internal radiation component
         self._etpRad = Radiation(
             self._gridCopy,
             method="Grid",
-            latitude=self._phi / (np.pi / 180.0),
+            latitude=self._latitude,
             current_time=self._current_time,
             albedo=self._a,
             max_daily_temp=self._Tmax,
@@ -317,8 +313,6 @@ class PotentialEvapotranspiration(Component):
     def grid(self):
         return self._grid
 
-    # Update the internal radiation component's grid
-    # if a change were to occur
     @grid.setter
     def grid(self, grid):
         self._grid = grid
@@ -334,37 +328,26 @@ class PotentialEvapotranspiration(Component):
 
         return field
 
-    # Function used to validate valid min and max temperatures,
-    # and map them to cell dimensions if provided as a node field
-    # and not a cell-based field.
     def _validate_temperature_range(self, min_temp, max_temp):
-        # Simple validation first
         if np.any(min_temp is None) or np.any(max_temp is None):
             raise ValueError("Tmin and Tmax are required fields")
         if np.any(min_temp > max_temp):
             raise ValueError("Tmin must be less than Tmax")
 
-        # If min T is not a constant, see if its passed as node values, and change it to
-        # cell values instead, if so.
         min_temp = self._process_field(min_temp, "min_temperature")
-
-        # If max T is not a constant, see if its passed as node values, and change it to
-        # cell values instead, if so.
         max_temp = self._process_field(max_temp, "max_temperature")
 
         return min_temp, max_temp
 
-    # Function used to validate user-provided LAI, mapping all values
-    # to corresponding cells if provided as a node field
     def _validate_lai(self, lai):
         return self._process_field(lai, "leaf_area_index")
 
-    # Function used to adjust field OR variable values that would raise errors (e.g 0)
+    # Function used to adjust field/variable values that would raise errors
     def _fix_values(self, field, error_value, fixed_value):
         if isinstance(field, np.ndarray):
             if np.any(field == error_value):
                 field[field == error_value] = fixed_value
-        # If it is not a field, fix it normally
+
         elif field == error_value:
             field = fixed_value
 
@@ -382,11 +365,8 @@ class PotentialEvapotranspiration(Component):
         ``latent_heat_of_vaporization`` properties.
         """
 
-        # Update rad to make sure any variables changed by the user,
-        # outside of constructor, are synced
         self._UpdateRad()
 
-        # if net radiation field is given USE it, if not calculate with RAD
         if self._method == "PriestleyTaylor":
             self._PET_value = self._PriestleyTaylor()
 
@@ -434,22 +414,42 @@ class PotentialEvapotranspiration(Component):
         # LAIa is 50% of the LAI
         # rl is stomatal resistance of the cell wall
         self._LAIa = self._LAI * 0.5
-
         self._rs = self._rl / self._LAIa
 
-        # Must prevent a division by zero error, in the case that NO wind speed is present.
-        # A better method for this later would be useful.
         self._fix_values(self._vz, 0, 1.0)
+
+        # Ensure that logarithm operations do not experience errors
+        if self._zveg is not None and np.any(
+            ((self._zm - self._zveg * 0.7) / (self._zveg * 0.1)) == 1
+        ):
+            raise ValueError(
+                f"""Elevation of wind speed observation, Zm ({self._zm}) -
+                0.7 * vegetation height, Zveg ({self._zveg}) must not
+                equal 0.1 * vegetation height. Try changing the value of self._Zveg."""
+            )
+
+        if np.any((self._zm - self._zd) <= 0):
+            raise ValueError(
+                f"""Elevation of wind speed observation, Zm ({self._zm}) must exceed
+                zero plane displacement height, Zd ({self._zd}).
+                Try setting self._Zm to a larger value."""
+            )
+
+        if np.any((self._zm - self._zd) / self._zo == 1):
+            raise ValueError(
+                f"""Elevation of wind speed observation, Zm ({self._zm}) -
+                zero plane displacement height, Zd ({self._zd}) must not equal
+                roughness length, Zo ({self._zo}).
+                Try setting self._Zm to a larger value."""
+            )
 
         # Aerodynamic resistance
         self._ra = (np.log((self._zm - self._zd) / self._zo)) ** 2 / (
             self._k**2 * self._vz
         )
 
-        # Check penman paper, second term in the numerator
         self._vaporTerm = self._ca * self._pa * (self._es - self._ea) / self._ra
 
-        # Check penman paper, denominator term, all of it
         self._denom = self._pwhv * (self._delta + self._y * (1 + self._rs / self._ra))
         self._ETp = (self._deltaTerm + self._vaporTerm) / self._denom
 
@@ -457,44 +457,29 @@ class PotentialEvapotranspiration(Component):
 
     # Net Rad equivalent PE method
     def _NetRadEqPE(self):
-        # Don't consider ground heat flux or sensible heat flux
         self._E = self._input_rad / self._pwhv
 
         return self._E
 
-    # Temperature and other variables are often modified by the user outside the
-    # constructor, in which case we need to make sure the radiation
-    # fields are completely updated according to these changes
-    # before using a PET method.
-    # This is NOT a PET update method, this is just called before
-    # any PET calculation methods are called.
+    # Called before every PET update, ensures internal
+    # calculations use user-updated variables
     def _UpdateRad(self):
-        # Validate / adjust Tmin and Tmax if needed
         self._Tmin, self._Tmax = self._validate_temperature_range(
             self._Tmin, self._Tmax
         )
 
-        # Validate / adjust LAI if needed
         self._LAI = self._validate_lai(self._LAI)
 
         # Update internal radiation component variables
         self._etpRad._current_time = self._current_time
         self._etpRad._Tmax = self._Tmax
         self._etpRad._Tmin = self._Tmin
-        self._etpRad._A = self._a
-        self._etpRad._latitude = self._phi / (np.pi / 180.0)
+        self._etpRad._a = self._a
+        self._etpRad._latitude = self._latitude
 
         self._etpRad.update()
-        # If radiation is not provided as a property, use internally
-        # calculated rad flux fields
-        # The np.add term is to add Rns and Rnl in the case that
-        # addition is the correct method for finding net radiation.
-        # In radiation.py, subtraction is the method currently in use.
+
         self._input_rad = (
-            # np.add(
-            #     self._etpRad._cell_values["radiation__net_shortwave_flux"],
-            #     self._etpRad._cell_values["radiation__net_longwave_flux"],
-            # )
             self._etpRad._cell_values["radiation__net_flux"]
             if np.all(self._user_radiation is None)
             else self._user_radiation
@@ -503,17 +488,11 @@ class PotentialEvapotranspiration(Component):
         # Ground heat flux, 10% of net rad
         self._G = self._input_rad * 0.1
 
-        # If relative humidity is provided AND the PT constant is set to
-        # its default value, fix it according to relative humidity.
         self._inp_alpha = self._alpha
 
-        # Enable spatial distribution on temperatures, if Tavg is a passed ndarray (field)
-        # it can't be the default constant anyways
         if not isinstance(self._Tavg, np.ndarray) and self._Tavg == 17.5:
             self._Tavg = (self._Tmax + self._Tmin) / 2
 
-        # If Tavg is the only provided temp argument, use it
-        # if spatially distributed is offered, use THAT
         self._inp_temp = self._Tavg
         if self._temperatures is not None:
             self._inp_temp = self._temperatures
@@ -530,35 +509,22 @@ class PotentialEvapotranspiration(Component):
             * self._relative_humidity
         )
 
-        # This assumes relative humidity is 60%, the line of code above
-
         # Slope of Saturation Vapor Pressure - ASCE-EWRI Task Committee Report,
         # Jan-2005 - Eqn 5, (36)
         self._delta = (4098.0 * self._es) / ((237.3 + self._inp_temp) ** 2.0)
 
-        # # Constants taken from Penman Monteith paper
-        # self._zm = 2.0
-        # self._zd = 0.084
-        # self._zo = 0.012
-
-        # Usually, Zd = Zveg * 0.7
-        # Usually, Zo = Zveg * 0.1
-
-        # If Zveg is defined but the rest of the plant factors
-        # are left default, use user-defined Zveg to calculate Zd and Zo
-
-        # See if these are fields that were passed
+        # Checks if user-provided vegetation variables are spatially distributed
         is_zveg_field = isinstance(self._zveg, np.ndarray)
         is_zo_field = isinstance(self._zo, np.ndarray)
         is_zd_field = isinstance(self._zd, np.ndarray)
 
-        # See if defined
         is_zveg_defined = (self._zveg is not None) if not is_zveg_field else True
         is_zo_default = (self._zo == 0.012) if not is_zo_field else False
         is_zd_default = (self._zd == 0.084) if not is_zd_field else False
 
         cell_sz = self._grid["cell"].size
-        # Assert proper dimensions for any fields, all sizes much match grid cell count
+
+        # Assert proper dimensions for these fields, all sizes must match grid cell dimensions
         if is_zveg_field and self._zveg.size != cell_sz:
             raise ValueError(
                 f"""Zveg field dimensions must match grid dimensions, Zveg size was
@@ -577,19 +543,16 @@ class PotentialEvapotranspiration(Component):
                 {self._zd.size} while grid size was {cell_sz}"""
             )
 
-        # If passed all checks, go onto default value adjustment
         if is_zveg_defined and is_zo_default and is_zd_default:
             self._zd = self._zveg * 0.7
             self._zo = self._zveg * 0.1
 
         # von karman constant for air and clear water,
-        # smaller for sediment-laden flows (cloudy dusty flows)
+        # should be smaller for sediment-laden flows
         self._k = 0.4
 
         if self._pa is None:
             self._pa = 3.47 * self._etpRad._P / (273.3 + self._inp_temp)
-            # Multiply to convert units from kgm^-3 to g m^-3
-            # These units are necessary for Penman method
             self._pa *= 1000
 
-        self._ca = 1.22  # in Penman paper, should be calculated later.
+        self._ca = 1.22
