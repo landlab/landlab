@@ -424,15 +424,15 @@ class PotentialEvapotranspiration(Component):
         ):
             raise ValueError(
                 f"""Elevation of wind speed observation, Zm ({self._zm}) -
-                0.7 * vegetation height, Zveg ({self._zveg}) must not
-                equal 0.1 * vegetation height. Try changing the value of self._Zveg."""
+                0.7 * vegetation height, Zveg ({self._zveg}) must not equal
+                0.1 * vegetation height. Try changing the value of self._Zveg."""
             )
 
-        if np.any((self._zm - self._zd) <= 0):
+        if self._zveg is not None and np.any((self._zm - self._zveg * 0.7) <= 0):
             raise ValueError(
                 f"""Elevation of wind speed observation, Zm ({self._zm}) must exceed
-                zero plane displacement height, Zd ({self._zd}).
-                Try setting self._Zm to a larger value."""
+                0.7 * vegetation height, Zveg ({self._zveg}).
+                Try changing the value of self._Zveg."""
             )
 
         if np.any((self._zm - self._zd) / self._zo == 1):
@@ -440,6 +440,13 @@ class PotentialEvapotranspiration(Component):
                 f"""Elevation of wind speed observation, Zm ({self._zm}) -
                 zero plane displacement height, Zd ({self._zd}) must not equal
                 roughness length, Zo ({self._zo}).
+                Try setting self._Zm to a larger value."""
+            )
+
+        if np.any((self._zm - self._zd) <= 0):
+            raise ValueError(
+                f"""Elevation of wind speed observation, Zm ({self._zm}) must exceed
+                zero plane displacement height, Zd ({self._zd}).
                 Try setting self._Zm to a larger value."""
             )
 
