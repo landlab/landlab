@@ -8,6 +8,7 @@ Created on Sat Apr  1 10:49:33 2017
 """
 
 import numpy as np
+import pytest
 
 from landlab import RasterModelGrid
 from landlab.components import KinwaveImplicitOverlandFlow
@@ -29,6 +30,64 @@ def test_initialization():
     # Re-initialize, this time with fields already existing in the grid
     # (this triggers the "if" instead of "else" in the field setup in init)
     kw = KinwaveImplicitOverlandFlow(rg)
+
+
+def test_zero_runoff_rate():
+    grid = RasterModelGrid((5, 5))
+    grid.add_field("topographic__elevation", 0.1 * grid.node_y, at="node")
+
+    kw = KinwaveImplicitOverlandFlow(grid, runoff_rate=0.0)
+    kw.run_one_step(1.0)
+
+    assert np.all(grid.at_node["surface_water__depth"] == 0.0)
+
+
+@pytest.mark.parametrize("var", ("runoff_rate", "roughness"))
+@pytest.mark.parametrize("bad_value", (-1.0, [-1.0] * 25))
+def test_negative_runoff_and_roughness(var, bad_value):
+    grid = RasterModelGrid((5, 5))
+    grid.add_field("topographic__elevation", 0.1 * grid.node_y, at="node")
+
+    with pytest.raises(ValueError):
+        KinwaveImplicitOverlandFlow(grid, **{var: bad_value})
+
+    kw = KinwaveImplicitOverlandFlow(grid, **{var: 1.0})
+    with pytest.raises(ValueError):
+        setattr(kw, var, bad_value)
+
+
+@pytest.mark.parametrize("var", ("runoff_rate", "roughness"))
+@pytest.mark.parametrize("value", (2.0, [2.0] * 25))
+def test_runoff_and_roughness_setter(var, value):
+    grid = RasterModelGrid((5, 5))
+    grid.add_field("topographic__elevation", 0.1 * grid.node_y, at="node")
+
+    kw = KinwaveImplicitOverlandFlow(grid, **{var: 2.0})
+    kw.run_one_step(1.0)
+    expected = grid.at_node["surface_water__depth"].copy()
+
+    grid.at_node["surface_water__depth"].fill(0.0)
+
+    kw = KinwaveImplicitOverlandFlow(grid, **{var: 1.0})
+    setattr(kw, var, value)
+    kw.run_one_step(1.0)
+
+    assert np.all(grid.at_node["surface_water__depth"] == expected)
+
+
+@pytest.mark.parametrize("var", ("runoff_rate", "roughness"))
+def test_runoff_rate_is_read_only(var):
+    grid = RasterModelGrid((5, 5))
+    grid.add_field("topographic__elevation", 0.1 * grid.node_y, at="node")
+
+    kwargs = {var: np.full(grid.number_of_nodes, 2.0)}
+    kw = KinwaveImplicitOverlandFlow(grid, **kwargs)
+    assert (
+        np.all(getattr(kw, var) == kwargs[var]) and getattr(kw, var) is not kwargs[var]
+    )
+
+    with pytest.raises(ValueError):
+        getattr(kw, var)[:] = 1.0
 
 
 def test_first_iteration():
@@ -89,9 +148,9 @@ def test_steady_basic_ramp():
     assert round(kw._disch_in[25], 4) == 0.0024
     assert round(kw._disch_in[15], 4) == 0.0028
 
-    # Try with default runoff rate of 1 mm/hr = 2.78e-7 m/s
+    # Try with default runoff rate of 1 mm/hr
     kw = KinwaveImplicitOverlandFlow(rg)
-    assert round(kw.runoff_rate * 1.0e7, 2) == 2.78
+    assert kw.runoff_rate == 1.0
     kw.depth[:] = 0.0
     for _ in range(18):
         kw.run_one_step(10.0)
@@ -133,8 +192,60 @@ def test_curved_surface():
         )
 
 
-if __name__ == "__main__":
-    test_initialization()
-    test_first_iteration()
-    test_steady_basic_ramp()
-    test_curved_surface()
+def test_kinwave_runoff_array():
+    """
+    Make sure that runoff_rate can be set with an array, and confirm that this
+    returns the same result as setting with a float of the same magnitude.
+    """
+    # Set runoff_rate as float
+    mg1 = RasterModelGrid((10, 10), xy_spacing=25)
+    mg1.add_zeros("surface_water__depth", at="node")
+    mg1.add_zeros("topographic__elevation", at="node")
+    mg1.set_closed_boundaries_at_grid_edges(True, True, True, True)
+    r1 = 1.0
+    kinwave1 = KinwaveImplicitOverlandFlow(
+        mg1, runoff_rate=r1, roughness=0.03, depth_exp=5 / 3
+    )
+
+    # Set runoff_rate as array
+    mg2 = RasterModelGrid((10, 10), xy_spacing=25)
+    mg2.add_zeros("surface_water__depth", at="node")
+    mg2.add_zeros("topographic__elevation", at="node")
+    mg2.set_closed_boundaries_at_grid_edges(True, True, True, True)
+    r2 = 1.0 * np.ones(100)
+    kinwave2 = KinwaveImplicitOverlandFlow(
+        mg2, runoff_rate=r2, roughness=0.03, depth_exp=5 / 3
+    )
+
+    kinwave1.run_one_step(100)
+    kinwave2.run_one_step(100)
+    np.testing.assert_equal(kinwave1.depth, kinwave2.depth)
+
+
+def test_kinwave_roughness_array():
+    """
+    Make sure that roughness can be set with an array, and confirm that this
+    returns the same result as setting with a float of the same magnitude.
+    """
+
+    mg1 = RasterModelGrid((10, 10), xy_spacing=25)
+    mg1.add_zeros("surface_water__depth", at="node")
+    mg1.add_zeros("topographic__elevation", at="node")
+    mg1.set_closed_boundaries_at_grid_edges(True, True, True, True)
+    r1 = 0.03
+    kinwave1 = KinwaveImplicitOverlandFlow(
+        mg1, runoff_rate=1.0, roughness=r1, depth_exp=5 / 3
+    )
+
+    mg2 = RasterModelGrid((10, 10), xy_spacing=25)
+    mg2.add_zeros("surface_water__depth", at="node")
+    mg2.add_zeros("topographic__elevation", at="node")
+    mg2.set_closed_boundaries_at_grid_edges(True, True, True, True)
+    r2 = 0.03 * np.ones(100)
+    kinwave2 = KinwaveImplicitOverlandFlow(
+        mg2, runoff_rate=1.0, roughness=r2, depth_exp=5 / 3
+    )
+
+    kinwave1.run_one_step(100)
+    kinwave2.run_one_step(100)
+    np.testing.assert_equal(kinwave1.depth, kinwave2.depth)
