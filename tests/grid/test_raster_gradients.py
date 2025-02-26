@@ -10,34 +10,6 @@ from landlab.grid.raster_gradients import calc_diff_at_link
 from landlab.grid.raster_gradients import calc_grad_at_link
 
 
-@pytest.mark.benchmark(group="calc_diff_at_link")
-@pytest.mark.parametrize(
-    "func",
-    [calc_diff_at_link, calc_diff_at_link_slow],
-    ids=["raster-specific", "general"],
-)
-def test_calc_diff_at_link_bench(benchmark, func):
-    grid = RasterModelGrid((400, 5000), (1.0, 2.0))
-    value_at_node = np.random.uniform(size=grid.number_of_links)
-    out = grid.empty(at="link")
-
-    benchmark(func, grid, value_at_node, out=out)
-
-
-@pytest.mark.benchmark(group="calc_grad_at_link")
-@pytest.mark.parametrize(
-    "func",
-    [calc_diff_at_link, calc_diff_at_link_slow],
-    ids=["raster-specific", "general"],
-)
-def test_calc_grad_at_link_bench(benchmark, func):
-    grid = RasterModelGrid((400, 5000), (1.0, 2.0))
-    value_at_node = np.random.uniform(size=grid.number_of_links)
-    out = grid.empty(at="link")
-
-    benchmark(func, grid, value_at_node, out=out)
-
-
 @pytest.mark.parametrize("shape", [(4, 5), (40, 50), (50, 40), (3, 3)])
 @pytest.mark.parametrize("spacing", [(1.0, 3.0), (3.0, 1.0)])
 def test_calc_diff_at_link_matches(shape, spacing):

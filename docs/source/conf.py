@@ -53,19 +53,7 @@ source_suffix = ".rst"
 # The encoding of source files.
 # source_encoding = 'utf-8-sig'
 
-# Regex for links that we know work in browser, but do not work in sphinx/CI
-# (BE VERY CAREFUL ADDING LINKS TO THIS LIST)
-if os.getenv("GITHUB_ACTIONS"):
-    linkcheck_ignore = [
-        # Added by KRB Dec 2019, at this point two links match this pattern
-        r"https://pubs.geoscienceworld.org/gsa/geology.*",
-        r"https://doi.org/10.1130/*",  # Added by KRB Jan 2019. Four links match this pattern
-        r"https://dx.doi.org/10.1029/2011jf002181",  # Added by EWHH April 2020
-        r"https://doi.org/10.1029/2019JB018596",  # Added by EWHH April 2020
-        r"https://doi.org/10.3133/pp294B",  # Added by EWHH September 2021
-        #     r"https://yaml.org/start.html",  # Added by EWHH September 2021
-    ]
-    linkcheck_retries = 5
+linkcheck_retries = 5
 
 master_doc = "index"
 
@@ -73,8 +61,8 @@ project = "landlab"
 copyright = str(date.today().year) + ", The Landlab Team"
 
 v = get_version_from_file(version_file)
-version = f"{v.major}.{v.minor}"
-release = v.public
+version = "master"
+release = f"{v.major}.{v.minor}"
 
 language = "en"
 
@@ -319,13 +307,13 @@ nbsphinx_thumbnails = (
 
 # This is processed by Jinja2 and inserted before each notebook
 nbsphinx_prolog = """
-{% set docname = 'notebooks/' + env.doc2path(env.docname, base=None) | string() %}
+{% set docname = 'docs/source/' + env.doc2path(env.docname, base=None) | string() %}
 
 .. note::
 
     This page was generated from a jupyter notebook_.
 
-.. _notebook: https://github.com/landlab/landlab/blob/{{ env.config.release|e }}/{{ docname|e }}
+.. _notebook: https://github.com/landlab/landlab/blob/{{ env.config.version|e }}/{{ docname|e }}
 """
 
 nbsphinx_epilog = """

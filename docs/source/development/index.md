@@ -18,10 +18,11 @@ The most important things to remember are to:
 
 ## Supported Python Versions
 
-Python 3.10, 3.11, and 3.12
+*Landlab* supports the [current Python version](https://devguide.python.org/versions/)
+plus the two previous versions.
 
 If you need to introduce a new dependency, that dependency must be compatible
-with Python 3.10+ and be available on Linux, Mac, and Windows.
+with the oldest supported Python version and be available on Linux, Mac, and Windows.
 
 ```{toctree}
 :hidden: true
