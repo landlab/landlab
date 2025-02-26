@@ -8,6 +8,7 @@ Created on Sat Apr  1 10:49:33 2017
 """
 
 import numpy as np
+import pytest
 
 from landlab import RasterModelGrid
 from landlab.components import KinwaveImplicitOverlandFlow
@@ -29,6 +30,64 @@ def test_initialization():
     # Re-initialize, this time with fields already existing in the grid
     # (this triggers the "if" instead of "else" in the field setup in init)
     kw = KinwaveImplicitOverlandFlow(rg)
+
+
+def test_zero_runoff_rate():
+    grid = RasterModelGrid((5, 5))
+    grid.add_field("topographic__elevation", 0.1 * grid.node_y, at="node")
+
+    kw = KinwaveImplicitOverlandFlow(grid, runoff_rate=0.0)
+    kw.run_one_step(1.0)
+
+    assert np.all(grid.at_node["surface_water__depth"] == 0.0)
+
+
+@pytest.mark.parametrize("var", ("runoff_rate", "roughness"))
+@pytest.mark.parametrize("bad_value", (-1.0, [-1.0] * 25))
+def test_negative_runoff_and_roughness(var, bad_value):
+    grid = RasterModelGrid((5, 5))
+    grid.add_field("topographic__elevation", 0.1 * grid.node_y, at="node")
+
+    with pytest.raises(ValueError):
+        KinwaveImplicitOverlandFlow(grid, **{var: bad_value})
+
+    kw = KinwaveImplicitOverlandFlow(grid, **{var: 1.0})
+    with pytest.raises(ValueError):
+        setattr(kw, var, bad_value)
+
+
+@pytest.mark.parametrize("var", ("runoff_rate", "roughness"))
+@pytest.mark.parametrize("value", (2.0, [2.0] * 25))
+def test_runoff_and_roughness_setter(var, value):
+    grid = RasterModelGrid((5, 5))
+    grid.add_field("topographic__elevation", 0.1 * grid.node_y, at="node")
+
+    kw = KinwaveImplicitOverlandFlow(grid, **{var: 2.0})
+    kw.run_one_step(1.0)
+    expected = grid.at_node["surface_water__depth"].copy()
+
+    grid.at_node["surface_water__depth"].fill(0.0)
+
+    kw = KinwaveImplicitOverlandFlow(grid, **{var: 1.0})
+    setattr(kw, var, value)
+    kw.run_one_step(1.0)
+
+    assert np.all(grid.at_node["surface_water__depth"] == expected)
+
+
+@pytest.mark.parametrize("var", ("runoff_rate", "roughness"))
+def test_runoff_rate_is_read_only(var):
+    grid = RasterModelGrid((5, 5))
+    grid.add_field("topographic__elevation", 0.1 * grid.node_y, at="node")
+
+    kwargs = {var: np.full(grid.number_of_nodes, 2.0)}
+    kw = KinwaveImplicitOverlandFlow(grid, **kwargs)
+    assert (
+        np.all(getattr(kw, var) == kwargs[var]) and getattr(kw, var) is not kwargs[var]
+    )
+
+    with pytest.raises(ValueError):
+        getattr(kw, var)[:] = 1.0
 
 
 def test_first_iteration():

@@ -227,8 +227,8 @@ class KinwaveImplicitOverlandFlow(Component):
         super().__init__(grid)
 
         # Store parameters
-        self._runoff_rate = np.array(runoff_rate)
-        self._roughness = np.array(roughness)
+        self.runoff_rate = runoff_rate
+        self.roughness = roughness
         self._changing_topo = changing_topo
         self._depth_exp = depth_exp
         self._weight = weight
@@ -272,13 +272,14 @@ class KinwaveImplicitOverlandFlow(Component):
 
     @runoff_rate.setter
     def runoff_rate(self, new_rate):
-        if np.isscalar(new_rate):
+        new_rate = np.array(new_rate)
+        if new_rate.size == 1:
             if new_rate < 0.0:
                 raise ValueError("runoff_rate must be positive")
         else:
             if np.any(new_rate[self._grid.core_nodes] < 0.0):
                 raise ValueError("runoff_rate must be positive")
-        self._runoff_rate = np.array(new_rate)
+        self._runoff_rate = new_rate
 
     @property
     def roughness(self):
@@ -290,13 +291,14 @@ class KinwaveImplicitOverlandFlow(Component):
 
     @roughness.setter
     def roughness(self, new_rough):
-        if np.isscalar(new_rough):
+        new_rough = np.array(new_rough)
+        if new_rough.size == 1:
             if new_rough < 0.0:
                 raise ValueError("roughness must be positive")
         else:
             if np.any(new_rough[self._grid.core_nodes] < 0.0):
                 raise ValueError("roughness must be positive")
-        self._roughness = np.array(new_rough)
+        self._roughness = new_rough
 
     @property
     def depth(self):
@@ -413,9 +415,3 @@ class KinwaveImplicitOverlandFlow(Component):
                 # depth, but it does not provide any information about flow
                 # velocity or discharge on links. This could be added as an
                 # optional method, perhaps done just before output.
-
-
-if __name__ == "__main__":
-    import doctest
-
-    doctest.testmod()
