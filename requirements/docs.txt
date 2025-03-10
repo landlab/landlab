@@ -1,5 +1,5 @@
 furo==2024.8.6
-ipython==8.30.0
+ipython==9.0.2
 myst-parser==4.0.0
 nbsphinx==0.9.5
 numpy==2.2.0
