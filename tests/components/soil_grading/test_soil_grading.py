@@ -324,7 +324,7 @@ def test_limits_array_order():
 def test_limits_array_shape():
     """
     SoilGrading should raise a ValueError if limits array is not
-    in the shape of meansizes x 2.
+    in the shape of meansizes (number of grain classes) x 2.
     """
     n_rows = 5
     n_columns = 5
@@ -333,3 +333,31 @@ def test_limits_array_shape():
     mg.add_zeros("topographic__elevation", at="node")
     with testing.assert_raises(ValueError):
         SoilGrading(mg, meansizes=[1, 1, 1], limits=[[1, 2, 3, 4], [2, 3, 4, 5]])
+
+
+def test_update_bed_proportions():
+    """
+    SoilGrading should raise a ValueError if updating grain size proportions in the
+    bed layer in not matching the shape of n_nodes x n_classes.
+    """
+    n_rows = 5
+    n_columns = 5
+    spacing = 1
+    mg = RasterModelGrid((n_rows, n_columns), xy_spacing=spacing)
+    mg.add_zeros("topographic__elevation", at="node")
+    sg = SoilGrading(mg, meansizes=[1, 1, 1])
+    with testing.assert_raises(ValueError):
+        sg.update_bed_grains_proportions(proportions=[1,1])
+
+def test_input_inital_median_size():
+    """
+    SoilGrading should raise a ValueError if the initial_median_size is not
+    a float or an integer
+    """
+    n_rows = 5
+    n_columns = 5
+    spacing = 1
+    mg = RasterModelGrid((n_rows, n_columns), xy_spacing=spacing)
+    mg.add_zeros("topographic__elevation", at="node")
+    with testing.assert_raises(ValueError):
+        SoilGrading(mg, initial_median_size=[1,1])

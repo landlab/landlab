@@ -89,9 +89,9 @@ class SoilGrading(Component):
             "dtype": float,
             "intent": "out",
             "optional": False,
-            "units": "kg",
+            "units": "kg/m^2",
             "mapping": "node",
-            "doc": "Weight of grains in each size class stored at node",
+            "doc": "Weight per unit area of grains in each size class stored at node",
         },
         "median_size__weight": {
             "dtype": float,
@@ -116,9 +116,9 @@ class SoilGrading(Component):
             "dtype": float,
             "intent": "out",
             "optional": True,
-            "units": "m",
+            "units": "[-]",
             "mapping": "node",
-            "doc": "Proportional weight of each grain size class in bedrock",
+            "doc": "Proportional weight of each grain size class in the bed layer",
         },
     }
 
@@ -146,28 +146,31 @@ class SoilGrading(Component):
             A grid.
         meansizes : float (m)
             The mean grain size in each size class.
+            Can be provided as list or tuple.
         limits : float (m)
             2D array with the limits of each size class
-        fragmentation_pattern : float (m)
+        fragmentation_pattern : float (-)
             A list of floats describes how much mass transfer from a parent grain to
             daughters. The list must be in a size >=2 and < number of size classes,
             while the first element is percentage that remains in the parent grain.
-            The other elements are the proportion of parent grain that is weatherd for
+            The other elements are the proportion of parent grain that is weathered for
             each daughter size class. The sum of fragmentation pattern list should
             be <=1. Default value set to [0, 1] which means that the entire mass of
-            parent grain is transffer to the next (smaller) size class.
+            parent grain is transfer to the next (smaller) size class.
         A_factor : float (-. 0-1), optional
             Factor that control the fragmentation rate.
         initial_median_size : float (m), optional
             The initial median grain size in the soil.
-        grains_weight : float (m), optional
-            The weight of each grain size class
+        grains_weight : float (kg/m^2), optional
+            The weight per unit area of each grain size class.
+            Can be provided as list with number of elements at the size of number of classes
+            or as a 2D array at the size of n_nodes x n_classes
         soil_density : float (kg/m^3), optional
             Density of the soil particles.
         phi : float (-. 0-1), optional
             Soil porosity.
-        initial_total_soil_weight : float (kg), optional
-            The total initial soil weight (taking into account all grain size classes).
+        initial_total_soil_weight : float (kg/m^2), optional
+            The total initial soil weight per unit area (taking into account all grain size classes).
         std: float, optional
             The standard deviation of grain size distribution.
         CV: float, optional
@@ -181,27 +184,22 @@ class SoilGrading(Component):
         """
 
         super().__init__(grid)
-        self._meansizes = meansizes
-        if isinstance(self._meansizes, list):
-            self._meansizes = np.array(self._meansizes)
-        elif isinstance(self._meansizes, tuple):
-            self._meansizes = np.array(list(self._meansizes))
-        self._limits = limits
-        if isinstance(self._limits, list):
-            self._limits = np.array(self._limits)
-        if isinstance(self._limits, tuple):
-            self._limits = np.array(list(self._limits))
-        self._n_sizes = np.size(meansizes)
         self._fragmentation_pattern = fragmentation_pattern
         self._A_factor = A_factor
         self._soil_density = float(soil_density)
         self._phi = phi
-        self._is_bedrock_distribution_flag = is_bedrock_distribution_flag
         self._seed = seed
+        self._CV = CV
+        self._is_bedrock_distribution_flag = is_bedrock_distribution_flag
         random.seed(seed)
 
-        # Check if the fragmentation pattern provided is valid
-        self.check_fragmentation_pattern()
+        # Create a 2D array for meansizes at node
+        self._meansizes = self._create_2D_array_for_input_var(meansizes,
+                                                              'meansizes')
+        self._n_sizes = np.size(self._meansizes,1)
+
+        # Set grading limits
+        self.set_grading_limits(limits=limits)
 
         # Note: Landlabs' init_out_field procedure will not work
         # for the 'grains__weight' and 'grains_classes__size' fields
@@ -210,7 +208,7 @@ class SoilGrading(Component):
         grid.at_node["grains_classes__size"] = np.ones(
             (grid.number_of_nodes, self._n_sizes)
         )
-        grid.at_node["grains__weight"] = np.ones((grid.number_of_nodes, self._n_sizes))
+        grid.at_node["grains__weight"] = np.zeros((grid.number_of_nodes, self._n_sizes))
         grid.at_node["bed_grains__proportions"] = np.ones(
             (grid.number_of_nodes, self._n_sizes)
         )
@@ -228,49 +226,42 @@ class SoilGrading(Component):
         if "bedrock__elevation" not in grid.at_node:
             grid.add_zeros("bedrock__elevation", at="node", clobber=True)
 
-        # Update sizes and distribution limits
-        self._grid.at_node["grains_classes__size"][self._grid.nodes] *= self._meansizes
-        if np.size(self._limits) == 1 and self._limits is None:
-            self.set_grading_limits()
-        else:
-
-            if (
-                np.shape(self._limits)[0] != np.size(meansizes)
-                or np.shape(self._limits)[1] != 2
-            ):
-                raise ValueError("limits array must be in shape of meansizes x 2")
-            if (
-                np.all(self._limits[:, 1] > self._limits[:, 0])
-                * np.all(np.diff(self._limits[:, 1]) > 0)
-                * np.all(np.diff(self._limits[:, 0]) > 0)
-            ) is False:
-                raise ValueError("limits array must in ascending order")
-
-        # Transition matrix
-        self.create_transition_mat()
 
         # Update the weight in each size class.
         # In case grains_weight not provided, the weights will be spread around
-        # the initial_median_size asuuming normal distribution
+        # the initial_median_size assuming normal distribution
         if grains_weight is None:
-            self._CV = CV
             if initial_median_size is None:
-                self._initial_median_size = self._meansizes[int(self._n_sizes / 2)]
+                self._initial_median_size = self._meansizes[self._grid.core_nodes[0],int(self._n_sizes / 2)]
             else:
-                self._initial_median_size = initial_median_size
+                self._get_initial_median_size(initial_median_size=initial_median_size)
             if std is None:
                 std = self._initial_median_size * self._CV
             self._std = std
             self._initial_total_soil_weight = initial_total_soil_weight
             self.generate_weight_distribution()
         else:
-            if not np.size(grains_weight) == np.size(meansizes):
-                raise ValueError(
-                    "grains_weight and meansizes do not have the same size"
-                )
+            self._grains_weight = self._create_2D_array_for_input_var(grains_weight,
+                                                                      'grains__weight')
 
-            self._update_mass(grains_weight, self._is_bedrock_distribution_flag)
+            # Update mass
+            self._update_mass(self._grains_weight)
 
+        # Update bed grains proportions
+        self.update_bed_grains_proportions()
+
+        # Check if the fragmentation pattern provided is valid
+        self.check_fragmentation_pattern()
+
+        # Store meansizes at grains_classes__size field and verify
+        # that the number of classes match the number of classes at the grain__weight field
+        self._grid.at_node["grains_classes__size"] *= self._meansizes
+        self._check_match_weights_n_classes()
+
+        # Transition matrix
+        self.create_transition_mat()
+
+        # Get the median size
         self.update_median_grain_size()
 
     @property
@@ -299,7 +290,7 @@ class SoilGrading(Component):
              the total number of daughter particles the grading fractions have, AAAA
              is the percentage of volume that remains in the parent size fraction
              after fragmentation, BBB and CCC (and so on) are the proportion of
-             daugther particles in the next (smaller) size classes.
+             daughter particles in the next (smaller) size classes.
          grain_max_size : float (m)
              The maximal grain size represented in the grading distribution
          power_of : float (-)
@@ -360,7 +351,10 @@ class SoilGrading(Component):
         return meansizes, limits, fragmentation_pattern
 
     def check_fragmentation_pattern(self):
-
+        """
+        This procedure verifies that the fragmentation pattern provided is valid
+        based on the expected fragmentation format and the number of classes
+        """
         if (
             len(self._fragmentation_pattern) < 2
             or len(self._fragmentation_pattern) > len(self._meansizes)
@@ -399,11 +393,37 @@ class SoilGrading(Component):
                 cnt += 1
                 cnti -= 1
 
-    def set_grading_limits(self):
+    def set_grading_limits(self,
+                           limits=None):
+        """
+        This procedure verifies that the array provided and describe grain size limits is valid.
+        If not limits array provided, a limit array will be created based on meansizes.
+        """
 
-        self._limits = (self._meansizes[:-1] + self._meansizes[1:]) * 0.5
-        self._limits = np.insert(self._limits, 0, 0.0)
-        self._limits = np.concatenate((self._limits, [np.inf]))
+        if limits is None:
+            lowers = (self._meansizes[self._grid.core_nodes[0],:-1] + self._meansizes[self._grid.core_nodes[0],1:]) * 0.5
+            lowers = np.insert(lowers, 0, 0.0)
+            uppers = np.concatenate((lowers[1:], [np.inf]))
+            limits = np.empty((self._n_sizes, 2))
+            limits[:, 0]=lowers
+            limits[:, 1]=uppers
+
+        elif isinstance(limits, list):
+            limits = np.array(limits)
+
+        if (
+                np.shape(limits)[0] != self._n_sizes
+                or np.shape(limits)[1] != 2
+        ):
+            raise ValueError("limits array must be in shape of n_sizes x 2")
+        elif (
+                np.all(limits[:, 1] > limits[:, 0])
+                * np.all(np.diff(limits[:, 1]) > 0)
+                * np.all(np.diff(limits[:, 0]) > 0)
+        ) is False:
+            raise ValueError("limits array must in ascending order")
+        else:
+            self._limits = limits
 
     def generate_weight_distribution(
         self, median_size=None, is_bedrock_distribution_flag=False
@@ -416,14 +436,13 @@ class SoilGrading(Component):
         """
 
         if not is_bedrock_distribution_flag:
-
-            is_bedrock_distribution_flag = self._is_bedrock_distribution_flag
             median_size = self._initial_median_size
             total_soil_weight = self._initial_total_soil_weight
             grains_weight__distribution = self._generate_normal_distribution(
                 median_size=median_size, total_soil_weight=total_soil_weight
             )
-
+            grains_weight__distribution = self._create_2D_array_for_input_var(grains_weight__distribution)
+            self._update_mass(grains_weight__distribution)
         else:
             total_bedrock_weight = 10000
             # SoilGrading assumes that bedrock thickness is unlimited
@@ -439,40 +458,41 @@ class SoilGrading(Component):
                     median_size=median_size,
                     total_soil_weight=total_bedrock_weight,
                 )
-        self._update_mass(grains_weight__distribution, is_bedrock_distribution_flag)
+            proportions = np.divide(grains_weight__distribution,
+                                    np.sum(grains_weight__distribution),
+                                    where=grains_weight__distribution > 0)
+            self.update_bed_grains_proportions(proportions=proportions)
 
-    def _update_mass(self, grains_weight__distribution, is_bedrock_distribution_flag):
-        self.g_state_bedrock = grains_weight__distribution
-        self._grid.at_node["bed_grains__proportions"][self._grid.core_nodes] = 1
-        self._grid.at_node["bed_grains__proportions"][
-            self._grid.core_nodes
-        ] *= np.divide(self.g_state_bedrock, np.sum(self.g_state_bedrock))
+    def _update_mass(self, grains_weight__distribution):
+        """
+         This procedure update the weight per unit area of each grain class. Based on the total weight
+         at node, the soil depth field is updated. Then, topography field is also updated.
+         """
 
-        if not is_bedrock_distribution_flag:
-            self.g_state = np.full(
-                self.grid.shape + (len(grains_weight__distribution),),
-                grains_weight__distribution,
-            )
+        self.g_state0 = grains_weight__distribution
+        self._grid.at_node["grains__weight"][self._grid.core_nodes, :] = grains_weight__distribution[self._grid.core_nodes, :]
+        layer_depth = np.sum(self._grid.at_node["grains__weight"][self._grid.core_nodes],1) / (
+            self._soil_density * (1 - self._phi)
+        )
 
-            self.g_state0 = grains_weight__distribution
-            self._grid.at_node["grains__weight"][self._grid.core_nodes, :] = 1
-            self._grid.at_node["grains__weight"] *= grains_weight__distribution
-            layer_depth = np.sum(self.g_state0) / (
-                self._soil_density * self._grid.area_of_cell
-            )
-            layer_depth /= 1 - self._phi
+        self._grid.at_node["soil__depth"][self._grid.core_nodes] += layer_depth
+        self._grid.at_node["topographic__elevation"] = (
+            self._grid.at_node["soil__depth"]
+            + self._grid.at_node["bedrock__elevation"]
+        )
 
-            self._grid.at_node["soil__depth"][self._grid.core_nodes] += layer_depth
-            self._grid.at_node["topographic__elevation"] = (
-                self._grid.at_node["soil__depth"]
-                + self._grid.at_node["bedrock__elevation"]
-            )
+    def _generate_normal_distribution(self,
+                                      median_size=None,
+                                      total_soil_weight=None,
+                                      std=None):
 
-    def _generate_normal_distribution(self, median_size=None, total_soil_weight=None):
-
+        """
+         This procedure spread mass between all grains classes assuming normal distribution
+         centered at the median size class
+         """
         if median_size is None:
             median_size = self._initial_median_size
-        if self._std is None:
+        if std is None:
             self._std = self._CV * median_size
         if total_soil_weight is None:
             total_soil_weight = self._initial_total_soil_weight
@@ -483,7 +503,7 @@ class SoilGrading(Component):
         values = []
         if median_size < lower:
             grains_weight__distribution = np.zeros_like(self._meansizes)
-            grains_weight__distribution[0] = total_soil_weight
+            grains_weight__distribution[:, 0] = total_soil_weight
             warnings.warn(
                 "Median size requested is smaller than the smallest mean size"
                 "in the distribution",
@@ -492,7 +512,7 @@ class SoilGrading(Component):
 
         elif median_size > upper:
             grains_weight__distribution = np.zeros_like(self._meansizes)
-            grains_weight__distribution[-1] = total_soil_weight
+            grains_weight__distribution[:, -1] = total_soil_weight
             warnings.warn(
                 "Median size requested is larger than the largest mean size"
                 "in the distribution",
@@ -505,9 +525,11 @@ class SoilGrading(Component):
                 if sample >= lower and sample <= upper:
                     values.append(sample)
 
-            grains_weight__distribution = np.histogram(values, self._limits)[0]
+            grains_weight__distribution = np.histogram(values,
+                                                       np.append(self._limits[:,0],
+                                                                         np.max(self._limits)))
 
-        return grains_weight__distribution
+        return grains_weight__distribution[0]
 
     def update_median_grain_size(self):
         """
@@ -533,11 +555,15 @@ class SoilGrading(Component):
         )
 
         self._grid.at_node["median_size__weight"][self._grid.core_nodes] = (
-            self._meansizes[median_val_indx[self._grid.core_nodes]]
+            self._meansizes[self._grid.core_nodes,
+            median_val_indx[self._grid.core_nodes]]
         )
 
     def run_one_step(self, A_factor=None):
-
+        """
+        The run_one_step procedure transform mass from parent grain size classes to
+        daughters based on the fragmentation pattern.
+        """
         if np.any(A_factor is None):
             A_factor = self._A_factor
 
@@ -561,3 +587,81 @@ class SoilGrading(Component):
             temp_g_weight, (self._grid.shape[0] * self._grid.shape[1], self._n_sizes)
         )
         self.update_median_grain_size()
+
+
+    def _create_2D_array_for_input_var(self,
+                                       input_var,
+                                       var_name='None'):
+
+        """""
+        This procedure create a 2D array with dimensions of n_nodes x n_classes for a various
+        input types.
+        """
+
+        if np.ndim(input_var) == 2:
+            input_var_array = input_var
+        elif (
+                isinstance(input_var, int) or
+                isinstance(input_var, float)
+        ):
+            input_var_array = np.zeros((np.size(self._grid.nodes.flatten()),
+                                        self._n_classes))
+            input_var_array[:, :] = input_var
+        elif np.ndim(input_var) <= 1:
+            if isinstance(input_var, list):
+                input_var = np.array(input_var)
+            if isinstance(input_var, tuple):
+                input_var = np.array(list(input_var))
+            input_var_array = (
+                    np.ones((np.size(self._grid.nodes.flatten()), np.size(input_var))) *
+                    input_var[np.newaxis, :])
+        else:
+            raise ValueError(f"{var_name} array format is invalid")
+
+        return input_var_array
+
+    def update_bed_grains_proportions(self,
+                                       proportions=None):
+
+        """""
+        This procedure set the weight proportions of grain classes in the bed layer.
+        By default, the proportion in the bed layer will set to the initial proportion of the soil layer.
+        """
+
+        if proportions is None:
+            proportions = np.divide(self.g_state0,
+                                    np.sum(self.g_state0,1)[:,np.newaxis],
+                                    where=self.g_state0>0)
+        else:
+            proportions = self._create_2D_array_for_input_var(proportions,
+                                                              'bed_grains_proportions')
+
+        try:
+            self._grid.at_node["bed_grains__proportions"][:]=proportions
+
+        except:
+            raise ValueError(
+                "Proportions array must be in shape of n_nodes x n_classes"
+            )
+
+    def _check_match_weights_n_classes(self):
+        """
+        This procedure verifies that the number of classes in grains__weight
+        field and in grains_classes__size, match each other.
+        """
+        if (np.shape(self._grid.at_node['grains__weight'])[1] !=
+            np.shape(self._grid.at_node["grains_classes__size"])[1]):
+            raise ValueError(
+                "Grain weights provided do not match the number of classes"
+            )
+
+    def _get_initial_median_size(self, initial_median_size):
+
+        if isinstance(initial_median_size, int):
+            self._initial_median_size = np.float(initial_median_size)
+        elif isinstance(initial_median_size, float):
+            self._initial_median_size = initial_median_size
+        else:
+            raise ValueError("Initial median size must be float or integer. \n "
+                             "For setting initial spatial-diffrences in median grain size, \n"
+                             "grains_weight input parameter should be changed")
