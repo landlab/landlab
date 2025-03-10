@@ -347,7 +347,8 @@ def test_update_bed_proportions():
     mg.add_zeros("topographic__elevation", at="node")
     sg = SoilGrading(mg, meansizes=[1, 1, 1])
     with testing.assert_raises(ValueError):
-        sg.update_bed_grains_proportions(proportions=[1,1])
+        sg.update_bed_grains_proportions(proportions=[1, 1])
+
 
 def test_input_inital_median_size():
     """
@@ -360,4 +361,4 @@ def test_input_inital_median_size():
     mg = RasterModelGrid((n_rows, n_columns), xy_spacing=spacing)
     mg.add_zeros("topographic__elevation", at="node")
     with testing.assert_raises(ValueError):
-        SoilGrading(mg, initial_median_size=[1,1])
+        SoilGrading(mg, initial_median_size=[1, 1])
