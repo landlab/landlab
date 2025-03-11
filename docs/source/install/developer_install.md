@@ -51,12 +51,14 @@ mamba install --file=requirements.in -c nodefaults -c conda-forge --override-cha
 ````
 
 ````{tab} conda
+```bash
 cd landlab
 conda install --file=requirements.in -c nodefaults -c conda-forge --override-channels
 ```
 ````
 
 ````{tab} pip
+```bash
 cd landlab
 pip install -r requirements.in
 ```
