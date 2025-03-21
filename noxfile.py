@@ -20,69 +20,68 @@ PATH = {
 }
 
 
-@nox.session(python=PYTHON_VERSION, venv_backend="conda")
-def build(session: nox.Session) -> None:
+@nox.session(python=PYTHON_VERSION)
+def build(session: nox.Session) -> str:
     """Build sdist and wheel dists."""
+    outdir = str(PATH["build"] / "wheelhouse")
+
     os.environ["WITH_OPENMP"] = "1"
 
     session.log(f"CC = {os.environ.get('CC', 'NOT FOUND')}")
-    if session.virtualenv.venv_backend != "none":
-        session.install(
-            "build",
-            *("-r", PATH["requirements"] / "required.txt"),
-        )
+    session.install(
+        "build",
+        *("-r", PATH["requirements"] / "required.txt"),
+    )
 
-    session.run("python", "-m", "build", "--outdir", "./build/wheelhouse")
+    session.run("python", "-m", "build", "--outdir", outdir)
+
+    return outdir
 
 
-@nox.session(python=PYTHON_VERSION, venv_backend="conda")
+@nox.session(python=PYTHON_VERSION)
+def install(session: nox.Session) -> None:
+    arg = session.posargs[0] if session.posargs else build(session)
+
+    session.install("-r", PATH["requirements"] / "required.txt")
+
+    if os.path.isdir(arg):
+        session.install("landlab", f"--find-links={arg}", "--no-deps", "--no-index")
+    elif os.path.isfile(arg):
+        session.install(arg, "--no-deps")
+    else:
+        session.error("first argument must be either a wheel or a wheelhouse folder")
+
+
+@nox.session(python=PYTHON_VERSION)
 def test(session: nox.Session) -> None:
     """Run the tests."""
-    path_args, pytest_args = pop_option(session.posargs, "--path")
+    session.install("-r", PATH["requirements"] / "testing.txt")
+    install(session)
 
-    if session.virtualenv.venv_backend != "none":
-        os.environ["WITH_OPENMP"] = "1"
-        session.log(f"CC = {os.environ.get('CC', 'NOT FOUND')}")
-        session.install(
-            *("-r", PATH["requirements"] / "required.txt"),
-            *("-r", PATH["requirements"] / "testing.txt"),
-        )
-        session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
-
-        arg = path_args[0] if path_args else None
-        if arg is None:
-            session.install(".", "--no-deps")
-        elif os.path.isdir(arg):
-            session.install("landlab", f"--find-links={arg}", "--no-deps", "--no-index")
-        elif os.path.isfile(arg):
-            session.install(arg, "--no-deps")
-        else:
-            session.error("--path must be either a wheel for a wheelhouse folder")
-
-    check_package_versions(session, files=["required.txt", "testing.txt"])
-
-    args = [
+    session.run(
+        "coverage",
+        "run",
+        "--source=landlab,tests",
+        "--branch",
+        "--module",
         "pytest",
-        *("-n", "auto"),
-        *("--cov", PROJECT),
-        "-vvv",
-        # *("--dist", "worksteal"),
-    ] + pytest_args
-
-    if "CI" in os.environ:
-        args.append(f"--cov-report=xml:{ROOT.absolute()!s}/coverage.xml")
-    session.run(*args)
-
-    if "CI" not in os.environ:
-        session.run("coverage", "report", "--ignore-errors", "--show-missing")
+        env={"PYTEST_ADDOPTS": os.environ.get("PYTEST_ADDOPTS", "-m 'not richdem'")},
+    )
+    session.run("coverage", "report", "--ignore-errors", "--show-missing")
+    session.run("coverage", "xml", "-o", "coverage.xml")
 
 
-@nox.session(name="test-notebooks", python=PYTHON_VERSION, venv_backend="conda")
+@nox.session(name="test-notebooks", python=PYTHON_VERSION)
 def test_notebooks(session: nox.Session) -> None:
     """Run the notebooks."""
-    path_args, pytest_args = pop_option(session.posargs, "--path")
+    session.install(
+        "git+https://github.com/mcflugen/nbmake.git@v1.5.4-markers",
+        *("-r", PATH["requirements"] / "testing.txt"),
+        *("-r", PATH["requirements"] / "notebooks.txt"),
+    )
+    install(session)
 
-    args = [
+    session.run(
         "pytest",
         "notebooks",
         "--nbmake",
@@ -90,51 +89,45 @@ def test_notebooks(session: nox.Session) -> None:
         "--nbmake-timeout=3000",
         *("-n", "auto"),
         "-vvv",
-    ] + pytest_args
-
-    if session.virtualenv.venv_backend != "none":
-        os.environ["WITH_OPENMP"] = "1"
-        session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
-        session.install(
-            "git+https://github.com/mcflugen/nbmake.git@v1.5.4-markers",
-            *("-r", PATH["requirements"] / "required.txt"),
-            *("-r", PATH["requirements"] / "testing.txt"),
-            *("-r", PATH["requirements"] / "notebooks.txt"),
-        )
-
-        arg = path_args[0] if path_args else "."
-        if arg is None:
-            session.install(".", "--no-deps")
-        elif os.path.isdir(arg):
-            session.install("landlab", f"--find-links={arg}", "--no-deps", "--no-index")
-        elif os.path.isfile(arg):
-            session.install(arg, "--no-deps")
-        else:
-            session.error("--path must be either a wheel for a wheelhouse folder")
-
-    check_package_versions(
-        session, files=["required.txt", "testing.txt", "notebooks.txt"]
+        env={"PYTEST_ADDOPTS": os.environ.get("PYTEST_ADDOPTS", "-m 'not richdem'")},
     )
 
-    session.run(*args)
 
+@nox.session(name="test-richdem", venv_backend="conda")
+def test_richdem(session: nox.Session) -> None:
+    """Run richdem tests."""
+    session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
+    session.install(
+        "git+https://github.com/mcflugen/nbmake.git@v1.5.4-markers",
+        *("-r", PATH["requirements"] / "testing.txt"),
+        *("-r", PATH["requirements"] / "notebooks.txt"),
+    )
+    install(session)
 
-def pop_option(args: list[str], opt: str):
-    the_rest = []
-    opts = []
-    for arg in args:
-        if arg.startswith(f"{opt}="):
-            _, value = arg.split("=", maxsplit=1)
-            opts += glob.glob(value)
-        else:
-            the_rest.append(arg)
-    return opts, the_rest
+    session.run(
+        "coverage",
+        "run",
+        "--source=landlab,tests",
+        "--branch",
+        "--module",
+        "pytest",
+        "tests",
+        "notebooks",
+        "--nbmake",
+        "--nbmake-kernel=python3",
+        "--nbmake-timeout=3000",
+        *("-m", "richdem"),
+        *("-n", "auto"),
+        "-vvv",
+    )
+    session.run("coverage", "report", "--ignore-errors", "--show-missing")
+    session.run("coverage", "xml", "-o", "coverage.xml")
 
 
 @nox.session(name="test-cli")
 def test_cli(session: nox.Session) -> None:
     """Test the command line interface."""
-    session.install(".")
+    install(session)
     session.run("landlab", "--help")
     session.run("landlab", "--version")
     session.run("landlab", "index", "--help")
@@ -189,10 +182,7 @@ def docs_build(session: nox.Session) -> None:
     docs_build_api(session)
     docs_build_notebook_index(session)
 
-    if session.virtualenv.venv_backend != "none":
-        session.install("-r", PATH["requirements"] / "docs.txt")
-
-    check_package_versions(session, files=["required.txt", "docs.txt"])
+    session.install("-r", PATH["requirements"] / "docs.txt")
 
     PATH["build"].mkdir(exist_ok=True)
     session.run(
@@ -205,6 +195,49 @@ def docs_build(session: nox.Session) -> None:
         PATH["build"] / "html",
     )
     session.log(f"generated docs at {PATH['build'] / 'html'!s}")
+
+
+@nox.session(name="docs-check-links")
+def docs_check_links(session: nox.Session) -> None:
+    """Check for working links in the docs."""
+    docs_build_api(session)
+    docs_build_notebook_index(session)
+
+    session.install("-r", PATH["requirements"] / "docs.txt")
+
+    PATH["build"].mkdir(exist_ok=True)
+    session.run(
+        "sphinx-build",
+        *("-j", "auto"),
+        *("-b", "linkcheck"),
+        "--keep-going",
+        PATH["docs"] / "source",
+        PATH["build"] / "html",
+        success_codes=(0, 1),
+    )
+
+    output_json = PATH["build"] / "html" / "output.json"
+
+    broken_links = [
+        f"{entry['filename']}:{entry['lineno']}:{entry['uri']}"
+        for entry in load_linkcheck_output(output_json)
+        if entry["status"] == "broken" and not entry["info"].startswith("403")
+    ]
+
+    if broken_links:
+        print("\n".join(sorted(broken_links)))
+        session.error(
+            f"{len(broken_links)} broken links were found."
+            f" see {output_json} for a complete log"
+        )
+    else:
+        session.log("no broken links were found")
+
+
+def load_linkcheck_output(filepath):
+    with open(filepath) as stream:
+        entries = [json.loads(line) for line in stream.readlines()]
+    return entries
 
 
 @nox.session(name="docs-build-api")
@@ -484,17 +517,21 @@ def list_wheels(session):
 
 @nox.session(name="list-ci-matrix")
 def list_ci_matrix(session):
+    """Create a matrix entry for a gha workflow that builds wheels"""
+
     def _os_from_wheel(name):
         if "linux" in name:
-            return "linux"
+            return "ubuntu-" + ("24.04" if name.endswith("x86_64") else "24.04-arm")
         elif "macos" in name:
-            return "macos"
+            return "macos-" + ("13" if name.endswith("x86_64") else "14")
         elif "win" in name:
-            return "windows"
+            return "windows-2022"
 
-    for wheel in _get_wheels(session):
-        print(f"- cibw-only: {wheel}")
-        print(f"  os: {_os_from_wheel(wheel)}")
+    include_lines = [
+        f"- {{ os: {_os_from_wheel(wheel)}, cibw-only: {wheel} }}"
+        for wheel in _get_wheels(session)
+    ]
+    print("\n".join(sorted(include_lines)))
 
 
 def _get_wheels(session):

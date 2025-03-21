@@ -12,7 +12,7 @@
 [lint-badge]: https://github.com/landlab/landlab/actions/workflows/lint.yml/badge.svg
 [lint-link]: https://github.com/landlab/landlab/actions/workflows/lint.yml
 [rtd-badge]:https://readthedocs.org/projects/landlab/badge/?version=latest
-[rtd-link]: https://landlab.readthedocs.org
+[rtd-link]: https://landlab.csdms.io
 [test-badge]: https://github.com/landlab/landlab/actions/workflows/test.yml/badge.svg
 [test-link]: https://github.com/landlab/landlab/actions/workflows/test.yml
 
@@ -51,7 +51,7 @@ at CSDMS to learn more.
 
 ______________________________________________________________________
 
-[Read the documentation on ReadTheDocs!](https://landlab.readthedocs.io/)
+[Read the documentation on ReadTheDocs!](https://landlab.csdms.io/)
 
 ______________________________________________________________________
 
@@ -129,9 +129,9 @@ During workshops and clinics, we sometimes use the
 
 <!-- end-contact -->
 
-[citation guidelines]: https://landlab.readthedocs.io/en/master/citing.html
+[citation guidelines]: https://landlab.csdms.io/about/citing.html
 [earthscapehub]: https://csdms.colorado.edu/wiki/JupyterHub
 [explore the notebooks click here]: https://mybinder.org/v2/gh/landlab/landlab/master?filepath=notebooks/welcome.ipynb
-[install landlab from source]: https://landlab.readthedocs.io/en/master/install/developer_install.html
-[installation instructions]: https://landlab.readthedocs.io/en/master/installation.html
+[install landlab from source]: https://landlab.csdms.io/install/
+[installation instructions]: https://landlab.csdms.io/installation.html
 [teaching notebooks click here]: https://mybinder.org/v2/gh/landlab/landlab/master?filepath=notebooks/teaching/welcome_teaching.ipynb

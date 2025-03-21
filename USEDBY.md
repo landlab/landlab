@@ -8,7 +8,26 @@ Bower, S. J., Shobe, C. M., Maxwell, A. E., & Campforts, B. (2024). **The uncert
 
 Chen, H., Wang, X., Yu, Y., Lu, H., & Van Balen, R. (2024). **Past anthropogenic land use change caused a regime shift of the fluvial response to Holocene climate change in the Chinese Loess Plateau.** *Earth Surface Dynamics,* 12(1), 163-180.
 
+Chen, H., Wang, X., Lu, H., & Van Balen, R. (2024). **The impacts of climate change, early agriculture and internal fluvial dynamics on paleo-flooding episodes in Central China.** *Science of The Total Environment,* 954, 176431.
+
+Chrapkiewicz, K., Lipp, A. G., Barron, L. P., Barnes, R., & Roberts, G. G. (2024). **Apportioning sources of chemicals of emerging concern along an urban river with inverse modelling.** *Science of The Total Environment,* 933, 172827.
+
 Gan, T., Tucker, G. E., Hutton, E. W., Piper, M. D., Overeem, I., Kettner, A. J., Campforts, B., Moriarty, J.M., Undzis, B., Pierce, E. and McCready, L., (2024). **CSDMS Data Components: data–model integration tools for Earth surface processes modeling**. *Geoscientific Model Development,* 17(5), 2165-2185, [DOI](https://doi.org/10.5194/gmd-17-2165-2024).
+
+Gasparini, N. M., Forte, A. M., & Barnhart, K. R. (2024). **Numerically simulated time to steady state is not a reliable measure of landscape response time.** *Earth Surface Dynamics,* 12(6), 1227-1242.
+
+Guryan, G., Johnson, J., & Gasparini, N. (2024). **Sediment cover modulates landscape erosion patterns and channel steepness in layered rocks: Insights from the SPACE model.** *Journal of Geophysical Research: Earth Surface,* 129(7), e2023JF007509.
+
+Keck, J., Istanbulluoglu, E., Campforts, B., Tucker, G., and Horner-Devine, A. (2024) **A landslide runout model for sediment transport, landscape evolution, and hazard assessment applications**. *Earth Surface Dynamics,* [DOI](https://doi.org/10.5194/esurf-12-1165-2024).
+
+
+Lee, C. H., Seong, Y. B., Weber, J., Ha, S., Kim, D. E., & Yu, B. Y. (2024). **Topographic metrics for unveiling fault segmentation and tectono-geomorphic evolution with insights into the impact of inherited topography, Ulsan Fault Zone, South Korea.** *Earth Surface Dynamics,* 12(5), 1091-1120.
+
+Litwin, D. G., Tucker, G. E., Barnhart, K. R., & Harman, C. J. (2024). **Catchment coevolution and the geomorphic origins of variable source area hydrology.** *Water Resources Research,* 60(6), e2023WR034647.
+
+Lu, X., Lai, J., Wang, L., Ji, J., & Zhong, D. (2024). **Numerical modelling of coupled climate, tectonics, and surface processes on the eastern Himalayan syntaxis.** *Earth-Science Reviews,* 104964.
+
+Lu, X., Wang, L., Ji, J., & Chen, Z. (2024). **Investigating the influence of climate on the evolution of fold-and-thrust belts in Chinese Tianshan: A 2D doubly vergent numerical model approach.** *Journal of Asian Earth Sciences,* 276, 106344.
 
 Mohr, C. H., Dietze, M., Tolorza, V., Gonzalez, E., Sotomayor, B., Iroume, A., Mohr, C.H., Dietze, M., Tolorza, V., Gonzalez, E., Sotomayor, B., Iroume, A., Gilfert, S., and Tautz, F. (2024). **Ideas and perspectives: Sensing energy and matter fluxes in a biota-dominated Patagonian landscape through environmental seismology–introducing the Pumalín Critical Zone Observatory.** *Biogeosciences,* 21(6), 1583-1599.
 
@@ -21,6 +40,8 @@ Shobe, C. M., Bower, S. J., Maxwell, A. E., Glade, R. C., & Samassi, N. M. (2024
 Walker, S. J., Wilkinson, S. N., & Hairsine, P. B. (2024). **Advancing gully topographic threshold analysis using an automated algorithm and high-resolution topography.** *CATENA,* 239, 107897.
 
 Wang, Y. (2024) **Identifying geomorphic domains using hierarchically clustered drainage area‐slope scaling.** *Earth Surface Processes and Landforms,* [DOI](https://doi.org/10.1002/esp.5796).
+
+Wu, H., Wang, X., He, C., Zhang, D., Zhang, H., Li, Z., ... & Lu, H. (2024). **Tectonic-triggered drainage reorganizations between the two largest tributaries of the Yangtze River, China.** *The Innovation Geoscience,* 100115-1.
 
 ### 2023
 
@@ -37,6 +58,8 @@ Nudurupati, S. S., Istanbulluoglu, E., Tucker, G. E., Gasparini, N. M., Hobley, 
 Raistrick, A., Lipson, L., Ma, Z., Mei, L., Wang, M., Zuo, Y., Kayan, K., Wen, H., Han, B., Wang, Y., and Newell, A. (2023). **Infinite photorealistic worlds using procedural generation.** In *Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition* (pp. 12630-12641).
 
 Rosier, I., Diels, J., Somers, B., & Van Orshoven, J. (2023). **The impact of vegetated landscape elements on runoff in a small agricultural watershed: A modelling study.** *Journal of Hydrology,* 129144, [DOI](https://doi.org/10.1016/j.jhydrol.2023.129144).
+
+Sharma, H., & Ehlers, T. A. (2023). **Effects of seasonal variations in vegetation and precipitation on catchment erosion rates along a climate and ecological gradient: insights from numerical modeling.** *Earth Surface Dynamics,* 11(6), 1161-1181.
 
 Shmilovitz, Y., Marra, F., Enzel, Y., Morin, E., Armon, M., Matmon, A., ... & Haviv, I. (2023). **The impact of extreme rainstorms on escarpment morphology in arid areas: Insights from the central Negev Desert.** *Journal of Geophysical Research: Earth Surface,* e2023JF007093.
 
@@ -116,7 +139,7 @@ Barnhart, K. R., Tucker, G. E., Doty, S., Shobe, C. M., Glade, R. C., Rossi, M. 
 
 Carriere, A., Le Bouteiller, C., Tucker, G.E., Klotz, S., and Naaim, M. (2020) **Impact of vegetation on erosion: Insights from the calibration and test of a landscape evolution model in alpine badland catchments.** *Earth Surface Processes and Landforms*. [DOI](https://doi.org/10.1002/esp.4741).
 
-Evans, M. J., Scheele, B. C., Westgate, M. J., Yebra, M., Newport, J. S., & Manning, A. D. (2020). Beyond the pond: Terrestrial habitat use by frogs in a changing climate. Biological Conservation, 249, 108712., [DOI](https://doi.org/10.1016/j.biocon.2020.108712).
+Evans, M. J., Scheele, B. C., Westgate, M. J., Yebra, M., Newport, J. S., & Manning, A. D. (2020). **Beyond the pond: Terrestrial habitat use by frogs in a changing climate.** *Biological Conservation,* 249, 108712., [DOI](https://doi.org/10.1016/j.biocon.2020.108712).
 
 Lai, J., & Anders, A. M. (2020). **Tectonic controls on rates and spatial patterns of glacial erosion through geothermal heat flux.** *Earth and Planetary Science Letters,* 543, 116348, [DOI](https://doi.org/10.1016/j.epsl.2020.116348).
 
@@ -152,9 +175,11 @@ Phuong J., C. Bandaragoda, E. Istanbulluoglu, C. Beveridge, R. Strauch, L. Setia
 
 Reitman, N.G., Mueller, K.J., Tucker, G.E., Gold, R.D., Briggs, R.D., and Barnhart, K.R. (2019) **Landscape Evolution Models Demonstrate that Offset Channels are Incomplete Records of Strike-Slip Fault Displacement.** *Journal of Geophysical Research: Solid Earth*, 124, [DOI](https://doi.org/10.1029/2019JB018596).
 
-Sharman, G. R., Sylvester, Z., & Covault, J. A. (2019). **Conversion of tectonic and climatic forcings into records of sediment supply and provenance.** *Scientific Reports*, 9(1), 4115, [DOI](https://doi.org/10.1038/s41598-019-39754-6).
+Sharman, G. R., Sylvester, Z., & Covault, J. A. (2019).
+**Conversion of tectonic and climatic forcings into records of sediment supply and provenance.** *Scientific Reports*, 9(1), 4115, [DOI](https://doi.org/10.1038/s41598-019-39754-6).
 
-Zebari, M., Grützner, C., Navabpour, P., & Ustaszewski, K. (2019). **Relative timing of uplift along the Zagros Mountain Front Flexure (Kurdistan Region of Iraq): Constrained by geomorphic indices and landscape evolution modeling.** *Solid Earth*, 10(3), 663-682
+Zebari, M., Grützner, C., Navabpour, P., & Ustaszewski, K. (2019).
+**Relative timing of uplift along the Zagros Mountain Front Flexure (Kurdistan Region of Iraq): Constrained by geomorphic indices and landscape evolution modeling.** *Solid Earth*, 10(3), 663-682
 [DOI](https://doi.org/10.5194/se-10-663-2019).
 
 ### 2018
@@ -183,8 +208,6 @@ Rasmussen, C., Richardson, P., Swetnam, T.L., and Tucker, G.E. (2018)
 **Which way do you lean? Using slope aspect variations to understand
 Critical Zone processes and feedbacks.** *Earth Surface Processes and
 Landforms*, [DOI](https://doi.org/10.1002/esp.4306).
-[abstract](https://onlinelibrary.wiley.com/doi/abs/10.1002/esp.4306)
-[paper](https://onlinelibrary.wiley.com/doi/epdf/10.1002/esp.4306)
 
 Schmid, M., Ehlers, T.A., Werner, C., Hickler, T., and Fuentes-Espoz, J.
 P. (2018). **Effect of changing vegetation and precipitation on
@@ -225,7 +248,6 @@ Harbert, S.A., and Owen, L.A. (2017) **Off-fault deformation rate along
 the southern San Andreas fault at Mecca Hills, southern California,
 inferred from landscape modeling of curved drainages.** *Geology*, v.
 46(1), p. 59-62, [DOI](https://doi.org/10.1130/G39820.1).
-[abstract and paper](https://pubs.geoscienceworld.org/gsa/geology/article-abstract/46/1/59/522872/Off-fault-deformation-rate-along-the-southern-San?redirectedFrom=fulltext)
 
 Hobley, D.E.J., Adams, J.M., Nudurupati, S.S., Hutton, E.W.H, Gasparini,
 N.M., Istanbulluoglu, E., and Tucker, G.E., **Creative computing with

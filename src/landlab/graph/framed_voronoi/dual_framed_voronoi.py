@@ -1,4 +1,4 @@
-""" Implement the DualFramedVoronoiGraph
+"""Implement the DualFramedVoronoiGraph
 
 @author sebastien lenard
 @date 2022, Aug

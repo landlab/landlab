@@ -6,8 +6,8 @@ Gradient calculation functions
 
 .. autosummary::
 
-    ~landlab.grid.gradients.calc_grad_at_link
-    ~landlab.grid.gradients.calc_diff_at_link
+    ~calc_grad_at_link
+    ~calc_diff_at_link
 """
 
 import numpy as np

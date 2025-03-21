@@ -2,10 +2,10 @@ import os
 import pathlib
 import re
 import sys
+import tomllib
 from datetime import date
 
 import packaging
-import tomli
 
 
 def get_version_from_file(path):
@@ -38,6 +38,7 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",
     "sphinx_copybutton",
+    "sphinx_design",
     "sphinx_inline_tabs",
     "sphinxcontrib.towncrier",
     "sphinx_jinja",
@@ -52,19 +53,7 @@ source_suffix = ".rst"
 # The encoding of source files.
 # source_encoding = 'utf-8-sig'
 
-# Regex for links that we know work in browser, but do not work in sphinx/CI
-# (BE VERY CAREFUL ADDING LINKS TO THIS LIST)
-if os.getenv("GITHUB_ACTIONS"):
-    linkcheck_ignore = [
-        # Added by KRB Dec 2019, at this point two links match this pattern
-        r"https://pubs.geoscienceworld.org/gsa/geology.*",
-        r"https://doi.org/10.1130/*",  # Added by KRB Jan 2019. Four links match this pattern
-        r"https://dx.doi.org/10.1029/2011jf002181",  # Added by EWHH April 2020
-        r"https://doi.org/10.1029/2019JB018596",  # Added by EWHH April 2020
-        r"https://doi.org/10.3133/pp294B",  # Added by EWHH September 2021
-        #     r"https://yaml.org/start.html",  # Added by EWHH September 2021
-    ]
-    linkcheck_retries = 5
+linkcheck_retries = 5
 
 master_doc = "index"
 
@@ -72,8 +61,8 @@ project = "landlab"
 copyright = str(date.today().year) + ", The Landlab Team"
 
 v = get_version_from_file(version_file)
-version = f"{v.major}.{v.minor}"
-release = v.public
+version = "master"
+release = f"{v.major}.{v.minor}"
 
 language = "en"
 
@@ -127,7 +116,6 @@ html_logo = "_static/landlab_logo.png"
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-    "announcement": "<em>Landlab 2.9 released!</em>",
     "source_repository": "https://github.com/landlab/landlab/",
     "source_branch": "master",
     "source_directory": "docs/source",
@@ -157,6 +145,13 @@ html_theme_options = {
         },
     ],
 }
+
+if "READTHEDOCS" in os.environ:
+    html_theme_options["announcement"] = (
+        "This documentation is hosted on Read the Docs only for testing. Please use"
+        " <a href='https://landlab.csdms.io'>the main documentation</a>"
+        " instead."
+    )
 
 # Add any paths that contain custom themes here, relative to this directory.
 # html_theme_path = []
@@ -250,10 +245,11 @@ intersphinx_mapping = {
     "numpy": ("https://numpy.org/doc/stable/", None),
     "scipy": ("https://docs.scipy.org/doc/scipy/", None),
     "xarray": ("https://docs.xarray.dev/en/stable/", None),
+    "matplotlib": ("https://matplotlib.org/stable/", None),
 }
 
 with open("../index.toml", "rb") as fp:
-    cats = tomli.load(fp)
+    cats = tomllib.load(fp)
 cats["grids"].pop("ModelGrid")
 
 jinja_contexts = {"llcats": cats}
@@ -311,13 +307,13 @@ nbsphinx_thumbnails = (
 
 # This is processed by Jinja2 and inserted before each notebook
 nbsphinx_prolog = """
-{% set docname = 'notebooks/' + env.doc2path(env.docname, base=None) %}
+{% set docname = 'docs/source/' + env.doc2path(env.docname, base=None) | string() %}
 
 .. note::
 
     This page was generated from a jupyter notebook_.
 
-.. _notebook: https://github.com/landlab/landlab/blob/{{ env.config.release|e }}/{{ docname|e }}
+.. _notebook: https://github.com/landlab/landlab/blob/{{ env.config.version|e }}/{{ docname|e }}
 """
 
 nbsphinx_epilog = """

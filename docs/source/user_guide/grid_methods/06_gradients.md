@@ -22,7 +22,7 @@ methods tend to start with `calc_`.
       :nosignatures:
 
       {% for func in grids[grid]['gradient'] %}
-        ~{{func}}
+        ~{{func | replace("landlab.", "")}}
       {% endfor %}
   {% endfor %}
 ```
