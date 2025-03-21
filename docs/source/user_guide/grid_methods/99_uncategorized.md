@@ -27,7 +27,7 @@ a future *Landlab* release and so their use is discouraged.
           :nosignatures:
 
           {% for func in grids[grid][cat] %}
-            ~{{func}}
+            ~{{func | replace("landlab.", "")}}
           {% endfor %}
     {% endfor %}
   {% endfor %}

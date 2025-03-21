@@ -28,9 +28,9 @@ classifiers = [
   "Operating System :: OS Independent",
   "Programming Language :: Cython",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: Implementation :: CPython",
   "Topic :: Scientific/Engineering :: Physics",
 ]
@@ -56,17 +56,16 @@ text = "MIT"
 
 [project.urls]
 homepage = "https://github.com/landlab"
-documentation = "https://landlab.readthedocs.io"
+documentation = "https://landlab.csdms.io"
 repository = "https://github.com/landlab"
 changelog = "https://github.com/landlab/landlab/blob/develop/CHANGES.md"
 
 [project.optional-dependencies]
 dev = ["nox"]
 testing = [
-  "coveralls",
+  "coverage",
   "hypothesis",
   "pytest",
-  "pytest-cov",
   "pytest-datadir",
   "pytest-xdist",
 ]
@@ -126,6 +125,7 @@ doctest_optionflags = [
 ]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "richdem: marks tests that use richdem (deselect with '-m \"not richdem\"')",
     "notebook: marks tests as notebook (deselect with '-m \"not notebook\"')"
 ]
 

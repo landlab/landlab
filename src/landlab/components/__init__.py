@@ -4,6 +4,7 @@ from .bedrock_landslider import BedrockLandslider
 from .carbonate import CarbonateProducer
 from .chi_index import ChiFinder
 from .concentration_tracker import ConcentrationTrackerForDiffusion
+from .concentration_tracker import ConcentrationTrackerForSpace
 from .depression_finder import DepressionFinderAndRouter
 from .depth_dependent_diffusion import DepthDependentDiffuser
 from .depth_dependent_taylor_soil_creep import DepthDependentTaylorDiffuser
@@ -72,6 +73,7 @@ from .profiler import ChannelProfiler
 from .profiler import Profiler
 from .profiler import TrickleDownProfiler
 from .radiation import Radiation
+from .river_flow_dynamics import RiverFlowDynamics
 from .sink_fill import SinkFiller
 from .sink_fill import SinkFillerBarnes
 from .soil_moisture import SoilInfiltrationGreenAmpt
@@ -104,6 +106,7 @@ COMPONENTS = [
     ChannelProfiler,
     ChiFinder,
     ConcentrationTrackerForDiffusion,
+    ConcentrationTrackerForSpace,
     DepressionFinderAndRouter,
     DepthDependentDiffuser,
     DepthDependentTaylorDiffuser,
@@ -155,6 +158,7 @@ COMPONENTS = [
     PrecipitationDistribution,
     Profiler,
     Radiation,
+    RiverFlowDynamics,
     SedDepEroder,
     SedimentPulserAtLinks,
     SedimentPulserEachParcel,

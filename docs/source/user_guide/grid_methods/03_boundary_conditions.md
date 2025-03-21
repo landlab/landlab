@@ -23,7 +23,7 @@ update the conditions defined at other grid elements.
       :nosignatures:
 
       {% for func in grids[grid]['boundary-condition'] %}
-        ~{{func}}
+        ~{{func | replace("landlab.", "")}}
       {% endfor %}
   {% endfor %}
 ```

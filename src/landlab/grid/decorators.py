@@ -5,9 +5,9 @@ Grid decorators
 
 .. autosummary::
 
-    ~landlab.grid.decorators.override_array_setitem_and_reset
-    ~landlab.grid.decorators.return_id_array
-    ~landlab.grid.decorators.return_readonly_id_array
+    ~override_array_setitem_and_reset
+    ~return_id_array
+    ~return_readonly_id_array
 """
 
 from functools import wraps

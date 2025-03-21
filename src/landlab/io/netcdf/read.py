@@ -6,7 +6,7 @@ Read netcdf
 
 .. autosummary::
 
-    ~landlab.io.netcdf.read.read_netcdf
+    ~read_netcdf
 """
 import contextlib
 

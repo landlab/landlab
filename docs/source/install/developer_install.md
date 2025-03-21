@@ -51,12 +51,14 @@ mamba install --file=requirements.in -c nodefaults -c conda-forge --override-cha
 ````
 
 ````{tab} conda
+```bash
 cd landlab
 conda install --file=requirements.in -c nodefaults -c conda-forge --override-channels
 ```
 ````
 
 ````{tab} pip
+```bash
 cd landlab
 pip install -r requirements.in
 ```
@@ -68,7 +70,7 @@ pip install -r requirements.in
 you to have a C++ compiler installed. *Linux* will usually already have one,
 on *Mac* you can use *XCode*, and on *Windows* you will need to install *MSVC*.
 For help on installing *MSVC*, you may want to refer to the *conda-forge* page
-on [compiling code on Windows](https://conda-forge.org/docs/maintainer/knowledge_base.html#notes-on-native-code)
+on [compiling code on Windows](https://conda-forge.org/docs/maintainer/knowledge_base/#particularities-on-windows)
 or the [Python wiki page for Windows compilers](https://wiki.python.org/moin/WindowsCompilers).
 
 If you are using *conda*/*mamba*, set up your compilers to build libraries
