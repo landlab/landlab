@@ -4,7 +4,6 @@ Model bedrock incision and gravel transport and abrasion in a network of rivers.
 
 @author: gtucker
 """
-
 import numpy as np
 from landlab import Component
 from landlab import HexModelGrid
@@ -27,7 +26,6 @@ _FIVE_BY_THREE = 5.0 / 3.0
 _WICKERT_ROUGHNESS_FACTOR = 0.17
 _POINT_FIVE = 0.5
 _THREE_BY_TWO = 3.0 / 2.0
-
 
 def _calc_chan_width_fixed_width(coeff, expt, discharge, out=None):
     """Calculate channel width using empirical formula.

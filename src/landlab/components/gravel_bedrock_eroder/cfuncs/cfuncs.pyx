@@ -5,7 +5,7 @@ cimport cython
 cimport numpy as np
 
 DTYPE_INT = int
-ctypedef np.int_t DTYPE_INT_t
+ctypedef np.intp_t DTYPE_INT_t
 
 DTYPE = np.double
 ctypedef np.double_t DTYPE_t
