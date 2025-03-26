@@ -35,27 +35,12 @@ rng = np.random.default_rng()
 # Define species class that inherits composite class methods
 class Species:
     def __init__(self, species_params, latitude):
-        self.all_parts = list(
-            species_params["grow_params"]["glucose_requirement"].keys()
-        )
-        self.growth_parts = self.all_parts.copy()
-        self.growth_parts.remove("reproductive")
-        self.abg_parts = self.growth_parts.copy()
-        self.abg_parts.remove("root")
-        self.dead_parts = [
-            "dead_root",
-            "dead_leaf",
-            "dead_stem",
-            "dead_reproductive",
-        ]
-        self.dead_abg_parts = self.dead_parts.copy()
-        self.dead_abg_parts.remove("dead_root")
-        self.dead_abg_parts.remove("dead_reproductive")
         self.validate_plant_factors(species_params["plant_factors"])
         self.validate_duration_params(species_params["duration_params"])
+        self.define_plant_parts(species_params)
         species_params = self.calculate_derived_params(species_params)
-        self.habit = self.select_habit_class(species_params)
         self.form = self.select_form_class(species_params)
+        self.habit = self.select_habit_class(species_params)
         self.photosynthesis = self.select_photosythesis_type(species_params, latitude)
         # check these below to see if we need to save the composition dictionary not the original
         self.species_plant_factors = species_params["plant_factors"]
@@ -84,6 +69,7 @@ class Species:
                 "stoloniferous",
                 "thicket_forming",
             ],
+            "storage": ["aboveground", "belowground"],
             "p_type": ["C3", "C4"],
         }
 
@@ -124,6 +110,26 @@ class Species:
         ):
             msg = "Start of senescence must be within the growing season"
             raise ValueError(msg)
+    
+    def define_plant_parts(self, species_params):
+        self.all_parts = list(
+            species_params["grow_params"]["glucose_requirement"].keys()
+        )
+        self.growth_parts = self.all_parts.copy()
+        self.growth_parts.remove("reproductive")
+        self.dead_parts = [
+            "dead_root",
+            "dead_leaf",
+            "dead_stem",
+            "dead_reproductive",
+        ]
+
+        if species_params["plant_factors"]["storage"] == "aboveground":
+            self.abg_parts = ("leaf", "stem", "reproductive")
+            self.dead_abg_parts = ("dead_leaf", "dead_stem", "dead_reproductive")
+        else:
+            self.abg_parts = ("leaf", "stem")
+            self.dead_abg_parts = ("dead_leaf", "dead_stem")
 
     def calc_area_of_circle(self, diameter):
         return np.pi / 4 * diameter**2
@@ -654,6 +660,7 @@ class Species:
         _min_temperature,
         _max_temperature,
         cell_lai,
+        _relative_water_content,
         _last_biomass,
         _current_day,
     ):
@@ -669,13 +676,17 @@ class Species:
             _last_biomass,
             _current_day,
         )
-        random_water_stress = rng.normal(loc=0.65, scale=0.12, size=carb_generated.size)
-        random_water_stress[random_water_stress < 0] = 0.0
-        random_water_stress[random_water_stress > 1] = 1.0
-        adj_carb_generated = random_water_stress * carb_generated
-        return adj_carb_generated
+        carb_generated_photo_adj = (
+            carb_generated
+            * _relative_water_content
+            / self.photosynthesis.crit_water_content
+        )
+        carb_generated_photo_adj[
+            carb_generated_photo_adj > carb_generated
+        ] = carb_generated[carb_generated_photo_adj > carb_generated]
+        return carb_generated_photo_adj
 
-    def respire(self, _min_temperature, _max_temperature, _last_biomass):
+    def respire(self, _min_temperature, _max_temperature, _rel_sat, _last_biomass):
         _temperature = (_min_temperature + _max_temperature) / 2
         growdict = self.species_grow_params
         _new_biomass = _last_biomass.copy()
@@ -683,14 +694,19 @@ class Species:
         temp_adj = 2 ** ((_temperature - 25) / 10)
         for part in self.all_parts:
             delta_respire = np.zeros_like(_last_biomass["root"])
+            hypoxic_ratio = growdict["hypoxic_ratio"][part]
+            if part in self.abg_parts:
+                hypoxic_ratio = 1
             filter = np.nonzero(_last_biomass[part] > 0)
+            hypoxia_adjustment = _rel_sat * (hypoxic_ratio - 1) + 1
+            print(hypoxia_adjustment)
             delta_respire[filter] = (
                 temp_adj[filter]
+                * hypoxia_adjustment
                 * growdict["respiration_coefficient"][part]
                 * _last_biomass[part][filter]
             ) / growdict["glucose_requirement"][part]
             _new_biomass[part][filter] -= delta_respire[filter]
-
         return _new_biomass
 
     def senesce(self, plants, jday):

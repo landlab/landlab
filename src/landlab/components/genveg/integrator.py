@@ -366,9 +366,16 @@ class GenVeg(Component, PlantGrowth):
         )
         _max_water_available = self._field_capacity - self._wilt_pt
         _available_water_frac = _available_water_cell / _max_water_available
+        _frac_above_fc = np.subtract(
+            self._soil_water,
+            self._field_capacity,
+            out=np.zeros_like(self._soil_water),
+            where=(self._soil_water > self._field_capacity)
+        )
+        _rel_saturation = _frac_above_fc / (1 - self._field_capacity)
         all_plants = []
         for species_obj in self.plant_species:
-            species_obj._grow(_current_jday, self._par, _available_water_frac)
+            species_obj._grow(_current_jday, self._par, _available_water_frac, _rel_saturation)
 
         all_plants = self.combine_plant_arrays()
         all_plants = self.check_for_dispersal_success(all_plants)

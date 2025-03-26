@@ -512,7 +512,7 @@ class PlantGrowth(Species):
         )
         return self.plants
 
-    def _grow(self, _current_jday, _grid_par, _grid_relative_water_content):
+    def _grow(self, _current_jday, _grid_par, _grid_relative_water_content, _grid_relative_saturation):
         # This is the primary method in PlantGrowth and is run within each
         # GenVeg run_one_step at each timestep. This method applies new environmental
         # conditions daily from the grid, determines what processes run, and implements
@@ -545,6 +545,7 @@ class PlantGrowth(Species):
         _relative_water_content = _grid_relative_water_content[
             _last_biomass["cell_index"]
         ][filter]
+        _rel_sat = _grid_relative_saturation[_last_biomass["cell_index"]][filter]
         _min_temperature = self._grid["cell"]["air__min_temperature_C"][
             _last_biomass["cell_index"]
         ][filter]
@@ -555,7 +556,7 @@ class PlantGrowth(Species):
             _last_biomass["cell_index"]
         ][filter]
         _new_live_biomass = self.respire(
-            _min_temperature, _max_temperature, _new_live_biomass
+            _min_temperature, _max_temperature, _rel_sat, _new_live_biomass
         )
 
         # Change this so for positive delta_tot we allocate by size and
@@ -565,20 +566,14 @@ class PlantGrowth(Species):
                 _min_temperature,
                 _max_temperature,
                 _cell_lai,
+                _relative_water_content,
                 _new_live_biomass,
                 _current_jday,
             )
-            carb_generated_photo_adj = (
-                carb_generated_photo
-                * _relative_water_content
-                / self.photosynthesis.crit_water_content
-            )
-            carb_generated_photo_adj[
-                carb_generated_photo_adj > carb_generated_photo
-            ] = carb_generated_photo[carb_generated_photo_adj > carb_generated_photo]
+
             # Future add turnover rate
             _new_live_biomass = self.allocate_biomass_dynamically(
-                _new_live_biomass, carb_generated_photo_adj
+                _new_live_biomass, carb_generated_photo
             )
         _new_live_biomass = self.kill_small_plants(_new_live_biomass)
         event_flags.pop("_in_growing_season")

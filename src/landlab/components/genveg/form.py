@@ -7,10 +7,50 @@ from .dispersal import Seed
 rng = np.random.default_rng()
 
 
+class Abg_repro:
+    def __init__(self, params):
+        self.abg_parts = ("leaf", "stem", "reproductive")
+        self.dead_abg_parts = ("dead_leaf", "dead_stem", "dead_reproductive")
+        sums = {}
+        sum_vars = [
+
+            ["max_abg_biomass", "plant_part_max", self.abg_parts],
+            ["min_abg_biomass", "plant_part_min", self.abg_parts],
+        ]
+        for sum_var in sum_vars:
+            sums[sum_var[0]] = 0
+            for part in sum_var[2]:
+                sums[sum_var[0]] += params[
+                    "grow_params"
+                ][sum_var[1]][part]
+        self.max_abg_biomass = sums["max_abg_biomass"]
+        self.min_abg_biomass = sums["min_abg_biomass"]
+
+
+class Blg_repro:
+    def __init__(self, params):
+        self.abg_parts = ("leaf", "stem")
+        self.dead_abg_parts = ("dead_leaf", "dead_stem")
+        sums = {}
+        sum_vars = [
+
+            ["max_abg_biomass", "plant_part_max", self.abg_parts],
+            ["min_abg_biomass", "plant_part_min", self.abg_parts],
+        ]
+        for sum_var in sum_vars:
+            sums[sum_var[0]] = 0
+            for part in sum_var[2]:
+                sums[sum_var[0]] += params[
+                    "grow_params"
+                ][sum_var[1]][part]
+        self.max_abg_biomass = sums["max_abg_biomass"]
+        self.min_abg_biomass = sums["min_abg_biomass"]
+
+
 # Growth form classes and selection method
 class Bunch(Seed):
     def __init__(self, params):
-        pass
+        super().__init__(params)
 
     def branch(self):
         print("Limited lateral branching due to clumping")
@@ -21,7 +61,8 @@ class Bunch(Seed):
 
 class Colonizing(Random):
     def __init__(self, params):
-        pass
+        super().__init__(params)
+
 
     def branch(self):
         print("No branching annual")
@@ -32,7 +73,8 @@ class Colonizing(Random):
 
 class Multiplestems(Seed):
     def __init__(self, params):
-        pass
+        super().__init__(params)
+
 
     def branch(self):
         print("Create two or more main stems at or near soil surface")
@@ -55,7 +97,7 @@ class Rhizomatous(Clonal):
 
 class Singlecrown(Seed):
     def __init__(self, params):
-        pass
+        super().__init__(params)
 
     def branch(self):
         print("Herbaceous plant with one persistent base")
@@ -66,7 +108,8 @@ class Singlecrown(Seed):
 
 class Singlestem(Seed):
     def __init__(self, params):
-        pass
+        super().__init__(params)
+
 
     def branch(self):
         print("Plant develops one stem like a tree or a corn plant")
@@ -85,7 +128,7 @@ class Stoloniferous(Clonal):
 
 class Thicketforming(Seed):
     def __init__(self, params):
-        pass
+        super().__init__(params)
 
     def branch(self):
         print("Limited lateral branching due to dense thickets")
