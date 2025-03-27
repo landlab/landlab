@@ -699,10 +699,9 @@ class Species:
                 hypoxic_ratio = 1
             filter = np.nonzero(_last_biomass[part] > 0)
             hypoxia_adjustment = _rel_sat * (hypoxic_ratio - 1) + 1
-            print(hypoxia_adjustment)
             delta_respire[filter] = (
                 temp_adj[filter]
-                * hypoxia_adjustment
+                * hypoxia_adjustment[filter]
                 * growdict["respiration_coefficient"][part]
                 * _last_biomass[part][filter]
             ) / growdict["glucose_requirement"][part]
