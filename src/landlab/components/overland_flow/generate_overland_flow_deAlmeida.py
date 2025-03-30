@@ -698,7 +698,7 @@ class OverlandFlow(Component):
                 g = self._g
 
                 # Cache arrays locally to reduce attribute lookups
-                q = self._q          # discharge on links
+                q = self._q  # discharge on links
                 h_links = self._h_links
 
                 # Pre-calculate sqrt(g * h) once
@@ -722,13 +722,13 @@ class OverlandFlow(Component):
                 # These masks are unambiguous arrays used solely for indexing.
                 cond1 = pos_q & froude_cond  # positive q exceeding Froude
                 cond2 = neg_q & froude_cond  # negative q exceeding Froude
-                cond3 = pos_q & courant_cond # positive q exceeding Courant
-                cond4 = neg_q & courant_cond # negative q exceeding Courant
+                cond3 = pos_q & courant_cond  # positive q exceeding Courant
+                cond4 = neg_q & courant_cond  # negative q exceeding Courant
 
                 # Apply rules directly with boolean-index assignments.
                 # Assign Froude-limited discharge:
                 q[cond1] = h_links[cond1] * sqrt_gh[cond1] * Fr
-                q[cond2] = - h_links[cond2] * sqrt_gh[cond2] * Fr
+                q[cond2] = -h_links[cond2] * sqrt_gh[cond2] * Fr
 
                 # Assign Courant-limited discharge:
                 q[cond3] = (h_links[cond3] * dx / 5.0) / dt
@@ -755,8 +755,8 @@ class OverlandFlow(Component):
             # during testing.
             if self._steep_slopes is True:
                 min_h_value = self._h_init * 1e-3
-                self._h = np.where(self._h < self._h_init, min_h_value, self._h)            
-            
+                self._h = np.where(self._h < self._h_init, min_h_value, self._h)
+
             # And reset our field values with the newest water depth and
             # discharge.
             self._grid.at_node["surface_water__depth"] = self._h
