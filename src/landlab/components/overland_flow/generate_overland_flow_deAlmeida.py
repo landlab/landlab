@@ -96,6 +96,150 @@ from . import _links as links
 
 _SEVEN_OVER_THREE = 7.0 / 3.0
 
+import numba as nb
+
+# Add these JIT-compiled functions outside the class
+@nb.njit
+def _calc_discharge_scalar_n(
+    q, h_links, water_surface_slope, 
+    west_neighbors, east_neighbors, north_neighbors, south_neighbors,
+    horiz, vert, theta, g_dt, manning_n_squared, one_minus_theta_div_2
+):
+    """JIT-compiled function for discharge calculation with scalar Manning's n"""
+    # HORIZONTAL DIRECTION
+    h_q = q[horiz]
+    h_links_h = h_links[horiz]
+    neighbor_sum_h = q[west_neighbors] + q[east_neighbors]
+    
+    # Compute numerator
+    num_h = (theta * h_q + 
+            one_minus_theta_div_2 * neighbor_sum_h - 
+            g_dt * h_links_h * water_surface_slope[horiz])
+    
+    # Compute denominator
+    h_links_pow = h_links_h ** (7.0/3.0)
+    denom_h = 1.0 + g_dt * manning_n_squared * np.abs(h_q) / h_links_pow
+    
+    # Update discharge
+    q[horiz] = num_h / denom_h
+    
+    # VERTICAL DIRECTION
+    v_q = q[vert]
+    h_links_v = h_links[vert]
+    neighbor_sum_v = q[north_neighbors] + q[south_neighbors]
+    
+    # Compute numerator
+    num_v = (theta * v_q + 
+            one_minus_theta_div_2 * neighbor_sum_v - 
+            g_dt * h_links_v * water_surface_slope[vert])
+    
+    # Compute denominator
+    v_links_pow = h_links_v ** (7.0/3.0)
+    denom_v = 1.0 + g_dt * manning_n_squared * np.abs(v_q) / v_links_pow
+    
+    # Update discharge
+    q[vert] = num_v / denom_v
+    
+    return q
+
+@nb.njit
+def _calc_discharge_field_n(
+    q, h_links, water_surface_slope, 
+    west_neighbors, east_neighbors, north_neighbors, south_neighbors,
+    horiz, vert, vertical_ids, theta, g_dt, mannings_n, one_minus_theta_div_2
+):
+    """JIT-compiled function for discharge calculation with field Manning's n"""
+    # HORIZONTAL DIRECTION
+    h_q = q[horiz]
+    h_links_h = h_links[horiz]
+    neighbor_sum_h = q[west_neighbors] + q[east_neighbors]
+    manning_h_squared = mannings_n[horiz] ** 2.0
+    
+    # Compute numerator
+    num_h = (theta * h_q + 
+            one_minus_theta_div_2 * neighbor_sum_h - 
+            g_dt * h_links_h * water_surface_slope[horiz])
+    
+    # Compute denominator
+    h_links_pow = h_links_h ** (7.0/3.0)
+    denom_h = 1.0 + g_dt * manning_h_squared * np.abs(h_q) / h_links_pow
+    
+    # Update discharge
+    q[horiz] = num_h / denom_h
+    
+    # VERTICAL DIRECTION - note different water_surface_slope indexing
+    v_q = q[vert]
+    h_links_v = h_links[vert]
+    neighbor_sum_v = q[north_neighbors] + q[south_neighbors]
+    manning_v_squared = mannings_n[vert] ** 2.0
+    
+    # Compute numerator (note vertical_ids used here)
+    num_v = (theta * v_q + 
+            one_minus_theta_div_2 * neighbor_sum_v - 
+            g_dt * h_links_v * water_surface_slope[vertical_ids])
+    
+    # Compute denominator
+    v_links_pow = h_links_v ** (7.0/3.0)
+    denom_v = 1.0 + g_dt * manning_v_squared * np.abs(v_q) / v_links_pow
+    
+    # Update discharge
+    q[vert] = num_v / denom_v
+    
+    return q
+
+# Define a JIT-compiled function for the steep_slopes calculation
+@nb.njit
+def _apply_steep_slopes(q, h_links, g, dt, dx, Fr=1.0):
+    """
+    Optimized steep slopes calculation with Numba JIT compilation.
+    
+    Parameters
+    ----------
+    q : ndarray
+        Discharge on links
+    h_links : ndarray
+        Water depth on links
+    g : float
+        Gravitational acceleration
+    dt : float
+        Time step
+    dx : float
+        Grid cell size
+    Fr : float, optional
+        Froude number, default=1.0
+        
+    Returns
+    -------
+    q : ndarray
+        Updated discharge array
+    """
+    n = len(q)
+    # Pre-calculate sqrt(g * h)
+    sqrt_gh = np.empty_like(h_links)
+    for i in range(n):
+        sqrt_gh[i] = np.sqrt(g * h_links[i])
+    
+    # Process each element
+    for i in range(n):
+        if h_links[i] <= 0.0:  # Skip dry links
+            continue
+            
+        abs_q = abs(q[i])
+        q_sign = 1.0 if q[i] > 0.0 else -1.0
+        
+        # Froude condition
+        froude_ratio = abs_q / h_links[i] / sqrt_gh[i]
+        if froude_ratio > Fr:
+            q[i] = q_sign * h_links[i] * sqrt_gh[i] * Fr
+            continue  # Skip Courant check if Froude already applied
+        
+        # Courant condition
+        q_courant = abs_q * dt / dx
+        water_div_4 = h_links[i] / 4.0
+        if q_courant > water_div_4:
+            q[i] = q_sign * (h_links[i] * dx / 5.0) / dt
+    
+    return q
 
 def _active_links_at_node(grid, *args):
     """_active_links_at_node([node_ids]) Active links of a node.
@@ -601,83 +745,42 @@ class OverlandFlow(Component):
             horiz = self._horizontal_ids
             vert = self._vertical_ids
             # Now we calculate discharge in the horizontal direction
+            
+            # Cache frequently used values to avoid repeated attribute lookups
+            theta = self._theta
+            g = self._g
+            dt = self._dt
+            q = self._q.copy()  # Make a copy to avoid modifying the original during compilation
+            h_links = self._h_links
+            water_surface_slope = self._water_surface_slope
+
+            # Pre-compute constants
+            one_minus_theta_div_2 = (1.0 - theta) / 2.0
+            g_dt = g * dt
+
             try:
-                self._q[horiz] = (
-                    self._theta * self._q[horiz]
-                    + (1.0 - self._theta)
-                    / 2.0
-                    * (self._q[self._west_neighbors] + self._q[self._east_neighbors])
-                    - self._g
-                    * self._h_links[horiz]
-                    * self._dt
-                    * self._water_surface_slope[horiz]
-                ) / (
-                    1
-                    + self._g
-                    * self._dt
-                    * self._mannings_n**2.0
-                    * abs(self._q[horiz])
-                    / self._h_links[horiz] ** _SEVEN_OVER_THREE
+                # Try with scalar Manning's n
+                manning_n_squared = self._mannings_n**2.0
+                
+                # Use JIT-compiled function for scalar Manning's n
+                self._q = _calc_discharge_scalar_n(
+                    q, h_links, water_surface_slope,
+                    self._west_neighbors, self._east_neighbors, 
+                    self._north_neighbors, self._south_neighbors,
+                    horiz, vert, theta, g_dt, manning_n_squared, one_minus_theta_div_2
                 )
-
-                # ... and in the vertical direction
-                self._q[vert] = (
-                    self._theta * self._q[vert]
-                    + (1 - self._theta)
-                    / 2.0
-                    * (self._q[self._north_neighbors] + self._q[self._south_neighbors])
-                    - self._g
-                    * self._h_links[vert]
-                    * self._dt
-                    * self._water_surface_slope[vert]
-                ) / (
-                    1
-                    + self._g
-                    * self._dt
-                    * self._mannings_n**2.0
-                    * abs(self._q[vert])
-                    / self._h_links[vert] ** _SEVEN_OVER_THREE
-                )
-
+                
             except ValueError:
+                # If Manning's n is a field
                 self._mannings_n = self._grid["link"]["mannings_n"]
-                # if manning's n in a field
-                # calc discharge in horizontal
-                self._q[horiz] = (
-                    self._theta * self._q[horiz]
-                    + (1.0 - self._theta)
-                    / 2.0
-                    * (self._q[self._west_neighbors] + self._q[self._east_neighbors])
-                    - self._g
-                    * self._h_links[horiz]
-                    * self._dt
-                    * self._water_surface_slope[horiz]
-                ) / (
-                    1
-                    + self._g
-                    * self._dt
-                    * self._mannings_n[horiz] ** 2.0
-                    * abs(self._q[horiz])
-                    / self._h_links[horiz] ** _SEVEN_OVER_THREE
-                )
-
-                # ... and in the vertical direction
-                self._q[vert] = (
-                    self._theta * self._q[vert]
-                    + (1 - self._theta)
-                    / 2.0
-                    * (self._q[self._north_neighbors] + self._q[self._south_neighbors])
-                    - self._g
-                    * self._h_links[vert]
-                    * self._dt
-                    * self._water_surface_slope[self._vertical_ids]
-                ) / (
-                    1
-                    + self._g
-                    * self._dt
-                    * self._mannings_n[vert] ** 2.0
-                    * abs(self._q[vert])
-                    / self._h_links[vert] ** _SEVEN_OVER_THREE
+                mannings_n = self._mannings_n  # local reference
+                
+                # Use JIT-compiled function for field Manning's n
+                self._q = _calc_discharge_field_n(
+                    q, h_links, water_surface_slope,
+                    self._west_neighbors, self._east_neighbors, 
+                    self._north_neighbors, self._south_neighbors,
+                    horiz, vert, self._vertical_ids, theta, g_dt, mannings_n, one_minus_theta_div_2
                 )
 
             # Now to return the array to its original length (length of number
@@ -692,48 +795,9 @@ class OverlandFlow(Component):
 
             if self._steep_slopes is True:
                 # Constants
-                Fr = 1.0
-                dx = self._grid.dx
-                dt = self._dt
-                g = self._g
-
-                # Cache arrays locally to reduce attribute lookups
-                q = self._q  # discharge on links
-                h_links = self._h_links
-
-                # Pre-calculate sqrt(g * h) once
-                sqrt_gh = np.sqrt(g * h_links)
-
-                # Calculate boolean masks for positive and negative q
-                pos_q = q > 0
-                neg_q = q < 0
-
-                # Froude conditions: calculate the nondimensional ratio and compare
-                # (q/h_links) / sqrt_gh is equivalent to q/(h_links*sqrt_gh)
-                froude_ratio = np.abs(q / h_links / sqrt_gh)
-                froude_cond = froude_ratio > Fr
-
-                # Courant conditions: compute q_courant and compare against water_div_4
-                q_courant = np.abs(q) * dt / dx
-                water_div_4 = h_links / 4.0
-                courant_cond = q_courant > water_div_4
-
-                # Build boolean masks for each of the four cases
-                # These masks are unambiguous arrays used solely for indexing.
-                cond1 = pos_q & froude_cond  # positive q exceeding Froude
-                cond2 = neg_q & froude_cond  # negative q exceeding Froude
-                cond3 = pos_q & courant_cond  # positive q exceeding Courant
-                cond4 = neg_q & courant_cond  # negative q exceeding Courant
-
-                # Apply rules directly with boolean-index assignments.
-                # Assign Froude-limited discharge:
-                q[cond1] = h_links[cond1] * sqrt_gh[cond1] * Fr
-                q[cond2] = -h_links[cond2] * sqrt_gh[cond2] * Fr
-
-                # Assign Courant-limited discharge:
-                q[cond3] = (h_links[cond3] * dx / 5.0) / dt
-                q[cond4] = -(h_links[cond4] * dx / 5.0) / dt
-
+                self._q = _apply_steep_slopes(
+                    self._q, self._h_links, self._g, self._dt, self._grid.dx
+                )
             # Once stability has been restored, we calculate the change in
             # water depths on all core nodes by finding the difference between
             # inputs (rainfall) and the inputs/outputs (flux divergence of
