@@ -39,8 +39,8 @@ src/landlab/graph/structured_quad/ext/at_patch.pyx
 src/landlab/graph/voronoi/ext/delaunay.pyx
 src/landlab/graph/voronoi/ext/voronoi.pyx
 src/landlab/grid/ext/raster_divergence.pyx
-src/landlab/grid/ext/raster_mappers.pyx
 src/landlab/grid/ext/raster_gradient.pyx
+src/landlab/grid/ext/raster_mappers.pyx
 src/landlab/layers/ext/eventlayers.pyx
 src/landlab/utils/_matrix.pyx
 src/landlab/utils/ext/jaggedarray.pyx

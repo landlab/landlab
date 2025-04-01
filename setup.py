@@ -4,7 +4,6 @@ from Cython.Build import cythonize
 from setuptools import Extension
 from setuptools import setup
 
-
 with open("cython-files.txt") as fp:
     cython_files = {fname.strip() for fname in fp.readlines()}
 
