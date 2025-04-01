@@ -48,19 +48,18 @@ def map_max_of_link_nodes_to_link_fast(grid, value_at_node, out=None):
     return out
 
 
-@pytest.mark.benchmark(group="map_max_of_link_nodes_to_link")
 @pytest.mark.parametrize(
     "func",
     (map_max_of_link_nodes_to_link_fast, map_max_of_link_nodes_to_link_slow),
     ids=("CYTHON", "PYTHON"),
 )
-def test_map_max_of_link_nodes_to_link_bench(benchmark, func):
+def test_map_max_of_link_nodes_to_link_bench(func):
     grid = RasterModelGrid((300, 4000))
 
     value_at_node = np.arange(grid.number_of_nodes, dtype=int)
     out = np.full(grid.number_of_links, -999, dtype=int)
 
-    benchmark(func, grid, value_at_node, out=out)
+    func(grid, value_at_node, out=out)
 
     assert np.all(out >= 0)
     assert np.all(out < grid.number_of_nodes)
@@ -79,7 +78,6 @@ def test_map_max_of_link_nodes_to_link_cmp():
     assert_array_equal(actual, expected)
 
 
-@pytest.mark.benchmark(group="raster_mappers")
 @pytest.mark.parametrize(
     "func",
     [
@@ -93,12 +91,12 @@ def test_map_max_of_link_nodes_to_link_cmp():
         map_min_of_outlinks_to_node,
     ],
 )
-def test_mapper_bench(benchmark, func):
+def test_mapper_bench(func):
     grid = RasterModelGrid((300, 4000))
 
     value_at_link = np.arange(grid.number_of_links, dtype=int)
     out = np.full(grid.number_of_nodes, -999, dtype=int)
 
-    benchmark(func, grid, value_at_link, out=out)
+    func(grid, value_at_link, out=out)
 
     assert np.all(out >= 0)
