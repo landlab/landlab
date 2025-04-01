@@ -1,5 +1,4 @@
 import numpy as np
-import pytest
 from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
@@ -7,13 +6,13 @@ from landlab.components.overland_flow._calc import sum_parallel_links
 from landlab.graph.structured_quad.ext.at_link import fill_parallel_links_at_link
 
 
-def test_sum_parallel_links_bench(benchmark):
+def test_sum_parallel_links_bench():
     shape = (400, 5000)
     grid = RasterModelGrid(shape)
     value_at_link = np.arange(grid.number_of_links, dtype=int)
     actual = np.full_like(value_at_link, -999)
 
-    benchmark(sum_parallel_links, actual, value_at_link, shape)
+    sum_parallel_links(actual, value_at_link, shape)
 
     sum_at_horizontal_links = actual[grid.horizontal_links].reshape((shape[0], -1))
     sum_at_vertical_links = actual[grid.vertical_links].reshape((-1, shape[1]))
@@ -51,13 +50,12 @@ def test_sum_parallel_links():
     )
 
 
-@pytest.mark.benchmark(group="small")
-def test_fill_parallel_links(benchmark):
+def test_fill_parallel_links():
     grid = RasterModelGrid((3, 4))
 
     parallel_links_at_link = np.full((grid.number_of_links, 2), -999, dtype=int)
 
-    benchmark(fill_parallel_links_at_link, grid.shape, parallel_links_at_link)
+    fill_parallel_links_at_link(grid.shape, parallel_links_at_link)
 
     assert not np.any(parallel_links_at_link == -999)
     assert_array_equal(
@@ -89,13 +87,12 @@ def test_fill_parallel_links(benchmark):
     )
 
 
-@pytest.mark.benchmark(group="large")
-def test_fill_parallel_links_speed_c(benchmark):
+def test_fill_parallel_links_speed_c():
     grid = RasterModelGrid((300, 4000))
 
     parallel_links_at_link = np.full((grid.number_of_links, 2), -999, dtype=int)
 
-    benchmark(fill_parallel_links_at_link, grid.shape, parallel_links_at_link)
+    fill_parallel_links_at_link(grid.shape, parallel_links_at_link)
 
     assert not np.any(parallel_links_at_link == -999)
 
@@ -115,12 +112,11 @@ def _parallel_links_at_link(grid, out):
     ]
 
 
-@pytest.mark.benchmark(group="large")
-def test_fill_parallel_links_python(benchmark):
+def test_fill_parallel_links_python():
     grid = RasterModelGrid((300, 4000))
 
     parallel_links_at_link = np.full((grid.number_of_links, 2), -999, dtype=int)
 
-    benchmark(_parallel_links_at_link, grid, parallel_links_at_link)
+    _parallel_links_at_link(grid, parallel_links_at_link)
 
     assert not np.any(parallel_links_at_link == -999)
