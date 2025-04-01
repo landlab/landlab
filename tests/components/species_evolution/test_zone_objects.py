@@ -14,7 +14,7 @@ from landlab.components.species_evolution import zone as zn
 @pytest.fixture()
 def zone_example_grid():
     mg = RasterModelGrid((5, 7), 2)
-    z = mg.add_zeros("node", "topographic__elevation")
+    z = mg.add_zeros("topographic__elevation", at="node")
     return mg, z
 
 

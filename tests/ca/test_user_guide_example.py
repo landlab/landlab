@@ -101,7 +101,7 @@ def test_user_guide_example():
     # Create an array containing the initial node-state values
 
     # Create the node-state array and attach it to the grid
-    node_state_grid = mg.add_zeros("node", "node_state_map", dtype=int)
+    node_state_grid = mg.add_zeros("node_state_map", at="node", dtype=int)
 
     # Initialize the node-state array: here, the initial condition is a pile of
     # resting grains at the bottom of a container.

@@ -1,6 +1,5 @@
 # ! /usr/env/python
-"""Tests for Profiler.
-"""
+"""Tests for Profiler."""
 import numpy as np
 import pytest
 

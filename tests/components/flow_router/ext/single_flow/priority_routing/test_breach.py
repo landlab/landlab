@@ -1,4 +1,6 @@
-import test_breach_c as breach
+from landlab.components.flow_router.ext.single_flow.priority_routing import (
+    _test_breach_c as breach,
+)
 
 
 def test_priority_queue():

@@ -242,7 +242,7 @@ def test_missing_area_coefficient():
 
 def test_with_hex_grid():
     hg = HexModelGrid((10, 10), node_layout="rect")
-    _ = hg.add_zeros("node", "topographic__elevation")
+    _ = hg.add_zeros("topographic__elevation", at="node")
     np.random.seed(50)
     noise = np.random.rand(100)
     hg.at_node["topographic__elevation"] += noise

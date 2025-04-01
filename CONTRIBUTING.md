@@ -91,7 +91,7 @@ Changes to landlab should be submitted as
 If you would like to create a new component, we a few conventions that we would
 like you to follow.
 
-Please visit [this part](https://landlab.readthedocs.io/en/master/development/index.html)
+Please visit [this part](https://landlab.csdms.io/install/)
 of the main Landlab documentation page to read about developer installation,
 guidelines to contributing code, and our software development practices.
 

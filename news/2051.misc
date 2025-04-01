@@ -1,0 +1,2 @@
+Fixed a *jinja* error when building the docs using newer versions of
+*sphinx*.

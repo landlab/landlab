@@ -28,6 +28,7 @@ _EXCLUDE_COMPONENTS = {
     "BedParcelInitializerUserD50",
     "SedimentPulserEachParcel",
     "SedimentPulserAtLinks",
+    "ConcentrationTrackerForSpace",
 }
 
 

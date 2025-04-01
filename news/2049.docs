@@ -1,0 +1,3 @@
+
+Fixed an issue with the citation section of the docs that caused the
+tabs to not render correctly.

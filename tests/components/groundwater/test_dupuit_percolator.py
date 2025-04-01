@@ -202,9 +202,9 @@ def test_wt_above_surface_standard_run_step():
 
     grid = RasterModelGrid((3, 3))
     grid.set_closed_boundaries_at_grid_edges(True, True, True, False)
-    wt = grid.add_ones("node", "water_table__elevation")
-    _ = grid.add_ones("node", "topographic__elevation")
-    _ = grid.add_zeros("node", "aquifer_base__elevation")
+    wt = grid.add_ones("water_table__elevation", at="node")
+    _ = grid.add_ones("topographic__elevation", at="node")
+    _ = grid.add_zeros("aquifer_base__elevation", at="node")
 
     # initialize the groundwater model
     gdp = GroundwaterDupuitPercolator(grid, recharge_rate=0.0)
@@ -215,9 +215,9 @@ def test_wt_above_surface_standard_run_step():
 def test_wt_above_surface_adaptive_run_step():
     grid = RasterModelGrid((3, 3))
     grid.set_closed_boundaries_at_grid_edges(True, True, True, False)
-    wt = grid.add_ones("node", "water_table__elevation")
-    _ = grid.add_ones("node", "topographic__elevation")
-    _ = grid.add_zeros("node", "aquifer_base__elevation")
+    wt = grid.add_ones("water_table__elevation", at="node")
+    _ = grid.add_ones("topographic__elevation", at="node")
+    _ = grid.add_zeros("aquifer_base__elevation", at="node")
 
     # initialize the groundwater model
     gdp = GroundwaterDupuitPercolator(grid, recharge_rate=0.0)
@@ -240,11 +240,11 @@ def test_inactive_interior_node():
 
     mg = RasterModelGrid((4, 4), xy_spacing=1.0)
     mg.status_at_node[5] = mg.BC_NODE_IS_FIXED_VALUE
-    elev = mg.add_zeros("node", "topographic__elevation")
+    elev = mg.add_zeros("topographic__elevation", at="node")
     elev[:] = 1
-    base = mg.add_zeros("node", "aquifer_base__elevation")
+    base = mg.add_zeros("aquifer_base__elevation", at="node")
     base[:] = 0
-    wt = mg.add_zeros("node", "water_table__elevation")
+    wt = mg.add_zeros("water_table__elevation", at="node")
     wt[:] = 1
 
     gdp = GroundwaterDupuitPercolator(mg)
@@ -267,11 +267,11 @@ def test_k_func():
 
     # initialize model grid
     mg = RasterModelGrid((4, 4), xy_spacing=1.0)
-    elev = mg.add_zeros("node", "topographic__elevation")
+    elev = mg.add_zeros("topographic__elevation", at="node")
     elev[:] = 1
-    base = mg.add_zeros("node", "aquifer_base__elevation")
+    base = mg.add_zeros("aquifer_base__elevation", at="node")
     base[:] = 0
-    wt = mg.add_zeros("node", "water_table__elevation")
+    wt = mg.add_zeros("water_table__elevation", at="node")
     wt[:] = 0.5
 
     # initialize model without giving k_func

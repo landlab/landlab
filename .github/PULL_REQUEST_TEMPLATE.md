@@ -29,7 +29,7 @@
     folder.
 -->
 
-- [ ] Add a [news fragment](https://landlab.readthedocs.io/en/master/development/contribution/index.html#news-entries) file entry if necessary?
+- [ ] Add a [news fragment](https://landlab.csdms.io/development/contribution/#news-entries) file entry if necessary?
 - [ ] Add / update tests if necessary?
 - [ ] Add new / update outdated documentation?
 - [ ] All tests have passed?
@@ -42,7 +42,7 @@
 
      Helpful links:
 
-      Developer guide: https://landlab.readthedocs.io/en/master/development
+      Developer guide: https://landlab.csdms.io/development/
       Ask a question or submit an issue: https://github.com/landlab/landlab/issues
       Landlab Slack channel: https://landlab.slack.com
 -->
