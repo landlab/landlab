@@ -51,9 +51,9 @@ def _calc_chan_width_fixed_width(coeff, expt, discharge, out=None):
     Examples
     --------
     >>> _calc_chan_width_fixed_width(1.0, 0.5, np.array([1.0]))
-    array([ 1.])
+    array([1.])
     >>> _calc_chan_width_fixed_width(6e-8, 0.5, np.array([100.0]))
-    array([  6.00000000e-07])
+    array([6.e-07])
     """
 
     if out is None:
@@ -109,7 +109,7 @@ def _calc_near_threshold_width(median_size,
     >>> median_size = np.array([0.01])
     >>> epsilon = 0.2
     >>> _calc_near_threshold_width(median_size, tau_star_c_median, discharge, slope, g_star, SG, epsilon, out=None)
-    array([ 6.59246163])
+    array([6.59246163])
     """
     if out is None:
         out = np.empty_like(discharge)
@@ -143,7 +143,7 @@ def _calc_shear_stress_coef(rho_w, mannings_n, g=_EARTH_GRAV):
     Examples
     --------
     >>> np.round(int(_calc_shear_stress_coef(1000, 0.05)*1000))
-    51
+    np.int64(51)
     """
 
     return rho_w * g * mannings_n ** (.6) * (1/_SEC_PER_YEAR)**0.6
@@ -214,7 +214,7 @@ def _tau_crit_fixed_width(rho_sed, rho_w, grain_size, tau_star_crit, g=_EARTH_GR
     >>> grain_size = np.array([0.1])
     >>> g = _EARTH_GRAV
     >>> _tau_crit_fixed_width(rho_sed, rho_w, grain_size, tau_star_crit, g)
-    array([ 72.83925])
+    array([72.83925])
     """
 
     if out is None:
@@ -699,7 +699,7 @@ class GravelBedrockEroder(Component):
 
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import FlowAccumulator
-        >>> from soil_grading import SoilGrading
+        >>> from landlab.components.soil_grading import SoilGrading
         >>> xy_spacing=100
         >>> grid = RasterModelGrid((3, 4), xy_spacing=xy_spacing)
         >>> elev = grid.add_zeros("topographic__elevation", at="node")
@@ -772,7 +772,7 @@ class GravelBedrockEroder(Component):
         """""
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import FlowAccumulator
-        >>> from soil_grading import SoilGrading
+        >>> from landlab.components.soil_grading import SoilGrading
         >>> xy_spacing=100
         >>> grid = RasterModelGrid((3, 4), xy_spacing=xy_spacing)
         >>> elev = grid.add_zeros("topographic__elevation", at="node")
@@ -823,7 +823,7 @@ class GravelBedrockEroder(Component):
         """"
        >>> from landlab import RasterModelGrid
        >>> from landlab.components import FlowAccumulator
-       >>> from soil_grading import SoilGrading
+       >>> from landlab.components.soil_grading import SoilGrading
        >>> xy_spacing=100
        >>> grid = RasterModelGrid((3, 4), xy_spacing=xy_spacing)
        >>> elev = grid.add_zeros("topographic__elevation", at="node")
@@ -842,7 +842,7 @@ class GravelBedrockEroder(Component):
        >>> fa.run_one_step()
        >>> eroder = GravelBedrockEroder(grid, sediment_porosity=porosity, rho_sed=rho_sed)
        >>> eroder._thickness_by_class[grid.core_nodes[0]]
-       array([ 1.,  1.,  1.])
+       array([1., 1., 1.])
        """
 
         # Grains weight is the weight per grid cell area
@@ -868,7 +868,7 @@ class GravelBedrockEroder(Component):
         --------
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import FlowAccumulator
-        >>> from soil_grading import SoilGrading
+        >>> from landlab.components.soil_grading import SoilGrading
         >>> xy_spacing=100
         >>> grid = RasterModelGrid((3, 4), xy_spacing=xy_spacing)
         >>> elev = grid.add_zeros("topographic__elevation", at="node")
@@ -887,12 +887,12 @@ class GravelBedrockEroder(Component):
         >>> eroder = GravelBedrockEroder(grid)
         >>> eroder.calc_rock_exposure_fraction()
         >>> eroder._rock_exposure_fraction[5:7]
-        array([ 0.,  1.])
+        array([0., 1.])
         >>> grid.at_node['soil__depth'][5] = 1.0  # exposure frac should be 1/e ~ 0.3679
         >>> grid.at_node['soil__depth'][6] = 2.0  # exposure frac should be 1/e^2 ~ 0.1353
         >>> eroder.calc_rock_exposure_fraction()
         >>> np.round(eroder._rock_exposure_fraction[5:7], 4)
-        array([ 0.3679,  0.1353])
+        array([0.3679, 0.1353])
         """
         self._rock_exposure_fraction[:] = np.exp(-self._sed / self._depth_decay_scale)
 
@@ -901,7 +901,7 @@ class GravelBedrockEroder(Component):
 
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import FlowAccumulator
-        >>> from soil_grading import SoilGrading
+        >>> from landlab.components.soil_grading import SoilGrading
         >>> xy_spacing=100
         >>> grid = RasterModelGrid((3, 4), xy_spacing=xy_spacing)
         >>> elev = grid.add_zeros("topographic__elevation", at="node")
@@ -919,7 +919,7 @@ class GravelBedrockEroder(Component):
         >>> eroder = GravelBedrockEroder(grid)
         >>> eroder._calc_tau_star_c()
         >>> eroder._tau_star_c[grid.core_nodes[0]]
-        array([ 0.21538354,  0.045     ,  0.01506305])
+        array([0.21538354, 0.045     , 0.01506305])
         """
 
         fractions_sizes = self._grid.at_node['grains_classes__size']
@@ -965,7 +965,7 @@ class GravelBedrockEroder(Component):
         --------
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import FlowAccumulator
-        >>> from soil_grading import SoilGrading
+        >>> from landlab.components.soil_grading import SoilGrading
         >>> xy_spacing=100
         >>> grid = RasterModelGrid((3, 4), xy_spacing=xy_spacing)
         >>> elev = grid.add_zeros("topographic__elevation", at="node")
@@ -984,7 +984,7 @@ class GravelBedrockEroder(Component):
         >>> eroder._sed_influxes[grid.core_nodes[0]]=1
         >>> eroder.calc_abrasion_rate()
         >>> eroder._sed_abr_rates[grid.core_nodes[0]]
-        array([ 0.005,  0.005,  0.005])
+        array([0.005, 0.005, 0.005])
         """
 
         num_sed_classes = self._n_classes
@@ -1014,7 +1014,7 @@ class GravelBedrockEroder(Component):
 
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import FlowAccumulator
-        >>> from soil_grading import SoilGrading
+        >>> from landlab.components.soil_grading import SoilGrading
         >>> xy_spacing=100
         >>> grid = RasterModelGrid((3, 4), xy_spacing=xy_spacing)
         >>> elev = grid.add_zeros("topographic__elevation", at="node")
@@ -1061,7 +1061,7 @@ class GravelBedrockEroder(Component):
         """Calculate tau star at node
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import FlowAccumulator
-        >>> from soil_grading import SoilGrading
+        >>> from landlab.components.soil_grading import SoilGrading
         >>> xy_spacing=100
         >>> grid = RasterModelGrid((3, 4), xy_spacing=xy_spacing)
         >>> elev = grid.add_zeros("topographic__elevation", at="node")
@@ -1080,7 +1080,7 @@ class GravelBedrockEroder(Component):
         >>> eroder._tau[grid.core_nodes[0]] = 10
         >>> eroder._calc_tau_star()
         >>> np.round(eroder._tau_star[grid.core_nodes[0]],3)
-        array([ 0.618,  0.062,  0.012])
+        array([0.618, 0.062, 0.012])
 
 
         """
@@ -1153,7 +1153,7 @@ class GravelBedrockEroder(Component):
         --------
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import FlowAccumulator
-        >>> from soil_grading import SoilGrading
+        >>> from landlab.components.soil_grading import SoilGrading
         >>> xy_spacing=100
         >>> grid = RasterModelGrid((3, 4), xy_spacing=xy_spacing)
         >>> elev = grid.add_zeros("topographic__elevation", at="node")
@@ -1546,7 +1546,7 @@ class GravelBedrockEroder(Component):
         """Calculate width
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import FlowAccumulator
-        >>> from soil_grading import SoilGrading
+        >>> from landlab.components.soil_grading import SoilGrading
         >>> xy_spacing=100
         >>> grid = RasterModelGrid((3, 4), xy_spacing=xy_spacing)
         >>> elev = grid.add_zeros("topographic__elevation", at="node")
@@ -1625,7 +1625,7 @@ class GravelBedrockEroder(Component):
 
 
 if __name__ == '__main__':
-    from soil_grading import SoilGrading
+    from landlab.components.soil_grading import SoilGrading
     import doctest
     doctest.testmod(name='calc_rock_exposure_fraction')
 

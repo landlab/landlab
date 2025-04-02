@@ -1,3 +1,3 @@
-from .diffusion import LinearDiffuser
+from .diffusion import LinearDiffuser, LinearDiffuserMultiClass
 
-__all__ = ["LinearDiffuser"]
+__all__ = ["LinearDiffuser","LinearDiffuserMultiClass"]
