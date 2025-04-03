@@ -11,6 +11,7 @@ from landlab import HexModelGrid
 from landlab import RasterModelGrid
 from landlab.components.overland_flow import OverlandFlow
 from landlab.graph.structured_quad.structured_quad import StructuredQuadGraphTopology
+from landlab.grid.nodestatus import NodeStatus
 
 (_SHAPE, _SPACING, _ORIGIN) = ((32, 240), (25, 25), (0.0, 0.0))
 _ARGS = (_SHAPE, _SPACING, _ORIGIN)
@@ -364,3 +365,18 @@ def test_no_water_no_time_step(grid):
     overland_flow = OverlandFlow(grid)
     with pytest.raises(ValueError):
         overland_flow.run_one_step()
+
+
+def test_update_active_node(grid):
+    overland_flow = OverlandFlow(grid)
+
+    expected = grid.ones(at="node", dtype=bool)
+    expected[grid.nodes_at_corners_of_grid,] = False
+
+    active_nodes = overland_flow.update_active_nodes().copy()
+    assert np.all(active_nodes == expected)
+
+    grid.status_at_node[grid.shape[1] + 1] = NodeStatus.CLOSED
+
+    assert np.all(overland_flow.update_active_nodes(clear_cache=False) == active_nodes)
+    assert np.any(overland_flow.update_active_nodes(clear_cache=True) != active_nodes)
