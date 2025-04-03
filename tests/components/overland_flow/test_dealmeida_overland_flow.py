@@ -265,3 +265,37 @@ def test_deAlm_rainfall_array():
     deAlm1.run_one_step(100)
     deAlm2.run_one_step(100)
     np.testing.assert_equal(deAlm1.h, deAlm2.h)
+
+
+def test_rainfall_intensity_setter(grid):
+    overland_flow = OverlandFlow(grid)
+
+    assert overland_flow.rainfall_intensity == pytest.approx(0.0)
+
+    overland_flow.rainfall_intensity = 12.0
+    np.testing.assert_almost_equal(
+        overland_flow.rainfall_intensity, grid.ones(at="node") * 12.0
+    )
+
+    overland_flow.rainfall_intensity = np.arange(grid.number_of_nodes)
+    np.testing.assert_almost_equal(
+        overland_flow.rainfall_intensity, np.arange(grid.number_of_nodes)
+    )
+
+    overland_flow.rainfall_intensity = 0.0
+    np.testing.assert_almost_equal(
+        overland_flow.rainfall_intensity, grid.zeros(at="node")
+    )
+
+
+def test_bad_rainfall_intensity(grid):
+    overland_flow = OverlandFlow(grid)
+
+    with pytest.raises(ValueError):
+        overland_flow.rainfall_intensity = -1.0
+
+    rainfall_intensity = grid.ones(at="node")
+    rainfall_intensity[-1] = -1e-6
+
+    with pytest.raises(ValueError):
+        overland_flow.rainfall_intensity = rainfall_intensity
