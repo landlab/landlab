@@ -5,6 +5,7 @@ last updated: 3/14/16
 """
 
 import numpy as np
+import pytest
 
 from landlab import RasterModelGrid
 from landlab.components.overland_flow import OverlandFlow
@@ -17,6 +18,15 @@ _ARGS = (_SHAPE, _SPACING, _ORIGIN)
 def _left_edge_horizontal_ids(shape):
     layout = StructuredQuadGraphTopology(shape)
     return layout.horizontal_links.reshape((shape[0], shape[1] - 1))[:, 0]
+
+
+@pytest.fixture
+def grid():
+    grid = RasterModelGrid((3, 4), xy_spacing=1.0)
+    grid.add_zeros("surface_water__depth", at="node")
+    grid.add_zeros("topographic__elevation", at="node")
+
+    return grid
 
 
 def test_deAlm_name(deAlm):
