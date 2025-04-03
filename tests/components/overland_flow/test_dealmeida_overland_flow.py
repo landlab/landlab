@@ -7,6 +7,7 @@ last updated: 3/14/16
 import numpy as np
 import pytest
 
+from landlab import HexModelGrid
 from landlab import RasterModelGrid
 from landlab.components.overland_flow import OverlandFlow
 from landlab.graph.structured_quad.structured_quad import StructuredQuadGraphTopology
@@ -27,6 +28,65 @@ def grid():
     grid.add_zeros("topographic__elevation", at="node")
 
     return grid
+
+
+def test_not_a_raster_grid():
+    grid = HexModelGrid((4, 5))
+    with pytest.raises(NotImplementedError):
+        OverlandFlow(grid)
+
+
+def test_unequal_spacing():
+    grid = RasterModelGrid((4, 5), xy_spacing=(3.0, 4.0))
+    with pytest.raises(ValueError):
+        OverlandFlow(grid)
+
+
+@pytest.mark.parametrize(
+    "key,value",
+    (
+        ("g", 0.0),
+        ("g", -1.0),
+        ("theta", -1e-6),
+        ("theta", 1.00001),
+    ),
+)
+def test_invalid_keyword_values(grid, key, value):
+    with pytest.raises(ValueError):
+        OverlandFlow(grid, **{key: value})
+
+
+def test_mannings_n_as_a_field():
+    initial_elevation = [
+        [0.0, 0.0, 0.0, 0.0, 0.0],
+        [1.0, 1.0, 1.0, 1.0, 1.0],
+        [2.0, 2.0, 2.0, 2.0, 2.0],
+        [3.0, 3.0, 3.0, 3.0, 3.0],
+    ]
+    initial_water_depth = [
+        [0.0, 0.0, 0.0, 0.0, 0.0],
+        [0.0, 0.0, 0.0, 0.0, 0.0],
+        [0.0, 0.0, 0.0, 0.0, 0.0],
+        [0.1, 0.1, 0.1, 0.1, 0.1],
+    ]
+
+    grid = RasterModelGrid((4, 5))
+    grid.at_node["topographic__elevation"] = initial_elevation
+    grid.at_node["surface_water__depth"] = initial_water_depth
+
+    expected = OverlandFlow(grid, mannings_n=0.03, steep_slopes=True)
+    expected.run_one_step()
+
+    grid = RasterModelGrid((4, 5))
+    grid.at_node["topographic__elevation"] = initial_elevation
+    grid.at_node["surface_water__depth"] = initial_water_depth
+    grid.add_empty("foo", at="link")
+    grid.at_link["foo"].fill(0.03)
+
+    actual = OverlandFlow(grid, mannings_n="foo", steep_slopes=True)
+    actual.run_one_step()
+
+    np.testing.assert_almost_equal(actual.h, expected.h)
 
 
 def test_deAlm_name(deAlm):
