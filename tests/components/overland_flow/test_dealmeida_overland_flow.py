@@ -299,3 +299,55 @@ def test_bad_rainfall_intensity(grid):
 
     with pytest.raises(ValueError):
         overland_flow.rainfall_intensity = rainfall_intensity
+
+
+def test_discharge_mapper():
+    grid = RasterModelGrid((3, 4), xy_spacing=1.0)
+    grid.add_zeros("surface_water__depth", at="node")
+    grid.add_zeros("topographic__elevation", at="node")
+
+    overland_flow = OverlandFlow(grid)
+
+    discharge_at_link = grid.ones(at="link", dtype=float)
+    discharge_at_node = overland_flow.discharge_mapper(discharge_at_link)
+
+    np.testing.assert_almost_equal(
+        discharge_at_node,
+        [
+            *[0.0, 1.0, 1.0, 1.0],
+            *[1.0, 2.0, 2.0, 2.0],
+            *[1.0, 2.0, 2.0, 2.0],
+        ],
+    )
+
+
+def test_discharge_mapper_out_keyword(grid):
+    discharge_at_link = grid.ones(at="link", dtype=float)
+
+    overland_flow = OverlandFlow(grid)
+    discharge_at_node = grid.empty(at="node")
+    out = overland_flow.discharge_mapper(discharge_at_link, out=discharge_at_node)
+
+    assert out is discharge_at_node
+    np.testing.assert_almost_equal(
+        discharge_at_node, overland_flow.discharge_mapper(discharge_at_link)
+    )
+
+
+@pytest.mark.parametrize("spacing", (1.0, 2.0))
+def test_discharge_mapper_convert_to_volume(spacing):
+    grid = RasterModelGrid((3, 4), xy_spacing=spacing)
+    grid.add_zeros("surface_water__depth", at="node")
+    grid.add_zeros("topographic__elevation", at="node")
+    discharge_at_link = grid.ones(at="link", dtype=float)
+
+    overland_flow = OverlandFlow(grid)
+    discharge_at_node = overland_flow.discharge_mapper(
+        discharge_at_link, convert_to_volume=True
+    )
+
+    np.testing.assert_almost_equal(
+        discharge_at_node,
+        overland_flow.discharge_mapper(discharge_at_link, convert_to_volume=False)
+        * spacing,
+    )
