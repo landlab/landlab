@@ -20,6 +20,15 @@ def _left_edge_horizontal_ids(shape):
     return layout.horizontal_links.reshape((shape[0], shape[1] - 1))[:, 0]
 
 
+@pytest.fixture
+def grid():
+    grid = RasterModelGrid((3, 4), xy_spacing=1.0)
+    grid.add_zeros("surface_water__depth", at="node")
+    grid.add_zeros("topographic__elevation", at="node")
+
+    return grid
+
+
 def test_deAlm_name(deAlm):
     assert deAlm.name == "OverlandFlow"
 
