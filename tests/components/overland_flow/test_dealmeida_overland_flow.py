@@ -351,3 +351,16 @@ def test_discharge_mapper_convert_to_volume(spacing):
         overland_flow.discharge_mapper(discharge_at_link, convert_to_volume=False)
         * spacing,
     )
+
+
+def test_no_water(grid):
+    overland_flow = OverlandFlow(grid)
+    overland_flow.run_one_step(1.0)
+
+    assert np.allclose(overland_flow.h, 0.0)
+
+
+def test_no_water_no_time_step(grid):
+    overland_flow = OverlandFlow(grid)
+    with pytest.raises(ValueError):
+        overland_flow.run_one_step()
