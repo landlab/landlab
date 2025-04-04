@@ -238,7 +238,7 @@ def _tau_crit_fixed_width(rho_sed, rho_w, grain_size, tau_star_crit, g=_EARTH_GR
 #     return out
 
 
-class GravelBedrockEroder(Component):
+class ExtendedGravelBedrockEroder(Component):
     """Drainage network evolution of rivers with gravel alluvium overlying bedrock.
 
     Model drainage network evolution for a network of rivers that have
@@ -384,7 +384,7 @@ class GravelBedrockEroder(Component):
     # >>> grid.status_at_node[5] = grid.BC_NODE_IS_FIXED_VALUE
     # >>> fa = FlowAccumulator(grid, runoff_rate=10.0)
     # >>> fa.run_one_step()
-    # >>> eroder = GravelBedrockEroder(
+    # >>> eroder = ExtendedGravelBedrockEroder(
     # ...     grid, sediment_porosity=0.0, abrasion_coefficients=[0.0005]
     # ... )
     # >>> rock_elev = grid.at_node["bedrock__elevation"]
@@ -399,7 +399,7 @@ class GravelBedrockEroder(Component):
     33
     """
 
-    _name = "GravelBedrockEroder"
+    _name = "ExtendedGravelBedrockEroder"
 
     _unit_agnostic = True
 
@@ -716,7 +716,7 @@ class GravelBedrockEroder(Component):
         ...         phi=porosity)
         >>> fa = FlowAccumulator(grid)
         >>> fa.run_one_step()
-        >>> eroder = GravelBedrockEroder(grid)
+        >>> eroder = ExtendedGravelBedrockEroder(grid)
         >>> input_var =[1]
         >>> np.ndim(eroder._create_2D_array_for_input_var(input_var,'test'))
         2
@@ -789,7 +789,7 @@ class GravelBedrockEroder(Component):
         ...         phi=porosity)
         >>> fa = FlowAccumulator(grid)
         >>> fa.run_one_step()
-        >>> eroder = GravelBedrockEroder(grid)
+        >>> eroder = ExtendedGravelBedrockEroder(grid)
         >>> eroder._g_star
         9769603575225600.0
         """
@@ -842,7 +842,7 @@ class GravelBedrockEroder(Component):
        ...         soil_density=rho_sed )
        >>> fa = FlowAccumulator(grid)
        >>> fa.run_one_step()
-       >>> eroder = GravelBedrockEroder(grid, sediment_porosity=porosity, rho_sed=rho_sed)
+       >>> eroder = ExtendedGravelBedrockEroder(grid, sediment_porosity=porosity, rho_sed=rho_sed)
        >>> eroder._thickness_by_class[grid.core_nodes[0]]
        array([1., 1., 1.])
        """
@@ -886,7 +886,7 @@ class GravelBedrockEroder(Component):
         >>> grid.at_node['soil__depth'][6] = 0.0
         >>> fa = FlowAccumulator(grid)
         >>> fa.run_one_step()
-        >>> eroder = GravelBedrockEroder(grid)
+        >>> eroder = ExtendedGravelBedrockEroder(grid)
         >>> eroder.calc_rock_exposure_fraction()
         >>> eroder._rock_exposure_fraction[5:7]
         array([0., 1.])
@@ -918,7 +918,7 @@ class GravelBedrockEroder(Component):
         ...         phi=porosity)
         >>> fa = FlowAccumulator(grid)
         >>> fa.run_one_step()
-        >>> eroder = GravelBedrockEroder(grid)
+        >>> eroder = ExtendedGravelBedrockEroder(grid)
         >>> eroder._calc_tau_star_c()
         >>> eroder._tau_star_c[grid.core_nodes[0]]
         array([0.21538354, 0.045     , 0.01506305])
@@ -986,7 +986,7 @@ class GravelBedrockEroder(Component):
         ...         phi=porosity)
         >>> fa = FlowAccumulator(grid)
         >>> fa.run_one_step()
-        >>> eroder = GravelBedrockEroder(grid, abrasion_coefficients=[1])
+        >>> eroder = ExtendedGravelBedrockEroder(grid, abrasion_coefficients=[1])
         >>> eroder._sed_influxes[grid.core_nodes[0]]=1
         >>> eroder.calc_abrasion_rate()
         >>> eroder._sed_abr_rates[grid.core_nodes[0]]
@@ -1035,7 +1035,7 @@ class GravelBedrockEroder(Component):
         ...         phi=porosity)
         >>> fa = FlowAccumulator(grid)
         >>> fa.run_one_step()
-        >>> eroder = GravelBedrockEroder(grid, abrasion_coefficients=[1])
+        >>> eroder = ExtendedGravelBedrockEroder(grid, abrasion_coefficients=[1])
         >>> eroder._sed_influxes[grid.core_nodes[0]]=1
         >>> eroder._br_abr_coef[grid.core_nodes[0]]=10**-4
         >>> eroder._rock_exposure_fraction[grid.core_nodes[0]]=0.1
@@ -1082,7 +1082,7 @@ class GravelBedrockEroder(Component):
         ...         phi=porosity)
         >>> fa = FlowAccumulator(grid)
         >>> fa.run_one_step()
-        >>> eroder = GravelBedrockEroder(grid, abrasion_coefficients=[1])
+        >>> eroder = ExtendedGravelBedrockEroder(grid, abrasion_coefficients=[1])
         >>> eroder._tau[grid.core_nodes[0]] = 10
         >>> eroder._calc_tau_star()
         >>> np.round(eroder._tau_star[grid.core_nodes[0]],3)
@@ -1191,7 +1191,7 @@ class GravelBedrockEroder(Component):
         ...         phi=porosity)
         >>> fa = FlowAccumulator(grid)
         >>> fa.run_one_step()
-        >>> eroder = GravelBedrockEroder(grid, abrasion_coefficients=[1], plucking_coefficient=[1])
+        >>> eroder = ExtendedGravelBedrockEroder(grid, abrasion_coefficients=[1], plucking_coefficient=[1])
         >>> eroder._channel_width[:] = 1
         >>> eroder._intermittency_factor = 0.1
         >>> eroder._rock_exposure_fraction[:] = 1
@@ -1311,7 +1311,7 @@ class GravelBedrockEroder(Component):
         # >>> grid.status_at_node[4] = grid.BC_NODE_IS_FIXED_VALUE
         # >>> fa = FlowAccumulator(grid)
         # >>> fa.run_one_step()
-        # >>> eroder = GravelBedrockEroder(grid)
+        # >>> eroder = ExtendedGravelBedrockEroder(grid)
         # >>> eroder.calc_transport_rate()
         # >>> eroder.calc_sediment_influx()
         # >>> eroder.calc_sediment_rate_of_change()
@@ -1441,7 +1441,7 @@ class GravelBedrockEroder(Component):
         # >>> grid.status_at_node[4] = grid.BC_NODE_IS_FIXED_VALUE
         # >>> fa = FlowAccumulator(grid)
         # >>> fa.run_one_step()
-        # >>> eroder = GravelBedrockEroder(
+        # >>> eroder = ExtendedGravelBedrockEroder(
         # ...     grid,
         # ...     abrasion_coefficients=[0.001],
         # ...     coarse_fractions_from_plucking=[0.25],
@@ -1598,7 +1598,7 @@ class GravelBedrockEroder(Component):
         >>> fa = FlowAccumulator(grid)
         >>> fa.run_one_step()
         >>> grid.at_node['surface_water__discharge'][grid.core_nodes[0]] = 10000000
-        >>> eroder = GravelBedrockEroder(grid, fixed_width_flag=True)
+        >>> eroder = ExtendedGravelBedrockEroder(grid, fixed_width_flag=True)
         >>> eroder._calc_width()
         >>> round(eroder._channel_width[grid.core_nodes[0]])
         6

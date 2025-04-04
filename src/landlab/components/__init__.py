@@ -27,7 +27,7 @@ from .flow_director import FlowDirectorMFD
 from .flow_director import FlowDirectorSteepest
 from .fracture_grid import FractureGridGenerator
 from .gflex import gFlex
-from .gravel_bedrock_eroder import GravelBedrockEroder
+from .gravel_bedrock_eroder import GravelBedrockEroder, ExtendedGravelBedrockEroder
 from .gravel_river_transporter import GravelRiverTransporter
 from .groundwater import GroundwaterDupuitPercolator
 from .hack_calculator import HackCalculator
@@ -116,6 +116,7 @@ COMPONENTS = [
     ErosionDeposition,
     ExponentialWeatherer,
     ExponentialWeathererIntegrated,
+    ExtendedGravelBedrockEroder,
     FastscapeEroder,
     FireGenerator,
     Flexure,
