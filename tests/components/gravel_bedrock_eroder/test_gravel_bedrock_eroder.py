@@ -7,7 +7,7 @@ from numpy.testing import assert_almost_equal
 
 from landlab import HexModelGrid, RasterModelGrid
 from landlab.components import FlowAccumulator
-from landlab.components import ExtendedGravelBedrockEroder
+from landlab.components import GravelBedrockEroder
 
 
 def test_transport_rate():
@@ -22,7 +22,7 @@ def test_transport_rate():
 
     fa = FlowAccumulator(grid)
     fa.run_one_step()
-    gbe = ExtendedGravelBedrockEroder(grid, intermittency_factor=0.02, depth_decay_scale=0.5)
+    gbe = GravelBedrockEroder(grid, intermittency_factor=0.02, depth_decay_scale=0.5)
     rock = grid.at_node["bedrock__elevation"]
     qs_out = grid.at_node["bedload_sediment__volume_outflux"]
 
@@ -56,7 +56,7 @@ def test_sediment_abrasion_rate():
 
     fa = FlowAccumulator(grid)
     fa.run_one_step()
-    gbe = ExtendedGravelBedrockEroder(grid, abrasion_coefficient=1.0e-4)
+    gbe = GravelBedrockEroder(grid, abrasion_coefficient=1.0e-4)
     gbe.run_one_step(1.0)
 
     assert_almost_equal(
@@ -77,7 +77,7 @@ def test_rock_abrasion_rate():
 
     fa = FlowAccumulator(grid)
     fa.run_one_step()
-    gbe = ExtendedGravelBedrockEroder(grid, abrasion_coefficient=1.0e-4)
+    gbe = GravelBedrockEroder(grid, abrasion_coefficient=1.0e-4)
     gbe.run_one_step(1.0)
 
     assert_almost_equal(
@@ -101,7 +101,7 @@ def test_rock_plucking_rate():
 
     fa = FlowAccumulator(grid)
     fa.run_one_step()
-    gbe = ExtendedGravelBedrockEroder(grid, plucking_coefficient=1.0e-4)
+    gbe = GravelBedrockEroder(grid, plucking_coefficient=1.0e-4)
     gbe.run_one_step(1.0)
 
     assert_almost_equal(
@@ -124,7 +124,7 @@ def test_steady_unlimited_sediment():
 
     fa = FlowAccumulator(grid)
     fa.run_one_step()
-    gbe = ExtendedGravelBedrockEroder(grid, abrasion_coefficient=0.0005)
+    gbe = GravelBedrockEroder(grid, abrasion_coefficient=0.0005)
 
     dt = 4.0e4
     uplift_rate = 0.0001
@@ -160,7 +160,7 @@ def test_steady_general():
 
     fa = FlowAccumulator(grid)
     fa.run_one_step()
-    gbe = ExtendedGravelBedrockEroder(
+    gbe = GravelBedrockEroder(
         grid, abrasion_coefficient=0.0005, coarse_fraction_from_plucking=0.5
     )
 
