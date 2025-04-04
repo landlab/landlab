@@ -564,7 +564,7 @@ class ExtendedGravelBedrockEroder(Component):
         fixed_width_expt=0.5,
         mannings_n=0.05,
         tau_star_c_median=0.045,
-        alpha=-0.68,
+        alpha=0.68
     ):
 
         super().__init__(grid)
@@ -613,6 +613,7 @@ class ExtendedGravelBedrockEroder(Component):
         self._tau_star_c_median = tau_star_c_median
         self._alpha = alpha
         self._epsilon = epsilon
+
         # Pointers to field
         self._elev = grid.at_node["topographic__elevation"]
         self._sed = grid.at_node["soil__depth"]
@@ -640,7 +641,7 @@ class ExtendedGravelBedrockEroder(Component):
         self._implied_width = np.zeros_like(self.grid.nodes.flatten()).astype(float)
         self._channel_width = np.zeros_like(self.grid.nodes.flatten()).astype(float)
         self._plucking_coef = np.zeros_like(self.grid.nodes.flatten()).astype(float)
-        self._tau = np.zeros_like(self.grid.nodes.flatten())
+        self._tau = np.zeros_like(self.grid.nodes.flatten()).astype(float)
 
         if isinstance(plucking_coefficient, float) or isinstance(
             plucking_coefficient, int
@@ -928,7 +929,7 @@ class ExtendedGravelBedrockEroder(Component):
                     fractions_sizes[self.grid.core_nodes, :],
                     median_size_at_node[self.grid.core_nodes],
                 )
-                ** self._alpha
+                ** -self._alpha
             )
         else:
             tau_star_c[self.grid.core_nodes, :] = (
@@ -937,7 +938,7 @@ class ExtendedGravelBedrockEroder(Component):
                     fractions_sizes[self.grid.core_nodes, np.newaxis],
                     median_size_at_node[self.grid.core_nodes],
                 )
-                ** self._alpha
+                ** -self._alpha
             )
 
     def _update_slopes(self):
