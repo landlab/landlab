@@ -8,6 +8,38 @@ from landlab.grid.raster_divergence import calc_flux_div_at_node
 from landlab.grid.raster_divergence import calc_net_face_flux_at_cell
 
 
+def test_flux_div_at_node_out_keyword():
+    grid = RasterModelGrid((4, 5), xy_spacing=(1.0, 2.0))
+
+    value_at_link = np.random.uniform(size=grid.number_of_links)
+
+    out = grid.empty(at="node")
+
+    expected = calc_flux_div_at_node(grid, value_at_link)
+    actual = calc_flux_div_at_node(grid, value_at_link, out=out)
+
+    assert actual is out
+    assert_array_almost_equal(actual, expected)
+
+
+def test_flux_div_at_node_out_is_wrong_size():
+    grid = RasterModelGrid((4, 5), xy_spacing=(1.0, 2.0))
+
+    value_at_link = grid.empty(at="link")
+    out = grid.empty(at="link")
+
+    with pytest.raises(ValueError):
+        calc_flux_div_at_node(grid, value_at_link, out=out)
+
+
+def test_flux_div_at_node_input_is_wrong_size():
+    grid = RasterModelGrid((4, 5), xy_spacing=(1.0, 2.0))
+
+    array = grid.empty(at="node")
+    with pytest.raises(ValueError):
+        calc_flux_div_at_node(grid, array)
+
+
 def test_calc_net_face_flux_at_cell():
     grid = RasterModelGrid((4, 5), xy_spacing=(1.0, 2.0))
 
