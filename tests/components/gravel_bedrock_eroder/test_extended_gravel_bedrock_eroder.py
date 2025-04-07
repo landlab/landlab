@@ -43,23 +43,28 @@ def shear_stress(rho, g, rough, Qcms, w, S):
 def shields_stress(tau, rho, rhos, g, D50):
     return tau / ((rhos - rho) * g * D50)
 
-def critical_shields(D, tau_st_c, mkomar):
+def critical_shields(D, tau_st_c, mkomar, sed0):
     if type(D) is float:
         crit_sh = tau_st_c
     else:
-        crit_sh = tau_st_c * (D / np.median(D))**mkomar
+        median_index = np.argwhere((np.cumsum(sed0) / np.sum(sed0)) > 0.5)[0].astype(int)
+        crit_sh = tau_st_c * (D / D[median_index])**-mkomar
     return crit_sh
 
-def sed_capacity(intcy, mpm, w, rho, rhos, g, D50, tau_star, tau_star_c_by_size, f, mk):
+def sed_capacity(intcy, mpm, w, rho, rhos, g, D, tau_star, tau_star_c_by_size, f, mk):
     R = (rhos - rho) / rho
-    exshields = np.maximum(tau_star - tau_star_c_by_size, 0.0)
-    Qs_sec = f * intcy * mpm * w * (R * g)**0.5 * D50**1.5 * exshields**1.5
+    exshields = tau_star - tau_star_c_by_size
+    if isinstance(tau_star, float):
+        exshields = max(exshields,0)
+    else:
+        exshields[exshields<0]=0
+    Qs_sec = f * intcy * mpm * w * (R * g)**0.5 * D**1.5 * exshields**1.5
     Qs_yr = Qs_sec * spy
     return Qs_yr
 
-def sed_flux(intcy, mpm, w, rho, rhos, g, D50, tau_star, tau_star_c_by_size, f, mk, br_exp_frac):
+def sed_flux(intcy, mpm, w, rho, rhos, g, D, tau_star, tau_star_c_by_size, f, mk, br_exp_frac):
     cap = sed_capacity(
-        intcy, mpm, w, rho, rhos, g, D50, tau_star, tau_star_c_by_size, f, mk
+        intcy, mpm, w, rho, rhos, g, D, tau_star, tau_star_c_by_size, f, mk
     )
     return (1.0 - br_exp_frac) * cap
 
@@ -72,12 +77,17 @@ def attrition_thickening_rate(sed_fluxes, beta, dx, cell_area):
 def outflux_thickening_rate(sed_fluxes, cell_area, porosity):
     return -sed_fluxes / ((1-porosity) *cell_area)
 
-def rock_plucking_rate(pluck_coef, shields, crit_shields_rock, width, dx, cellarea, br_frac):
-    exshields = max(shields - crit_shields_rock, 0.0)
+def rock_plucking_rate(pluck_coef, shields, crit_shields_rock, width, dx, cellarea, br_frac, intcy):
+    if isinstance(shields,float):
+        exshields = max(shields - crit_shields_rock, 0.0)
+    else:
+        exshields = shields - crit_shields_rock
+        exshields[exshields<0]=0
     pluck_rate = (
-        pluck_coef * (exshields)**1.5 
+        intcy * pluck_coef * (exshields)**1.5 
         * width * dx / cellarea
     )
+    pluck_rate = np.sum(pluck_rate)
     return -br_frac * pluck_rate
 
 def rock_abrasion_rate(abr_coef, sedflux, chanlen, cellarea, brfrac):
@@ -124,14 +134,14 @@ def calc_predicted_outputs(p):
             pv["D50"], p["tau_st_c"], p["g"])
     else:
         pv["w"] = fixed_width(p["wid_coef"], p["wid_exp"], pv["Q"])
-    pv["alpha"] = rock_exposure_fraction(p["sed0"], p["hc"])
+    pv["alpha"] = rock_exposure_fraction(np.sum(p["sed0"]), p["hc"])
     pv["tau"] = shear_stress(p["rho"], p["g"], p["n"], pv["Qcms"], pv["w"], pv["S"])
-    pv["tau_star"] = shields_stress(pv["tau"], p["rho"], p["rhos"], p["g"], pv["D50"])
+    pv["tau_star"] = shields_stress(pv["tau"], p["rho"], p["rhos"], p["g"], p["D"])
     pv["R"] = (p["rhos"] - p["rho"]) / p["rho"] # intermediate
     pv["crit_shields"] = critical_shields(
-        p["D"], p["tau_st_c"], p["mkomar"]) 
+        p["D"], p["tau_st_c"], p["mkomar"], p["sed0"]) 
     pv["Qs"] = sed_flux(
-        p["intcy"], p["mpm"], pv["w"], p["rho"], p["rhos"], p["g"], pv["D50"],
+        p["intcy"], p["mpm"], pv["w"], p["rho"], p["rhos"], p["g"], p["D"],
         pv["tau_star"], pv["crit_shields"], p["class_fracs"], p["mkomar"],
         pv["alpha"]
     )
@@ -145,14 +155,14 @@ def calc_predicted_outputs(p):
     )
     pv["pluck_rate"] = rock_plucking_rate(
         p["kp"], pv["tau_star"], p["taustarcr"], pv["w"], p["dx"],
-        p["cellarea"], pv["alpha"]
+        p["cellarea"], pv["alpha"], p["intcy"]
     )
     pv["rock_abr_rate"] = rock_abrasion_rate(
         p["br_abr_coef"], pv["Qs_total"], p["dx"], p["cellarea"],
         pv["alpha"]
     )
     pv["dHdt"] = dHdt_outflux + pv["dHdt_attr"]
-    if p["num_classes"] == 1:
+    if np.size(pv["dHdt"]) == 1:
         pv["dHdt_total"] = pv["dHdt"]
     else:
         pv["dHdt_total"] = np.sum(pv["dHdt"])
@@ -195,8 +205,12 @@ def init_grid_and_run_one_step(parameters):
     sed_depth = parameters["sed0"]
     porosity = parameters["phi"]
     sed_weight = sed_depth * parameters["rhos"] * (1 - porosity)  # weight per grid node area
-    grains_weight = [sed_weight]
-    grain_sizes = [parameters["D"]]
+    if isinstance(sed_weight,float):
+        grains_weight = [sed_weight]
+        grain_sizes = [parameters["D"]]
+    else:
+        grains_weight = sed_weight
+        grain_sizes = parameters["D"]
     sg = SoilGrading(grid,
                           meansizes = grain_sizes,
                           grains_weight = grains_weight,
@@ -216,7 +230,7 @@ def init_grid_and_run_one_step(parameters):
                                          depth_decay_scale = parameters["hc"],
                                          alpha = parameters["mkomar"],
                                          epsilon = parameters["epsilon"],
-                                         fixed_width_flag = ~parameters["width_is_dynamic"],
+                                         fixed_width_flag = not parameters["width_is_dynamic"],
                                          abrasion_coefficients = parameters["beta"],
                                          intermittency_factor=parameters["intcy"],
                                          mannings_n = parameters["n"],
@@ -247,11 +261,25 @@ def get_results(grid, eroder, sg, fa):
     out["dHdt_attr"] = eroder._sed_abr_rates[grid.core_nodes[0]]
     out["dHdt"] =  eroder._dHdt_by_class[grid.core_nodes[0]]
     out["dHdt_total"] = eroder._dHdt[grid.core_nodes[0]]
-    out["pluck_rate"] = eroder._pluck_rate[grid.core_nodes[0]]
+    out["pluck_rate"] = grid.at_node["bedrock__plucking_rate"][grid.core_nodes[0]]
     out["rock_abr_rate"] = eroder._rock_abrasion_rate[grid.core_nodes[0]]
     out["dzdt"] = eroder._dHdt[grid.core_nodes[0]]  +  eroder._rock_lowering_rate[grid.core_nodes[0]]
 
     return out
+
+
+def check_results(results, predicted):
+
+    # Do the comparison between the results
+    # and predicted values
+    for key in results.keys():
+        try:
+            assert_almost_equal(
+                results[key], predicted[key],
+                decimal=3,
+            )
+        except:
+            print(key + ' do not match')
 
 
 def test_unlimited_sediment_homogeneous_fixed_width_no_attrition():
@@ -268,20 +296,162 @@ def test_unlimited_sediment_homogeneous_fixed_width_no_attrition():
     # Calc the predicted outputs based on the parameters
     predicted = calc_predicted_outputs(parameters)
 
-    # Now, lets make the comparison
-    for key in results.keys():
-        try:
-            assert_almost_equal(
-                results[key], predicted[key],
-                decimal=3,
-            )
-        except:
-            print(key + ' do not match')
-
-test_unlimited_sediment_homogeneous_fixed_width_no_attrition()
+    # Check if the results match the prediction
+    check_results(results, predicted)
 
 
+def test_unlimited_sediment_homogeneous_fixed_width_attrition():
 
+    # Get parameters for the test
+    parameters = set_default_params()
+    parameters["beta"] = 0.001
+    # Init grid according to the parameters and run one step
+    grid, eroder, sg, fa = init_grid_and_run_one_step(parameters)
+
+    # Store the results
+    results = get_results(grid, eroder, sg, fa)
+
+    # Calc the predicted outputs based on the parameters
+    predicted = calc_predicted_outputs(parameters)
+
+    # Check if the results match the prediction
+    check_results(results, predicted)
+
+
+def test_unlimited_sediment_homogeneous_dynamic_width_no_attrition():
+    # Get parameters for the test
+    parameters = set_default_params()
+    parameters["width_is_dynamic"] = True
+    # Init grid according to the parameters and run one step
+    grid, eroder, sg, fa = init_grid_and_run_one_step(parameters)
+
+    # Store the results
+    results = get_results(grid, eroder, sg, fa)
+
+    # Calc the predicted outputs based on the parameters
+    predicted = calc_predicted_outputs(parameters)
+
+    # Check if the results match the prediction
+    check_results(results, predicted)
+
+
+def unlimited_sediment_multi_lithology_fixed_width_attrition():
+    # Get parameters for the test
+    parameters = set_default_params()
+    parameters["beta"] = np.array([0.001, 0.0001])
+    parameters["sed0"] = np.array([1, 1])
+    parameters["D"] = np.array([0.01, 0.01])
+
+    # Init grid according to the parameters and run one step
+    grid, eroder, sg, fa = init_grid_and_run_one_step(parameters)
+
+    # Store the results
+    results = get_results(grid, eroder, sg, fa)
+
+    # Calc the predicted outputs based on the parameters
+    predicted = calc_predicted_outputs(parameters)
+
+    # Check if the results match the prediction
+    check_results(results, predicted)
+
+
+def unlimited_multi_size_dynamic_width_no_attrition():
+    # Get parameters for the test
+    parameters = set_default_params()
+    parameters["sed0"] = np.array([1, 1, 1, 1, 1])
+    parameters["D"] = np.array([0.001, 0.002, 0.004, 0.008, 0.016])
+    parameters["width_is_dynamic"] = True
+
+    # Init grid according to the parameters and run one step
+    grid, eroder, sg, fa = init_grid_and_run_one_step(parameters)
+
+    # Store the results
+    results = get_results(grid, eroder, sg, fa)
+
+    # Calc the predicted outputs based on the parameters
+    predicted = calc_predicted_outputs(parameters)
+
+    # Check if the results match the prediction
+    check_results(results, predicted)
+
+
+def test_unlimited_multi_size_fixed_width_no_attrition():
+    # Get parameters for the test
+    parameters = set_default_params()
+    parameters["sed0"] = np.array([1, 1, 1, 1, 1])
+    parameters["D"] = np.array([0.001, 0.002, 0.004, 0.008, 0.016])
+    parameters["width_is_dynamic"] = False
+
+    # Init grid according to the parameters and run one step
+    grid, eroder, sg, fa = init_grid_and_run_one_step(parameters)
+
+    # Store the results
+    results = get_results(grid, eroder, sg, fa)
+
+    # Calc the predicted outputs based on the parameters
+    predicted = calc_predicted_outputs(parameters)
+
+    # Check if the results match the prediction
+    check_results(results, predicted)
+
+
+def test_unlimited_multi_size_fixed_width_attrition():
+    # Get parameters for the test
+    parameters = set_default_params()
+    parameters["sed0"] = np.array([1, 1, 1, 1, 1])
+    parameters["D"] = np.array([0.001, 0.002, 0.004, 0.008, 0.016])
+    parameters["beta"] = 0.001
+    parameters["width_is_dynamic"] = False
+
+    # Init grid according to the parameters and run one step
+    grid, eroder, sg, fa = init_grid_and_run_one_step(parameters)
+
+    # Store the results
+    results = get_results(grid, eroder, sg, fa)
+
+    # Calc the predicted outputs based on the parameters
+    predicted = calc_predicted_outputs(parameters)
+
+    # Check if the results match the prediction
+    check_results(results, predicted)
+
+
+def test_limited_homogeneous_dynamic_width_no_attrition():
+    # Get parameters for the test
+    parameters = set_default_params()
+    parameters["sed0"] = 0.1
+    parameters["width_is_dynamic"] = True
+
+    # Init grid according to the parameters and run one step
+    grid, eroder, sg, fa = init_grid_and_run_one_step(parameters)
+
+    # Store the results
+    results = get_results(grid, eroder, sg, fa)
+
+    # Calc the predicted outputs based on the parameters
+    predicted = calc_predicted_outputs(parameters)
+
+    # Check if the results match the prediction
+    check_results(results, predicted)
+
+
+def test_limited_multi_size_fixed_width_no_attrition():
+    # Get parameters for the test
+    parameters = set_default_params()
+    parameters["width_is_dynamic"] = False
+    parameters["sed0"] = np.array([0.1/5, 0.1/5, 0.1/5, 0.1/5, 0.1/5])
+    parameters["D"] = np.array([0.001, 0.002, 0.004, 0.008, 0.016])
+    # Init grid according to the parameters and run one step
+    grid, eroder, sg, fa = init_grid_and_run_one_step(parameters)
+
+    # Store the results
+    results = get_results(grid, eroder, sg, fa)
+
+    # Calc the predicted outputs based on the parameters
+    predicted = calc_predicted_outputs(parameters)
+
+    # Check if the results match the prediction
+    check_results(results, predicted)
 
 
 
