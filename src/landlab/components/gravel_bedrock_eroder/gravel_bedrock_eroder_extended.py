@@ -564,7 +564,8 @@ class ExtendedGravelBedrockEroder(Component):
         fixed_width_expt=0.5,
         mannings_n=0.05,
         tau_star_c_median=0.045,
-        alpha=0.68
+        alpha=0.68,
+        tau_c_bedrock=10,
     ):
 
         super().__init__(grid)
@@ -588,6 +589,7 @@ class ExtendedGravelBedrockEroder(Component):
         )
 
         self._tau_star_c = self._create_2D_array_for_input_var(0, "tau_star_c")
+        self._tau_c = self._create_2D_array_for_input_var(0, "tau_c")
 
         # Recognize whether the component deals with lithologies or grain sizes
         self._get_classes_identity()
@@ -613,6 +615,7 @@ class ExtendedGravelBedrockEroder(Component):
         self._tau_star_c_median = tau_star_c_median
         self._alpha = alpha
         self._epsilon = epsilon
+        self._tau_c_bedrock = tau_c_bedrock
 
         # Pointers to field
         self._elev = grid.at_node["topographic__elevation"]
@@ -681,6 +684,7 @@ class ExtendedGravelBedrockEroder(Component):
         self._dHdt_by_class = np.zeros((grid.number_of_nodes, self._n_classes))
         self._tau_star_c = np.zeros((grid.number_of_nodes, self._n_classes))
         self._excess_stress = np.zeros((grid.number_of_nodes, self._n_classes))
+        self._excess_stress_dims = np.zeros((grid.number_of_nodes, self._n_classes))
         self._get_sediment_thickness_by_class()
 
     def _create_2D_array_for_input_var(self, input_var, var_name):
@@ -940,6 +944,26 @@ class ExtendedGravelBedrockEroder(Component):
                 )
                 ** -self._alpha
             )
+
+    def _calc_tau_c(self):
+        """Calculate tau_c based on tau_star_c
+        """
+
+        fractions_sizes = self._grid.at_node["grains_classes__size"]
+        median_size_at_node = self._grid.at_node["median_size__weight"][:, np.newaxis]
+        tau_c = self._tau_c
+
+        if self._n_classes > 1:
+            tau_c[:] = self._tau_star_c * (self._SG * self._rho_water) * _EARTH_GRAV * fractions_sizes
+        else:
+            tau_c[:,0] = self._tau_star_c_median * (self._SG) * _EARTH_GRAV * fractions_sizes
+
+    def _calc_excess_stress_dims(self):
+        """Calculate excess_stress dims
+        """
+        self._calc_tau_c()
+        eff_tau_c = np.maximum(self._tau_c, self._tau_c_bedrock)
+        self._excess_stress_dims[:] = np.maximum(self._tau[:,np.newaxis] - eff_tau_c, 0.0)
 
     def _update_slopes(self):
         """Update self._slope.
@@ -1236,6 +1260,8 @@ class ExtendedGravelBedrockEroder(Component):
             classes_fractions = self._get_classes_fractions()
         else:
             classes_fractions = np.ones_like(self._excess_stress)
+
+        self._calc_excess_stress_dims()
         _calc_pluck_rate(
             self._n_classes,
             self.grid.number_of_core_nodes,
@@ -1246,7 +1272,7 @@ class ExtendedGravelBedrockEroder(Component):
             self._channel_width,
             self._rock_exposure_fraction,
             classes_fractions,
-            self._excess_stress,
+            self._excess_stress_dims,
             self._pluck_rate,
         )
 
