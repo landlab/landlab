@@ -31,7 +31,7 @@ _POINT_FIVE = 0.5
 _THREE_BY_TWO = 3.0 / 2.0
 
 
-def _calc_chan_width_fixed_width(coeff, expt, discharge, out=None):
+def _calc_chan_width_fixed_width(coeff, expt, discharge, core_nodes, out=None):
     """Calculate channel width using empirical formula.
 
     b = coeff * Q**expt
@@ -62,7 +62,7 @@ def _calc_chan_width_fixed_width(coeff, expt, discharge, out=None):
 
     if out is None:
         out = np.empty_like(discharge)
-    out[:] = coeff * discharge**expt
+    out[core_nodes] = coeff * discharge**expt
     return out
 
 
@@ -1662,12 +1662,12 @@ class ExtendedGravelBedrockEroder(Component):
         6
         """
 
-        discharge = self._grid.at_node["surface_water__discharge"]
+        discharge = self._grid.at_node["surface_water__discharge"][self._grid.core_nodes]
         if self._fixed_width_flag:
             coeff = self._fixed_width_coeff
             expt = self._fixed_width_expt
             _calc_chan_width_fixed_width(
-                coeff, expt, discharge, out=self._channel_width
+                coeff, expt, discharge, self._grid.core_nodes, out=self._channel_width
             )
         else:
 
@@ -1678,13 +1678,13 @@ class ExtendedGravelBedrockEroder(Component):
             # tau_star_c_median = self._tau_star_c[row, col]
 
             tau_star_c_median = self._tau_star_c_median
-            median_size = self.grid.at_node["median_size__weight"]
-            slope = self._slope
+            median_size = self.grid.at_node["median_size__weight"][self._grid.core_nodes]
+            slope = self._slope[self._grid.core_nodes]
             g_star = self._g_star
             SG = self._SG
             epsilon = self._epsilon
 
-            self._channel_width[:] = _calc_near_threshold_width(
+            self._channel_width[self._grid.core_nodes] = _calc_near_threshold_width(
                 median_size, tau_star_c_median, discharge, slope, g_star, SG, epsilon
             )
 
