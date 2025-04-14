@@ -52,7 +52,10 @@ descriptions.
 A list of the current components is found within the Reference guide
 {ref}`components section <api-components>`.
 
-Note that not all components will run under all conditions, but any
+> [!NOTE]
+> Not all components will run under all conditions, but any
+> limitations should be made clear in the documentation associated with
+> that component.that not all components will run under all conditions, but any
 limitations should be made clear in the documentation associated with
 that component.
 
@@ -307,14 +310,14 @@ a powerful format, and allows easy subsequent re-loading of a Landlab modelgrid
 and all its fields. Save your raster like this:
 
 ```python
-rmg.save("my_savename.asc", names=["field1", "field2"])
+mg.save("my_savename.asc", names=["field1", "field2"])
 # for esri ascii, only saving the fields 1 and 2
 ```
 
 or:
 
 ```python
-rmg.save("my_savename.nc")
+mg.save("my_savename.nc")
 # save as netCDF3, saving all fields by default
 ```
 
