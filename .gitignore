@@ -89,6 +89,22 @@ test-results.xml
 
 # Hypothesis
 .hypothesis
+genveg/test.ipynb
+notebooks/GenVeg/veg_params.yml
+
 
 # nox virtual envs
 .nox
+notebooks/GenVeg/veg_params.yml
+notebooks/GenVeg/veg_params.yml
+notebooks/GenVeg/veg_params.yml
+notebooks/curve-fit-play.ipynb
+notebooks/GenVeg/veg_params.yml
+.idea/landlab.iml
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
+.idea/inspectionProfiles/profiles_settings.xml
+notebooks/GenVeg/veg_params.yml
+notebooks/GenVeg/veg_params.yml
+notebooks/GenVeg/veg_params.yml
