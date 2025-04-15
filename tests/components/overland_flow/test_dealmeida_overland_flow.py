@@ -5,6 +5,7 @@ last updated: 3/14/16
 """
 
 import numpy as np
+import pytest
 
 from landlab import RasterModelGrid
 from landlab.components.overland_flow import OverlandFlow
@@ -147,6 +148,56 @@ def test_deAlm_analytical_imposed_dt_long():
     hdeAlm = hdeAlm[1][1:]
     hdeAlm = np.append(hdeAlm, [0])
     np.testing.assert_almost_equal(h_analytical, hdeAlm, decimal=1)
+
+
+@pytest.mark.parametrize(
+    "slope",
+    [
+        (607.5, 7.5, -2.5),  # 10%
+        (1205.0, 5, -5),  # 20%
+        (1802.5, 5, -7.5),  # 30%
+        (2400.0, 0, -10),  # 40%
+        (2997.5, 0, -12.5),  # 50%
+    ],
+)
+def test_deAlm_water_mass_balance(slope):
+    """
+    Make sure the model keeps the water mass balance
+    """
+    mg1 = RasterModelGrid((32, 24), xy_spacing=25)
+    mg1.add_zeros("surface_water__depth", at="node")
+    mg1.add_zeros("topographic__elevation", at="node")
+    mg1.set_closed_boundaries_at_grid_edges(True, True, True, True)
+    deAlm1 = OverlandFlow(mg1, mannings_n=0.01, h_init=0.001, rainfall_intensity=0.001)
+    deAlm1.run_one_step(9000)
+
+    hdeAlm1 = deAlm1.h.reshape(mg1.shape)
+    water_mass_flat = sum(hdeAlm1[1][1:-1])
+
+    line_data = np.arange(*slope)
+    slope_data = np.tile(line_data[0:24], (32, 1))
+    mg2 = RasterModelGrid((32, 24), xy_spacing=25)
+    mg2.add_zeros("surface_water__depth", at="node")
+    mg2.add_field("topographic__elevation", slope_data, at="node")
+    mg2.set_closed_boundaries_at_grid_edges(True, True, True, True)
+    deAlm2 = OverlandFlow(
+        mg2, mannings_n=0.01, h_init=0.001, rainfall_intensity=0.001, steep_slopes=True
+    )
+    deAlm2.run_one_step(9000)
+
+    hdeAlm2 = deAlm2.h.reshape(mg2.shape)
+    water_mass_slope = sum(hdeAlm2[1][1:-1])
+
+    input_rain = 0.001 * (9000 + 1) * (24 - 2)
+
+    slope_flat_diff = 100 * abs(water_mass_slope - water_mass_flat) / water_mass_flat
+    assert slope_flat_diff <= 0.5
+
+    input_flat_diff = 100 * abs(input_rain - water_mass_flat) / input_rain
+    assert input_flat_diff <= 0.5
+
+    input_slope_diff = 100 * abs(input_rain - water_mass_slope) / input_rain
+    assert input_slope_diff <= 0.5
 
 
 def test_deAlm_rainfall_array():
