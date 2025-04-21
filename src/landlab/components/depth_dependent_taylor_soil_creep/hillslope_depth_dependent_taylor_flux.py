@@ -416,9 +416,9 @@ class DepthDependentTaylorDiffuser(Component):
                     )
                     raise RuntimeError(message)
             # Calculate De Max
-            De_max = self._K * (courant_slope_term)
+            de_max = self._K * self._soil_transport_decay_depth * courant_slope_term
             # Calculate longest stable timestep
-            self._dt_max = self._courant_factor * (self._shortest_link**2) / De_max
+            self._dt_max = self._courant_factor * self._shortest_link**2 / de_max
 
             # Test for the Courant condition and print warning if user intended
             # for it to be printed.
