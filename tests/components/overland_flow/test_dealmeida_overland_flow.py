@@ -5,6 +5,7 @@ last updated: 3/14/16
 """
 
 import numpy as np
+import pytest
 
 from landlab import RasterModelGrid
 from landlab.components.overland_flow import OverlandFlow
@@ -147,6 +148,25 @@ def test_deAlm_analytical_imposed_dt_long():
     hdeAlm = hdeAlm[1][1:]
     hdeAlm = np.append(hdeAlm, [0])
     np.testing.assert_almost_equal(h_analytical, hdeAlm, decimal=1)
+
+
+@pytest.mark.parametrize("slope", (0.0, 0.1, 0.2, 0.3, 0.4, 0.5))
+def test_mass_balance(slope):
+    grid = RasterModelGrid((8, 32), xy_spacing=25.0)
+
+    grid.add_zeros("surface_water__depth", at="node")
+    grid.add_field("topographic__elevation", -slope * grid.x_of_node, at="node")
+    grid.set_closed_boundaries_at_grid_edges(True, True, True, True)
+
+    overland_flow = OverlandFlow(
+        grid, mannings_n=0.01, h_init=1e-9, rainfall_intensity=0.001, steep_slopes=True
+    )
+    overland_flow.run_one_step(900.0)
+
+    expected = (900.0 * 0.001 + 1e-9) * len(grid.core_nodes)
+    actual = grid.at_node["surface_water__depth"][grid.core_nodes].sum()
+
+    assert actual == pytest.approx(expected)
 
 
 def test_deAlm_rainfall_array():

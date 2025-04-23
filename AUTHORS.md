@@ -42,7 +42,7 @@
 - [Annie Thompson](https://github.com/anweiii)
 - [Giuseppecipolla95](https://github.com/Giuseppecipolla95)
 - [Dylan Ward](https://github.com/ddoubleprime)
-- [Amanda Manaster](https://github.com/amanaster2)
+- [Amanda Alvis](https://github.com/adalvis)
 - [Mark Piper](https://github.com/mdpiper)
 - [Jay Hariharan](https://github.com/elbeejay)
 - [Shelby Ahrendt](https://github.com/shelbyahrendt)
