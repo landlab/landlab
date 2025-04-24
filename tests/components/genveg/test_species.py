@@ -71,8 +71,24 @@ def test_calc_area_of_circle(example_input_params):
         )
 
 
+def test_calculate_whole_plant_mortality(example_plant_array, one_cell_grid, example_input_params):
+    species_object = create_species_object(example_input_params)
+    in_growing_season = True
+    # Make sure plant doesn't die at moderate ambient temp
+    new_biomass = species_object.calculate_whole_plant_mortality(example_plant_array, in_growing_season)
+    assert_allclose(new_biomass["root"], example_input_params["root"], rtol=0.0001)
+    # Change max temp and make sure plant dies
+    one_cell_grid["cell"]["air__max_temperature_C"] = 38 * np.ones(one_cell_grid.number_of_cells)
+    new_biomass = species_object.calculate_whole_plant_mortality(example_plant_array, in_growing_season)
+    assert_allclose(new_biomass["root"], np.zeros_like(new_biomass["root"]), rtol=0.0001)
+    # Change min temp and make sure plant dies
+    one_cell_grid["cell"]["air__min_temperature_C"] = -38 * np.ones(one_cell_grid.number_of_cells)
+    new_biomass = species_object.calculate_whole_plant_mortality(example_plant_array, in_growing_season)
+    assert_allclose(new_biomass["root"], np.zeros_like(new_biomass["root"]), rtol=0.0001)
+
+
 # Test calculate_derived_params functions
-def test_max_vitial_volume(example_input_params):
+def test_max_vital_volume(example_input_params):
     assert_almost_equal(
         create_species_object(example_input_params).calc_volume_cylinder(
             area=0.070685835,
