@@ -20,7 +20,7 @@ to a point; nodes at edges.
       :nosignatures:
 
       {% for func in grids[grid]['subset'] %}
-        ~{{func}}
+        ~{{func | replace("landlab.", "")}}
       {% endfor %}
   {% endfor %}
 ```

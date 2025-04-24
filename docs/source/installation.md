@@ -10,7 +10,7 @@ not necessary, we **highly recommend** you install landlab into its own
 
 In order to use *landlab* you will first need Python. While not
 necessary, we recommend using the
-[Anaconda Python distribution](https://www.anaconda.com/distribution/)
+[Anaconda Python distribution](https://www.anaconda.com/download)
 as it provides a large number of third-party packages useful for
 scientific computing.
 

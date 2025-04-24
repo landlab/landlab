@@ -11,13 +11,13 @@ FlowDirAccPf is introduced [in this paper]()
 
 ## Documentation and installation
 
-Landlab documentation is hosted on this [ReadTheDocs page](https://landlab.readthedocs.io/en/release),
+Landlab documentation is hosted on this [ReadTheDocs page](https://landlab.csdms.io/),
 including instructions to install Landlab. ``FlowDirAccPf`` is installed with
 Landlab.
 
 #TODO
 
-``FlowDirAccPf`` documentation is located [here](https://landlab.readthedocs.io/en/release/reference/components/FlowDirAccPf.html).
+``FlowDirAccPf`` documentation is located [here](https://landlab.csdms.io/generated/api/landlab.components.priority_flood_flow_router.priority_flood_flow_router.html).
 
 ## FlowDirAccPf tutorial
 
@@ -29,7 +29,7 @@ through the following links:
 - [Launch the tutorial](https://mybinder.org/v2/gh/BCampforts/landlab/blob/bc/priority_flood/notebooks/tutorials/PriorityFlood/PriorityFlood_realDEMs.ipynb)
 as interactive notebook in your browser, with no need to install software,
 launched using Binder.
-- [A static version of the same tutorial](https://nbviewer.jupyter.org/github/BCampforts/landlab/blob/bc/priority_flood/notebooks/tutorials/PriorityFlood/PriorityFlood_realDEMs.ipynb)
+- [A static version of the same tutorial](https://landlab.csdms.io/tutorials/flow_direction_and_accumulation/PriorityFlood_realDEMs.html)
 - All Landlab tutorials can be launched from [this directory](https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/welcome.ipynb) using Binder.
 
 ## Get or give help

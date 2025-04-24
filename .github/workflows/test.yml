@@ -50,54 +50,6 @@ jobs:
           name: build-sdist
           path: ${{ github.workspace }}/dist/*.tar.gz
 
-  # Until GA has native aarch64 runners, this step is extremely
-  # slow so we run it as a separate job and hope if finishes
-  # around the same time as everything else.
-  build-aarch64:
-    needs: check-tag
-    name: Build aarch64 wheels on ${{ matrix.cibw-only }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - cibw-only: "cp310-manylinux_aarch64"
-            os: "ubuntu-latest"
-          - cibw-only: "cp311-manylinux_aarch64"
-            os: "ubuntu-latest"
-          - cibw-only: "cp312-manylinux_aarch64"
-            os: "ubuntu-latest"
-    steps:
-      - uses: actions/checkout@v4
-      - name: Use Python 3.12
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      # Needed to build aarch64 wheels
-      - name: Set up QEMU
-        if: runner.os == 'Linux'
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: all
-
-      - name: Print build identifiers
-        run: |
-          python -m pip install cibuildwheel
-          python -m cibuildwheel --only ${{ matrix.cibw-only }} --print-build-identifiers
-
-      - name: Build wheels
-        if: ${{ startsWith(needs.check-tag.outputs.publish_url, 'http') }}
-        uses: pypa/cibuildwheel@v2.21.2
-        with:
-          only: ${{ matrix.cibw-only }}
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: build-wheels-${{ matrix.os }}-${{ matrix.cibw-only }}
-          path: ${{ github.workspace }}/wheelhouse/*.whl
-          if-no-files-found: ignore
-
   build-wheels:
     name: Build wheels on ${{ matrix.cibw-only }}
     needs: check-tag
@@ -106,127 +58,82 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Linux x86_64
-          - cibw-only: "cp310-manylinux_x86_64"
-            os: "ubuntu-latest"
-          - cibw-only: "cp311-manylinux_x86_64"
-            os: "ubuntu-latest"
-          - cibw-only: "cp312-manylinux_x86_64"
-            os: "ubuntu-latest"
-
-          # Mac x86_64
-          - cibw-only: "cp310-macosx_x86_64"
-            os: "macos-13"
-          - cibw-only: "cp311-macosx_x86_64"
-            os: "macos-13"
-          - cibw-only: "cp312-macosx_x86_64"
-            os: "macos-13"
-
-          # Mac arm64
-          - cibw-only: "cp310-macosx_arm64"
-            os: "macos-14"
-          - cibw-only: "cp311-macosx_arm64"
-            os: "macos-14"
-          - cibw-only: "cp312-macosx_arm64"
-            os: "macos-14"
-
-          # Windows 64bit
-          - cibw-only: "cp310-win_amd64"
-            os: "windows-latest"
-          - cibw-only: "cp311-win_amd64"
-            os: "windows-latest"
-          - cibw-only: "cp312-win_amd64"
-            os: "windows-latest"
+          - { os: macos-13, cibw-only: cp311-macosx_x86_64 }
+          - { os: macos-13, cibw-only: cp312-macosx_x86_64 }
+          - { os: macos-13, cibw-only: cp313-macosx_x86_64 }
+          - { os: macos-14, cibw-only: cp311-macosx_arm64 }
+          - { os: macos-14, cibw-only: cp312-macosx_arm64 }
+          - { os: macos-14, cibw-only: cp313-macosx_arm64 }
+          - { os: ubuntu-24.04, cibw-only: cp311-manylinux_x86_64 }
+          - { os: ubuntu-24.04, cibw-only: cp312-manylinux_x86_64 }
+          - { os: ubuntu-24.04, cibw-only: cp313-manylinux_x86_64 }
+          - { os: ubuntu-24.04-arm, cibw-only: cp311-manylinux_aarch64 }
+          - { os: ubuntu-24.04-arm, cibw-only: cp312-manylinux_aarch64 }
+          - { os: ubuntu-24.04-arm, cibw-only: cp313-manylinux_aarch64 }
+          - { os: windows-2022, cibw-only: cp311-win_amd64 }
+          - { os: windows-2022, cibw-only: cp312-win_amd64 }
+          - { os: windows-2022, cibw-only: cp313-win_amd64 }
 
     steps:
       - uses: actions/checkout@v4
-      - name: Use Python 3.12
-        uses: actions/setup-python@v5
+      - uses: ./.github/actions/build-bdist/
         with:
-          python-version: '3.12'
-
-      - name: Print build identifiers
-        run: |
-          python -m pip install cibuildwheel
-          python -m cibuildwheel --only ${{ matrix.cibw-only }} --print-build-identifiers
-
-      - name: Install openmp
-        if: runner.os == 'macOS'
-        run: |
-          curl -O https://mac.r-project.org/openmp/openmp-13.0.0-darwin21-Release.tar.gz
-          sudo tar fvxz openmp-13.0.0-darwin21-Release.tar.gz -C /
-
-      - name: Build wheels
-        uses: pypa/cibuildwheel@v2.21.2
-        with:
-          only: ${{ matrix.cibw-only }}
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: build-wheels-${{ matrix.os }}-${{ matrix.cibw-only }}
-          path: ${{ github.workspace }}/wheelhouse/*.whl
+          cibw-only: ${{ matrix.cibw-only }}
+          upload-name: build-wheels-${{ matrix.cibw-only }}
 
   test-landlab:
-    needs: build-wheels
     name: Run the tests
+    needs: build-wheels
+    runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.10", "3.11", "3.12"]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-13, macos-latest, windows-latest]
+        python-version: ["3.11", "3.12", "3.13"]
         pytest-marker: ["slow", "not slow"]
-
-    runs-on: ${{ matrix.os }}
-
-    defaults:
-      run:
-        shell: bash -l {0}
 
     steps:
       - uses: actions/checkout@v4
-      - uses: conda-incubator/setup-miniconda@v3
+      - uses: ./.github/actions/run-tests/
         with:
           python-version: ${{ matrix.python-version }}
-          miniforge-variant: Miniforge3
-          miniforge-version: latest
-          auto-update-conda: true
-
-      - uses: actions/download-artifact@v4
-        name: Download build artifacts
-        with:
-          pattern: "build-*"
-          merge-multiple: true
-          path: ${{ github.workspace }}/dist
-
-      - name: Test
-        env:
-          HYPOTHESIS_PROFILE: "ci"
-          MPLBACKEND: "Agg"
-        run: |
-          pip install nox
-          nox --verbose -s test \
-              --force-pythons=${{ matrix.python-version }} \
-              -- -m '${{ matrix.pytest-marker }}' --path=dist
-
-      - name: Coveralls
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        uses: AndreMiras/coveralls-python-action@develop
-        with:
-          parallel: true
-          flag-name: py${{ matrix.python-version }}-${{ matrix.os }}-${{ matrix.pytest-marker }}
-          debug: true
+          nox-session: "test"
+          pytest-addopts: "-m '${{ matrix.pytest-marker }} and not richdem'"
+          codecov-token: ${{ secrets.CODECOV_TOKEN }}
 
   test-notebooks:
+    name: Run the notebooks
     needs: build-wheels
-    name: Run the notebook tests
+    runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
         os: [macos-latest, windows-latest]
-        python-version: ["3.12"]
+        python-version: ["3.13"]
         pytest-marker: ["slow", "not slow"]
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/run-notebooks/
+        with:
+          python-version: ${{ matrix.python-version }}
+          nox-session: "test-notebooks"
+          pytest-addopts: "--overwrite -m '${{ matrix.pytest-marker }} and not richdem'"
+          opentopography-api-key: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
+          upload-name: ${{ matrix.os == 'macos-latest' && format('notebooks-{0}', matrix.pytest-marker) || '' }}
+
+
+  test-richdem:
+    needs: build-wheels
+    name: Run the richdem tests
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.11", "3.12", "3.13"]
 
     runs-on: ${{ matrix.os }}
 
@@ -242,11 +149,12 @@ jobs:
           miniforge-variant: Miniforge3
           miniforge-version: latest
           auto-update-conda: true
+          channels: conda-forge,defaults
 
       - uses: actions/download-artifact@v4
         name: Download build artifacts
         with:
-          pattern: "build-*"
+          pattern: "build-wheels-*"
           merge-multiple: true
           path: ${{ github.workspace }}/dist
 
@@ -258,34 +166,18 @@ jobs:
         run: |
           pip install matplotlib_inline
           pip install nox
-          nox --verbose -s test-notebooks \
+          nox --verbose -s test-richdem \
               --force-pythons=${{ matrix.python-version }} \
-              -- -m '${{ matrix.pytest-marker }}' --path=dist
+              -- dist/
 
-      - name: Find executed notebooks
-        run: |
-          for f in $(git diff --name-only); do
-            mkdir -p executed/$(dirname $f);
-            cp $f executed/$(dirname $f);
-          done
-          ls -R executed/
-
-      - name: Upload executed notebooks
-        if: ${{ matrix.os == 'macos-latest' }}
-        uses: actions/upload-artifact@v4
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
         with:
-          name: notebooks-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.pytest-marker }}
-          path: executed/
-          overwrite: true
+          token: ${{ secrets.CODECOV_TOKEN }}
 
-  docs:
-    needs: test-notebooks
-    strategy:
-      matrix:
-        os: [macos-latest]
-        python-version: ["3.12"]
-
-    runs-on: ${{ matrix.os }}
+  check-links:
+    needs: check-tag
+    runs-on: ubuntu-latest
 
     defaults:
       run:
@@ -293,12 +185,33 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: conda-incubator/setup-miniconda@v3
+      - name: Use Python 3.12
+        uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
-          miniforge-variant: Miniforge3
-          miniforge-version: latest
-          auto-update-conda: true
+          python-version: '3.12'
+
+      - name: Install Pandoc
+        run: sudo apt-get update && sudo apt-get install -y pandoc
+
+      - name: Check documentation links
+        run: |
+          pip install nox
+          nox -s docs-check-links
+
+  docs:
+    needs: test-notebooks
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
 
       - uses: actions/download-artifact@v4
         name: Download build artifact
@@ -309,45 +222,44 @@ jobs:
       - name: Display structure of downloaded files
         run: ls -R
 
-      - name: install and check pandoc
-        run: |
-          conda install pandoc -c conda-forge
-          pandoc --help
-          pandoc --version
+      - name: Install Pandoc
+        run: sudo apt-get update && sudo apt-get install -y pandoc
 
       - name: Build documentation
         run: |
           pip install nox
-          pip install -r requirements/docs.txt
-          nox -s docs-build --no-venv
+          nox -s docs-build
 
-      - name: Create zip
-        run: zip -r docs.zip build/html
-
-      - name: Upload docs
-        uses: actions/upload-artifact@v4
+      - name: Upload static files as artifact
+        id: deployment
+        uses: actions/upload-pages-artifact@v3
         with:
-          name: docs-${{ matrix.os }}-${{ matrix.python-version }}
-          path: docs.zip
+          path: build/html/
 
-  coveralls_finish:
-    needs: test-landlab
+  deploy-docs:
+    if: github.ref == 'refs/heads/master'
+    needs: docs
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
 
     steps:
-      - name: Coveralls Finished
-        uses: AndreMiras/coveralls-python-action@develop
-        with:
-          parallel-finished: true
-          debug: true
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
 
   publish:
     needs:
       - check-tag
       - test-landlab
       - test-notebooks
+      - test-richdem
       - build-sdist
-      - build-aarch64
     name: "Publish to PyPI/TestPyPI"
     runs-on: ubuntu-latest
 

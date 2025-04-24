@@ -98,7 +98,15 @@ def test_channel_segment_add_upstream_node():
     assert upstream.downstream is segment
 
 
-@given(segments=lists(lists(integers(), min_size=2, max_size=1024), min_size=1))
+@given(segment=lists(integers(), min_size=2, max_size=1024))
+def test_channel_one_segment(segment):
+    root = ChannelSegment(segment)
+
+    assert root.count_segments(direction="upstream") == 0
+    assert root.count_segments(direction="downstream") == 0
+
+
+@given(segments=lists(lists(integers(), min_size=2, max_size=1024), min_size=2))
 def test_channel_segment_many_upstream(segments):
     segments = [ChannelSegment(segment) for segment in segments]
     root = segments[0]
@@ -109,7 +117,7 @@ def test_channel_segment_many_upstream(segments):
     assert root.count_segments(direction="downstream") == 0
 
 
-@given(segments=lists(lists(integers(), min_size=2, max_size=1024), min_size=1))
+@given(segments=lists(lists(integers(), min_size=2, max_size=1024), min_size=2))
 def test_channel_segment_many_flat_upstream(segments):
     segments = [ChannelSegment(segment) for segment in segments]
     root = segments[0]
@@ -122,7 +130,7 @@ def test_channel_segment_many_flat_upstream(segments):
     assert root.count_segments(direction="downstream") == 0
 
 
-@given(segments=lists(lists(integers(), min_size=2, max_size=1024), min_size=1))
+@given(segments=lists(lists(integers(), min_size=2, max_size=1024), min_size=2))
 def test_channel_segment_many_downstream(segments):
     segments = [ChannelSegment(segment) for segment in segments]
     root = segments[0]
@@ -473,8 +481,9 @@ def test_reduce_to_fewest_nodes_stay_the_same(x, spacing):
 def test_reduce_nodes_min_max_spacing(spacing):
     distance_along_segment = np.cumsum(spacing)
 
-    if np.any(np.diff(distance_along_segment) <= 0):
-        raise ValueError(f"array not sorted ({distance_along_segment})")
+    assert np.all(
+        np.diff(distance_along_segment) > 0
+    ), f"array not sorted ({distance_along_segment})"
 
     nodes = _reduce_nodes(distance_along_segment, spacing=spacing.min())
     assert np.all(nodes == np.arange(len(spacing)))
@@ -496,8 +505,9 @@ def test_reduce_nodes_min_max_spacing(spacing):
 def test_reduce_to_fewest_nodes_min_max_spacing(spacing):
     distance_along_segment = np.cumsum(spacing)
 
-    if np.any(np.diff(distance_along_segment) <= 0):
-        raise ValueError(f"array not sorted ({distance_along_segment})")
+    assert np.all(
+        np.diff(distance_along_segment) > 0
+    ), f"array not sorted ({distance_along_segment})"
 
     xy_of_node = list(zip(distance_along_segment, [0.0] * len(distance_along_segment)))
     min_spacing = np.diff(distance_along_segment).min()
