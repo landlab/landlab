@@ -120,20 +120,25 @@ def example_input_params():
             },
             "mortality_params": {
                 "coeffs": {
-                    "1": [9837.624573797346, 0.20082011968400607],  # still need to find
+                    "1": [2181.7587297817245, 0.4567061338996317],
+                    "2": [99972502406.21997, -1.151280045871995],
                 },
-                "duration": {1: 207},
+                "duration": {1: 207, 2: 365},
                 "mort_variable_name": {
-                    "1": "temp-range",
+                    "1": "air__max_temperature_C",
+                    "2": "air__min_temperature_C",
                 },
                 "period": {
                     "1": "during growing  season",
+                    "2": "during growing season",
                 },
                 "predictor": {
-                    "1": [8.62, 10.35, 12.08, 13.80, 15.53],
+                    "1": [-30, 0, 20, 35, 37],
+                    "2": [-30, 0, 20, 35, 37],
                 },
                 "response": {
-                    "1": [0.01, 0.25, 0.67, 0.85, 0.99],
+                    "1": [0, 1, 1, 0.2, 0],
+                    "2": [0, 1, 1, 0.2, 0],
                 },
             },
             "photo_params": {
