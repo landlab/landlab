@@ -512,7 +512,7 @@ class PlantGrowth(Species):
         )
         return self.plants
 
-    def _grow(self, _current_jday):
+    def _grow(self, _current_jday, _grid_par, _grid_relative_water_content, _grid_relative_saturation):
         # This is the primary method in PlantGrowth and is run within each
         # GenVeg run_one_step at each timestep. This method applies new environmental
         # conditions daily from the grid, determines what processes run, and implements
@@ -541,20 +541,22 @@ class PlantGrowth(Species):
         _new_live_biomass = _new_biomass[filter]
 
         # calculate variables needed to run plant processes
-        _par = self._grid["cell"]["radiation__par_tot"][_last_biomass["cell_index"]][
-            filter
-        ]
+        _par = _grid_par[_last_biomass["cell_index"]][filter]
+        _relative_water_content = _grid_relative_water_content[
+            _last_biomass["cell_index"]
+        ][filter]
+        _rel_sat = _grid_relative_saturation[_last_biomass["cell_index"]][filter]
         _min_temperature = self._grid["cell"]["air__min_temperature_C"][
             _last_biomass["cell_index"]
         ][filter]
         _max_temperature = self._grid["cell"]["air__max_temperature_C"][
             _last_biomass["cell_index"]
         ][filter]
-        _cell_lai = self._grid["cell"]["vegetation__cell_lai"][
+        _cell_lai = self._grid["cell"]["vegetation__leaf_area_index"][
             _last_biomass["cell_index"]
         ][filter]
         _new_live_biomass = self.respire(
-            _min_temperature, _max_temperature, _new_live_biomass
+            _min_temperature, _max_temperature, _rel_sat, _new_live_biomass
         )
 
         # Change this so for positive delta_tot we allocate by size and
@@ -564,9 +566,11 @@ class PlantGrowth(Species):
                 _min_temperature,
                 _max_temperature,
                 _cell_lai,
+                _relative_water_content,
                 _new_live_biomass,
                 _current_jday,
             )
+
             # Future add turnover rate
             _new_live_biomass = self.allocate_biomass_dynamically(
                 _new_live_biomass, carb_generated_photo
@@ -590,14 +594,14 @@ class PlantGrowth(Species):
         self.plants, self.n_plants = self.remove_plants()
 
     def _init_plants_from_grid(self, in_growing_season, species_cover):
-        # This method initializes the plants in the PlantGrowth class
+        """
+        This method initializes the plants in the PlantGrowth class
         # from the vegetation fields stored on the grid. This method
         # is only called if no initial plant array is parameterized
         # as part of the PlantGrowth initialization.
         # Required parameters are a boolean inidicating if the plants are
         # in the active growing season.
-        ###
-        # move plantlist development to species?
+        """
         pidval = 0
         plantlist = []
         # Loop through grid cells
@@ -682,14 +686,16 @@ class PlantGrowth(Species):
     def allocate_biomass_proportionately(
         self, _last_biomass, _total_biomass, delta_tot
     ):
-        # This method allocates new net biomass amongst growth parts
-        # proportionately based on the relative size of the part. This
-        # method is used outside of the growing season since some plant parts
-        # may not be present while the plant is dormant. The storage redistribution
-        # method is called after initial biomass allocation to redistribute storage
-        # biomass to dormant growth parts as needed.
-        # Required parameter is a numpy array of net biomass change to be applied
-        # to the plant and it returns the structured array _new_biomass.
+        """
+        This method allocates new net biomass amongst growth parts
+        proportionately based on the relative size of the part. This
+        method is used outside of the growing season since some plant parts
+        may not be present while the plant is dormant. The storage redistribution
+        method is called after initial biomass allocation to redistribute storage
+        biomass to dormant growth parts as needed.
+        Required parameter is a numpy array of net biomass change to be applied
+        to the plant and it returns the structured array _new_biomass.
+        """
         _new_biomass = _last_biomass
         _total_biomass = self.sum_plant_parts(_last_biomass, parts="total")
         filter = np.nonzero(_total_biomass != 0)
@@ -700,10 +706,12 @@ class PlantGrowth(Species):
         return _new_biomass
 
     def adjust_biomass_allocation_towards_ideal(self, _new_biomass):
-        # This method adjusts biomass allocation towards the ideal allocation
-        # proportions based on the plant size. If parts of the plant are
-        # removed via herbivory or damage, this allows the plant to utilize
-        # other stored resources to regrow the damaged parts.
+        """
+        This method adjusts biomass allocation towards the ideal allocation
+        proportions based on the plant size. If parts of the plant are
+        removed via herbivory or damage, this allows the plant to utilize
+        other stored resources to regrow the damaged parts.
+        """
         _total_biomass = self.sum_plant_parts(_new_biomass, parts="growth")
         _min_leaf_mass_frac = (
             self.species_grow_params["plant_part_min"]["leaf"] / _total_biomass
@@ -785,8 +793,10 @@ class PlantGrowth(Species):
         return _new_biomass
 
     def set_event_flags(self, _current_jday):
-        # This method sets event flags so required processes are run based
-        # on the day of year.
+        """
+        This method sets event flags so required processes are run based
+        on the day of year.
+        """
         durationdict = self.species_duration_params
         flags_to_test = {
             "_in_growing_season": bool(

@@ -50,41 +50,14 @@ class GenVeg(Component, PlantGrowth):
     ):
         # save grid object to class
         super().__init__(grid)
-        # Check to see if there are plants on the grid
-
-        try:
-            self.plants_on_grid = self._grid["cell"]["vegetation__plant_species"]
-        except KeyError:
-            msg = "GenVeg requires initial distribution of plant species at-cell field."
-            raise ValueError(msg)
-        # Check to see if grid contains required environmental fields
-        try:
-            self.min_air_temp = self._grid["cell"]["air__min_temperature_C"][:].copy()
-            self.max_air_temp = self._grid["cell"]["air__max_temperature_C"][:].copy()
-        except KeyError:
-            msg = (
-                "GenVeg requires min and max air temperatures"
-                "in Celcius for each time step."
-            )
-            raise ValueError(msg)
-
-        try:
-            self._par = self._grid["cell"]["radiation__par_tot"][:].copy()
-        except RuntimeWarning:
-            msg = (
-                "GenVeg requires incoming PAR for each timestep."
-                "Empiricial estimation will be used for the run."
-            )
-            print(msg)
-        else:
-            self._par_method = "direct_input"
-
-            (_, _latitude) = self._grid.xy_of_reference
-            self._lat_rad = np.radians(_latitude)
-
+        # Check to see is the grid has the right data and assign defaults
+        self.current_day = current_day
+        self.check_for_grid_fields()
+        self._max_water_availability = self._field_capacity - self._wilt_pt
+        (_, _latitude) = self._grid.xy_of_reference
+        self._lat_rad = np.radians(_latitude)
         # Set initial time variables
         self.dt = dt
-        self.current_day = current_day
         self.start_date = current_day
         self.time_ind = 0
         # self.neighbors=self._grid.looped_neighbors_at_cell()
@@ -96,7 +69,8 @@ class GenVeg(Component, PlantGrowth):
         _ = self._grid.add_zeros("vegetation__total_biomass", at="cell", clobber=True)
         _ = self._grid.add_zeros("vegetation__n_plants", at="cell", clobber=True)
         _ = self._grid.add_zeros("vegetation__plant_height", at="cell", clobber=True)
-        _ = self._grid.add_zeros("vegetation__cell_lai", at="cell", clobber=True)
+        _ = self._grid.add_zeros("vegetation__lai", at="cell", clobber=True)
+
         # Instantiate a PlantGrowth object and
         # summarize number of plants and biomass per cell
         if plant_array.size == 0:
@@ -106,14 +80,16 @@ class GenVeg(Component, PlantGrowth):
                     cell_index
                 ]
                 species_list = species_list[~np.isin(species_list, "null")]
-                cell_cover = self._grid.at_cell["vegetation__percent_cover"][cell_index]
+                cell_cover = self._grid.at_cell["vegetation__cover_fraction"][
+                    cell_index
+                ]
                 number_of_species = len(species_list)
                 cover_species = rng.uniform(low=0.5, high=1.0, size=number_of_species)
                 cover_sum = sum(cover_species)
                 species_cover_allocation = cover_species / cover_sum
                 cover_allocation.append(
                     dict(zip(species_list, (species_cover_allocation * cell_cover)))
-                )  # This is a list with elements representing each cell - change this to a dict of species holding an array
+                )
 
             # for each species in the parameters file
             for species in vegparams:
@@ -199,11 +175,11 @@ class GenVeg(Component, PlantGrowth):
             sum_plant_height[cells_with_plants] / n_of_plants[cells_with_plants]
         )
 
-        self._grid.at_cell["vegetation__total_biomass"] = cell_biomass
-        self._grid.at_cell["vegetation__n_plants"] = cell_plant_count
-        self._grid.at_cell["vegetation__percent_cover"] = frac_cover
+        self._grid.at_cell["vegetation__live_biomass"] = cell_biomass
+        self._grid.at_cell["vegetation__plant_count"] = cell_plant_count
+        self._grid.at_cell["vegetation__cover_fraction"] = frac_cover
         self._grid.at_cell["vegetation__plant_height"] = plant_height
-        self._grid.at_cell["vegetation__cell_lai"] = (
+        self._grid.at_cell["vegetation__leaf_area_index"] = (
             cell_leaf_area / self._grid.area_of_cell
         )
 
@@ -239,7 +215,6 @@ class GenVeg(Component, PlantGrowth):
                             break
 
             for species_obj in self.plant_species:
-                # what are we updating the shoot width and height to? We need to update the morphology estimator
                 species = species_obj.species_plant_factors["species"]
                 update_plants = cell_plants[cell_plants["species"] == species]
                 update_plants = species_obj.update_morphology(update_plants)
@@ -257,7 +232,11 @@ class GenVeg(Component, PlantGrowth):
                 )
 
     def calculate_grid_vars(self, indices, grid_var=None):
-        # somewhere in here we are changing float arrays to int arrays under certain conditions
+        """
+        Uses the bincount method to calculate plant counts when no
+        value for grid_var is provided and sum variables by grid cell
+        when a grid variable is provided.
+        """
         obs = np.nonzero(indices >= 0.0)
         if grid_var is None:
             weight_var = grid_var
@@ -270,17 +249,133 @@ class GenVeg(Component, PlantGrowth):
         )
         return var_out.astype(np.float64)
 
+    def check_for_grid_fields(
+        self,
+        soil_texture_defaults={
+            "porosity": {
+                "sand": 0.43,
+                "sandy loam": 0.39,
+                "sandy clay loam": 0.41,
+                "loam": 0.42,
+                "silt loam": 0.43,
+                "silt": 0.40,
+                "silty clay loam": 0.47,
+                "clay loam": 0.44,
+                "clay": 0.49,
+            },
+            "field_capacity": {
+                "sand": 0.09,
+                "sandy loam": 0.16,
+                "sandy clay loam": 0.26,
+                "loam": 0.25,
+                "silt loam": 0.29,
+                "silt": 0.29,
+                "silty clay loam": 0.37,
+                "clay loam": 0.34,
+                "clay": 0.42,
+            },
+            "wilting_point": {
+                "sand": 0.02,
+                "sandy loam": 0.07,
+                "sandy clay loam": 0.16,
+                "loam": 0.12,
+                "silt loam": 0.11,
+                "silt": 0.06,
+                "silty clay loam": 0.20,
+                "clay loam": 0.20,
+                "clay": 0.28,
+            },
+        },
+    ):
+        try:
+            self.plants_on_grid = self._grid["cell"]["vegetation__plant_species"]
+        except KeyError:
+            msg = "GenVeg requires initial distribution of plant species at-cell field."
+            raise ValueError(msg)
+        # Check to see if grid contains required environmental fields
+        try:
+            self.min_air_temp = self._grid["cell"]["air__min_temperature"][:].copy()
+            self.max_air_temp = self._grid["cell"]["air__max_temperature"][:].copy()
+        except KeyError:
+            msg = (
+                "GenVeg requires min and max air temperatures"
+                "in Celcius for each time step."
+            )
+            raise KeyError(msg)
+
+        try:
+            self._par = self._grid["cell"]["radiation__total_par"][:].copy()
+        except KeyError:
+            msg = (
+                "GenVeg requires incoming PAR for each timestep. "
+                "Empiricial estimation will be used for the run."
+            )
+            print(msg)
+            # add radiation here
+        else:
+            self._par_method = "direct_input"
+        try:
+            self._soil_water = self._grid["cell"]["soil_water__volume_fraction"][
+                :
+            ].copy()
+        except KeyError:
+            msg = (
+                "Soil moisture field is not found. "
+                "GenVeg will use random soil moisture values"
+            )
+            print(msg)
+            self._soil_water = rng.uniform(
+                low=0.3,
+                high=1.0,
+                size=self._grid["cell"]["radiation__total_par"][:].size,
+            )
+
+        try:
+            self._wilt_pt = self._grid["cell"]["soil__wilting_point"][:].copy()
+            self._field_capacity = self._grid["cell"]["soil__field_capacity"][:].copy()
+            self._porosity = self._grid["cell"]["soil__porosity"]
+        except KeyError:
+            msg = "Default soil physical properties will be used based on soil texture"
+            print(msg)
+            try:
+                self._wilt_pt = np.vectorize(
+                    soil_texture_defaults["wilting_point"].get
+                )(self._grid["cell"]["surface__soil_texture"])
+                self._field_capacity = np.vectorize(
+                    soil_texture_defaults["field_capacity"].get
+                )(self._grid["cell"]["surface__soil_texture"])
+            except KeyError:
+                msg = "No soil texture provided so assuming values for silt loam"
+                print(msg)
+                self._wilt_pt = np.ones_like(self._par) * (
+                    (soil_texture_defaults["wilting_point"].get)("silt loam")
+                )
+                self._field_capacity = np.ones_like(self._par) * (
+                    soil_texture_defaults["field_capacity"].get
+                )("silt loam")
+
     def get_int_output(self):
         print(self.species_cover_allocation)
 
     def run_one_step(self):
         _current_jday = self._calc_current_jday()
-        cell_biomass = np.zeros_like(self._grid.at_cell["vegetation__total_biomass"])
-        cell_plant_count = np.zeros_like(self._grid.at_cell["vegetation__n_plants"])
-
+        cell_biomass = np.zeros_like(self._grid.at_cell["vegetation__live_biomass"])
+        cell_plant_count = np.zeros_like(self._grid.at_cell["vegetation__plant_count"])
+        _available_water_cell = (
+            np.minimum(self._soil_water, self._field_capacity) - self._wilt_pt
+        )
+        _max_water_available = self._field_capacity - self._wilt_pt
+        _available_water_frac = _available_water_cell / _max_water_available
+        _frac_above_fc = np.subtract(
+            self._soil_water,
+            self._field_capacity,
+            out=np.zeros_like(self._soil_water),
+            where=(self._soil_water > self._field_capacity)
+        )
+        _rel_saturation = _frac_above_fc / (1 - self._field_capacity)
         all_plants = []
         for species_obj in self.plant_species:
-            species_obj._grow(_current_jday)
+            species_obj._grow(_current_jday, self._par, _available_water_frac, _rel_saturation)
 
         all_plants = self.combine_plant_arrays()
         all_plants = self.check_for_dispersal_success(all_plants)
@@ -322,17 +417,17 @@ class GenVeg(Component, PlantGrowth):
         plant_height[cells_with_plants] = (
             sum_plant_height[cells_with_plants] / n_of_plants[cells_with_plants]
         )
-        self._grid.at_cell["vegetation__total_biomass"] = cell_biomass
-        self._grid.at_cell["vegetation__n_plants"] = cell_plant_count
-        self._grid.at_cell["vegetation__percent_cover"] = cell_percent_cover
+        self._grid.at_cell["vegetation__live_biomass"] = cell_biomass
+        self._grid.at_cell["vegetation__plant_count"] = cell_plant_count
+        self._grid.at_cell["vegetation__cover_fraction"] = cell_percent_cover
         self._grid.at_cell["vegetation__plant_height"] = plant_height
-        self._grid.at_cell["vegetation__cell_lai"] = np.divide(
+        self._grid.at_cell["vegetation__leaf_area_index"] = np.divide(
             cell_leaf_area,
             self._grid.area_of_cell,
-            np.zeros_like(self._grid.at_cell["vegetation__total_biomass"]),
+            np.zeros_like(self._grid.at_cell["vegetation__live_biomass"]),
             where=~np.isclose(
                 cell_leaf_area,
-                np.zeros_like(self._grid.at_cell["vegetation__total_biomass"]),
+                np.zeros_like(self._grid.at_cell["vegetation__live_biomass"]),
             ),
         )
         self.current_day += 1
@@ -343,6 +438,11 @@ class GenVeg(Component, PlantGrowth):
         )
         _current_jday = jday_td.astype(int)
         return _current_jday
+
+    def _calc_available_water(self):
+        water_ratio = (self._soil_water - self._wilt_pt) / self._max_water_availability
+        water_ratio[water_ratio > 1] = 1
+        return water_ratio
 
     def _calc_rel_time(self):
         return (self.current_day - self.start_date).astype(float)

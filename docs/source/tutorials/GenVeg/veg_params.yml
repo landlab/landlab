@@ -26,7 +26,7 @@
       period: {1: during growing season, 2: during growing season}, predictor: {1: [
           30, 40, 50, 55, -9999], 2: [0, 0.5, 0.6, 0.68, 1.12]}, response: {1: [0.01,
           0.25, 0.67, 0.9, -9999], 2: [0, 0, 0.3, 1, 1]}}, photo_params: {ci: 65,
-      co: 209, kc: 21, ko: 650, spec_factor_25: 120, stomatal_conductance: 0.2, vcmax: 20},
+      co: 209, kc: 21, ko: 650, spec_factor_25: 120, stomatal_conductance: 0.2, vcmax: 50},
     plant_factors: {angio_gymno: angiosperm, duration: perennial deciduous, growth_form: rhizomatous,
       growth_habit: graminoid, monocot_dicot: monocot, p_type: C3, species: BTS}},
   DB: {col_params: {prob_colonization: 0.01, time_to_colonization: 365}, dispersal_params: {
@@ -57,6 +57,6 @@
           growing season}, predictor: {1: [20, 30, 70, 100, -9999], 2: [0, 0.2, 0.5,
           1.12, 1.69]}, response: {1: [0, 0.01, 0.67, 1, -9999], 2: [0, 0, 0.02, 1,
           1]}}, photo_params: {ci: 300, co: 209, kc: 11, ko: 300, spec_factor_25: 85,
-      stomatal_conductance: 0.3, vcmax: 20}, plant_factors: {angio_gymno: angiosperm,
+      stomatal_conductance: 0.3, vcmax: 70}, plant_factors: {angio_gymno: angiosperm,
       duration: perennial deciduous, growth_form: rhizomatous, growth_habit: graminoid,
       monocot_dicot: monocot, p_type: C4, species: DB}}}
