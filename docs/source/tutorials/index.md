@@ -72,7 +72,7 @@ How Landlab stores spatial data on the grid; a little on naming conventions.
 Extra credit: Go back to the [Hobley et al. 2017 publication][esurf-2017]
 and identify the ordering conventions of nodes, links, and other grid elements.
 
-### 1.4 Working with Digital Elevtion Models (DEMs)
+### 1.4 Working with Digital Elevation Models (DEMs)
 
 - [Notebook: Reading DEMs into Landlab][tutorial-reading-dem] Getting an ARC
   ESRI ASCII into Landlab; getting the boundary conditions set right.
@@ -86,7 +86,7 @@ and identify the ordering conventions of nodes, links, and other grid elements.
 ### 1.6 Boundary conditions
 
 - Setting boundary conditions on Landlab grids (several tutorials): How Landlab
-  conceptualises boundary conditions; various ways to interact and work with them.
+  conceptualizes boundary conditions; various ways to interact and work with them.
   - [Notebook: Raster perimeter][tutorial-bc-perimeter]
   - [Notebook: Based on X-Y values][tutorial-bc-xy]
   - [Notebook: Watersheds][tutorial-bc-watersheds]
