@@ -448,8 +448,8 @@ class VegParams:
         # points provided to prevent solver errors
         elif len(uni_xs) == 2:
             # Solve for constant (see function below)
-            guess = self._a_b_func(uni_xs, uni_ys)
-            S = np.array([guess["a"], guess["b"]])
+            #guess = self._a_b_func(uni_xs, uni_ys)
+            S = self._TAM_method(uni_xs=uni_xs, uni_ys=uni_ys, method=fit_method)
         # Use scipy solver to estimate sigmoid coefficients
         else:
             S = self._get_general_s_curve(uni_xs, uni_ys, fit_method=fit_method)

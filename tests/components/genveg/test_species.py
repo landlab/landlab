@@ -21,9 +21,11 @@ from landlab.components.genveg.photosynthesis import C4
 from landlab.components.genveg.photosynthesis import Cam
 from landlab.components.genveg.species import Species
 
+dt = np.timedelta64(1, 'D')
 
-def create_species_object(example_input_params):
-    return Species(species_params=example_input_params["BTS"], latitude=0.9074)
+
+def create_species_object(example_input_params, dt=dt):
+    return Species(example_input_params["BTS"], dt=dt, latitude=0.9074)
 
 
 def test_get_daily_nsc_concentration(example_input_params):
@@ -72,18 +74,25 @@ def test_calc_area_of_circle(example_input_params):
 
 
 def test_calculate_whole_plant_mortality(example_plant_array, one_cell_grid, example_input_params):
-    species_object = create_species_object(example_input_params)
-    in_growing_season = True
+    max_temp_dt = np.timedelta64(example_input_params["BTS"]["mortality_params"]["duration"]["1"], 'D')
+    min_temp_dt = np.timedelta64(example_input_params["BTS"]["mortality_params"]["duration"]["1"], 'D')
+    species_object_max = create_species_object(example_input_params, dt=max_temp_dt)
+    species_object_min = create_species_object(example_input_params, dt=min_temp_dt)
+    max_temp = one_cell_grid["cell"]["air__max_temperature_C"][example_plant_array["cell_index"]]
+    min_temp = one_cell_grid["cell"]["air__min_temperature_C"][example_plant_array["cell_index"]]
     # Make sure plant doesn't die at moderate ambient temp
-    new_biomass = species_object.calculate_whole_plant_mortality(example_plant_array, in_growing_season)
-    assert_allclose(new_biomass["root"], example_input_params["root"], rtol=0.0001)
+    #check_key = [key for key, factor in species_object.species_mort_params["mort_variable_name"].items() if factor == "air__max_temperature_C"]
+    new_biomass = species_object_max.calculate_whole_plant_mortality(example_plant_array, max_temp, "1")
+    assert_allclose(new_biomass["root"], example_plant_array["root"], rtol=0.0001)
     # Change max temp and make sure plant dies
     one_cell_grid["cell"]["air__max_temperature_C"] = 38 * np.ones(one_cell_grid.number_of_cells)
-    new_biomass = species_object.calculate_whole_plant_mortality(example_plant_array, in_growing_season)
+    max_temp = one_cell_grid["cell"]["air__max_temperature_C"]
+    new_biomass = species_object_max.calculate_whole_plant_mortality(example_plant_array, max_temp, "1")
     assert_allclose(new_biomass["root"], np.zeros_like(new_biomass["root"]), rtol=0.0001)
     # Change min temp and make sure plant dies
     one_cell_grid["cell"]["air__min_temperature_C"] = -38 * np.ones(one_cell_grid.number_of_cells)
-    new_biomass = species_object.calculate_whole_plant_mortality(example_plant_array, in_growing_season)
+    min_temp = one_cell_grid["cell"]["air__min_temperature_C"]
+    new_biomass = species_object_min.calculate_whole_plant_mortality(example_plant_array, min_temp, "2")
     assert_allclose(new_biomass["root"], np.zeros_like(new_biomass["root"]), rtol=0.0001)
 
 
@@ -100,7 +109,7 @@ def test_max_vital_volume(example_input_params):
 
 def test_ratio_calculations(example_input_params):
     species_object = create_species_object(example_input_params)
-    morph_param = example_input_params["BTS"]["morph_params"]
+    morph_param = species_object.species_morph_params
     # area_per_stem
     assert_almost_equal(
         species_object.calc_param_ratio(0.070685835, morph_param["max_n_stems"]),

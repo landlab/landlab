@@ -294,11 +294,11 @@ class GenVeg(Component, PlantGrowth):
             raise ValueError(msg)
         # Check to see if grid contains required environmental fields
         try:
-            self.min_air_temp = self._grid["cell"]["air__min_temperature"][:].copy()
-            self.max_air_temp = self._grid["cell"]["air__max_temperature"][:].copy()
+            self.min_air_temp = self._grid["cell"]["air__min_temperature_C"][:].copy()
+            self.max_air_temp = self._grid["cell"]["air__max_temperature_C"][:].copy()
         except KeyError:
             msg = (
-                "GenVeg requires min and max air temperatures"
+                "GenVeg requires min and max air temperatures "
                 "in Celcius for each time step."
             )
             raise KeyError(msg)

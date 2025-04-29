@@ -34,7 +34,8 @@ rng = np.random.default_rng()
 
 # Define species class that inherits composite class methods
 class Species:
-    def __init__(self, species_params, latitude):
+    def __init__(self, species_params, latitude, dt=1):
+        self.dt = dt
         self.validate_plant_factors(species_params["plant_factors"])
         self.validate_duration_params(species_params["duration_params"])
         self.define_plant_parts(species_params)
@@ -70,7 +71,7 @@ class Species:
                 "thicket_forming",
             ],
             "storage": ["aboveground", "belowground"],
-            "p_type": ["C3", "C4"],
+            "p_type": ["C3", "C4", "Cam"],
         }
 
         for key in plant_factors:
@@ -590,15 +591,9 @@ class Species:
             _new_biomass[part][filter] = np.zeros_like(_new_biomass[part][filter])
         return _new_biomass
 
-    def mortality(self, plants, _in_growing_season):
+    def mortality(self, plants, grid, _in_growing_season):
         old_biomass = plants.copy()
-        plants = self.calculate_whole_plant_mortality(plants, _in_growing_season)
-        plants = self.calculate_shaded_leaf_mortality(plants)
-        plants = self.update_dead_biomass(plants, old_biomass)
-        return plants
-
-    def calculate_whole_plant_mortality(self, plants, _in_growing_season):
-        mortdict = self.species_mort_params
+        mortdict = self.species_mort_param
         # set flags for three types of mortality periods
         mort_period_bool = {
             "during growing season": _in_growing_season is True,
@@ -606,33 +601,38 @@ class Species:
             "year-round": True,
         }
         factors = mortdict["mort_variable_name"]
-        for fact in factors:
-            # Determine if mortality factor is applied
-            run_mort = mort_period_bool[mortdict["period"][fact]]
+        for key, factor in factors.items():
+            run_mort = mort_period_bool[mortdict["period"][key]]
             if not run_mort:
                 continue
             else:
                 try:
-                    # Assign mortality predictor from grid to plant
-                    pred = self._grid["cell"][factors[fact]][plants["cell_index"]]
-                    coeffs = mortdict["coeffs"][fact]
-                    # Calculate the probability of survival and cap from 0-1
-                    prob_survival = 1 / (1 + coeffs[0] * np.exp(-coeffs[1] * pred))
-                    prob_survival[np.isnan(prob_survival)] = 1.0
-                    prob_survival[prob_survival < 0] = 0
-                    prob_survival_daily = prob_survival ** (
-                        1 / (mortdict["duration"][fact] / self.dt.astype(int))
-                    )
-                    daily_survival = prob_survival_daily > rng.random(pred.shape)
-                    for part in self.all_parts:
-                        plants["dead_" + str(part)] = plants["dead_" + str(part)] + (
-                            plants[part] * (np.invert(daily_survival).astype(int))
-                        )
-                        plants[part] = plants[part] * daily_survival.astype(int)
-
+                    pred = grid["cell"][factors[factor]][plants["cell_index"]]
+                    plants = self.calculate_whole_plant_mortality(plants, pred, key)
                 except KeyError:
-                    msg = f"No data available for mortality factor {factors[fact]}"
+                    msg = f"No data available for mortality factor {factor}"
                     raise ValueError(msg)
+        plants = self.calculate_shaded_leaf_mortality(plants)
+        plants = self.update_dead_biomass(plants, old_biomass)
+        return plants
+
+    def calculate_whole_plant_mortality(self, plants, grid_value, key):
+        mortdict = self.species_mort_params
+        factor_coeffs = mortdict["coeffs"][key]
+        print(factor_coeffs)
+        # Calculate the probability of survival and cap from 0-1
+        prob_survival = 1 / (1 + np.exp(-factor_coeffs[0] * (grid_value - factor_coeffs[1])))
+        prob_survival[np.isnan(prob_survival)] = 1.0
+        prob_survival[prob_survival < 0] = 0
+        prob_survival_daily = prob_survival ** (
+            1 / (mortdict["duration"][key] / self.dt.astype(int))
+        )
+        daily_survival = prob_survival_daily > rng.random(grid_value.shape)
+        for part in self.all_parts:
+            plants["dead_" + str(part)] = plants["dead_" + str(part)] + (
+                plants[part] * (np.invert(daily_survival).astype(int))
+            )
+            plants[part] = plants[part] * daily_survival.astype(int)
         return plants
 
     def calculate_shaded_leaf_mortality(self, plants):

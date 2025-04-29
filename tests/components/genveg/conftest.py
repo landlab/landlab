@@ -120,25 +120,25 @@ def example_input_params():
             },
             "mortality_params": {
                 "coeffs": {
-                    "1": [2181.7587297817245, 0.4567061338996317],
-                    "2": [99972502406.21997, -1.151280045871995],
+                    "1": [-3.91197300292798, 34.64562783023239],
+                    "2": [0.3911973002927978, -6.456278302323929],
                 },
-                "duration": {1: 207, 2: 365},
+                "duration": {"1": 207, "2": 365},
                 "mort_variable_name": {
                     "1": "air__max_temperature_C",
                     "2": "air__min_temperature_C",
                 },
                 "period": {
-                    "1": "during growing  season",
-                    "2": "during growing season",
+                    "1": "during growing season",
+                    "2": "year-round",
                 },
                 "predictor": {
                     "1": [-30, 0, 20, 35, 37],
-                    "2": [-30, 0, 20, 35, 37],
+                    "2": [-30, -20, 0, 35, 37],
                 },
                 "response": {
-                    "1": [0, 1, 1, 0.2, 0],
-                    "2": [0, 1, 1, 0.2, 0],
+                    "1": [1, 1, 1, 0.2, 0],
+                    "2": [0, 0.2, 1, 1, 1],
                 },
             },
             "photo_params": {
@@ -158,6 +158,7 @@ def example_input_params():
                 "monocot_dicot": "monocot",
                 "p_type": "C3",
                 "species": "BTS",
+                "storage": "belowground"
             },
         }
     }
@@ -297,7 +298,7 @@ def example_plant_array():
     cell_index = 0
     for i in range(8):
         pidval = i
-        cell_index = i + 1
+        cell_index = 0
         plantlist.append(
             (
                 plant,
@@ -385,7 +386,7 @@ def one_cell_grid():
         units="C",
     )
     _ = grid.add_field(
-        "radiation__par_tot",
+        "radiation__total_par",
         NJ_avg_par * np.ones(grid.number_of_cells),
         at="cell",
         units="W/m^2",

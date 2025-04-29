@@ -170,9 +170,9 @@ class PlantGrowth(Species):
         self._grid = grid
         (_, _latitude) = self._grid.xy_of_reference
         self._lat_rad = np.radians(_latitude)
-        super().__init__(species_params, self._lat_rad)
-        self.species_name = self.species_plant_factors["species"]
         self.dt = dt
+        super().__init__(species_params, self._lat_rad, self.dt)
+        self.species_name = self.species_plant_factors["species"]
         self.time_ind = 1
         event_flags = self.set_event_flags(_current_jday)
         _in_growing_season = event_flags.pop("_in_growing_season")
@@ -533,7 +533,7 @@ class PlantGrowth(Species):
         }
 
         # Run mortality and decompose litter each day
-        _new_biomass = self.mortality(_new_biomass, event_flags["_in_growing_season"])
+        _new_biomass = self.mortality(_new_biomass)
         _new_biomass = self.litter_decomp(_new_biomass)
         # Limit growth processes only to live plants
         _total_biomass = self.sum_plant_parts(_new_biomass, parts="total")

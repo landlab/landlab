@@ -52,7 +52,7 @@ class Clonal(Repro):
 
 
 class Seed(Repro):
-    def __init__(self):
+    def __init__(self, params):
         pass
 
     def disperse(self):
@@ -60,7 +60,7 @@ class Seed(Repro):
 
 
 class Random(Repro):
-    def __init__(self):
+    def __init__(self, params):
         pass
 
     def disperse(self):

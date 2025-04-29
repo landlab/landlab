@@ -7,9 +7,15 @@ from numpy.testing import assert_equal
 from landlab.components.genveg.habit import Habit
 from landlab.components.genveg.species import Species
 
+dt = np.timedelta64(1, 'D')
+
+
+def create_species_object(example_input_params):
+    return Species(example_input_params["BTS"], dt=dt, latitude=0.9074)
+
 
 def test_calc_canopy_area_from_shoot_width(example_input_params):
-    Species(species_params=example_input_params["BTS"], latitude=0.9074)
+    create_species_object(example_input_params)
     h = Habit(params=example_input_params["BTS"], green_parts=("leaf", "stem"))
     # zero array returns zero array
     assert_array_almost_equal(
@@ -38,7 +44,7 @@ def test_calc_canopy_area_from_shoot_width(example_input_params):
 
 
 def test_calc_crown_area_from_shoot_width_raises_error(example_input_params):
-    Species(species_params=example_input_params["BTS"], latitude=0.9074)
+    create_species_object(example_input_params)
     h = Habit(params=example_input_params["BTS"], green_parts=("leaf", "stem"))
     with pytest.raises(ValueError):
         h._calc_canopy_area_from_shoot_width(-1.5)
