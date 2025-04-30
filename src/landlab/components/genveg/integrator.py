@@ -294,8 +294,8 @@ class GenVeg(Component, PlantGrowth):
             raise ValueError(msg)
         # Check to see if grid contains required environmental fields
         try:
-            self.min_air_temp = self._grid["cell"]["air__min_temperature_C"][:].copy()
-            self.max_air_temp = self._grid["cell"]["air__max_temperature_C"][:].copy()
+            self.min_air_temp = self._grid["cell"]["air__min_temperature_C"][:]
+            self.max_air_temp = self._grid["cell"]["air__max_temperature_C"][:]
         except KeyError:
             msg = (
                 "GenVeg requires min and max air temperatures "
@@ -304,7 +304,7 @@ class GenVeg(Component, PlantGrowth):
             raise KeyError(msg)
 
         try:
-            self._par = self._grid["cell"]["radiation__total_par"][:].copy()
+            self._par = self._grid["cell"]["radiation__total_par"][:]
         except KeyError:
             msg = (
                 "GenVeg requires incoming PAR for each timestep. "
@@ -317,7 +317,7 @@ class GenVeg(Component, PlantGrowth):
         try:
             self._soil_water = self._grid["cell"]["soil_water__volume_fraction"][
                 :
-            ].copy()
+            ]
         except KeyError:
             msg = (
                 "Soil moisture field is not found. "

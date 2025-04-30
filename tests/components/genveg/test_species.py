@@ -149,6 +149,38 @@ def test_ratio_calculations(example_input_params):
     assert_almost_equal(species_object.calc_param_ratio(0.9, 32), 0.028125)
 
 
+def test_respire(example_plant, one_cell_grid, example_input_params):
+    species_object = create_species_object(example_input_params)
+    # Respire with no water growth limitation from WOFOST in PCSE and crop development stage=1 divided by carb conversion
+    wofost_resp_root = np.array([0.0033926])
+    wofost_resp_stem = np.array([0.00121421])
+    wofost_resp_leaf = np.array([0.00418568])
+    # GV inputs
+    max_temp = one_cell_grid["cell"]["air__max_temperature_C"][example_plant["cell_index"]]
+    min_temp = one_cell_grid["cell"]["air__min_temperature_C"][example_plant["cell_index"]]
+    relative_saturation = np.zeros_like(one_cell_grid["cell"]["soil_water__volume_fraction"][example_plant["cell_index"]])
+    plant_out = species_object.respire(min_temp, max_temp, relative_saturation, example_plant)
+    mass_change_resp_root = np.subtract(example_plant["root"], plant_out["root"])
+    mass_change_resp_leaf = np.subtract(example_plant["leaf"], plant_out["leaf"])
+    mass_change_resp_stem = np.subtract(example_plant["stem"], plant_out["stem"])
+    assert_almost_equal(wofost_resp_root, mass_change_resp_root, 6)
+    assert_almost_equal(wofost_resp_leaf, mass_change_resp_leaf, 6)
+    assert_almost_equal(wofost_resp_stem, mass_change_resp_stem, 6)
+    # Respire with from WOFOST in PCSEand crop development stage=1 with saturation limitation divided by carb conversion
+    wofost_resp_root = np.array([0.00441038])
+    wofost_resp_stem = np.array([0.00121421])
+    wofost_resp_leaf = np.array([0.00418568])
+    # GV inputs
+    relative_saturation = np.ones_like(one_cell_grid["cell"]["soil_water__volume_fraction"][example_plant["cell_index"]]) * 0.5
+    plant_out_half_sat = species_object.respire(min_temp, max_temp, relative_saturation, example_plant)
+    mass_change_resp_root_half_sat = np.subtract(example_plant["root"], plant_out_half_sat["root"])
+    mass_change_resp_leaf_half_sat = np.subtract(example_plant["leaf"], plant_out_half_sat["leaf"])
+    mass_change_resp_stem_half_sat = np.subtract(example_plant["stem"], plant_out_half_sat["stem"])
+    assert_almost_equal(wofost_resp_root, mass_change_resp_root_half_sat, 6)
+    assert_almost_equal(wofost_resp_leaf, mass_change_resp_leaf_half_sat, 6)
+    assert_almost_equal(wofost_resp_stem, mass_change_resp_stem_half_sat, 6)
+
+
 def test_sum_vars_in_calculate_derived_params(example_input_params):
     species_object = create_species_object(example_input_params)
     species_param = species_object.calculate_derived_params(example_input_params["BTS"])

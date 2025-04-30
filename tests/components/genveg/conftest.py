@@ -35,6 +35,12 @@ def example_input_params():
                 },
                 "growth_max_biomass": 13.899999999999999,
                 "growth_min_biomass": 0.06222222222222222,
+                "hypoxic_ratio": {
+                    "leaf": 2.18,
+                    "reproductive": 1.6,
+                    "root": 1.6,
+                    "stem": 2.18,
+                },
                 "incremental_nsc": {
                     "leaf": [1.25, 0, -1, 0.5],
                     "reproductive": [1.5625, -1.875, 0.0625, 2.5],
@@ -207,7 +213,6 @@ def example_plant():
     cell_index = 0
     for i in range(1):
         pidval = i
-        cell_index = i + 1
         plantlist.append(
             (
                 plant,
@@ -298,7 +303,6 @@ def example_plant_array():
     cell_index = 0
     for i in range(8):
         pidval = i
-        cell_index = 0
         plantlist.append(
             (
                 plant,
@@ -370,6 +374,7 @@ def one_cell_grid():
     grid.axis_units = ("m", "m")
     maxtemp = np.array([15.53])
     mintemp = np.array([8.62])
+    water_content = np.array([0.88])
     NJ_avg_par = np.array([118.11])
 
     # Initialize with a dummy data sets
@@ -396,4 +401,11 @@ def one_cell_grid():
         np.full(grid.number_of_cells, "Corn"),
         at="cell",
     )
+    _ = grid.add_field(
+        "soil_water__volume_fraction",
+        water_content * np.ones(grid.number_of_cells),
+        at="cell",
+        units="m**3/m**3",
+    )
+    
     return grid

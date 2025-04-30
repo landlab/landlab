@@ -687,6 +687,9 @@ class Species:
         return carb_generated_photo_adj
 
     def respire(self, _min_temperature, _max_temperature, _rel_sat, _last_biomass):
+        """
+        This function calculates maintenance respiration 
+        """
         _temperature = (_min_temperature + _max_temperature) / 2
         growdict = self.species_grow_params
         _new_biomass = _last_biomass.copy()
@@ -704,7 +707,11 @@ class Species:
                 * hypoxia_adjustment[filter]
                 * growdict["respiration_coefficient"][part]
                 * _last_biomass[part][filter]
-            ) / growdict["glucose_requirement"][part]
+                / growdict["glucose_requirement"][part] 
+            )
+            print(part)
+            print(hypoxia_adjustment)
+            print(delta_respire)
             _new_biomass[part][filter] -= delta_respire[filter]
         return _new_biomass
 
