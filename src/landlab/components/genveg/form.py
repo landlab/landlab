@@ -63,7 +63,6 @@ class Colonizing(Random):
     def __init__(self, params):
         super().__init__(params)
 
-
     def branch(self):
         print("No branching annual")
 
@@ -74,7 +73,6 @@ class Colonizing(Random):
 class Multiplestems(Seed):
     def __init__(self, params):
         super().__init__(params)
-
 
     def branch(self):
         print("Create two or more main stems at or near soil surface")
