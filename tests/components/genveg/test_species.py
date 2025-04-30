@@ -73,6 +73,21 @@ def test_calc_area_of_circle(example_input_params):
         )
 
 
+def test_calculate_shaded_leaf_mortality(example_plant, example_input_params):
+    species_object = create_species_object(example_input_params)
+    # Check to make sure no leaf mortality occurred for LAI 0.012 < LAI_crit 2
+    plant_out = species_object.calculate_shaded_leaf_mortality(example_plant)
+    assert_almost_equal(example_plant["leaf"], plant_out["leaf"])
+    # Change leaf area to make LAI greater than LAI_crit and reduce leaf biomass
+    wofost_leaf_weight_change = np.array([0.00259091])
+    big_leaf_plant = example_plant
+    big_leaf_plant["total_leaf_area"] = 2.15
+    big_leaf_plant_leaf_init = big_leaf_plant["leaf"].copy()
+    plant_out = species_object.calculate_shaded_leaf_mortality(big_leaf_plant)
+    weight_change = np.subtract(big_leaf_plant_leaf_init, plant_out["leaf"])
+    assert_almost_equal(weight_change, wofost_leaf_weight_change, 6)
+
+
 def test_calculate_whole_plant_mortality(example_plant_array, one_cell_grid, example_input_params):
     max_temp_dt = np.timedelta64(example_input_params["BTS"]["mortality_params"]["duration"]["1"], 'D')
     min_temp_dt = np.timedelta64(example_input_params["BTS"]["mortality_params"]["duration"]["1"], 'D')
@@ -81,7 +96,6 @@ def test_calculate_whole_plant_mortality(example_plant_array, one_cell_grid, exa
     max_temp = one_cell_grid["cell"]["air__max_temperature_C"][example_plant_array["cell_index"]]
     min_temp = one_cell_grid["cell"]["air__min_temperature_C"][example_plant_array["cell_index"]]
     # Make sure plant doesn't die at moderate ambient temp
-    #check_key = [key for key, factor in species_object.species_mort_params["mort_variable_name"].items() if factor == "air__max_temperature_C"]
     new_biomass = species_object_max.calculate_whole_plant_mortality(example_plant_array, max_temp, "1")
     assert_allclose(new_biomass["root"], example_plant_array["root"], rtol=0.0001)
     # Change max temp and make sure plant dies

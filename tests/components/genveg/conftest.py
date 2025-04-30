@@ -109,7 +109,7 @@ def example_input_params():
                     "a": -9999,
                     "b": -9999,
                 },
-                "lai_cr": 4,
+                "lai_cr": 2,
                 "max_height": 0.75,
                 "max_n_stems": 10,
                 "max_plant_density": 18,

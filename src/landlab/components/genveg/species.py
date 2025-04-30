@@ -641,7 +641,6 @@ class Species:
         # a computer model. Dissertation. com, 2006 based on equation
         # 7.18 and 7.20 (pg. 154)
         lai = self.calculate_lai(plants["total_leaf_area"], plants["shoot_sys_width"])
-
         excess_lai = (
             lai - self.species_morph_params["lai_cr"]
         ) / self.species_morph_params["lai_cr"]
