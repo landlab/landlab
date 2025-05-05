@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_allclose
 from numpy.testing import assert_almost_equal
+from numpy.testing import assert_array_less
 
 from landlab.components.genveg.form import Bunch
 from landlab.components.genveg.form import Colonizing
@@ -73,11 +74,15 @@ def test_calc_area_of_circle(example_input_params):
         )
 
 
-def test_calculate_shaded_leaf_mortality(example_plant, example_input_params):
+def test_calculate_shaded_leaf_mortality(example_plant_array, example_plant, example_input_params):
     species_object = create_species_object(example_input_params)
     # Check to make sure no leaf mortality occurred for LAI 0.012 < LAI_crit 2
-    plant_out = species_object.calculate_shaded_leaf_mortality(example_plant)
-    assert_almost_equal(example_plant["leaf"], plant_out["leaf"])
+    init_leaf_weight = example_plant_array["leaf"].copy()
+    print(example_plant_array["total_leaf_area"])
+    print(example_plant_array["total_leaf_area"] / (np.pi / 4 * example_plant_array["shoot_sys_width"]**2))
+    plant_out = species_object.calculate_shaded_leaf_mortality(example_plant_array)
+    assert_almost_equal(example_plant_array["leaf"][0:2], init_leaf_weight[0:2])
+    assert_array_less(plant_out["leaf"][2], init_leaf_weight[2])
     # Change leaf area to make LAI greater than LAI_crit and reduce leaf biomass
     wofost_leaf_weight_change = np.array([0.00259091])
     big_leaf_plant = example_plant

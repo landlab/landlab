@@ -3,7 +3,10 @@ import pytest
 
 from landlab import RasterModelGrid
 
-rng = np.random.default_rng()
+
+@pytest.fixture(autouse=True)
+def set_random_seed():
+    return np.random.default_rng(seed=39)
 
 
 # Test parameter dictionary
@@ -263,7 +266,8 @@ def example_plant():
 
 
 @pytest.fixture
-def example_plant_array():
+def example_plant_array(set_random_seed):
+    rng = set_random_seed
     dtypes = [
         ("species", "U10"),
         ("pid", int),
@@ -357,7 +361,7 @@ def example_plant_array():
     plants["shoot_sys_height"] = rng.uniform(low=0.2, high=4, size=plants.size)
     plants["root_sys_depth"] = rng.uniform(low=0.0, high=2, size=plants.size)
     plants["total_leaf_area"] = rng.uniform(low=0.1, high=3, size=plants.size)
-    plants["live_leaf_area"] = rng.uniform(low=0.1, high=1, size=plants.size)
+    plants["live_leaf_area"] = plants["total_leaf_area"]
     plants["plant_age"] = rng.uniform(low=1 / 365, high=5, size=plants.size)
     plants["n_stems"] = rng.integers(1, 6, size=plants.size)
     plants["pup_x_loc"][plants["reproductive"] > 0.1] = 0.0
