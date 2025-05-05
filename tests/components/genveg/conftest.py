@@ -411,5 +411,47 @@ def one_cell_grid():
         at="cell",
         units="m**3/m**3",
     )
-    
+    return grid
+
+
+@pytest.fixture
+def two_cell_grid():
+    # Create grid with one cell containing min max temp, par, location, species
+    grid = RasterModelGrid((4, 3), 2, xy_of_reference=(-74.08, 39.79))
+    grid.axis_units = ("m", "m")
+    maxtemp = np.array([15.53])
+    mintemp = np.array([8.62])
+    water_content = np.array([0.88])
+    NJ_avg_par = np.array([118.11])
+
+    # Initialize with a dummy data sets
+    _ = grid.add_field(
+        "air__max_temperature_C",
+        maxtemp * np.ones(grid.number_of_cells),
+        at="cell",
+        units="C",
+    )
+    _ = grid.add_field(
+        "air__min_temperature_C",
+        mintemp * np.ones(grid.number_of_cells),
+        at="cell",
+        units="C",
+    )
+    _ = grid.add_field(
+        "radiation__total_par",
+        NJ_avg_par * np.ones(grid.number_of_cells),
+        at="cell",
+        units="W/m^2",
+    )
+    _ = grid.add_field(
+        "vegetation__plant_species",
+        np.full(grid.number_of_cells, "Corn"),
+        at="cell",
+    )
+    _ = grid.add_field(
+        "soil_water__volume_fraction",
+        water_content * np.ones(grid.number_of_cells),
+        at="cell",
+        units="m**3/m**3",
+    )
     return grid

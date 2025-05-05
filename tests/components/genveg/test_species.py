@@ -115,6 +115,21 @@ def test_calculate_whole_plant_mortality(example_plant_array, one_cell_grid, exa
     assert_allclose(new_biomass["root"], np.zeros_like(new_biomass["root"]), rtol=0.0001)
 
 
+def test_mortality(example_input_params, two_cell_grid, example_plant_array):    
+    species_object = create_species_object(example_input_params)
+    example_plant_array["cell_index"][0:4] = np.array([1,1,1,1])
+    # Check to be sure mortality doesn't happen outside period
+    growing_season = False
+    two_cell_grid["air__min_temperature_C"][0] = np.array([-38])
+
+    # Check multiple mortality factors
+
+    # Check only leaf mortality happens
+
+    # Check leaf weight if whole plant and shaded leaf mortality occurs
+    pass
+
+
 # Test calculate_derived_params functions
 def test_max_vital_volume(example_input_params):
     assert_almost_equal(
@@ -320,6 +335,18 @@ def test_select_photosythesis_type(example_input_params):
             ),
             cls,
         )
+
+
+def test_update_dead_biomass(example_input_params, example_plant):
+    example_plant_new = example_plant.copy()
+    example_plant_new["leaf"] *= 0.5
+    example_plant_new["root"] *= 0.5
+    example_plant_new["stem"] *= 0.5
+    species_object = create_species_object(example_input_params)
+    example_plant_new = species_object.update_dead_biomass(example_plant_new, example_plant)
+    assert_almost_equal(example_plant_new["dead_leaf"], example_plant_new["leaf"], decimal=6)
+    assert_almost_equal(example_plant_new["dead_root"], example_plant_new["root"])
+    assert_almost_equal(example_plant_new["dead_stem"], example_plant_new["stem"])
 
 
 def test_validate_plant_factors_raises_errors(example_input_params):
