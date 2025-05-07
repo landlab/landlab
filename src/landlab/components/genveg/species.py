@@ -801,10 +801,9 @@ class Species:
         return _new_tot
 
     def calculate_dead_age(self, age_t1, mass_t1, mass_t2):
-        age_t2 = np.zeros_like(age_t1)
+        age_t2 = age_t1.copy()
         filter = np.nonzero(mass_t2 > 0)
         age_t2[filter] = (
             (age_t1[filter] * mass_t1[filter])
-            + ((mass_t2[filter] - mass_t1[filter]) * np.zeros_like(age_t1[filter]))
         ) / (mass_t2[filter])
         return age_t2
