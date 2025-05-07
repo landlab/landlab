@@ -28,6 +28,12 @@ def example_input_params():
                 "reproduction_end": 250,
                 "reproduction_start": 180,
                 "senescence_start": 273,
+                "death_rate": {
+                    "leaf": 0.03,
+                    "reproductive": 0.02,
+                    "root": 0.02,
+                    "stem": 0.02,
+                },
             },
             "grow_params": {
                 "glucose_requirement": {

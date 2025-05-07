@@ -111,7 +111,7 @@ class Species:
         ):
             msg = "Start of senescence must be within the growing season"
             raise ValueError(msg)
-    
+
     def define_plant_parts(self, species_params):
         self.all_parts = list(
             species_params["grow_params"]["glucose_requirement"].keys()
@@ -227,22 +227,6 @@ class Species:
             morph_params["max_vital_volume"],
         )
 
-        # check to make sure the growing_season_end is not equal to senescence_start
-        UnitTestChecks().is_zero(
-            (
-                species_params["duration_params"]["growing_season_end"]
-                - species_params["duration_params"]["senescence_start"]
-            ),
-            "growing_season_end - senescence_start",
-        )
-        species_params["duration_params"]["senesce_rate"] = self.calc_param_ratio(
-            0.9,
-            (
-                species_params["duration_params"]["growing_season_end"]
-                - species_params["duration_params"]["senescence_start"]
-            ),
-        )
-
         seasonal_nsc_assim_rates = [
             "winter_nsc_rate",
             "spring_nsc_rate",
@@ -305,7 +289,7 @@ class Species:
             "tree": Tree,
             "vine": Vine,
         }
-        return habit[habit_type](species_params)
+        return habit[habit_type](species_params, self.dt)
 
     def select_form_class(self, species_params):
         form_type = species_params["plant_factors"]["growth_form"]
@@ -709,23 +693,23 @@ class Species:
                 * _last_biomass[part][filter]
                 / growdict["glucose_requirement"][part] 
             )
-            print(part)
-            print(hypoxia_adjustment)
-            print(delta_respire)
             _new_biomass[part][filter] -= delta_respire[filter]
         return _new_biomass
 
     def senesce(self, plants, jday):
+        old_biomass = plants.copy()
+        death_rate = self.species_duration_params["death_rate"]
         ns_conc = self.get_daily_nsc_concentration(jday)
-        ns_green_mass = 0.0
+        ns_green_mass_lost = 0.0
         for part in self.habit.duration.green_parts:
-            ns_green_mass += plants[part] * ns_conc[part]
+            ns_green_mass_lost += plants[part] * ns_conc[part] * death_rate[part]
         persistent_mass = self.sum_plant_parts(plants, parts="persistent")
         plants = self.habit.senesce(
             plants,
-            ns_green_mass=ns_green_mass,
+            ns_green_mass=ns_green_mass_lost,
             persistent_mass=persistent_mass,
         )
+        plants = self.update_dead_biomass(plants, old_biomass)
         return plants
 
     def set_initial_biomass(self, plants, in_growing_season):

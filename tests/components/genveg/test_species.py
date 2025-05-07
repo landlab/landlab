@@ -246,6 +246,22 @@ def test_sum_vars_in_calculate_derived_params(example_input_params):
     assert_almost_equal(species_param["grow_params"]["min_nsc_biomass"], 0.03369)
 
 
+def test_senesce(example_input_params, example_plant):
+    species_object = create_species_object(example_input_params)
+    jday = 195
+    # leaves and stems should move nonstructural carb content to roots at a fixed rate
+    # calculated values from Excel at day 195 for one plant
+    end_root = np.array([0.803921028])
+    end_stem = np.array([0.29399902])
+    end_leaf = np.array([0.485])
+    end_repro = np.array([0.])
+    plant_out = species_object.senesce(example_plant, jday)
+    assert_almost_equal(plant_out["reproductive"], end_repro, decimal=6)
+    assert_almost_equal(plant_out["root"], end_root, decimal=6)
+    assert_almost_equal(plant_out["stem"], end_stem, decimal=6)
+    assert_almost_equal(plant_out["leaf"], end_leaf, decimal=6)
+
+
 def test_nsc_rate_change_per_season_and_part(example_input_params):
     species_object = create_species_object(example_input_params)
     species_param = species_object.calculate_derived_params(example_input_params["BTS"])

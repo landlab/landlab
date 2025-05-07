@@ -11,14 +11,15 @@ rng = np.random.default_rng()
 # Growth habit classes and selection method
 # Growth habit uses duration properties to assign dormancy and emergence methods
 class Habit:
-    def __init__(self, params, green_parts):
+    def __init__(self, params, dt=1, green_parts=(None)):
         self.grow_params = params["grow_params"]
         duration_params = params["duration_params"]
         self.duration = self._select_duration_class(
             self.grow_params,
+            duration_params,
+            dt,
             params["plant_factors"]["duration"],
             green_parts,
-            duration_params,
         )
         self.morph_params = self._calc_derived_morph_params(params)
 
@@ -58,17 +59,17 @@ class Habit:
     def _select_duration_class(
         self,
         species_grow_params,
+        duration_params,
+        dt,
         duration_val,
-        green_parts=("root", "leaf", "stem", "reproductive"),
-        duration_params={"senesce_rate": 0.0},
+        green_parts=(None),
     ):
-        senesce_rate = duration_params["senesce_rate"]
         duration = {
-            "annual": Annual(species_grow_params, senesce_rate),
+            "annual": Annual(species_grow_params, duration_params, dt),
             "perennial deciduous": Deciduous(
-                species_grow_params, green_parts, senesce_rate
+                species_grow_params, duration_params, dt, green_parts
             ),
-            "perennial evergreen": Evergreen(species_grow_params),
+            "perennial evergreen": Evergreen(species_grow_params, duration_params, dt),
         }
         return duration[duration_val]
 
@@ -137,15 +138,16 @@ class Habit:
 
 
 class Forbherb(Habit):
-    def __init__(self, params):
+    def __init__(self, params, dt):
         green_parts = ("leaf", "stem")
-        super().__init__(params, green_parts)
+        super().__init__(params, dt, green_parts)
 
 
 class Graminoid(Habit):
     def __init__(
         self,
         params,
+        dt,
         empirical_coeffs={
             "perennial": {
                 "C3": {
@@ -242,7 +244,7 @@ class Graminoid(Habit):
             )
             params["morph_params"]["min_basal_dia"]
 
-        super().__init__(params, green_parts)
+        super().__init__(params, dt, green_parts)
 
     def _calc2_allometry_coeffs(self, x_min, x_max, y_min, y_max):
         ln_x_min = np.log(x_min)
@@ -301,18 +303,18 @@ class Graminoid(Habit):
 
 
 class Shrub(Habit):
-    def __init__(self, params):
-        green_parts = "leaf"
-        super().__init__(params, green_parts)
+    def __init__(self, params, dt):
+        green_parts = ("leaf")
+        super().__init__(params, dt, green_parts)
 
 
 class Tree(Habit):
-    def __init__(self, params):
-        green_parts = "leaf"
-        super().__init__(params, green_parts)
+    def __init__(self, params, dt):
+        green_parts = ("leaf")
+        super().__init__(params, dt, green_parts)
 
 
 class Vine(Habit):
-    def __init__(self, params):
-        green_parts = "leaf"
-        super().__init__(params, green_parts)
+    def __init__(self, params, dt):
+        green_parts = ("leaf")
+        super().__init__(params, dt, green_parts)

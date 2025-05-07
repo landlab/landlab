@@ -10,10 +10,12 @@ class Duration:
     def __init__(
         self,
         species_grow_params,
+        duration_params,
+        dt,
         green_parts,
         persistent_parts,
-        senesce_rate,
     ):
+        self.dt = dt
         self.growdict = species_grow_params
         self.allocation_coeffs = {
             "root_to_leaf": species_grow_params["root_to_leaf"],
@@ -21,7 +23,7 @@ class Duration:
         }
         self.green_parts = green_parts
         self.persistent_parts = persistent_parts
-        self.senesce_rate = senesce_rate
+        self.death_rate = duration_params["death_rate"]
 
     def enter_dormancy(self, plants):
         print("I kill green parts at end of growing season")
@@ -35,13 +37,13 @@ class Duration:
         filter = np.nonzero((ns_green_mass > 0.001) | (persistent_mass > 0.001))
         for part in self.persistent_parts:
             plants[part][filter] += (
-                self.senesce_rate
+                self.death_rate[part]
                 * ns_green_mass[filter]
                 * plants[part][filter]
                 / persistent_mass[filter]
             )
         for part in self.green_parts:
-            plants[part][filter] -= self.senesce_rate * plants[part][filter]
+            plants[part][filter] -= self.death_rate[part] * plants[part][filter]
         return plants
 
     def set_new_biomass(self, plants):
@@ -114,17 +116,17 @@ class Duration:
 
 
 class Annual(Duration):
-    def __init__(self, species_grow_params, senesce_rate):
+    def __init__(self, species_grow_params, duration_params, dt):
         green_parts = ("root", "leaf", "stem", "reproductive")
         persistent_parts = ()
         super().__init__(
-            species_grow_params, green_parts, persistent_parts, senesce_rate
+            species_grow_params, duration_params, dt, green_parts, persistent_parts
         )
 
     def senesce(self, plants, mass_of_green=None, mass_of_persistent=None):
         print("I start to lose biomass during senescence periood")
         for part in self.green_parts:
-            plants[part] -= plants[part] * self.senesce_rate
+            plants[part] -= plants[part] * self.death_rate[part] * self.dt
         return plants
 
     def emerge(self, plants, available_mass, persistent_total_mass):
@@ -144,23 +146,37 @@ class Perennial(Duration):
     def __init__(
         self,
         species_grow_params,
+        duration_params,
+        dt,
         green_parts=(),
         persistent_parts=("root", "leaf", "stem", "reproductive"),
-        senesce_rate=0.0,
     ):
         self.persistent_parts = persistent_parts
         super().__init__(
-            species_grow_params, green_parts, persistent_parts, senesce_rate
+            species_grow_params, duration_params, dt, green_parts, persistent_parts
         )
 
     def set_initial_biomass(self, plants, in_growing_season):
         return plants
+    
+    def senesce(self, plants, ns_green_mass=None, persistent_mass=None):
+        # use senesce rate to move portion of nsc to persistent parts, then remove
+        filter = np.nonzero((ns_green_mass > 0.001) | (persistent_mass > 0.001))
+        for part in self.persistent_parts:
+            plants[part][filter] += (
+                ns_green_mass[filter]
+                * plants[part][filter]
+                / persistent_mass[filter]
+            )
+        for part in self.green_parts:
+            plants[part][filter] -= self.death_rate[part] * plants[part][filter]
+        return plants
 
 
 class Evergreen(Perennial):
-    def __init__(self, species_grow_params):
+    def __init__(self, species_grow_params, duration_params, dt):
         self.keep_green_parts = True
-        super().__init__(species_grow_params)
+        super().__init__(species_grow_params, duration_params, dt)
 
     def emerge(self, plants, available_mass, persistent_total_mass):
         return plants
@@ -170,7 +186,7 @@ class Evergreen(Perennial):
 
 
 class Deciduous(Perennial):
-    def __init__(self, species_grow_params, green_parts, senesce_rate):
+    def __init__(self, species_grow_params, duration_params, dt, green_parts):
         self.keep_green_parts = False
         all_veg_sources = ("root", "leaf", "stem", "reproductive")
         persistent_parts = []
@@ -180,7 +196,7 @@ class Deciduous(Perennial):
         persistent_parts = tuple(persistent_parts)
 
         super().__init__(
-            species_grow_params, green_parts, persistent_parts, senesce_rate
+            species_grow_params, duration_params, dt, green_parts, persistent_parts
         )
 
     def emerge(self, plants, available_mass, persistent_total_mass):
@@ -217,8 +233,8 @@ class Deciduous(Perennial):
                 plants[part] = np.zeros_like(plants[part])
         else:
             plants["repro_biomass"] = (
-                growdict["plant_part_min"]["reproductive"]
+                self.growdict["plant_part_min"]["reproductive"]
                 + rng.rayleigh(scale=0.2, size=plants.size)
-                * growdict["plant_part_max"]["reproductive"]
+                * self.growdict["plant_part_max"]["reproductive"]
             )
         return plants
