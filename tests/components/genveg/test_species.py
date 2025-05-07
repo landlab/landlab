@@ -115,19 +115,30 @@ def test_calculate_whole_plant_mortality(example_plant_array, one_cell_grid, exa
     assert_allclose(new_biomass["root"], np.zeros_like(new_biomass["root"]), rtol=0.0001)
 
 
-def test_mortality(example_input_params, two_cell_grid, example_plant_array):    
-    species_object = create_species_object(example_input_params)
-    example_plant_array["cell_index"][0:4] = np.array([1,1,1,1])
+def test_mortality(example_input_params, two_cell_grid, example_plant_array):
+    temp_dt = np.timedelta64(example_input_params["BTS"]["mortality_params"]["duration"]["2"], 'D')
+    species_object = create_species_object(example_input_params, dt=temp_dt)
+    example_plant_array["cell_index"][4:] = np.array([1, 1, 1, 1])
+    inital_leaf = example_plant_array["leaf"].copy()
+    initial_plants = example_plant_array["root"].copy()
+    # Check to make sure leaf self shade is working
+    growing_season = True
+    shaded_plants = species_object.mortality(example_plant_array, two_cell_grid, growing_season)
+    assert_almost_equal(shaded_plants["leaf"][0:2], inital_leaf[0:2])
+    assert_array_less(shaded_plants["leaf"][2], inital_leaf[2])
     # Check to be sure mortality doesn't happen outside period
     growing_season = False
-    two_cell_grid["air__min_temperature_C"][0] = np.array([-38])
-
+    two_cell_grid["cell"]["air__min_temperature_C"] = np.array([-38, 8.62])
+    two_cell_grid["cell"]["air__max_temperature_C"] = np.array([15.53, 45])
+    plant_out = species_object.mortality(example_plant_array, two_cell_grid, growing_season)
+    assert_almost_equal(plant_out["root"][4:], initial_plants[4:], decimal=6)
+    assert_almost_equal(plant_out["root"][0:4], np.zeros_like(plant_out["root"][0:4]), decimal=6)
     # Check multiple mortality factors
-
-    # Check only leaf mortality happens
-
+    growing_season = True
+    plant_out = species_object.mortality(example_plant_array, two_cell_grid, growing_season)
+    assert_almost_equal(plant_out["root"], np.zeros_like(plant_out["root"]), decimal=6)
     # Check leaf weight if whole plant and shaded leaf mortality occurs
-    pass
+    assert_almost_equal(plant_out["leaf"], np.zeros_like(plant_out["leaf"]), decimal=6)
 
 
 # Test calculate_derived_params functions

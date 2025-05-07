@@ -593,7 +593,7 @@ class Species:
 
     def mortality(self, plants, grid, _in_growing_season):
         old_biomass = plants.copy()
-        mortdict = self.species_mort_param
+        mortdict = self.species_mort_params
         # set flags for three types of mortality periods
         mort_period_bool = {
             "during growing season": _in_growing_season is True,
@@ -607,12 +607,13 @@ class Species:
                 continue
             else:
                 try:
-                    pred = grid["cell"][factors[factor]][plants["cell_index"]]
+                    pred = grid["cell"][factor][plants["cell_index"]]
                     plants = self.calculate_whole_plant_mortality(plants, pred, key)
                 except KeyError:
                     msg = f"No data available for mortality factor {factor}"
                     raise ValueError(msg)
-        plants = self.calculate_shaded_leaf_mortality(plants)
+        if _in_growing_season is True:
+            plants = self.calculate_shaded_leaf_mortality(plants)
         plants = self.update_dead_biomass(plants, old_biomass)
         return plants
 
