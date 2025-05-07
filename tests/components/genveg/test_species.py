@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_allclose
 from numpy.testing import assert_almost_equal
+from numpy.testing import assert_array_less
 
 from landlab.components.genveg.form import Bunch
 from landlab.components.genveg.form import Colonizing
@@ -73,6 +74,34 @@ def test_calc_area_of_circle(example_input_params):
         )
 
 
+def test_calculate_dead_age(example_input_params):
+    age_t1 = np.array([60, 60, 60])
+    mass_t1 = np.array([2, 2, 2]) 
+    mass_t2 = np.array([0, 3, 4])
+    age_t2 = np.array([60, 40, 30])
+    calc_age_t2 = create_species_object(example_input_params).calculate_dead_age(age_t1, mass_t1, mass_t2)
+    assert_almost_equal(age_t2, calc_age_t2, decimal=6)
+
+
+def test_calculate_shaded_leaf_mortality(example_plant_array, example_plant, example_input_params):
+    species_object = create_species_object(example_input_params)
+    # Check to make sure no leaf mortality occurred for LAI 0.012 < LAI_crit 2
+    init_leaf_weight = example_plant_array["leaf"].copy()
+    print(example_plant_array["total_leaf_area"])
+    print(example_plant_array["total_leaf_area"] / (np.pi / 4 * example_plant_array["shoot_sys_width"]**2))
+    plant_out = species_object.calculate_shaded_leaf_mortality(example_plant_array)
+    assert_almost_equal(example_plant_array["leaf"][0:2], init_leaf_weight[0:2])
+    assert_array_less(plant_out["leaf"][2], init_leaf_weight[2])
+    # Change leaf area to make LAI greater than LAI_crit and reduce leaf biomass
+    wofost_leaf_weight_change = np.array([0.00259091])
+    big_leaf_plant = example_plant
+    big_leaf_plant["total_leaf_area"] = 2.15
+    big_leaf_plant_leaf_init = big_leaf_plant["leaf"].copy()
+    plant_out = species_object.calculate_shaded_leaf_mortality(big_leaf_plant)
+    weight_change = np.subtract(big_leaf_plant_leaf_init, plant_out["leaf"])
+    assert_almost_equal(weight_change, wofost_leaf_weight_change, 6)
+
+
 def test_calculate_whole_plant_mortality(example_plant_array, one_cell_grid, example_input_params):
     max_temp_dt = np.timedelta64(example_input_params["BTS"]["mortality_params"]["duration"]["1"], 'D')
     min_temp_dt = np.timedelta64(example_input_params["BTS"]["mortality_params"]["duration"]["1"], 'D')
@@ -81,7 +110,6 @@ def test_calculate_whole_plant_mortality(example_plant_array, one_cell_grid, exa
     max_temp = one_cell_grid["cell"]["air__max_temperature_C"][example_plant_array["cell_index"]]
     min_temp = one_cell_grid["cell"]["air__min_temperature_C"][example_plant_array["cell_index"]]
     # Make sure plant doesn't die at moderate ambient temp
-    #check_key = [key for key, factor in species_object.species_mort_params["mort_variable_name"].items() if factor == "air__max_temperature_C"]
     new_biomass = species_object_max.calculate_whole_plant_mortality(example_plant_array, max_temp, "1")
     assert_allclose(new_biomass["root"], example_plant_array["root"], rtol=0.0001)
     # Change max temp and make sure plant dies
@@ -94,6 +122,41 @@ def test_calculate_whole_plant_mortality(example_plant_array, one_cell_grid, exa
     min_temp = one_cell_grid["cell"]["air__min_temperature_C"]
     new_biomass = species_object_min.calculate_whole_plant_mortality(example_plant_array, min_temp, "2")
     assert_allclose(new_biomass["root"], np.zeros_like(new_biomass["root"]), rtol=0.0001)
+
+
+def test_enter_dormancy(example_input_params, example_plant):
+    species_object = create_species_object(example_input_params)
+    initial_leaf = example_plant["leaf"].copy()
+    initial_root = example_plant["root"].copy()
+    plant_out = species_object.enter_dormancy(example_plant, example_input_params["BTS"]["duration_params"]["growing_season_end"])
+    assert_almost_equal(plant_out["leaf"], np.zeros_like(initial_leaf), decimal=6)
+    assert_almost_equal(plant_out["root"], initial_root, decimal=6)
+
+
+def test_mortality(example_input_params, two_cell_grid, example_plant_array):
+    temp_dt = np.timedelta64(example_input_params["BTS"]["mortality_params"]["duration"]["2"], 'D')
+    species_object = create_species_object(example_input_params, dt=temp_dt)
+    example_plant_array["cell_index"][4:] = np.array([1, 1, 1, 1])
+    inital_leaf = example_plant_array["leaf"].copy()
+    initial_plants = example_plant_array["root"].copy()
+    # Check to make sure leaf self shade is working
+    growing_season = True
+    shaded_plants = species_object.mortality(example_plant_array, two_cell_grid, growing_season)
+    assert_almost_equal(shaded_plants["leaf"][0:2], inital_leaf[0:2])
+    assert_array_less(shaded_plants["leaf"][2], inital_leaf[2])
+    # Check to be sure mortality doesn't happen outside period
+    growing_season = False
+    two_cell_grid["cell"]["air__min_temperature_C"] = np.array([-38, 8.62])
+    two_cell_grid["cell"]["air__max_temperature_C"] = np.array([15.53, 45])
+    plant_out = species_object.mortality(example_plant_array, two_cell_grid, growing_season)
+    assert_almost_equal(plant_out["root"][4:], initial_plants[4:], decimal=6)
+    assert_almost_equal(plant_out["root"][0:4], np.zeros_like(plant_out["root"][0:4]), decimal=6)
+    # Check multiple mortality factors
+    growing_season = True
+    plant_out = species_object.mortality(example_plant_array, two_cell_grid, growing_season)
+    assert_almost_equal(plant_out["root"], np.zeros_like(plant_out["root"]), decimal=6)
+    # Check leaf weight if whole plant and shaded leaf mortality occurs
+    assert_almost_equal(plant_out["leaf"], np.zeros_like(plant_out["leaf"]), decimal=6)
 
 
 # Test calculate_derived_params functions
@@ -201,6 +264,22 @@ def test_sum_vars_in_calculate_derived_params(example_input_params):
     assert_almost_equal(species_param["grow_params"]["min_nsc_biomass"], 0.03369)
 
 
+def test_senesce(example_input_params, example_plant):
+    species_object = create_species_object(example_input_params)
+    jday = 195
+    # leaves and stems should move nonstructural carb content to roots at a fixed rate
+    # calculated values from Excel at day 195 for one plant
+    end_root = np.array([0.803921028])
+    end_stem = np.array([0.29399902])
+    end_leaf = np.array([0.485])
+    end_repro = np.array([0.])
+    plant_out = species_object.senesce(example_plant, jday)
+    assert_almost_equal(plant_out["reproductive"], end_repro, decimal=6)
+    assert_almost_equal(plant_out["root"], end_root, decimal=6)
+    assert_almost_equal(plant_out["stem"], end_stem, decimal=6)
+    assert_almost_equal(plant_out["leaf"], end_leaf, decimal=6)
+
+
 def test_nsc_rate_change_per_season_and_part(example_input_params):
     species_object = create_species_object(example_input_params)
     species_param = species_object.calculate_derived_params(example_input_params["BTS"])
@@ -301,6 +380,18 @@ def test_select_photosythesis_type(example_input_params):
             ),
             cls,
         )
+
+
+def test_update_dead_biomass(example_input_params, example_plant):
+    example_plant_new = example_plant.copy()
+    example_plant_new["leaf"] *= 0.5
+    example_plant_new["root"] *= 0.5
+    example_plant_new["stem"] *= 0.5
+    species_object = create_species_object(example_input_params)
+    example_plant_new = species_object.update_dead_biomass(example_plant_new, example_plant)
+    assert_almost_equal(example_plant_new["dead_leaf"], example_plant_new["leaf"], decimal=6)
+    assert_almost_equal(example_plant_new["dead_root"], example_plant_new["root"])
+    assert_almost_equal(example_plant_new["dead_stem"], example_plant_new["stem"])
 
 
 def test_validate_plant_factors_raises_errors(example_input_params):

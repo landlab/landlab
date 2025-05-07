@@ -108,7 +108,6 @@ class Singlestem(Seed):
     def __init__(self, params):
         super().__init__(params)
 
-
     def branch(self):
         print("Plant develops one stem like a tree or a corn plant")
 

@@ -3,7 +3,10 @@ import pytest
 
 from landlab import RasterModelGrid
 
-rng = np.random.default_rng()
+
+@pytest.fixture(autouse=True)
+def set_random_seed():
+    return np.random.default_rng(seed=39)
 
 
 # Test parameter dictionary
@@ -25,6 +28,12 @@ def example_input_params():
                 "reproduction_end": 250,
                 "reproduction_start": 180,
                 "senescence_start": 273,
+                "death_rate": {
+                    "leaf": 0.03,
+                    "reproductive": 0.02,
+                    "root": 0.02,
+                    "stem": 0.02,
+                },
             },
             "grow_params": {
                 "glucose_requirement": {
@@ -109,7 +118,7 @@ def example_input_params():
                     "a": -9999,
                     "b": -9999,
                 },
-                "lai_cr": 4,
+                "lai_cr": 2,
                 "max_height": 0.75,
                 "max_n_stems": 10,
                 "max_plant_density": 18,
@@ -263,7 +272,8 @@ def example_plant():
 
 
 @pytest.fixture
-def example_plant_array():
+def example_plant_array(set_random_seed):
+    rng = set_random_seed
     dtypes = [
         ("species", "U10"),
         ("pid", int),
@@ -357,7 +367,7 @@ def example_plant_array():
     plants["shoot_sys_height"] = rng.uniform(low=0.2, high=4, size=plants.size)
     plants["root_sys_depth"] = rng.uniform(low=0.0, high=2, size=plants.size)
     plants["total_leaf_area"] = rng.uniform(low=0.1, high=3, size=plants.size)
-    plants["live_leaf_area"] = rng.uniform(low=0.1, high=1, size=plants.size)
+    plants["live_leaf_area"] = plants["total_leaf_area"]
     plants["plant_age"] = rng.uniform(low=1 / 365, high=5, size=plants.size)
     plants["n_stems"] = rng.integers(1, 6, size=plants.size)
     plants["pup_x_loc"][plants["reproductive"] > 0.1] = 0.0
@@ -407,5 +417,47 @@ def one_cell_grid():
         at="cell",
         units="m**3/m**3",
     )
-    
+    return grid
+
+
+@pytest.fixture
+def two_cell_grid():
+    # Create grid with one cell containing min max temp, par, location, species
+    grid = RasterModelGrid((4, 3), 2, xy_of_reference=(-74.08, 39.79))
+    grid.axis_units = ("m", "m")
+    maxtemp = np.array([15.53])
+    mintemp = np.array([8.62])
+    water_content = np.array([0.88])
+    NJ_avg_par = np.array([118.11])
+
+    # Initialize with a dummy data sets
+    _ = grid.add_field(
+        "air__max_temperature_C",
+        maxtemp * np.ones(grid.number_of_cells),
+        at="cell",
+        units="C",
+    )
+    _ = grid.add_field(
+        "air__min_temperature_C",
+        mintemp * np.ones(grid.number_of_cells),
+        at="cell",
+        units="C",
+    )
+    _ = grid.add_field(
+        "radiation__total_par",
+        NJ_avg_par * np.ones(grid.number_of_cells),
+        at="cell",
+        units="W/m^2",
+    )
+    _ = grid.add_field(
+        "vegetation__plant_species",
+        np.full(grid.number_of_cells, "Corn"),
+        at="cell",
+    )
+    _ = grid.add_field(
+        "soil_water__volume_fraction",
+        water_content * np.ones(grid.number_of_cells),
+        at="cell",
+        units="m**3/m**3",
+    )
     return grid
