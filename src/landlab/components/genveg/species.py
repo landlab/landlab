@@ -625,14 +625,15 @@ class Species:
         # crop growth: How the equations are derived and assembled into
         # a computer model. Dissertation. com, 2006 based on equation
         # 7.18 and 7.20 (pg. 154)
+        leaf_death_rate = self.species_duration_params["death_rate"]["leaf"]
         lai = self.calculate_lai(plants["total_leaf_area"], plants["shoot_sys_width"])
         excess_lai = (
             lai - self.species_morph_params["lai_cr"]
         ) / self.species_morph_params["lai_cr"]
         shaded_leaf = np.nonzero((excess_lai > 0) & (plants["leaf"] > 0))
         D_shade = np.zeros_like(plants["total_leaf_area"])
-        D_shade[shaded_leaf] = 0.03 * excess_lai[shaded_leaf]
-        D_shade[D_shade > 0.03] = 0.03
+        D_shade[shaded_leaf] = leaf_death_rate * excess_lai[shaded_leaf]
+        D_shade[D_shade > leaf_death_rate] = leaf_death_rate
         leaf_loss = plants["leaf_biomass"] * D_shade
         plants["dead_leaf"][shaded_leaf] += leaf_loss[shaded_leaf]
         plants["leaf"][shaded_leaf] -= leaf_loss[shaded_leaf]
