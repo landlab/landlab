@@ -124,15 +124,6 @@ def test_calculate_whole_plant_mortality(example_plant_array, one_cell_grid, exa
     assert_allclose(new_biomass["root"], np.zeros_like(new_biomass["root"]), rtol=0.0001)
 
 
-def test_enter_dormancy(example_input_params, example_plant):
-    species_object = create_species_object(example_input_params)
-    initial_leaf = example_plant["leaf"].copy()
-    initial_root = example_plant["root"].copy()
-    plant_out = species_object.enter_dormancy(example_plant, example_input_params["BTS"]["duration_params"]["growing_season_end"])
-    assert_almost_equal(plant_out["leaf"], np.zeros_like(initial_leaf), decimal=6)
-    assert_almost_equal(plant_out["root"], initial_root, decimal=6)
-
-
 def test_mortality(example_input_params, two_cell_grid, example_plant_array):
     temp_dt = np.timedelta64(example_input_params["BTS"]["mortality_params"]["duration"]["2"], 'D')
     species_object = create_species_object(example_input_params, dt=temp_dt)

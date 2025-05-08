@@ -486,7 +486,6 @@ class Species:
                 ns_conc[part] - self.species_grow_params["min_nsc_content"][part]
             ) * np.ones_like(plants[part])
             avail_nsc_content[avail_nsc_content < 0] = 0.0
-
             available_stored_biomass += plants[part] * avail_nsc_content
             total_persistent_biomass += plants[part]
         plants = self.habit.duration.emerge(

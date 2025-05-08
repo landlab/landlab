@@ -149,16 +149,13 @@ class Perennial(Duration):
         duration_params,
         dt,
         green_parts=(),
-        persistent_parts=("root", "leaf", "stem", "reproductive"),
+        persistent_parts=("root", "leaf", "stem"),
     ):
         self.persistent_parts = persistent_parts
         super().__init__(
             species_grow_params, duration_params, dt, green_parts, persistent_parts
         )
 
-    def set_initial_biomass(self, plants, in_growing_season):
-        return plants
-    
     def senesce(self, plants, ns_green_mass=None, persistent_mass=None):
         # use senesce rate to move portion of nsc to persistent parts, then remove
         filter = np.nonzero((ns_green_mass > 0.001) | (persistent_mass > 0.001))
@@ -172,11 +169,24 @@ class Perennial(Duration):
             plants[part][filter] -= self.death_rate[part] * plants[part][filter]
         return plants
 
+    def set_new_biomass(self, plants):
+        return super().set_new_biomass(plants)
+
+    def set_initial_biomass(self, plants, in_growing_season):
+        plants = self.set_new_biomass(plants)
+        return plants
+
 
 class Evergreen(Perennial):
     def __init__(self, species_grow_params, duration_params, dt):
         self.keep_green_parts = True
         super().__init__(species_grow_params, duration_params, dt)
+
+    def set_initial_biomass(self, plants, in_growing_season):
+        return super().set_initial_biomass(plants, in_growing_season)
+    
+    def set_new_biomass(self, plants):
+        return super().set_new_biomass(plants)
 
     def emerge(self, plants, available_mass, persistent_total_mass):
         return plants
@@ -224,14 +234,28 @@ class Deciduous(Perennial):
         for part in self.persistent_parts:
             deleted_mass = total_mass_emerged * plants[part] / persistent_total_mass
             plants[part] -= deleted_mass
-
         return plants
+
+    def enter_dormancy(self, plants):
+        return super().enter_dormancy(plants)
 
     def set_initial_biomass(self, plants, in_growing_season):
         if not in_growing_season:
             for part in self.green_parts:
                 plants[part] = np.zeros_like(plants[part])
+            for part in self.persistent_parts:
+                plants[part] = rng.uniform(
+                    low=self.growdict["plant_part_min"][part],
+                    high=self.growdict["plant_part_min"][part] * 2,
+                    size=plants.size,
+                )
         else:
+            for part in (self.green_parts + self.persistent_parts):
+                plants[part] = rng.uniform(
+                    low=self.growdict["plant_part_min"][part],
+                    high=self.growdict["plant_part_min"][part] * 2,
+                    size=plants.size,
+                )
             plants["repro_biomass"] = (
                 self.growdict["plant_part_min"]["reproductive"]
                 + rng.rayleigh(scale=0.2, size=plants.size)
