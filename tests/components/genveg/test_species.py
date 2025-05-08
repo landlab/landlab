@@ -76,7 +76,7 @@ def test_calc_area_of_circle(example_input_params):
 
 def test_calculate_dead_age(example_input_params):
     age_t1 = np.array([60, 60, 60])
-    mass_t1 = np.array([2, 2, 2]) 
+    mass_t1 = np.array([2, 2, 2])
     mass_t2 = np.array([0, 3, 4])
     age_t2 = np.array([60, 40, 30])
     calc_age_t2 = create_species_object(example_input_params).calculate_dead_age(age_t1, mass_t1, mass_t2)

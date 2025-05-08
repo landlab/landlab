@@ -184,7 +184,7 @@ class Evergreen(Perennial):
 
     def set_initial_biomass(self, plants, in_growing_season):
         return super().set_initial_biomass(plants, in_growing_season)
-    
+
     def set_new_biomass(self, plants):
         return super().set_new_biomass(plants)
 

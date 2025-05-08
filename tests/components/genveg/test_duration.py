@@ -32,7 +32,7 @@ def test_enter_dormancy(example_input_params, example_plant):
 
 
 def test_emerge(example_input_params, example_plant):
-    # Annual 
+    # Annual
     annual_object = create_duration_object(example_input_params, child="annual")
     example_plant["root"] = example_plant["leaf"] = example_plant["stem"] = np.array([0.])
     max_start = 2 * annual_object.growdict["growth_min_biomass"]
@@ -48,7 +48,7 @@ def test_emerge(example_input_params, example_plant):
     assert_almost_equal(emerged_plant["root"], example_plant["root"])
     assert_almost_equal(emerged_plant["leaf"], example_plant["leaf"])
     assert_almost_equal(emerged_plant["stem"], example_plant["stem"])
-    #Deciduous
+    # Deciduous
     decid_object = create_duration_object(example_input_params, child="deciduous")
     example_plant["root"] = 0.8
     available_stored_biomass = example_plant["root"] * 0.33333
@@ -90,4 +90,3 @@ def test__solve_biomass_allocation(example_input_params, example_plant):
     assert_almost_equal(root, ideal_root, decimal=5)
     assert_almost_equal(leaf, ideal_leaf, decimal=5)
     assert_almost_equal(stem, ideal_stem, decimal=5)
-
