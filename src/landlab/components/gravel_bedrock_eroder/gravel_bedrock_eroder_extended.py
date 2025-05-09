@@ -1213,7 +1213,7 @@ class ExtendedGravelBedrockEroder(Component):
     def _calc_weight_threshold_to_deliv(self):
         """Calc minimal weight threshold to deliver"""
         # d_min = np.min(self._grid.at_node['grains_classes__size'])
-        d_min = 0.01
+        d_min = 0.1
         self._weight_threshold_to_deliv = (
             d_min * self._rho_sed * (1 - self._sediment_porosity)
         )
