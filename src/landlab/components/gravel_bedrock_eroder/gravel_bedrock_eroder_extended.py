@@ -566,6 +566,7 @@ class ExtendedGravelBedrockEroder(Component):
         tau_star_c_median=0.045,
         alpha=0.68,
         tau_c_bedrock=10,
+        d_min = 0.1
     ):
 
         super().__init__(grid)
@@ -606,7 +607,8 @@ class ExtendedGravelBedrockEroder(Component):
         self._SG = np.divide(self._rho_sed - self._rho_water, self._rho_water)
         self._fixed_width_coeff = fixed_width_coeff
         self._fixed_width_expt = fixed_width_expt
-        self._calc_weight_threshold_to_deliv()
+        self._d_min =  d_min
+        self._calc_weight_threshold_to_deliv(d_min=self._d_min)
         self._shear_stress_coef = _calc_shear_stress_coef(
             rho_w=rho_water, mannings_n=mannings_n
         )
@@ -616,7 +618,6 @@ class ExtendedGravelBedrockEroder(Component):
         self._alpha = alpha
         self._epsilon = epsilon
         self._tau_c_bedrock = tau_c_bedrock
-
         # Pointers to field
         self._elev = grid.at_node["topographic__elevation"]
         self._sed = grid.at_node["soil__depth"]
@@ -1210,10 +1211,9 @@ class ExtendedGravelBedrockEroder(Component):
             out = out[:, np.newaxis]
         return out
 
-    def _calc_weight_threshold_to_deliv(self):
+    def _calc_weight_threshold_to_deliv(self, d_min):
         """Calc minimal weight threshold to deliver"""
-        # d_min = np.min(self._grid.at_node['grains_classes__size'])
-        d_min = 0.1
+
         self._weight_threshold_to_deliv = (
             d_min * self._rho_sed * (1 - self._sediment_porosity)
         )
