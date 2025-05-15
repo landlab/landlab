@@ -203,12 +203,12 @@ class Species:
         )
 
         sum_vars = [
-            ["max_total_biomass", "plant_part_max", self.all_parts],
-            ["max_growth_biomass", "plant_part_max", self.growth_parts],
-            ["max_abg_biomass", "plant_part_max", self.abg_parts],
-            ["min_total_biomass", "plant_part_min", self.all_parts],
-            ["min_growth_biomass", "plant_part_min", self.growth_parts],
-            ["min_abg_biomass", "plant_part_min", self.abg_parts],
+            ["total_biomass", "max", "plant_part_max", self.all_parts],
+            ["growth_biomass", "max", "plant_part_max", self.growth_parts],
+            ["abg_biomass", "max", "plant_part_max", self.abg_parts],
+            ["total_biomass", "min", "plant_part_min", self.all_parts],
+            ["growth_biomass", "min", "plant_part_min", self.growth_parts],
+            ["abg_biomass", "min", "plant_part_min", self.abg_parts],
             [
                 "min_nsc_biomass",
                 "min_nsc_content",
@@ -217,10 +217,10 @@ class Species:
         ]
         for sum_var in sum_vars:
             species_params["grow_params"][sum_var[0]] = 0
-            for part in sum_var[2]:
-                species_params["grow_params"][sum_var[0]] += species_params[
+            for part in sum_var[3]:
+                species_params["grow_params"][sum_var[0]][sum_var][1] += species_params[
                     "grow_params"
-                ][sum_var[1]][part]
+                ][sum_var[2]][part]
 
         species_params["morph_params"]["biomass_packing"] = self.calc_param_ratio(
             species_params["grow_params"]["max_growth_biomass"],
