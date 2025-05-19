@@ -17,7 +17,7 @@ from landlab import Component
 
 from landlab.grid.nodestatus import NodeStatus
 
-# from .cfuncs import non_local_depo
+from .cfuncs import non_local_depo
 
 
 class DepthDependentTLDiffuser(Component):
@@ -184,9 +184,9 @@ class DepthDependentTLDiffuser(Component):
             "dtype": float,
             "intent": "out",
             "optional": False,
-            "units": "m",
+            "units": "m3/y",
             "mapping": "node",
-            "doc": "Sediment flux at boundary nodes in m3",
+            "doc": "Sediment flux at boundary nodes in m3/y",
         },
     }
 
@@ -196,7 +196,6 @@ class DepthDependentTLDiffuser(Component):
         erodibility=0.001,
         slope_crit=1.0,
         depositOnBoundaries=False,
-        depthDependent=False,
         H_star=1.0,
         transportLengthCoefficient=None,
     ):
@@ -212,19 +211,16 @@ class DepthDependentTLDiffuser(Component):
             Critical slope [L/L]
         depositOnBoundaries: boolean (default=False)
 
-        depthDependent: boolean (default=False)
-
         H_star=1.0 : float (default=1.)
 
         transportLengthCoefficient [default = dx]
 
         """
-        self._depthDependent = depthDependent
-        if self._depthDependent:
-            self._info["soil__depth"]["optional"] = False
-            self._info["bedrock__elevation"]["optional"] = False
-            # Depth scale
-            self._H_star = H_star
+        self._info["soil__depth"]["optional"] = False
+        self._info["bedrock__elevation"]["optional"] = False
+
+        # Depth scale
+        self._H_star = H_star
 
         super().__init__(grid)
 
