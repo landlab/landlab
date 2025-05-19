@@ -17,11 +17,10 @@ from landlab import Component
 
 from landlab.grid.nodestatus import NodeStatus
 
-#from .cfuncs import non_local_Depo
+# from .cfuncs import non_local_depo
 
 
 class DepthDependentTLDiffuser(Component):
-
     r"""Transport length hillslope diffusion.
 
     #TODO
@@ -181,7 +180,6 @@ class DepthDependentTLDiffuser(Component):
             "mapping": "node",
             "doc": "Sediment thickness",
         },
-        
         "sediment_flux_out": {
             "dtype": float,
             "intent": "out",
@@ -200,9 +198,8 @@ class DepthDependentTLDiffuser(Component):
         depositOnBoundaries=False,
         depthDependent=False,
         H_star=1.0,
-        transportLengthCoefficient=None
+        transportLengthCoefficient=None,
     ):
-
         """Initialize Diffuser.
 
         Parameters
@@ -218,7 +215,7 @@ class DepthDependentTLDiffuser(Component):
         depthDependent: boolean (default=False)
 
         H_star=1.0 : float (default=1.)
-        
+
         transportLengthCoefficient [default = dx]
 
         """
@@ -248,8 +245,10 @@ class DepthDependentTLDiffuser(Component):
         if transportLengthCoefficient is None:
             self._transportLengthCoefficient = grid.dx
         else:
-            if transportLengthCoefficient < grid.dx: 
-                raise ValueError("The value for transportLengthCoefficient must be larger than the grid resolution")
+            if transportLengthCoefficient < grid.dx:
+                raise ValueError(
+                    "The value for transportLengthCoefficient must be larger than the grid resolution"
+                )
             else:
                 self._transportLengthCoefficient = transportLengthCoefficient
         # Create fields:
@@ -268,8 +267,8 @@ class DepthDependentTLDiffuser(Component):
 
         self.initialize_output_fields()
         self._depositOnBoundaries = depositOnBoundaries
-        
-        self._flux  = self._grid.at_node["sediment_flux_out"]
+
+        self._flux = self._grid.at_node["sediment_flux_out"]
 
     def tldiffusion(self, dt):
         """Calculate hillslope diffusion for a time period 'dt'.
@@ -296,34 +295,33 @@ class DepthDependentTLDiffuser(Component):
 
         L = np.where(
             self._steepest < self._slope_crit,
-            self._transportLengthCoefficient / (1 - (self._steepest / self._slope_crit) ** 2),
+            self._transportLengthCoefficient
+            / (1 - (self._steepest / self._slope_crit) ** 2),
             1e9,
         )
 
-        
         qs_out = np.zeros_like(self._el)
         depo = np.zeros_like(self._el)
 
-        
-        
         stack_flip_ud = np.flipud(self._stack)
         if self._depositOnBoundaries:
             stack_flip_ud_sel = stack_flip_ud
         else:
             node_status = self.grid.status_at_node
             stack_flip_ud_sel = stack_flip_ud[
-                (node_status[stack_flip_ud] == NodeStatus.CORE)]
+                (node_status[stack_flip_ud] == NodeStatus.CORE)
+            ]
 
         # C-code
-        non_local_Depo(dx, stack_flip_ud_sel , self._r, qs_out, L, ero, depo)
+        non_local_depo(dx, stack_flip_ud_sel, self._r, qs_out, L, ero, depo)
         # Non C-Code
         # for node in stack_flip_ud_sel:
         #     # L has to be larger than dx
         #     depo[node] = qs_out[node]/L[node]
         #     qs_out[self._r[node]] += qs_out[node]+ (ero[node]- depo[node])*dx
-        
+
         # Update flux
-        self._flux[:] = qs_out*dx # in m3
+        self._flux[:] = qs_out * dx  # in m3
         # Update elevation
         if self._depthDependent:
             self._soil += (-ero + depo) * dt
