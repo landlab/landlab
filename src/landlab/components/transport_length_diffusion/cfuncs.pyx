@@ -9,7 +9,7 @@ DTYPE_FLOAT = np.float64
 ctypedef np.float64_t DTYPE_FLOAT_t
 
 @cython.boundscheck(False)
-cpdef non_local_Depo(DTYPE_FLOAT_t dx,
+cpdef non_local_depo(DTYPE_FLOAT_t dx,
                      np.ndarray[DTYPE_INT_t, ndim=1] rev_stack,
                      np.ndarray[DTYPE_INT_t, ndim=1] r,
                      np.ndarray[DTYPE_FLOAT_t, ndim=1] qs_out,
@@ -24,7 +24,7 @@ cpdef non_local_Depo(DTYPE_FLOAT_t dx,
     
     for node in rev_stack:
         depo[node] = qs_out[node]/L[node]     
-        qs_out[r[node]] += qs_out[node]+ (ero[node] -depo[node])*dx
+        qs_out[r[node]] += qs_out[node]+ (ero[node] - depo[node]) * dx
                 
    
    
