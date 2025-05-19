@@ -2,6 +2,28 @@
 
 ## Peer-reviewed journal articles
 
+### 2025
+
+Alvis, A. D., Luce, C. H., Istanbulluoglu, E., Knuth, F., Wittkopf, L., Shean, D., & Stewart, G. (2025). **Spatiotemporal Evolution of Forest Road Rutting and Flow Pathways Examined Using Unoccupied Aerial Vehicles (UAVs).** *Hydrological Processes,* 39(3), e70105.
+
+Baran, Z. J., & Cardenas, B. T. (2025). **Modeling Lake Bonneville paleoshoreline erosion at Mars‐like rates and durations: Implications for the preservation of erosional Martian shorelines and viability as evidence for a Martian ocean.** *Journal of Geophysical Research: Planets,* 130(4), e2024JE008851.
+
+Litwin, D. G., Malatesta, L. C., & Sklar, L. S. (2025). **Hillslope diffusion and channel steepness in landscape evolution models.** *Earth Surface Dynamics,* 13(2), 277-293.
+
+Pierce, E., Overeem, I., & Jouvet, G. (2024). **Modeling sediment fluxes from debris‐rich basal ice layers.** *Journal of Geophysical Research: Earth Surface,* 129(10), e2024JF007665.
+
+Rosier, I., Van Orshoven, J., Somers, B., & Diels, J. (2025). **Dealing with sub-pixel landscape elements in distributed rainfall-runoff modelling in agricultural catchments.** *International Soil and Water Conservation Research.*
+
+Shmilovitz, Y., Rossi, M. W., & Tucker, G. E. (2025). **Multi‐century erosion and landscape evolution of ephemeral catchments in response to sub‐daily rainfall distribution changes.** *Geophysical Research Letters,* 52(5), e2024GL113179.
+
+Steckel, A. V., Tucker, G. E., Rossi, M., & Hynek, B. (2025). **Landscape evolution models of incision on Mars: Implications for the ancient climate.** *Journal of Geophysical Research: Planets,* 130(4), e2024JE008637.
+
+Wolpert, J. A., & Schoenbohm, L. M. (2025). **Channel steepness biases and nonsteady erosion in landscapes evolving under cyclical climate.** *Geophysical Research Letters,* 52(8), e2024GL112229.
+
+Wang, Y., & Wu, Y. (2025). **The topographic implications deduced from relationships between different river concavity indices.** *Geomorphology,* 109613.
+
+Zhao, H., Zhang, Z., Zhou, X., He, H., Wang, S., Jiang, S., ... & Kan, W. (2025). **Quantitative reconstruction of soil erosion process in a crater lake catchment during the Holocene, Southwest China.** *CATENA,* 250, 108758.
+
 ### 2024
 
 Bower, S. J., Shobe, C. M., Maxwell, A. E., & Campforts, B. (2024). **The uncertain future of mountaintop-removal-mined landscapes 2: Modeling the influence of topography and vegetation.** *Geomorphology,* 446, 108985.
@@ -16,12 +38,15 @@ Gan, T., Tucker, G. E., Hutton, E. W., Piper, M. D., Overeem, I., Kettner, A. J.
 
 Gasparini, N. M., Forte, A. M., & Barnhart, K. R. (2024). **Numerically simulated time to steady state is not a reliable measure of landscape response time.** *Earth Surface Dynamics,* 12(6), 1227-1242.
 
+Godard, V., Forte, A., Simoes, M., Petit, C., & Cattin, R. (2024). **Influences of structurally-controlled ridge asymmetry on drainage network and divide dynamics.** *Geomorphica,* 1(1).
+
 Guryan, G., Johnson, J., & Gasparini, N. (2024). **Sediment cover modulates landscape erosion patterns and channel steepness in layered rocks: Insights from the SPACE model.** *Journal of Geophysical Research: Earth Surface,* 129(7), e2023JF007509.
 
 Keck, J., Istanbulluoglu, E., Campforts, B., Tucker, G., and Horner-Devine, A. (2024) **A landslide runout model for sediment transport, landscape evolution, and hazard assessment applications**. *Earth Surface Dynamics,* [DOI](https://doi.org/10.5194/esurf-12-1165-2024).
 
-
 Lee, C. H., Seong, Y. B., Weber, J., Ha, S., Kim, D. E., & Yu, B. Y. (2024). **Topographic metrics for unveiling fault segmentation and tectono-geomorphic evolution with insights into the impact of inherited topography, Ulsan Fault Zone, South Korea.** *Earth Surface Dynamics,* 12(5), 1091-1120.
+
+Litwin, D. G., & Harman, C. J. (2024). **Evidence of subsurface control on the coevolution of hillslope morphology and runoff generation.** *Water Resources Research,* 60(10), e2024WR037301.
 
 Litwin, D. G., Tucker, G. E., Barnhart, K. R., & Harman, C. J. (2024). **Catchment coevolution and the geomorphic origins of variable source area hydrology.** *Water Resources Research,* 60(6), e2023WR034647.
 
