@@ -90,7 +90,8 @@ from .taylor_nonlinear_hillslope_flux import TaylorNonLinearDiffuser
 from .tectonics import ListricKinematicExtender
 from .threshold_eroder import ThresholdEroder
 from .tidal_flow import TidalFlowCalculator
-from .transport_length_diffusion import DepthDependentTLDiffuser
+from .transport_length_diffusion import DepthDependentNonLocalDiffuser
+from .transport_length_diffusion import NonLocalDiffuser
 from .transport_length_diffusion import TransportLengthHillslopeDiffuser
 from .uniform_precip import PrecipitationDistribution
 from .vegetation_dynamics import Vegetation
@@ -109,7 +110,7 @@ COMPONENTS = [
     DepressionFinderAndRouter,
     DepthDependentDiffuser,
     DepthDependentTaylorDiffuser,
-    DepthDependentTLDiffuser,
+    DepthDependentNonLocalDiffuser,
     DepthSlopeProductErosion,
     DetachmentLtdErosion,
     DischargeDiffuser,
@@ -149,6 +150,7 @@ COMPONENTS = [
     LossyFlowAccumulator,
     MassWastingRunout,
     NetworkSedimentTransporter,
+    NonLocalDiffuser,
     NormalFault,
     OverlandFlow,
     OverlandFlowBates,

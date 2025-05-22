@@ -20,8 +20,8 @@ from landlab.grid.nodestatus import NodeStatus
 from .cfuncs import non_local_depo
 
 
-class DepthDependentTLDiffuser(Component):
-    r"""Transport length hillslope diffusion.
+class DepthDependentNonLocalDiffuser(Component):
+    r"""Depth dependent non local diffusion.
 
     #TODO
     Correct for rho soil vs bedrock
@@ -68,7 +68,7 @@ class DepthDependentTLDiffuser(Component):
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowDirectorSteepest
-    >>> from landlab.components import DepthDependentTLDiffuser
+    >>> from landlab.components import DepthDependentNonLocalDiffuser
 
     Define grid and initial topography:
 
@@ -88,11 +88,11 @@ class DepthDependentTLDiffuser(Component):
     ... ]
     >>> _ = mg.add_field("topographic__elevation", z, at="node")
 
-    Instantiate Flow director (steepest slope type) and TL hillslope diffuser
+    Instantiate Flow director (steepest slope type) and NL hillslope diffuser
 
     >>> fdir = FlowDirectorSteepest(mg)
     >>> mg.at_node.keys()
-    >>> tl_diff = DepthDependentTLDiffuser(
+    >>> nl_diff = DepthDependentNonLocalDiffuser(
     ...     mg, erodibility=0.001, slope_crit=0.6, H_star=1.0
     ... )
 
@@ -100,7 +100,7 @@ class DepthDependentTLDiffuser(Component):
 
     >>> for t in range(10):
     ...     fdir.run_one_step()
-    ...     tl_diff.run_one_step(1.0)
+    ...     nl_diff.run_one_step(1.0)
     ...
 
     Check final topography
@@ -135,7 +135,7 @@ class DepthDependentTLDiffuser(Component):
 
     """
 
-    _name = "TransportLengthHillslopeDiffuser"
+    _name = "DepthDependentNonLocalDiffuser"
 
     _unit_agnostic = True
 
@@ -251,9 +251,8 @@ class DepthDependentTLDiffuser(Component):
         # Elevation
         self._el = self._grid.at_node["topographic__elevation"]
         # Soil
-        if self._depthDependent:
-            self._soil = self._grid.at_node["soil__depth"]
-            self._bed = self._grid.at_node["bedrock__elevation"]
+        self._soil = self._grid.at_node["soil__depth"]
+        self._bed = self._grid.at_node["bedrock__elevation"]
 
         self._steepest = self._grid.at_node["topographic__steepest_slope"]
         self._r = self._grid.at_node["flow__receiver_node"]
@@ -266,7 +265,7 @@ class DepthDependentTLDiffuser(Component):
 
         self._flux = self._grid.at_node["sediment_flux_out"]
 
-    def tldiffusion(self, dt):
+    def nldiffusion(self, dt):
         """Calculate hillslope diffusion for a time period 'dt'.
 
         Parameters
@@ -280,12 +279,8 @@ class DepthDependentTLDiffuser(Component):
         dx = self._grid.dx
         lakes = self._steepest < 0
 
-        if self._depthDependent:
-            ero = self._k * self._steepest * (1 - np.exp(-self._soil / self._H_star))
-            ero = np.minimum(ero * dt, self._soil) / dt
-        else:
-            # Calcualte erosion -- in comparison to v1, not curring off at Sc
-            ero = self._k * self._steepest
+        ero = self._k * self._steepest * (1 - np.exp(-self._soil / self._H_star))
+        ero = np.minimum(ero * dt, self._soil) / dt
 
         ero[lakes] = 0
 
@@ -319,11 +314,8 @@ class DepthDependentTLDiffuser(Component):
         # Update flux
         self._flux[:] = qs_out * dx  # in m3
         # Update elevation
-        if self._depthDependent:
-            self._soil += (-ero + depo) * dt
-            self._el = self._soil + self._bed
-        else:
-            self._el += (-ero + depo) * dt
+        self._soil += (-ero + depo) * dt
+        self._el[:] = self._soil + self._bed
 
     def run_one_step(self, dt):
         """Advance one timestep.
@@ -338,7 +330,7 @@ class DepthDependentTLDiffuser(Component):
         """
         elev_dif_before = self._el - self._el[self._r]
         flow__sink_flag = elev_dif_before < 0
-        self.tldiffusion(dt)
+        self.nldiffusion(dt)
 
         # Test code stability for timestep dt
         # Raise unstability error if local slope is reversed by erosion
