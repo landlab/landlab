@@ -43,6 +43,23 @@ def test_calc_canopy_area_from_shoot_width(example_input_params):
     )
 
 
+def test__calc2_allometry_coeffs(example_input_params):
+    h = Habit(params=example_input_params["BTS"], green_parts=("leaf"))
+    x_min = np.array([1.])
+    x_max = np.array([3.])
+    y_min = np.array([2.])
+    y_max = np.array([6.])
+    slope = np.array([1])
+    y_intercept = np.array([np.log(2)])
+    (b,m) = h._calc2_allometry_coeffs(x_min, x_max, y_min, y_max)
+    assert_array_almost_equal(y_intercept, b, decimal=5)
+    assert_array_almost_equal(slope, m, decimal=5)
+
+
+def test_calc_abg_dims_from_biomass():
+    pass
+
+
 def test_calc_crown_area_from_shoot_width_raises_error(example_input_params):
     create_species_object(example_input_params)
     h = Habit(params=example_input_params["BTS"], green_parts=("leaf", "stem"))

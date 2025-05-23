@@ -61,17 +61,22 @@ def test_calc_area_of_circle(example_input_params):
     species_object = create_species_object(example_input_params)
     morph_params = example_input_params["BTS"]["morph_params"]
     m_params = [
-        "max_shoot_sys_width",
-        "min_shoot_sys_width",
-        "max_root_sys_width",
-        "min_root_sys_width",
+        "shoot_sys_width",
+        "root_sys_width",    
+    ]
+    vals = [
+        "max",
+        "min"
     ]
     # values from excel sheet
-    area_values = np.array([0.070685835, 0.0000785398, 0.096211275, 0.0000785398])
-    for m_param, a_value in zip(m_params, area_values):
-        assert_almost_equal(
-            species_object.calc_area_of_circle(morph_params[m_param]), a_value
-        )
+    area_values = np.array([[0.070685835, 0.0000785398], [0.096211275, 0.0000785398]])
+    idx = 0
+    for m_param in m_params:
+        for val, a_value in zip(vals, area_values[idx]):
+            assert_almost_equal(
+                species_object.calc_area_of_circle(morph_params[m_param][val]), a_value
+            )
+        idx += 1
 
 
 def test_calculate_dead_age(example_input_params):
@@ -123,6 +128,9 @@ def test_calculate_whole_plant_mortality(example_plant_array, one_cell_grid, exa
     new_biomass = species_object_min.calculate_whole_plant_mortality(example_plant_array, min_temp, "2")
     assert_allclose(new_biomass["root"], np.zeros_like(new_biomass["root"]), rtol=0.0001)
 
+def test_emerge(example_plant,example_input_params):
+    species_objects = create_species_object(example_input_params)
+    
 
 def test_mortality(example_input_params, two_cell_grid, example_plant_array):
     temp_dt = np.timedelta64(example_input_params["BTS"]["mortality_params"]["duration"]["2"], 'D')
@@ -148,59 +156,6 @@ def test_mortality(example_input_params, two_cell_grid, example_plant_array):
     assert_almost_equal(plant_out["root"], np.zeros_like(plant_out["root"]), decimal=6)
     # Check leaf weight if whole plant and shaded leaf mortality occurs
     assert_almost_equal(plant_out["leaf"], np.zeros_like(plant_out["leaf"]), decimal=6)
-
-
-# Test calculate_derived_params functions
-def test_max_vital_volume(example_input_params):
-    assert_almost_equal(
-        create_species_object(example_input_params).calc_volume_cylinder(
-            area=0.070685835,
-            height=example_input_params["BTS"]["morph_params"]["max_height"],
-        ),
-        0.053014376,
-    )
-
-
-def test_ratio_calculations(example_input_params):
-    species_object = create_species_object(example_input_params)
-    morph_param = species_object.species_morph_params
-    # area_per_stem
-    assert_almost_equal(
-        species_object.calc_param_ratio(0.070685835, morph_param["max_n_stems"]),
-        0.007068583,
-    )
-    # min_abg_aspect_ratio
-    assert_almost_equal(
-        species_object.calc_param_ratio(
-            morph_param["max_height"], morph_param["min_shoot_sys_width"]
-        ),
-        75,
-    )
-    # max_abg_aspect_ratio
-    assert_almost_equal(
-        species_object.calc_param_ratio(
-            morph_param["max_height"], morph_param["max_shoot_sys_width"]
-        ),
-        2.5,
-    )
-    # min_basal_ratio
-    assert_almost_equal(
-        species_object.calc_param_ratio(
-            morph_param["min_shoot_sys_width"], morph_param["min_basal_dia"]
-        ),
-        1.843906736,
-    )
-    # max_basal_ratio
-    assert_almost_equal(
-        species_object.calc_param_ratio(
-            morph_param["max_shoot_sys_width"], morph_param["max_basal_dia"]
-        ),
-        3,
-    )
-    # biomass_packing
-    assert_almost_equal(species_object.calc_param_ratio(17.9, 0.053014376), 337.6442646)
-    # senesce_rate
-    assert_almost_equal(species_object.calc_param_ratio(0.9, 32), 0.028125)
 
 
 def test_respire(example_plant, one_cell_grid, example_input_params):
@@ -240,19 +195,26 @@ def test_sum_vars_in_calculate_derived_params(example_input_params):
     species_param = species_object.calculate_derived_params(example_input_params["BTS"])
     # Checked via excel
     # Max total Biomass
-    assert_almost_equal(species_param["grow_params"]["max_total_biomass"], 17.9)
+    print("Total max")
+    assert_almost_equal(species_param["grow_params"]["total_biomass"]["max"], 17.9)
     # max_growth_biomass
-    assert_almost_equal(species_param["grow_params"]["max_growth_biomass"], 13.9)
+    print("Growth max")
+    assert_almost_equal(species_param["grow_params"]["growth_biomass"]["max"], 13.9)
     # max_abg_biomass
-    assert_almost_equal(species_param["grow_params"]["max_abg_biomass"], 9.6)
+    print("ABG max")
+    assert_almost_equal(species_param["grow_params"]["abg_biomass"]["max"], 9.6)
     # min_total_biomass
-    assert_almost_equal(species_param["grow_params"]["min_total_biomass"], 0.062222222)
+    print("Total min")
+    assert_almost_equal(species_param["grow_params"]["total_biomass"]["min"], 0.062222222)
     # min_growth_biomass
-    assert_almost_equal(species_param["grow_params"]["min_growth_biomass"], 0.062222222)
+    print("Growth min")
+    assert_almost_equal(species_param["grow_params"]["growth_biomass"]["min"], 0.062222222)
     # min_abg_biomass
-    assert_almost_equal(species_param["grow_params"]["min_abg_biomass"], 0.052222222)
+    print("ABG min")
+    assert_almost_equal(species_param["grow_params"]["abg_biomass"]["min"], 0.052222222)
     # min_nsc_biomass
-    assert_almost_equal(species_param["grow_params"]["min_nsc_biomass"], 0.03369)
+    print("NSC min")
+    assert_almost_equal(species_param["grow_params"]["nsc_biomass"]["min"], 0.03369)
 
 
 def test_senesce(example_input_params, example_plant):

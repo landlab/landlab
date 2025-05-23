@@ -7,7 +7,7 @@ rng = np.random.default_rng()
 class Repro:
     def __init__(self, params):
         grow_params = params["grow_params"]
-        self.min_size = grow_params["min_growth_biomass"]
+        self.min_size = grow_params["growth_biomass"]["min"]
 
 
 class Clonal(Repro):

@@ -1,5 +1,5 @@
 import numpy as np
-import scipy.linalg as linalg
+from scipy import linalg
 
 from .check_objects import UnitTestChecks
 from .duration import Annual
@@ -14,10 +14,11 @@ rng = np.random.default_rng()
 class Habit:
     def __init__(self, params, dt=1, green_parts=(None)):
         self.grow_params = params["grow_params"]
-        duration_params = params["duration_params"]
+        self.duration_params = params["duration_params"]
+        self.morph_params = params["morph_params"]
         self.duration = self._select_duration_class(
             self.grow_params,
-            duration_params,
+            self.duration_params,
             dt,
             params["plant_factors"]["duration"],
             green_parts,
@@ -35,7 +36,7 @@ class Habit:
         b = (ln_y_max - ln_y_min) / (ln_x_max - ln_x_min)
         a = ln_y_max - b * ln_x_max
         return (a, b)
-    
+
     def _apply2_allometry_eq_for_xs(self, ys, predict_var):
         # Assuming you want to solve for ys rather than xs
         ln_ys = np.log(ys)
@@ -43,15 +44,15 @@ class Habit:
         b = self.morph_params[predict_var]["b"]
         ln_xs = (ln_ys - a) / b
         return np.exp(ln_xs)
-    
+
     def _apply2_allometry_eq_for_ys(self, xs, predict_var):
         # Assuming you want to solve for ys rather than xs
         ln_xs = np.log(xs)
         a = self.morph_params[predict_var]["a"]
         b = self.morph_params[predict_var]["b"]
         ln_ys = a + (b * ln_xs)
-        return np.exp(ln_ys)    
-    
+        return np.exp(ln_ys)
+
     def _calc3_allometry_coeffs(self, x_min, x_mean, x_max, y_min, y_mean, y_max, z_min, z_mean, z_max):
         """
         Calculates coefficients for natural log relationships
@@ -66,15 +67,15 @@ class Habit:
         ln_z_min = np.log(z_min)
         ln_z_mean = np.log(z_mean)
         ln_z_max = np.log(z_max)
-        eqs = np.array(
-            [1, ln_x_min, ln_y_min],
-            [1, ln_x_mean, ln_y_mean],
-            [1, ln_x_max, ln_y_max]
-        )
-        z_est = np.array([ln_z_min, ln_z_mean, ln_z_max])
-        out = linalg.solve(eqs,z_est)
+        eqs = np.array([
+            [1, ln_x_min.item(), ln_y_min.item()],
+            [1, ln_x_mean.item(), ln_y_mean.item()],
+            [1, ln_x_max.item(), ln_y_max.item()]
+        ])
+        z_est = np.array([ln_z_min.item(), ln_z_mean.item(), ln_z_max.item()])
+        out = linalg.solve(eqs, z_est)
         return (out.item(0), out.item(1), out.item(2))
-    
+
     def _apply3_allometry_eq_for_zs(self, xs, ys, predict_var):
         ln_xs = np.log(xs)
         ln_ys = np.log(ys)
@@ -83,7 +84,7 @@ class Habit:
         c = self.morph_params[predict_var]["c"]
         ln_zs = a + b * ln_xs + c * ln_ys
         return np.exp(ln_zs)
-    
+
     def _apply3_allometry_eq_for_ys(self, xs, zs, predict_var):
         ln_xs = np.log(xs)
         ln_zs = np.log(zs)
@@ -92,15 +93,15 @@ class Habit:
         c = self.morph_params[predict_var]["c"]
         ln_ys = (ln_zs - a - b * ln_xs) / c
         return np.exp(ln_ys)
-    
-    def _apply3_allometry_eq_for_ys(self, ys, zs, predict_var):
+
+    def _apply3_allometry_eq_for_xs(self, ys, zs, predict_var):
         ln_ys = np.log(ys)
         ln_zs = np.log(zs)
         a = self.morph_params[predict_var]["a"]
         b = self.morph_params[predict_var]["b"]
         c = self.morph_params[predict_var]["c"]
-        ln_ys = (ln_zs - a - c * ln_ys) / b
-        return np.exp(ln_ys)
+        ln_xs = (ln_zs - a - c * ln_ys) / b
+        return np.exp(ln_xs)
 
     def _calc_canopy_area_from_shoot_width(self, shoot_sys_width):
         UnitTestChecks().is_negative_present(shoot_sys_width, "shoot_sys_width")
@@ -122,11 +123,11 @@ class Habit:
     def calc_root_sys_width(self, shoot_sys_width, basal_width, shoot_sys_height=1):
         volume = self._calc_crown_volume(shoot_sys_width, basal_width, shoot_sys_height)
         root_sys_width = 0.08 + 0.24 * volume
-        root_sys_width[root_sys_width > self.morph_params["max_root_sys_width"]] = (
-            self.morph_params["max_root_sys_width"]
+        root_sys_width[root_sys_width > self.morph_params["root_sys_width"]["max"]] = (
+            self.morph_params["root_sys_width"]["max"]
         )
-        root_sys_width[root_sys_width < self.morph_params["min_root_sys_width"]] = (
-            self.morph_params["max_root_sys_width"]
+        root_sys_width[root_sys_width < self.morph_params["root_sys_width"]["min"]] = (
+            self.morph_params["root_sys_width"]["min"]
         )
         return root_sys_width
 
@@ -151,9 +152,10 @@ class Habit:
             "perennial evergreen": Evergreen(species_grow_params, duration_params, dt),
         }
         return duration[duration_val]
-    
+
     def _calc_derived_morph_params(self, params):
         # Assume log-log scaling for all params with biomass
+        params["morph_params"]["basal_dia_cm"] = {}
         params["morph_params"]["basal_dia_cm"]["min"] = params["morph_params"]["basal_dia"]["min"] * 100
         params["morph_params"]["basal_dia_cm"]["max"] = params["morph_params"]["basal_dia"]["max"] * 100
         (
@@ -174,9 +176,10 @@ class Habit:
             params["grow_params"]["abg_biomass"]["min"],
             params["grow_params"]["abg_biomass"]["max"],
         )
+        params["morph_params"]["canopy_area"] = {}
         params["morph_params"]["canopy_area"]["min"] = self._calc_canopy_area_from_shoot_width(
             params["morph_params"]["shoot_sys_width"]["min"]
-        )    
+        )
         params["morph_params"]["canopy_area"]["max"] = self._calc_canopy_area_from_shoot_width(
             params["morph_params"]["shoot_sys_width"]["max"]
         )
@@ -210,22 +213,13 @@ class Habit:
     def estimate_abg_biomass_from_cover(self, plants):
         # redo this to back calculate percent cover and height to basal diameter and abg biomass
         log_canopy_area = np.log(
-            0.25 * np.pi * (plants["shoot_sys_width"] * 100)**2,
-            out = np.zeros_like(plants["shoot_sys_width"], dtype=np.float64),
+            0.25 * np.pi * (plants["shoot_sys_width"])**2,
+            out=np.zeros_like(plants["shoot_sys_width"], dtype=np.float64),
             where=(plants["shoot_sys_width"] > 0.0),
         )
-        log_basal_dia_cm = 
-
-
-        # Edit this to a common form
-        log_basal_width_cm = np.log(
-            (plants["basal_width"] * 100),
-            out=np.zeros_like(plants["basal_width"], dtype=np.float64),
-            where=(plants["basal_width"] > 0.0),
-        )
         log_abg_biomass = (
-            self.morph_params["basal_coeffs"]["a"]
-            + self.morph_params["basal_coeffs"]["b"] * log_basal_width_cm
+            self.morph_params["canopy_coeffs"]["a"]
+            + self.morph_params["canopy_coeffs"]["b"] * log_canopy_area
         )
         est_abg_biomass = np.exp(
             log_abg_biomass,
@@ -249,10 +243,10 @@ class Habit:
 
 class Forbherb(Habit):
     def __init__(
-        self, 
-        params, 
-        dt, 
-        empirical_coeffs = {
+        self,
+        params,
+        dt,
+        empirical_coeffs={
             "height_coeffs": {
                 "a": (np.log(1.403) - 0.370),
                 "b": 1.903,
@@ -269,7 +263,7 @@ class Forbherb(Habit):
             },
         }
     ):
-        params =  self._calc_derived_morph_params(params)
+        params = self._calc_derived_morph_params(params)
         green_parts = ("leaf", "stem")
         super().__init__(params, dt, green_parts)
 
@@ -281,9 +275,11 @@ class Forbherb(Habit):
         # - basal area is a function of aboveground biomass and height
         # Need to better define defaults for monocot and dicot from literature.
         # Using max-min scaling only here
+        params["morph_params"]["basal_area_cm2"] = {}
         params["morph_params"]["basal_area_cm2"]["min"] = self._calc_canopy_area_from_shoot_width(params["morph_params"]["basal_dia"]["min"] * 100)
         params["morph_params"]["basal_area_cm2"]["mean"] = self._calc_canopy_area_from_shoot_width(params["morph_params"]["basal_dia"]["mean"] * 100)
         params["morph_params"]["basal_area_cm2"]["max"] = self._calc_canopy_area_from_shoot_width(params["morph_params"]["basal_dia"]["max"] * 100)
+        params["morph_params"]["canopy_area"] = {}
         params["morph_params"]["canopy_area"]["min"] = self._calc_canopy_area_from_shoot_width(params["morph_params"]["shoot_sys_width"]["min"])
         params["morph_params"]["canopy_area"]["mean"] = self._calc_canopy_area_from_shoot_width(params["morph_params"]["shoot_sys_width"]["mean"])
         params["morph_params"]["canopy_area"]["max"] = self._calc_canopy_area_from_shoot_width(params["morph_params"]["shoot_sys_width"]["max"])
@@ -297,9 +293,9 @@ class Forbherb(Habit):
             params["grow_params"]["abg_biomass"]["max"],
         )
         (
-            params["morph_params"]["basal_area_coeffs"]["a"],
-            params["morph_params"]["basal_area_coeffs"]["b"],
-            params["morph_params"]["basal_area_coeffs"]["c"]
+            params["morph_params"]["basal_coeffs"]["a"],
+            params["morph_params"]["basal_coeffs"]["b"],
+            params["morph_params"]["basal_coeffs"]["c"]
         ) = self._calc3_allometry_coeffs(
             params["morph_params"]["basal_area_cm2"]["min"],
             params["morph_params"]["basal_area_cm2"]["mean"],
@@ -307,27 +303,27 @@ class Forbherb(Habit):
             params["morph_params"]["height"]["min"],
             params["morph_params"]["height"]["mean"],
             params["morph_params"]["height"]["max"],
-            params["morph_params"]["abg_biomass"]["min"],
-            params["morph_params"]["abg_biomass"]["mean"],
-            params["morph_params"]["abg_biomass"]["max"],
+            params["grow_params"]["abg_biomass"]["min"],
+            params["grow_params"]["abg_biomass"]["mean"],
+            params["grow_params"]["abg_biomass"]["max"],
         )
         (
             params["morph_params"]["canopy_coeffs"]["a"],
             params["morph_params"]["canopy_coeffs"]["b"],
             params["morph_params"]["canopy_coeffs"]["c"]
-        ) = self._calc2_allometry_coeffs(
+        ) = self._calc3_allometry_coeffs(
             params["morph_params"]["canopy_area"]["min"],
             params["morph_params"]["canopy_area"]["mean"],
             params["morph_params"]["canopy_area"]["max"],
             params["morph_params"]["height"]["min"],
             params["morph_params"]["height"]["mean"],
             params["morph_params"]["height"]["max"],
-            params["morph_params"]["abg_biomass"]["min"],
-            params["morph_params"]["abg_biomass"]["mean"],
-            params["morph_params"]["abg_biomass"]["max"],
+            params["grow_params"]["abg_biomass"]["min"],
+            params["grow_params"]["abg_biomass"]["mean"],
+            params["grow_params"]["abg_biomass"]["max"],
         )
         return params
-    
+
     def calc_abg_dims_from_biomass(self, abg_biomass):
         # These dimensions are empirically derived allometric relationships for grasses.
         basal_area_cm2 = height = canopy_area = np.zeros_like(
@@ -347,7 +343,7 @@ class Graminoid(Habit):
         self,
         params,
         dt,
-        empirical_coeffs = {
+        empirical_coeffs={
             "perennial": {
                 "C3": {
                     "basal_coeffs": {"a": 0.20, "b": 1.17},
@@ -374,17 +370,17 @@ class Graminoid(Habit):
             },
         },
     ):
-        # Graminoid morphology 
+        # Graminoid morphology
         # - basal diameter is a function of aboveground biomass
         # - height is a function of basal diameter
         # - canopy area is a function of height and basal diameter
         # - stem diameter and number of stems is a function of basal diameter
         # Look at how we can use this to loop calculation
-        allometry_relationships = {
-            {"basal_dia": ["abg_biomass"]},
-            {"height": ["basal_dia"]},
-            {"canopy_area": ["basal_dia", "height"]}
-        }
+        # allometry_relationships = {
+        #    {"basal_dia": ["abg_biomass"]},
+        #    {"height": ["basal_dia"]},
+        #    {"canopy_area": ["basal_dia", "height"]}
+        # }
         green_parts = ("leaf", "stem")
         params = self._calc_derived_morph_params(params, empirical_coeffs)
         super().__init__(params, dt, green_parts)
@@ -394,6 +390,7 @@ class Graminoid(Habit):
         # and canopy area to basal area
         duration_val = params["plant_factors"]["duration"]
         photo_val = params["plant_factors"]["p_type"]
+        params["morph_params"]["basal_dia_cm"] = {}
         if params["morph_params"]["allometry_method"] == "min-max":
             params["morph_params"]["basal_dia_cm"]["min"] = params["morph_params"]["basal_dia"]["min"] * 100
             params["morph_params"]["basal_dia_cm"]["mean"] = params["morph_params"]["basal_dia"]["mean"] * 100
@@ -416,6 +413,7 @@ class Graminoid(Habit):
                 params["morph_params"]["height"]["min"],
                 params["morph_params"]["height"]["max"],
             )
+            params["morph_params"]["canopy_area"] = {}
             params["morph_params"]["canopy_area"]["min"] = self._calc_canopy_area_from_shoot_width(
                 params["morph_params"]["shoot_sys_width"]["min"]
             )
@@ -463,7 +461,6 @@ class Graminoid(Habit):
                 params["morph_params"]["basal_dia"]["max"],
                 params["morph_params"]["height"]["max"],
                 params["morph_params"]["shoot_sys_width"]["max"],
-                
             ) = self.calc_abg_dims_from_biomass(
                 params["grow_params"]["abg_biomass"]["max"]
             )
@@ -484,7 +481,7 @@ class Graminoid(Habit):
         filter = np.nonzero(abg_biomass > self.grow_params["abg_biomass"]["min"])
         basal_dia_cm[filter] = self._apply2_allometry_eq_for_xs(abg_biomass[filter], "basal_coeffs")
         basal_width = basal_dia_cm / 100
-        height[filter] = self._apply2_allometry_eq(basal_dia_cm[filter], "height_coeffs")
+        height[filter] = self._apply2_allometry_eq_for_ys(basal_dia_cm[filter], "height_coeffs")
         canopy_area[filter] = self._apply3_allometry_eq_for_zs(basal_dia_cm[filter], height[filter], "canopy_coeffs")
         shoot_sys_width = self._calc_shoot_width_from_canopy_area(canopy_area)
         return basal_width, height, shoot_sys_width
@@ -509,7 +506,7 @@ class Graminoid(Habit):
 
 
 class Shrub(Habit):
-    def __init__(self, params, dt, empirical_coeffs = {
+    def __init__(self, params, dt, empirical_coeffs={
             "basal_coeffs": {
                 "a": (np.log(1.0787) - 2.757),
                 "b": 2.474,
@@ -523,8 +520,7 @@ class Shrub(Habit):
                 "a": (np.log(1.403) - 0.370),
                 "b": 1.903,
                 "c": 0.652,
-            }
-        }):
+            }}):
         green_parts = ("leaf")
         params = self._calc_derived_morph_params(params, empirical_coeffs)
         super().__init__(params, dt, green_parts)
@@ -533,13 +529,12 @@ class Shrub(Habit):
         # - shoot system width is a function of aboveground biomass and basal diameter in m
         # - height is a function of aboveground biomass, basal diameter, amd crown diameter in m
 
-
     def _calc_derived_morph_params(self, params, empirical_coeffs):
         # Conti et al 2018 scales shrubs basal diameter to biomass, canopy diameter
         # (shoot system width) to biomass and basal diameter,
         # and height to biomass and canopy diameter
         # Note these relationships are designed to predict aboveground biomass from
-        # field measured allometric variables and their combination in this form will 
+        # field measured allometric variables and their combination in this form will
         # result in compounded uncertainty and should not be considered accurate for all
         # species and individuals
         if params["morph_params"]["allometry_method"] == "min-max":
@@ -556,9 +551,9 @@ class Shrub(Habit):
                 params["grow_params"]["abg_biomass"]["max"],
             )
             (
-                params["morph_params"]["shoot_sys_width_coeffs"]["a"],
-                params["morph_params"]["shoot_sys_width_coeffs"]["b"],
-                params["morph_params"]["shoot_sys_width_coeffs"]["c"]
+                params["morph_params"]["canopy_coeffs"]["a"],
+                params["morph_params"]["canopy_coeffs"]["b"],
+                params["morph_params"]["canopy_coeffs"]["c"]
             ) = self._calc3_allometry_coeffs(
                 params["morph_params"]["basal_dia_cm"]["min"],
                 params["morph_params"]["basal_dia_cm"]["mean"],
@@ -566,30 +561,30 @@ class Shrub(Habit):
                 params["morph_params"]["shoot_sys_width"]["min"],
                 params["morph_params"]["shoot_sys_width"]["mean"],
                 params["morph_params"]["shoot_sys_width"]["max"],
-                params["morph_params"]["abg_biomass"]["min"],
-                params["morph_params"]["abg_biomass"]["mean"],
-                params["morph_params"]["abg_biomass"]["max"],
+                params["grow_params"]["abg_biomass"]["min"],
+                params["grow_params"]["abg_biomass"]["mean"],
+                params["grow_params"]["abg_biomass"]["max"],
             )
             (
                 params["morph_params"]["height_coeffs"]["a"],
                 params["morph_params"]["height_coeffs"]["b"],
                 params["morph_params"]["height_coeffs"]["c"]
-            ) = self._calc2_allometry_coeffs(
+            ) = self._calc3_allometry_coeffs(
                 params["morph_params"]["shoot_sys_width"]["min"],
                 params["morph_params"]["shoot_sys_width"]["mean"],
                 params["morph_params"]["shoot_sys_width"]["max"],
                 params["morph_params"]["height"]["min"],
                 params["morph_params"]["height"]["mean"],
                 params["morph_params"]["height"]["max"],
-                params["morph_params"]["abg_biomass"]["min"],
-                params["morph_params"]["abg_biomass"]["mean"],
-                params["morph_params"]["abg_biomass"]["max"],
+                params["grow_params"]["abg_biomass"]["min"],
+                params["grow_params"]["abg_biomass"]["mean"],
+                params["grow_params"]["abg_biomass"]["max"],
             )
         else:
             if params["morph_params"]["allometry_method"] == "default":
                 params["morph_params"]["basal_coeffs"] = empirical_coeffs["basal_coeffs"]
                 params["morph_params"]["height_coeffs"] = empirical_coeffs["height_coeffs"]
-                params["morph_params"]["shoot_sys_width_coeffs"] = empirical_coeffs["shoot_sys_width_coeffs"]
+                params["morph_params"]["canopy_coeffs"] = empirical_coeffs["canopy_coeffs"]
             (
                 params["morph_params"]["basal_dia"]["min"],
                 params["morph_params"]["height"]["min"],
@@ -601,7 +596,6 @@ class Shrub(Habit):
                 params["morph_params"]["basal_dia"]["max"],
                 params["morph_params"]["height"]["max"],
                 params["morph_params"]["shoot_sys_width"]["max"],
-                
             ) = self.calc_abg_dims_from_biomass(
                 params["grow_params"]["abg_biomass"]["max"]
             )
@@ -622,18 +616,20 @@ class Shrub(Habit):
         filter = np.nonzero(abg_biomass > self.grow_params["abg_biomass"]["min"])
         basal_dia_cm[filter] = self._apply2_allometry_eq_for_xs(abg_biomass[filter], "basal_coeffs")
         basal_width = basal_dia_cm / 100
-        shoot_sys_width[filter] = self._apply3_allometry_eq_for_ys(abg_biomass[filter], basal_dia_cm[filter], abg_biomass[filter],  "shoot_sys_width_coeffs")
-        height[filter] = self._apply3_allometry_eq_for_ys( shoot_sys_width[filter], abg_biomass[filter], "height_coeffs")
+        shoot_sys_width[filter] = self._apply3_allometry_eq_for_ys(abg_biomass[filter], basal_dia_cm[filter], abg_biomass[filter], "canopy_coeffs")
+        height[filter] = self._apply3_allometry_eq_for_ys(shoot_sys_width[filter], abg_biomass[filter], "height_coeffs")
         return basal_width, height, shoot_sys_width
 
 
 class Tree(Habit):
-    def __init__(self, params, dt):
+    def __init__(self, params, dt, empirical_coeffs={}):
         green_parts = ("leaf")
+        params = self._calc_derived_morph_params(params)
         super().__init__(params, dt, green_parts)
 
 
 class Vine(Habit):
-    def __init__(self, params, dt):
+    def __init__(self, params, dt, empirical_coeffs={}):
         green_parts = ("leaf")
+        params = self._calc_derived_morph_params(params)
         super().__init__(params, dt, green_parts)
