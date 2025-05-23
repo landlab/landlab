@@ -128,9 +128,10 @@ def test_calculate_whole_plant_mortality(example_plant_array, one_cell_grid, exa
     new_biomass = species_object_min.calculate_whole_plant_mortality(example_plant_array, min_temp, "2")
     assert_allclose(new_biomass["root"], np.zeros_like(new_biomass["root"]), rtol=0.0001)
 
-def test_emerge(example_plant,example_input_params):
-    species_objects = create_species_object(example_input_params)
-    
+
+def test_emerge(example_plant, example_input_params):
+    species_object = create_species_object(example_input_params)
+
 
 def test_mortality(example_input_params, two_cell_grid, example_plant_array):
     temp_dt = np.timedelta64(example_input_params["BTS"]["mortality_params"]["duration"]["2"], 'D')
@@ -195,25 +196,18 @@ def test_sum_vars_in_calculate_derived_params(example_input_params):
     species_param = species_object.calculate_derived_params(example_input_params["BTS"])
     # Checked via excel
     # Max total Biomass
-    print("Total max")
     assert_almost_equal(species_param["grow_params"]["total_biomass"]["max"], 17.9)
     # max_growth_biomass
-    print("Growth max")
     assert_almost_equal(species_param["grow_params"]["growth_biomass"]["max"], 13.9)
     # max_abg_biomass
-    print("ABG max")
     assert_almost_equal(species_param["grow_params"]["abg_biomass"]["max"], 9.6)
     # min_total_biomass
-    print("Total min")
     assert_almost_equal(species_param["grow_params"]["total_biomass"]["min"], 0.062222222)
     # min_growth_biomass
-    print("Growth min")
     assert_almost_equal(species_param["grow_params"]["growth_biomass"]["min"], 0.062222222)
     # min_abg_biomass
-    print("ABG min")
     assert_almost_equal(species_param["grow_params"]["abg_biomass"]["min"], 0.052222222)
     # min_nsc_biomass
-    print("NSC min")
     assert_almost_equal(species_param["grow_params"]["nsc_biomass"]["min"], 0.03369)
 
 
