@@ -37,27 +37,20 @@ def test_bad_arg_raises_type_error(
         )
 
 
-def test_bad_porosity(example_nmg, example_parcels, example_flow_director):
+@pytest.mark.parametrize(
+    "bad_args",
+    ({"bed_porosity": -0.03}, {"transport_method": "bad_transport_method"}),
+)
+def test_bad_arg_raises_value_error(
+    example_nmg, example_parcels, example_flow_director, bad_args
+):
+    good_args = {"bed_porosity": 0.03, "transport_method": "WilcockCrowe"}
     with pytest.raises(ValueError):
         NetworkSedimentTransporter(
             example_nmg,
             example_parcels,
             example_flow_director,
-            bed_porosity=-0.03,
+            **{**good_args, **bad_args},
             g=9.81,
             fluid_density=1000,
-            transport_method="WilcockCrowe",
-        )
-
-
-def test_bad_transport_method(example_nmg, example_parcels, example_flow_director):
-    with pytest.raises(ValueError):
-        NetworkSedimentTransporter(
-            example_nmg,
-            example_parcels,
-            example_flow_director,
-            bed_porosity=0.03,
-            g=9.81,
-            fluid_density=1000,
-            transport_method="bad_transport_method",
         )
