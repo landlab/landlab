@@ -417,13 +417,18 @@ class LinearDiffuser(Component):
         # do mapping of array kd here, in case it points at an updating
         # field:
         if isinstance(self._kd, np.ndarray):
+            self._kd_node = ((self._rock_exposure_fraction * self._kd_rock) + (1 - self._rock_exposure_fraction) *
+                        self._kd_soil)
+
             if not self._kd_on_links:
-                kd_links = self._grid.map_max_of_link_nodes_to_link(self._kd)
+                kd_links = self._grid.map_max_of_link_nodes_to_link(self._kd_node)
                 kd_activelinks = kd_links[self._grid.active_links]
                 # re-derive CFL condition, as could change dynamically:
                 dt_links = self._CFL_actives_prefactor / kd_activelinks
                 self._dt = np.nanmin(dt_links)
             else:
+
+                self._grid.map_max_of_link_nodes_to_link(self._kd)
                 kd_links = self._kd
                 kd_activelinks = self._kd[self._grid.active_links]
                 dt_links = self._CFL_actives_prefactor / kd_activelinks
@@ -674,10 +679,14 @@ class LinearDiffuserMultiClass(Component):
     }
 
     def __init__(self, grid,
-                 linear_diffusivity=0.01,
+                 linear_diffusivity_soil=0.01,
+                 linear_diffusivity_rock=0.01,
                  method="simple",
                  deposit=True,
-                 phi=0.4):
+                 phi=0.4,
+                 depth_decay_scale=1,
+                 rho_sed=2650
+                 ):
         """
         Parameters
         ----------
@@ -723,18 +732,23 @@ class LinearDiffuserMultiClass(Component):
         self._current_time = 0.0
         self._run_before = False
 
-        self._kd = self._validate_linear_diffusivity(grid, linear_diffusivity)
+        self._depth_decay_scale = depth_decay_scale
+        self.calc_rock_exposure_fraction()
+        self._kd_soil = linear_diffusivity_soil
+        self._kd_rock = linear_diffusivity_rock
+        self._rho_sed = rho_sed
+        
+        for self._kd in [self._kd_soil, self._kd_rock]:
+            self._kd = self._validate_linear_diffusivity(grid, linear_diffusivity_soil)
+            if self._use_patches and np.ndim(self._kd) == 0:
+                self._kd = np.broadcast_to(self._kd, grid.number_of_links)
 
-        if self._use_patches and np.ndim(self._kd) == 0:
-            self._kd = np.broadcast_to(self._kd, grid.number_of_links)
+            self._kd_on_links = np.size(self._kd) == grid.number_of_links
 
-        self._kd_on_links = np.size(self._kd) == grid.number_of_links
-
-        if self._kd_on_links and not isinstance(grid, RasterModelGrid):
-            raise TypeError(
-                "linear_diffusivity defined at links is only available for"
-                " RasterModelGrid."
-            )
+            if self._kd_on_links:
+                raise TypeError(
+                    "Diffusivity in MultiClass diffuser defined only at node"
+                )
 
         # if we're using patches, it is VITAL that diffusivity is defined on
         # links. The whole point of this functionality is that we honour
@@ -758,6 +772,8 @@ class LinearDiffuserMultiClass(Component):
         self._zeros_at_link = self._grid.zeros(at="link")
         self._zeros_at_link_for_fractions = np.zeros(
             (np.shape(self._zeros_at_link)[0], self._n_classes))
+
+
         # Set internal time step
         # ..todo:
         #   implement mechanism to compute time-steps dynamically if grid is
@@ -782,21 +798,21 @@ class LinearDiffuserMultiClass(Component):
             if name not in self._grid.at_link:
                 self._grid.add_zeros(name, at="link")
 
-        if self._use_patches or self._kd_on_links:
-            mg = self._grid
-            try:
-                self._hoz = self.grid.horizontal_links
-                self._vert = self.grid.vertical_links
-            except AttributeError:
-                pass
-            self._x_link_patches = mg.patches_at_link[self._hoz]
-            x_link_patch_pres = mg.patches_present_at_link[self._hoz]
-            self._x_link_patch_mask = np.logical_not(x_link_patch_pres)
-            self._y_link_patches = mg.patches_at_link[self._vert]
-            y_link_patch_pres = mg.patches_present_at_link[self._vert]
-            self._y_link_patch_mask = np.logical_not(y_link_patch_pres)
-            self._hoz_link_neighbors = np.empty((self._hoz.size, 4), dtype=int)
-            self._vert_link_neighbors = np.empty((self._vert.size, 4), dtype=int)
+        # if self._use_patches or self._kd_on_links:
+        #     mg = self._grid
+        #     try:
+        #         self._hoz = self.grid.horizontal_links
+        #         self._vert = self.grid.vertical_links
+        #     except AttributeError:
+        #         pass
+        #     self._x_link_patches = mg.patches_at_link[self._hoz]
+        #     x_link_patch_pres = mg.patches_present_at_link[self._hoz]
+        #     self._x_link_patch_mask = np.logical_not(x_link_patch_pres)
+        #     self._y_link_patches = mg.patches_at_link[self._vert]
+        #     y_link_patch_pres = mg.patches_present_at_link[self._vert]
+        #     self._y_link_patch_mask = np.logical_not(y_link_patch_pres)
+        #     self._hoz_link_neighbors = np.empty((self._hoz.size, 4), dtype=int)
+        #     self._vert_link_neighbors = np.empty((self._vert.size, 4), dtype=int)
 
         # do some pre-work to make fixed grad BC updating faster in the loop:
         self.updated_boundary_conditions()
@@ -901,32 +917,32 @@ class LinearDiffuserMultiClass(Component):
             vals[self._fixed_grad_nodes] - vals[self._fixed_grad_anchors]
         )
 
-        if self._kd_on_links or self._use_patches:
-            mg = self._grid
-            x_link_patch_pres = mg.patches_present_at_link[self._hoz]
-            self._x_link_patch_mask = np.logical_not(x_link_patch_pres)
-            y_link_patch_pres = mg.patches_present_at_link[self._vert]
-            self._y_link_patch_mask = np.logical_not(y_link_patch_pres)
-            self._hoz_link_neighbors[:, :2] = mg.links_at_node[
-                mg.node_at_link_head[self._hoz], 1:4:2
-            ]
-            self._hoz_link_neighbors[:, 2:] = mg.links_at_node[
-                mg.node_at_link_tail[self._hoz], 1:4:2
-            ]
-            self._vert_link_neighbors[:, :2] = mg.links_at_node[
-                mg.node_at_link_head[self._vert], 0:3:2
-            ]
-            self._vert_link_neighbors[:, 2:] = mg.links_at_node[
-                mg.node_at_link_tail[self._vert], 0:3:2
-            ]
-            self._vert_link_badlinks = np.logical_or(
-                mg.status_at_link[self._vert_link_neighbors] == LinkStatus.INACTIVE,
-                self._vert_link_neighbors == -1,
-            )
-            self._hoz_link_badlinks = np.logical_or(
-                mg.status_at_link[self._hoz_link_neighbors] == LinkStatus.INACTIVE,
-                self._hoz_link_neighbors == -1,
-            )
+        # if self._kd_on_links or self._use_patches:
+        #     mg = self._grid
+        #     x_link_patch_pres = mg.patches_present_at_link[self._hoz]
+        #     self._x_link_patch_mask = np.logical_not(x_link_patch_pres)
+        #     y_link_patch_pres = mg.patches_present_at_link[self._vert]
+        #     self._y_link_patch_mask = np.logical_not(y_link_patch_pres)
+        #     self._hoz_link_neighbors[:, :2] = mg.links_at_node[
+        #         mg.node_at_link_head[self._hoz], 1:4:2
+        #     ]
+        #     self._hoz_link_neighbors[:, 2:] = mg.links_at_node[
+        #         mg.node_at_link_tail[self._hoz], 1:4:2
+        #     ]
+        #     self._vert_link_neighbors[:, :2] = mg.links_at_node[
+        #         mg.node_at_link_head[self._vert], 0:3:2
+        #     ]
+        #     self._vert_link_neighbors[:, 2:] = mg.links_at_node[
+        #         mg.node_at_link_tail[self._vert], 0:3:2
+        #     ]
+        #     self._vert_link_badlinks = np.logical_or(
+        #         mg.status_at_link[self._vert_link_neighbors] == LinkStatus.INACTIVE,
+        #         self._vert_link_neighbors == -1,
+        #     )
+        #     self._hoz_link_badlinks = np.logical_or(
+        #         mg.status_at_link[self._hoz_link_neighbors] == LinkStatus.INACTIVE,
+        #         self._hoz_link_neighbors == -1,
+        #     )
 
     def run_one_step(self, dt):
         """Run the diffuser for one timestep, dt.
@@ -954,26 +970,41 @@ class LinearDiffuserMultiClass(Component):
             self._bc_set_code = self._grid.bc_set_code
 
         core_nodes = self._grid.node_at_core_cell
+        
         # do mapping of array kd here, in case it points at an updating
         # field:
-        if isinstance(self._kd, np.ndarray):
-            if not self._kd_on_links:
-                kd_links = self._grid.map_max_of_link_nodes_to_link(self._kd)
-                kd_activelinks = kd_links[self._grid.active_links]
-                # re-derive CFL condition, as could change dynamically:
-                dt_links = self._CFL_actives_prefactor / kd_activelinks
-                self._dt = np.nanmin(dt_links)
-            else:
-                kd_links = self._kd
-                kd_activelinks = self._kd[self._grid.active_links]
-                dt_links = self._CFL_actives_prefactor / kd_activelinks
-                self._dt_links = dt_links
-                self._dt = np.nanmin(np.fabs(dt_links))
-        else:
-            kd_activelinks = self._kd
-            # re-derive CFL condition, as could change dynamically:
-            dt_links = self._CFL_actives_prefactor / kd_activelinks
-            self._dt = np.nanmin(dt_links)
+        # if isinstance(self._kd, np.ndarray):
+        #     if not self._kd_on_links:
+        #         self._kd_node = ((self._rock_exposure_fraction * self._kd_rock) + (1 - self._rock_exposure_fraction) *
+        #                          self._kd_soil)
+        #
+        #         kd_links = self._grid.map_max_of_link_nodes_to_link(self._kd_node)
+        #         kd_activelinks = kd_links[self._grid.active_links]
+        #         # re-derive CFL condition, as could change dynamically:
+        #         dt_links = self._CFL_actives_prefactor / kd_activelinks
+        #         self._dt = np.nanmin(dt_links)
+        #     else:
+        #         kd_links = self._kd
+        #         kd_activelinks = self._kd[self._grid.active_links]
+        #         dt_links = self._CFL_actives_prefactor / kd_activelinks
+        #         self._dt_links = dt_links
+        #         self._dt = np.nanmin(np.fabs(dt_links))
+        # else:
+        #     kd_activelinks = self._kd
+        #     # re-derive CFL condition, as could change dynamically:
+        #     dt_links = self._CFL_actives_prefactor / kd_activelinks
+        #     self._dt = np.nanmin(dt_links)
+
+        ## Yuval: make this flag true to re calculate diffusivity
+        # according to soil depth
+        self._kd_node = ((self._rock_exposure_fraction * self._kd_rock) + (1 - self._rock_exposure_fraction) *
+                         self._kd_soil)
+
+        kd_links = self._grid.map_max_of_link_nodes_to_link(self._kd_node)
+        kd_activelinks = kd_links[self._grid.active_links]
+        # re-derive CFL condition, as could change dynamically:
+        dt_links = self._CFL_actives_prefactor / kd_activelinks
+        self._dt = np.nanmin(dt_links)
 
         if self._use_patches:
             # need this else diffusivities on inactive links deform off-angle
@@ -1087,7 +1118,6 @@ class LinearDiffuserMultiClass(Component):
         topo = self._grid.at_node['topographic__elevation']
         grain_weight_node = self._grid.at_node['grains__weight']
         grain_weight_node[grain_weight_node < 0] = 0
-        self._sigma = 2650
         g_total_link = self._zeros_at_link.copy()  # Total grain size mass at link
         g_state_link = self._zeros_at_link_for_fractions.copy()  # Grain size mass for each size fraction
         sed_flux_at_link = self._zeros_at_link.copy()
@@ -1098,7 +1128,7 @@ class LinearDiffuserMultiClass(Component):
         nonzero_downind_link_ids = np.nonzero(upwind_node_id_at_link)[0]
         tgrad = self.grid.calc_grad_at_link(self.grid.at_node['topographic__elevation'])
         outlinks_at_node = self.grid.link_at_node_is_downwind(tgrad)
-        n_classes = np.ndim(grain_weight_node)
+        n_classes = self._n_classes
         if n_classes >1:
             g_total_dt_node = np.sum(grain_weight_node, 1).copy()  # Total grain size mass at node
             g_total_link[nonzero_downind_link_ids] = g_total_dt_node[
@@ -1157,20 +1187,42 @@ class LinearDiffuserMultiClass(Component):
         if n_classes > 1:
             for size_class in range(n_classes):
                 dz = -self._grid.calc_flux_div_at_node(self._sed_flux_at_link_class[:, size_class])
-                grain_weight_node[:, size_class] += (dz ) * (1 - self._phi) * self._sigma # in kg/m2
+                grain_weight_node[:, size_class] += (dz ) * (1 - self._phi) * self._rho_sed # in kg/m2
         else:
             dz = -self._grid.calc_flux_div_at_node(self._sed_flux_at_link_class[:, 0])
-            grain_weight_node[:] += (dz) * (1 - self._phi) * self._sigma  # in kg/m2
+            grain_weight_node[:] += (dz) * (1 - self._phi) * self._rho_sed  # in kg/m2
         
         grain_weight_node[grain_weight_node < 0] = 0
-
-        # Update topography (bedrock and soil depth)
+        bedrock_sediment_flux_at_link = np.abs((np.abs(sediment_flux) - np.abs(sed_flux_at_link))) * np.sign(sed_flux_at_link)
+       
+        # Update topography after soil diffusion
         soil += dz_soil_sediment
         soil[soil <= 0] = 0
+
+        # Now we move-on to bedrock diffusion
+        # Get the dz after bedrock diffusion
+        dz_bedrock_sediment = -self._grid.calc_flux_div_at_node(bedrock_sediment_flux_at_link)
+
+        # We are ready for topography update
+        bed[dz_bedrock_sediment < 0] = bed[dz_bedrock_sediment < 0] - np.abs(dz_bedrock_sediment[dz_bedrock_sediment < 0])
+        #^ Consider here only NEGATIVE values
+
+        soil[dz_bedrock_sediment > 0] = soil[dz_bedrock_sediment > 0] + dz_bedrock_sediment[dz_bedrock_sediment > 0]
+        #^ Consider here only POSTIVE values
+
+        positive_dz_bedrock_sediment = np.clip(dz_bedrock_sediment,0, np.inf)
+        grain_weight_node += positive_dz_bedrock_sediment[:, np.newaxis] * (1 - self._phi) * self._rho_sed * self._grid.at_node[
+            'bed_grains__proportions']  # in kg/m2
+
+
         topo[:] = soil[:] + bed[:]
 
 
 
+    def calc_rock_exposure_fraction(self):
+        """Update the bedrock exposure fraction.
+        """
+        self._rock_exposure_fraction = np.exp(-self._grid.at_node['soil__depth']/ self._depth_decay_scale)
 
 
     @property

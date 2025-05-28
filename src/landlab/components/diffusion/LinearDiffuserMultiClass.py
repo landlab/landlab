@@ -144,7 +144,10 @@ class LinearDiffuser(Component):
         },
     }
 
-    def __init__(self, grid, linear_diffusivity=0.01, method="simple", deposit=True):
+    def __init__(self, grid, linear_diffusivity=0.01,
+                 depth_decay_scale = 1,
+                 method="simple", 
+                 deposit=True):
         """
         Parameters
         ----------
@@ -191,7 +194,9 @@ class LinearDiffuser(Component):
         self._run_before = False
 
         self._kd = self._validate_linear_diffusivity(grid, linear_diffusivity)
-
+        self._depth_decay_scale = depth_decay_scale
+        self.calc_rock_exposure_fraction()
+        
         if self._use_patches and np.ndim(self._kd) == 0:
             self._kd = np.broadcast_to(self._kd, grid.number_of_links)
 
@@ -580,6 +585,7 @@ class LinearDiffuser(Component):
         fluxes = self._grid.link_dirs_at_node[:, :, np.newaxis] * self._sed_flux_at_link_class[self._grid.links_at_node,
                                                                   :]
 
+
         # Now, the goal is to verify that the transport is not greater than
         # the mass in the upwind node
         outlinks_fluxes_at_node = np.copy(fluxes)
@@ -623,6 +629,10 @@ class LinearDiffuser(Component):
 
 
 
+    def calc_rock_exposure_fraction(self):
+        """Update the bedrock exposure fraction.
+        """
+        self._rock_exposure_fraction[:] = np.exp(-self._grid.at_node['soil__depth']/ self._depth_decay_scale)
 
     @property
     def time_step(self):
