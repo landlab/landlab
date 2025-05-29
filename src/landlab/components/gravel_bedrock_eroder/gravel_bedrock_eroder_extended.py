@@ -957,7 +957,7 @@ class ExtendedGravelBedrockEroder(Component):
         if self._n_classes > 1:
             tau_c[:] = self._tau_star_c * (self._SG * self._rho_water) * _EARTH_GRAV * fractions_sizes
         else:
-            tau_c[:,0] = self._tau_star_c_median * (self._SG) * _EARTH_GRAV * fractions_sizes
+            tau_c[:,0] = self._tau_star_c_median * (self._SG * self._rho_water) * _EARTH_GRAV * fractions_sizes
 
     def _calc_excess_stress_dims(self):
         """Calculate excess_stress dims
