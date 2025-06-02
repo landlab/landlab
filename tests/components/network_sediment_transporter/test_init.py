@@ -15,12 +15,21 @@ def test_basic_init(example_nmg, example_parcels, example_flow_director):
     )
 
 
-def test_bad_flow_director(example_nmg, example_parcels):
-    with pytest.raises(ValueError):
+@pytest.mark.parametrize(
+    "bad_args",
+    ({"flow_director": "bad_fd"}, {"parcels": "bad_parcels"}, {"grid": "bad_nmg"}),
+)
+def test_bad_arg_raises_type_error(
+    example_nmg, example_parcels, example_flow_director, bad_args
+):
+    good_args = {
+        "grid": example_nmg,
+        "parcels": example_parcels,
+        "flow_director": example_flow_director,
+    }
+    with pytest.raises(TypeError):
         NetworkSedimentTransporter(
-            example_nmg,
-            example_parcels,
-            "bad_fd",
+            **{**good_args, **bad_args},
             bed_porosity=0.03,
             g=9.81,
             fluid_density=1000,
@@ -28,53 +37,20 @@ def test_bad_flow_director(example_nmg, example_parcels):
         )
 
 
-def test_bad_network_model_grid(example_parcels, example_flow_director):
-    with pytest.raises(ValueError):
-        NetworkSedimentTransporter(
-            "bad_nmg",
-            example_parcels,
-            example_flow_director,
-            bed_porosity=0.03,
-            g=9.81,
-            fluid_density=1000,
-            transport_method="WilcockCrowe",
-        )
-
-
-def test_bad_parcels(example_nmg, example_flow_director):
-    with pytest.raises(ValueError):
-        NetworkSedimentTransporter(
-            example_nmg,
-            "bad_parcels",
-            example_flow_director,
-            bed_porosity=0.03,
-            g=9.81,
-            fluid_density=1000,
-            transport_method="WilcockCrowe",
-        )
-
-
-def test_bad_porosity(example_nmg, example_parcels, example_flow_director):
+@pytest.mark.parametrize(
+    "bad_args",
+    ({"bed_porosity": -0.03}, {"transport_method": "bad_transport_method"}),
+)
+def test_bad_arg_raises_value_error(
+    example_nmg, example_parcels, example_flow_director, bad_args
+):
+    good_args = {"bed_porosity": 0.03, "transport_method": "WilcockCrowe"}
     with pytest.raises(ValueError):
         NetworkSedimentTransporter(
             example_nmg,
             example_parcels,
             example_flow_director,
-            bed_porosity=-0.03,
+            **{**good_args, **bad_args},
             g=9.81,
             fluid_density=1000,
-            transport_method="WilcockCrowe",
-        )
-
-
-def test_bad_transport_method(example_nmg, example_parcels, example_flow_director):
-    with pytest.raises(ValueError):
-        NetworkSedimentTransporter(
-            example_nmg,
-            example_parcels,
-            example_flow_director,
-            bed_porosity=0.03,
-            g=9.81,
-            fluid_density=1000,
-            transport_method="bad_transport_method",
         )
