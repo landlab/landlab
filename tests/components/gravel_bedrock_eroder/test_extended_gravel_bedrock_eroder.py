@@ -51,6 +51,12 @@ def critical_shields(D, tau_st_c, mkomar, sed0):
         crit_sh = tau_st_c * (D / D[median_index])**-mkomar
     return crit_sh
 
+
+def critical_stress(tau_star_c_by_size, rho, rhos, g, D):
+    sg = (rhos - rho) / rho
+    tau_c = tau_star_c_by_size * sg * g * D
+    return tau_c
+
 def sed_capacity(intcy, mpm, w, rho, rhos, g, D, tau_star, tau_star_c_by_size, f, mk):
     R = (rhos - rho) / rho
     exshields = tau_star - tau_star_c_by_size
@@ -77,17 +83,37 @@ def attrition_thickening_rate(sed_fluxes, beta, dx, cell_area):
 def outflux_thickening_rate(sed_fluxes, cell_area, porosity):
     return -sed_fluxes / ((1-porosity) *cell_area)
 
-def rock_plucking_rate(pluck_coef, shields, crit_shields_rock, width, dx, cellarea, br_frac, intcy):
-    if isinstance(shields,float):
-        exshields = max(shields - crit_shields_rock, 0.0)
+# def rock_plucking_rate(pluck_coef, shields, crit_shields_rock, width, dx, cellarea, br_frac, intcy):
+#     if isinstance(shields,float):
+#         exshields = max(shields - crit_shields_rock, 0.0)
+#     else:
+#         exshields = shields - crit_shields_rock
+#         exshields[exshields<0]=0
+#     pluck_rate = (
+#         intcy * pluck_coef * (exshields)**1.5 
+#         * width * dx / cellarea
+#     )
+#     pluck_rate = np.sum(pluck_rate)
+#     return -br_frac * pluck_rate
+
+
+def rock_plucking_rate(pluck_coef,
+                       tau, tau_crit_bedrock,
+                       tau_crit_grain, width, dx, cellarea, br_frac, intcy):
+    if np.size(tau_crit_grain) > 1:
+        tau_crit_bedrock = np.ones_like(tau_crit_grain) * tau_crit_bedrock
+        tau_crit_eff = np.max((tau_crit_bedrock, tau_crit_grain), 0)
+        exshields = tau - tau_crit_eff
+        exshields[exshields < 0] = 0
+
     else:
-        exshields = shields - crit_shields_rock
-        exshields[exshields<0]=0
+        tau_crit_eff = np.max((tau_crit_bedrock, tau_crit_grain))
+        exshields = np.max((tau - tau_crit_eff, 0.0))
+
     pluck_rate = (
-        intcy * pluck_coef * (exshields)**1.5 
-        * width * dx / cellarea
+            intcy * pluck_coef * (exshields) ** 1.5
+            * width * dx / cellarea
     )
-    pluck_rate = np.sum(pluck_rate)
     return -br_frac * pluck_rate
 
 def rock_abrasion_rate(abr_coef, sedflux, chanlen, cellarea, brfrac):
@@ -121,6 +147,7 @@ def set_default_params():
     p["kp"] = 1.0                  # plucking coefficient, m/y
     p["taustarcr"] = 0.0495        # critical shields stress for rock, FOR NOW: ASSUMING = tau_st_C
     p["br_abr_coef"] = 0.001       # bedrock abrasion coefficient, 1/m
+    p["tau_crit_bedrock"] = 10     # Critical stress for bedrock plucking, pa
     return p
 
 def calc_predicted_outputs(p):
@@ -153,10 +180,13 @@ def calc_predicted_outputs(p):
     pv["dHdt_attr"] = attrition_thickening_rate(
         pv["Qs"], p["beta"], p["dx"], p["cellarea"]
     )
-    pv["pluck_rate"] = rock_plucking_rate(
-        p["kp"], pv["tau_star"], p["taustarcr"], pv["w"], p["dx"],
-        p["cellarea"], pv["alpha"], p["intcy"]
-    )
+
+    pv["critical_stress"] = critical_stress(p["tau_st_c"], p["rho"], p["rhos"], p["g"], p["D"])
+
+    pv["pluck_rate"] =rock_plucking_rate(p["kp"], pv["tau"], p["tau_crit_bedrock"], pv["critical_stress"],
+                                pv["w"], p["dx"], p["cellarea"], pv["alpha"], p["intcy"])
+
+
     pv["rock_abr_rate"] = rock_abrasion_rate(
         p["br_abr_coef"], pv["Qs_total"], p["dx"], p["cellarea"],
         pv["alpha"]
@@ -299,7 +329,6 @@ def test_unlimited_sediment_homogeneous_fixed_width_no_attrition():
     # Check if the results match the prediction
     check_results(results, predicted)
 
-
 def test_unlimited_sediment_homogeneous_fixed_width_attrition():
 
     # Get parameters for the test
@@ -317,7 +346,6 @@ def test_unlimited_sediment_homogeneous_fixed_width_attrition():
     # Check if the results match the prediction
     check_results(results, predicted)
 
-
 def test_unlimited_sediment_homogeneous_dynamic_width_no_attrition():
     # Get parameters for the test
     parameters = set_default_params()
@@ -333,7 +361,6 @@ def test_unlimited_sediment_homogeneous_dynamic_width_no_attrition():
 
     # Check if the results match the prediction
     check_results(results, predicted)
-
 
 def unlimited_sediment_multi_lithology_fixed_width_attrition():
     # Get parameters for the test
@@ -354,7 +381,6 @@ def unlimited_sediment_multi_lithology_fixed_width_attrition():
     # Check if the results match the prediction
     check_results(results, predicted)
 
-
 def unlimited_multi_size_dynamic_width_no_attrition():
     # Get parameters for the test
     parameters = set_default_params()
@@ -374,7 +400,6 @@ def unlimited_multi_size_dynamic_width_no_attrition():
     # Check if the results match the prediction
     check_results(results, predicted)
 
-
 def test_unlimited_multi_size_fixed_width_no_attrition():
     # Get parameters for the test
     parameters = set_default_params()
@@ -393,7 +418,6 @@ def test_unlimited_multi_size_fixed_width_no_attrition():
 
     # Check if the results match the prediction
     check_results(results, predicted)
-
 
 def test_unlimited_multi_size_fixed_width_attrition():
     # Get parameters for the test
@@ -415,11 +439,10 @@ def test_unlimited_multi_size_fixed_width_attrition():
     # Check if the results match the prediction
     check_results(results, predicted)
 
-
 def test_limited_homogeneous_dynamic_width_no_attrition():
     # Get parameters for the test
     parameters = set_default_params()
-    parameters["sed0"] = 0.1
+    parameters["sed0"] = 0.2
     parameters["width_is_dynamic"] = True
 
     # Init grid according to the parameters and run one step
@@ -433,7 +456,6 @@ def test_limited_homogeneous_dynamic_width_no_attrition():
 
     # Check if the results match the prediction
     check_results(results, predicted)
-
 
 def test_limited_multi_size_fixed_width_no_attrition():
     # Get parameters for the test
@@ -629,3 +651,5 @@ def test_limited_multi_size_fixed_width_no_attrition():
 #         32.972,
 #         decimal=3,
 #     )
+
+

@@ -181,7 +181,7 @@ def _get_classes_fractions(
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def _calc_pluck_rate(
+def _calc_pluck_rate_tools(
         DTYPE_INT_t num_classes,
         DTYPE_INT_t num_core_nodes,
         intermittency_factor,
@@ -213,4 +213,39 @@ def _calc_pluck_rate(
                                       channel_width[node]*
                                       flow_length*
                                       rock_exposure_fraction[node]*classes_fractions[node,col])
+
+
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _calc_pluck_rate(
+        DTYPE_INT_t num_classes,
+        DTYPE_INT_t num_core_nodes,
+        intermittency_factor,
+        flow_link_length_over_cell_area,
+        np.ndarray[DTYPE_INT_t, ndim = 1] core_nodes,
+        cython.floating[:] plucking_coef,
+        cython.floating[:] channel_width,
+        cython.floating[:] rock_exposure_fraction,
+        cython.floating[:] excess_stress,
+        cython.floating[:] out,
+):
+
+
+    cdef int col, node, row
+    cdef float sum_at_node
+    cdef float intermittency_f
+    cdef float flow_length
+
+    intermittency_f=intermittency_factor
+    flow_length = flow_link_length_over_cell_area
+    for row in prange(num_core_nodes, nogil=True, schedule="static",num_threads=32):
+        node = core_nodes[row]
+        out[node]  = (intermittency_f*
+                                  plucking_coef[node]*
+                                  excess_stress[node]**1.5*
+                                  channel_width[node]*
+                                  flow_length*
+                                  rock_exposure_fraction[node])
 

@@ -15,6 +15,7 @@ from cfuncs import _calc_sed_abrs_rate
 from cfuncs import _calc_bedrock_abrs_rate
 from cfuncs import _get_classes_fractions
 from cfuncs import _calc_pluck_rate
+from cfuncs import _calc_pluck_rate_tools
 
 _DT_MAX = 1.0e-2
 _ONE_SIXTH = 1.0 / 6.0
@@ -566,7 +567,8 @@ class ExtendedGravelBedrockEroder(Component):
         tau_star_c_median=0.045,
         alpha=0.68,
         tau_c_bedrock=10,
-        d_min = 0.1
+        d_min = 0.1,
+        plucking_by_tools_flag=1
     ):
 
         super().__init__(grid)
@@ -591,7 +593,7 @@ class ExtendedGravelBedrockEroder(Component):
 
         self._tau_star_c = self._create_2D_array_for_input_var(0, "tau_star_c")
         self._tau_c = self._create_2D_array_for_input_var(0, "tau_c")
-
+        
         # Recognize whether the component deals with lithologies or grain sizes
         self._get_classes_identity()
 
@@ -617,7 +619,7 @@ class ExtendedGravelBedrockEroder(Component):
         self._tau_star_c_median = tau_star_c_median
         self._alpha = alpha
         self._epsilon = epsilon
-        self._tau_c_bedrock = tau_c_bedrock
+        self._plucking_by_tools_flag = plucking_by_tools_flag
         # Pointers to field
         self._elev = grid.at_node["topographic__elevation"]
         self._sed = grid.at_node["soil__depth"]
@@ -646,36 +648,19 @@ class ExtendedGravelBedrockEroder(Component):
         self._channel_width = np.zeros_like(self.grid.nodes.flatten()).astype(float)
         self._plucking_coef = np.zeros_like(self.grid.nodes.flatten()).astype(float)
         self._tau = np.zeros_like(self.grid.nodes.flatten()).astype(float)
-
-        if isinstance(plucking_coefficient, float) or isinstance(
-            plucking_coefficient, int
-        ):
-            self._plucking_coef[:] = plucking_coefficient
-        elif isinstance(plucking_coefficient, np.ndarray) or isinstance(
-            plucking_coefficient, list
-        ):
-            try:
-                self._plucking_coef[:] = plucking_coefficient
-            except ValueError:
-                print("Plucking coefficient array does not match the number of nodes")
-        else:
-            print("Plucking coefficient format is not valid")
         self._br_abr_coef = np.zeros_like(self.grid.nodes.flatten(), dtype=float)
-        if isinstance(bedrock_abrasion_coefficient, float) or isinstance(
-            bedrock_abrasion_coefficient, int
-        ):
-            self._br_abr_coef[:] = plucking_coefficient
-        elif isinstance(bedrock_abrasion_coefficient, np.ndarray) or isinstance(
-            bedrock_abrasion_coefficient, list
-        ):
-            try:
-                self._br_abr_coef[:] = bedrock_abrasion_coefficient
-            except ValueError:
-                print(
-                    "Bedrock abrasion coefficient array does not match the number of nodes"
-                )
+
+        self._plucking_coef[:] = self._create_1D_array_for_input_var(plucking_coefficient, 'plucking_coefficient')
+        self._br_abr_coef[:] = self._create_1D_array_for_input_var(bedrock_abrasion_coefficient, 'bedrock_abrasion_coefficient')
+
+        if self._plucking_by_tools_flag:
+            self._tau_c_bedrock = self._create_2D_array_for_input_var(tau_c_bedrock, "tau_c_bedrock_plucking")
+            self._excess_stress_dims = np.zeros((grid.number_of_nodes, self._n_classes))
+
         else:
-            print("Bedrock abrasion coefficient format is not valid")
+            self._tau_c_bedrock= self._create_1D_array_for_input_var(tau_c_bedrock, 'bedrock_abrasion_coefficient')
+            self._excess_stress_dims = np.zeros_like(self.grid.nodes.flatten()).astype(float)
+
         # 2D arrays in dimensions of n_nodes x n_classes
         self._thickness_by_class = np.zeros((grid.number_of_nodes, self._n_classes))
         self._sed_influxes = np.zeros((grid.number_of_nodes, self._n_classes))
@@ -685,7 +670,6 @@ class ExtendedGravelBedrockEroder(Component):
         self._dHdt_by_class = np.zeros((grid.number_of_nodes, self._n_classes))
         self._tau_star_c = np.zeros((grid.number_of_nodes, self._n_classes))
         self._excess_stress = np.zeros((grid.number_of_nodes, self._n_classes))
-        self._excess_stress_dims = np.zeros((grid.number_of_nodes, self._n_classes))
         self._get_sediment_thickness_by_class()
 
     def _create_2D_array_for_input_var(self, input_var, var_name):
@@ -754,6 +738,24 @@ class ExtendedGravelBedrockEroder(Component):
 
         return input_var_array
 
+
+    def _create_1D_array_for_input_var(self, input_var, var_name):
+        input_var_array = np.zeros_like(self._grid.nodes.flatten(),dtype=float)
+        try:
+            if isinstance(input_var, float) or isinstance(
+                input_var, int
+            ):
+                input_var_array[:] = input_var
+            elif isinstance(input_var, np.ndarray) or isinstance(
+                input_var, list
+            ):
+                try:
+                    input_var_array[:] = input_var
+                except ValueError:
+                    print(f"{var_name} array does not match the number of nodes")
+            return input_var_array
+        except:
+            print(f"{var_name} format is not valid")
     def _get_classes_identity(self):
         """""
         The following procedure will identify if the classes represent lithology or grain sizes.
@@ -962,9 +964,13 @@ class ExtendedGravelBedrockEroder(Component):
     def _calc_excess_stress_dims(self):
         """Calculate excess_stress dims
         """
-        self._calc_tau_c()
-        eff_tau_c = np.maximum(self._tau_c, self._tau_c_bedrock)
-        self._excess_stress_dims[:] = np.maximum(self._tau[:,np.newaxis] - eff_tau_c, 0.0)
+        if self._plucking_by_tools_flag:
+            self._calc_tau_c()
+            eff_tau_c = np.maximum(self._tau_c, self._tau_c_bedrock)
+            self._excess_stress_dims[:] = np.maximum(self._tau[:,np.newaxis] - eff_tau_c, 0.0)
+        else:
+            self._excess_stress_dims[:] = np.maximum(self._tau - self._tau_c_bedrock, 0.0)
+
 
     def _update_slopes(self):
         """Update self._slope.
@@ -1262,19 +1268,35 @@ class ExtendedGravelBedrockEroder(Component):
             classes_fractions = np.ones_like(self._excess_stress)
 
         self._calc_excess_stress_dims()
-        _calc_pluck_rate(
-            self._n_classes,
-            self.grid.number_of_core_nodes,
-            self._intermittency_factor,
-            self._flow_link_length_over_cell_area,
-            self._grid.core_nodes,
-            self._plucking_coef,
-            self._channel_width,
-            self._rock_exposure_fraction,
-            classes_fractions,
-            self._excess_stress_dims,
-            self._pluck_rate,
-        )
+
+        if self._plucking_by_tools_flag:
+            _calc_pluck_rate_tools(
+                self._n_classes,
+                self.grid.number_of_core_nodes,
+                self._intermittency_factor,
+                self._flow_link_length_over_cell_area,
+                self._grid.core_nodes,
+                self._plucking_coef,
+                self._channel_width,
+                self._rock_exposure_fraction,
+                classes_fractions,
+                self._excess_stress_dims,
+                self._pluck_rate,
+            )
+        else:
+            _calc_pluck_rate(
+                self._n_classes,
+                self.grid.number_of_core_nodes,
+                self._intermittency_factor,
+                self._flow_link_length_over_cell_area,
+                self._grid.core_nodes,
+                self._plucking_coef,
+                self._channel_width,
+                self._rock_exposure_fraction,
+                self._excess_stress_dims,
+                self._pluck_rate,
+            )
+
 
     def _get_classes_fractions(self):
 
