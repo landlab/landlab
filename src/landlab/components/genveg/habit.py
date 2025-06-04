@@ -61,7 +61,7 @@ class Habit:
         # add try statement here if empirical coeffs {} where we change to min-max
         allometry = {
             "min-max": Biomass(species_params),
-            "user_defined": Dimensional(species_params, empirical_coeffs),
+            "user_defined": Dimensional(species_params, species_params["morph_params"]["empirical_ceoffs"]),
             "default": Dimensional(species_params, empirical_coeffs),
         }
         return allometry[allometry_method]
