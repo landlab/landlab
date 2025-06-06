@@ -110,7 +110,7 @@ class GenVeg(Component, PlantGrowth):
                 plant_array = plant_array[plant_array["species"] == species]
                 species_dict = vegparams[species]
                 species_canopy_area = np.pi / 4 * plant_array["shoot_sys_width"] ** 2
-                species_basal_area = np.pi / 4 * plant_array["basal_width"] ** 2
+                species_basal_area = np.pi / 4 * plant_array["basal_dia"] ** 2
                 species_abg_area = np.sqrt(species_basal_area * species_canopy_area)
                 species_percent_cover = (
                     self.calculate_grid_vars(
@@ -197,7 +197,7 @@ class GenVeg(Component, PlantGrowth):
             # Check if point falls in cell
             for idx, plant in enumerate(cell_plants):
                 unoccupied_center = False
-                radius = plant["basal_width"] / 2
+                radius = plant["basal_dia"] / 2
                 while unoccupied_center is False:
                     x = rng.uniform(low=min_x + radius, high=max_x - radius, size=1)
                     y_lims = self.get_cell_boundary_points(corner_vertices, x)
@@ -388,7 +388,7 @@ class GenVeg(Component, PlantGrowth):
         abg_area = (
             np.pi
             / 4
-            * (np.sqrt(all_plants["shoot_sys_width"] * all_plants["basal_width"])) ** 2
+            * (np.sqrt(all_plants["shoot_sys_width"] * all_plants["basal_dia"])) ** 2
         )
         cell_biomass = self.calculate_grid_vars(
             all_plants["cell_index"], tot_bio_species

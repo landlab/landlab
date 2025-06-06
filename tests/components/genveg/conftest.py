@@ -105,24 +105,26 @@ def example_input_params():
             },
             "morph_params": {
                 "allometry_method": "min-max",
-                "basal_coeffs": {
-                    "a": -9999,
-                    "b": -9999,
-                },
                 "biomass_decay_rate": {
                     "dead_leaf": 0.07,
                     "dead_reproductive": 0.07,
                     "dead_root": 0.07,
                     "dead_stem": 0.07,
                 },
-                "canopy_coeffs": {
-                    "a": -9999,
-                    "b": -9999,
-                    "c": -9999,
-                },
-                "height_coeffs": {
-                    "a": -9999,
-                    "b": -9999,
+                "empirical_coeffs": {
+                    "basal_dia_coeffs": {
+                        "a": -9999,
+                        "b": -9999,
+                    },
+                    "canopy_area_coeffs": {
+                        "a": -9999,
+                        "b": -9999,
+                        "c": -9999,
+                    },
+                    "height_coeffs": {
+                        "a": -9999,
+                        "b": -9999,
+                    },
                 },
                 "lai_cr": 2,
                 "height": {
@@ -144,7 +146,7 @@ def example_input_params():
                 "basal_dia": {
                     "max": np.array([0.1]),
                     "mean": np.array([0.07]),
-                    "min": np.array([0.02]),
+                    "min": np.array([0.005]),
                 },
                 "root_depth": {
                     "max": np.array([1.45]),
@@ -318,7 +320,7 @@ def example_plant_array(set_random_seed):
         ("dead_stem_age", float),
         ("dead_reproductive_age", float),
         ("shoot_sys_width", float),
-        ("basal_width", float),
+        ("basal_dia", float),
         ("root_sys_width", float),
         ("shoot_sys_height", float),
         ("root_sys_depth", float),
@@ -387,7 +389,7 @@ def example_plant_array(set_random_seed):
     plants["dead_stem_age"] = np.array([1315.902291, 1453.913069, 688.1424854, 329.2440673, 1362.62031, 457.1701171, 1377.041709, 1364.471028])
     plants["dead_reproductive_age"] = np.array([507.8777074, 1121.713079, 204.4386012, 1073.25249, 660.3439315, 426.4383309, 1261.53064, 1085.549562])
     plants["shoot_sys_width"] = rng.uniform(low=0.1, high=3, size=plants.size)
-    plants["basal_width"] = rng.uniform(low=0.05, high=1, size=plants.size)
+    plants["basal_dia"] = rng.uniform(low=0.05, high=1, size=plants.size)
     plants["root_sys_width"] = rng.uniform(low=0.1, high=1, size=plants.size)
     plants["shoot_sys_height"] = rng.uniform(low=0.2, high=4, size=plants.size)
     plants["root_sys_depth"] = rng.uniform(low=0.0, high=2, size=plants.size)

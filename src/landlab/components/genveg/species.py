@@ -155,14 +155,14 @@ class Species:
                 "min",
             ]:
                 UnitTestChecks().is_negative_present(morph_params[m_params][val], val)
-        species_params["morph_params"]["crown_area"] = {}
-        species_params["morph_params"]["crown_area"]["max"] = self.calc_area_of_circle(
+        species_params["morph_params"]["canopy_area"] = {}
+        species_params["morph_params"]["canopy_area"]["max"] = self.calc_area_of_circle(
             diameter=morph_params["shoot_sys_width"]["max"]
         )
-        species_params["morph_params"]["crown_area"]["mean"] = self.calc_area_of_circle(
+        species_params["morph_params"]["canopy_area"]["mean"] = self.calc_area_of_circle(
             diameter=morph_params["shoot_sys_width"]["mean"]
         )
-        species_params["morph_params"]["crown_area"]["min"] = self.calc_area_of_circle(
+        species_params["morph_params"]["canopy_area"]["min"] = self.calc_area_of_circle(
             diameter=morph_params["shoot_sys_width"]["min"]
         )
         species_params["morph_params"]["root_area"] = {}
@@ -180,7 +180,7 @@ class Species:
         # check for negative values
         UnitTestChecks().is_negative_present(morph_params["height"]["max"], "max")
         UnitTestChecks().is_negative_present(
-            species_params["morph_params"]["crown_area"]["max"], "max_crown_area"
+            species_params["morph_params"]["canopy_area"]["max"], "max_canopy_area"
         )
 
         # ratio calculations
@@ -197,7 +197,7 @@ class Species:
             ]:
                 UnitTestChecks().is_zero(morph_params[denominator][val], val)
         species_params["morph_params"]["area_per_stem"] = self.calc_param_ratio(
-            morph_params["crown_area"]["max"], morph_params["n_stems"]["max"]
+            morph_params["canopy_area"]["max"], morph_params["n_stems"]["max"]
         )
 
         sum_vars = [

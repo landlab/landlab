@@ -232,7 +232,7 @@ class PlantGrowth(Species):
             ("dead_stem_age", float),
             ("dead_reproductive_age", float),
             ("shoot_sys_width", float),
-            ("basal_width", float),
+            ("basal_dia", float),
             ("root_sys_width", float),
             ("shoot_sys_height", float),
             ("root_sys_depth", float),
@@ -616,17 +616,17 @@ class PlantGrowth(Species):
                         plant_cover * self._grid.area_of_cell[cell_index] * 0.907
                     )
                     plant_shoot_widths = []
-                    plant_basal_widths = []
+                    plant_basal_dias = []
                     while cover_area > (
                         1.2 * self.species_morph_params["min_canopy_area"]
                     ):
-                        plant_basal_width = rng.uniform(
+                        plant_basal_dia = rng.uniform(
                             low=self.species_morph_params["min_basal_dia"],
                             high=self.species_morph_params["max_basal_dia"],
                             size=1,
                         )
                         plant_canopy_area = self.habit._calc_canopy_area(
-                            plant_basal_width
+                            plant_basal_dia
                         )
                         plant_shoot_width = (
                             self.habit._calc_shoot_width_from_canopy_area(
@@ -636,10 +636,10 @@ class PlantGrowth(Species):
                         cover_area -= (
                             np.pi
                             / 4
-                            * np.sqrt(plant_shoot_width * plant_basal_width) ** 2
+                            * np.sqrt(plant_shoot_width * plant_basal_dia) ** 2
                         )
                         if cover_area > 0:
-                            plant_basal_widths.append(plant_basal_width)
+                            plant_basal_dias.append(plant_basal_dia)
                             plant_shoot_widths.append(plant_shoot_width)
                         else:
                             breakpoint
@@ -664,7 +664,7 @@ class PlantGrowth(Species):
                                 0.0,
                                 0.0,
                                 new_plant_width,
-                                plant_basal_widths[index],
+                                plant_basal_dias[index],
                                 0.0,
                                 0.0,
                                 0.0,
