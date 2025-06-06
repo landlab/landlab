@@ -68,7 +68,7 @@ def test__calc_abg_dims(example_input_params):
     assert_allclose(shoot_sys_width, pred_ssw, rtol=0.0001)
 
 
-def test___calc_abg_biomass_from_dim(example_input_params):
+def test__calc_abg_biomass_from_dim(example_input_params):
     b = create_biomass_object(example_input_params)
     basal_dia = np.array([0.005, 0.035, 0.12])
     shoot_sys_width = np.array([0.0640, 0.2, 0.48])

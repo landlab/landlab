@@ -43,7 +43,7 @@ class Habit:
         )
         return volume
 
-    def _calc_root_sys_width(self, shoot_sys_width, basal_width, shoot_sys_height=1):
+    def calc_root_sys_width(self, shoot_sys_width, basal_width, shoot_sys_height=1):
         volume = self._calc_canopy_volume(shoot_sys_width, basal_width, shoot_sys_height)
         root_sys_width = 0.08 + 0.24 * volume
         root_sys_width[root_sys_width > self.morph_params["root_sys_width"]["max"]] = (
@@ -83,7 +83,7 @@ class Habit:
         }
         return duration[duration_val]
 
-    def _calc_abg_dims_from_biomass(self, abg_biomass):
+    def calc_abg_dims_from_biomass(self, abg_biomass):
         # These dimensions are empirically derived allometric relationships.
         basal_dia_cm = height = canopy_area = np.ones_like(abg_biomass)
         filter = np.nonzero(abg_biomass > self.grow_params["abg_biomass"]["min"])
@@ -147,7 +147,7 @@ class Forbherb(Habit):
         allometry = self._select_allometry_class(params, empirical_coeffs)
         super().__init__(params, allometry, dt, green_parts)
 
-    def _calc_abg_dims_from_biomass(self, abg_biomass):
+    def calc_abg_dims_from_biomass(self, abg_biomass):
         # These dimensions are empirically derived allometric relationships for grasses.
         basal_area_cm2 = height = canopy_area = np.zeros_like(
             abg_biomass
@@ -210,7 +210,7 @@ class Graminoid(Habit):
 
         super().__init__(params, allometry, dt, green_parts)
 
-    def _calc_abg_dims_from_biomass(self, abg_biomass):
+    def calc_abg_dims_from_biomass(self, abg_biomass):
         # These dimensions are empirically derived allometric relationships for grasses.
         basal_dia_cm = height = canopy_area = np.zeros_like(
             abg_biomass
@@ -218,7 +218,7 @@ class Graminoid(Habit):
         filter = np.nonzero(abg_biomass > self.grow_params["abg_biomass"]["min"])
         basal_dia_cm[filter] = self._apply2_allometry_eq_for_xs(abg_biomass[filter], "basal_coeffs")
         basal_width = basal_dia_cm / 100
-        height[filter] = self._apply2_allometry_eq_for_ys(basal_dia_cm[filter], "height_coeffs")
+        height[filter] = self.allometry._apply2_allometry_eq_for_ys(basal_dia_cm[filter], "height_coeffs")
         canopy_area[filter] = self._apply3_allometry_eq_for_zs(basal_dia_cm[filter], height[filter], "canopy_area_coeffs")
         shoot_sys_width = self._calc_diameter_from_area(canopy_area)
         return basal_width, height, shoot_sys_width
@@ -251,7 +251,7 @@ class Shrub(Habit):
         # - shoot system width is a function of aboveground biomass and basal diameter in m
         # - height is a function of aboveground biomass, basal diameter, amd canopy diameter in m
 
-    def _calc_abg_dims_from_biomass(self, abg_biomass):
+    def calc_abg_dims_from_biomass(self, abg_biomass):
         # These dimensions are empirically derived allometric relationships for grasses.
         basal_dia_cm = height = shoot_sys_width = np.zeros_like(
             abg_biomass
