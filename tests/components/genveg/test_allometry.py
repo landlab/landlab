@@ -2,9 +2,8 @@ import numpy as np
 import pytest
 from numpy.testing import assert_allclose
 from numpy.testing import assert_array_almost_equal
-from numpy.testing import assert_equal
 
-from landlab.components.genveg.allometry import Biomass, Dimensional, Multi_Dimensional
+from landlab.components.genveg.allometry import Biomass, Dimensional
 from landlab.components.genveg.species import Species
 
 dt = np.timedelta64(1, 'D')
@@ -25,8 +24,9 @@ def create_biomass_object(example_input_params):
     return Biomass(params)
 
 
-def create_default_biomass_object(example_input_params):
+def create_default_dimensional_object(example_input_params):
     params = example_input_params["BTS"]
+    params["morph_params"]["allometry_method"] = "default"
     params["grow_params"]["abg_biomass"] = {}
     params["morph_params"]["canopy_area"] = {}
     params["grow_params"]["abg_biomass"]["min"] = params["grow_params"]["plant_part_min"]["leaf"] + params["grow_params"]["plant_part_min"]["stem"]
@@ -38,7 +38,7 @@ def create_default_biomass_object(example_input_params):
         "height_coeffs": {"a": np.log(0.232995), "b": 0.619077},
         "canopy_area_coeffs": {"a": np.log(0.23702483 * 0.2329925**0.9459644), "b": 0.72682 + (0.619077 * 0.9459644)},
     }
-    return Biomass(params, empirical_coeffs)
+    return Dimensional(params, empirical_coeffs)
 
 
 def test__calc2_allometry_coeffs(example_input_params):
@@ -79,14 +79,12 @@ def test_allometric_coeffs_are_user_defined(example_input_params):
 
 
 def test_allometric_coeffs_are_default(example_input_params):
-    example_input_params["BTS"]["morph_params"]["allometry_method"] = "default"
-    b = create_default_biomass_object(example_input_params)
+    b = create_default_dimensional_object(example_input_params)
     empirical_coeffs = {
         "basal_dia_coeffs": {"a": 0.4111, "b": 0.4498},
         "height_coeffs": {"a": np.log(0.232995), "b": 0.619077},
         "canopy_area_coeffs": {"a": np.log(0.23702483 * 0.2329925**0.9459644), "b": 0.72682 + (0.619077 * 0.9459644)},
     }
-    print(b.morph_params["empirical_coeffs"])
     for item in empirical_coeffs:
         assert b.morph_params["empirical_coeffs"][item] == pytest.approx(empirical_coeffs[item])
 
@@ -104,6 +102,7 @@ def test_allometric_coeffs_calculated(example_input_params):
 
 
 def test__calc_abg_dims(example_input_params):
+    # Biomass relationships
     b = create_biomass_object(example_input_params)
     abg_biomass = np.array([2.1, 0.5, 15.2])
     basal_diameter = np.array([0.041761, 0.018309, 0.130217])
@@ -113,6 +112,37 @@ def test__calc_abg_dims(example_input_params):
     assert_allclose(basal_diameter, pred_bd, rtol=0.001)
     assert_allclose(height, pred_h, rtol=0.001)
     assert_allclose(shoot_sys_width, pred_ssw, rtol=0.001)
+    # Dimensional relationships
+
+    d = create_default_dimensional_object(example_input_params)
+    basal_diameter = np.array([])
+    height = np.array([])
+    shoot_sys_width = np.array([])
+    pred_bd, pred_ssw, pred_h = d._calc_abg_dims(abg_biomass, cm=False)
+
+
+def test__calc_shoot_width_from_basal_dia(example_input_params):
+    d = create_default_dimensional_object(example_input_params)
+    basal_dia = np.array([0.009, 0.036, 0.05])
+    shoot_width = np.array([0.257388353, 0.639255015, 0.79304121])
+    pred_shoot_width = d._calc_shoot_width_from_basal_dia(basal_dia, cm=True)
+    assert_allclose(pred_shoot_width, shoot_width, rtol=0.001)
+
+
+def test__calc_height_from_basal_dia(example_input_params):
+    d = create_default_dimensional_object(example_input_params)
+    basal_dia = np.array([0.009, 0.036, 0.05])
+    height = np.array([0.218283, 0.514921, 0.631049])
+    pred_height = d._calc_height_from_basal_dia(basal_dia, cm=True)
+    assert_allclose(pred_height, height, rtol=0.001)
+
+
+def test__calc_basal_dia_from_shoot_width(example_input_params):
+    d = create_default_dimensional_object(example_input_params)
+    basal_dia = np.array([0.009, 0.036, 0.05])
+    shoot_width = np.array([0.257388353, 0.639255015, 0.79304121])
+    pred_basal_dia = d._calc_basal_dia_from_shoot_width(shoot_width, cm=True)
+    assert_allclose(pred_basal_dia, basal_dia, rtol=0.001)
 
 
 def test__calc_abg_biomass_from_dim(example_input_params):
