@@ -739,11 +739,11 @@ class Species:
         abg_biomass = self.sum_plant_parts(plants, parts="aboveground")
         dead_abg_biomass = self.sum_plant_parts(plants, parts="dead_aboveground")
         total_abg_biomass = abg_biomass + dead_abg_biomass
-        plants["basal_width"], plants["shoot_sys_width"], plants["shoot_sys_height"] = (
+        plants["basal_dia"], plants["shoot_sys_width"], plants["shoot_sys_height"] = (
             self.habit.calc_abg_dims_from_biomass(total_abg_biomass)
         )
         plants["root_sys_width"] = self.habit.calc_root_sys_width(
-            plants["shoot_sys_width"], plants["basal_width"], plants["shoot_sys_height"]
+            plants["shoot_sys_width"], plants["basal_dia"], plants["shoot_sys_height"]
         )
         dead_leaf_area = plants["total_leaf_area"] - plants["live_leaf_area"]
         dead_leaf_area[dead_leaf_area < 0] = 0.0

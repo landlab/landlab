@@ -87,10 +87,10 @@ class Habit:
         # These dimensions are empirically derived allometric relationships.
         basal_dia_cm = height = canopy_area = np.ones_like(abg_biomass)
         filter = np.nonzero(abg_biomass > self.grow_params["abg_biomass"]["min"])
-        basal_dia_cm[filter] = self.allometry._apply2_allometry_eq_for_xs(abg_biomass[filter], "basal_coeffs")
+        basal_dia_cm[filter] = self.allometry._apply2_allometry_eq_for_xs(abg_biomass[filter], "basal_dia_coeffs")
         basal_width = basal_dia_cm / 100
         height[filter] = self.allometry._apply2_allometry_eq_for_xs(abg_biomass[filter], "height_coeffs")
-        canopy_area[filter] = self.allometry._apply2_allometry_eq_for_xs(abg_biomass[filter], "canopy_coeffs")
+        canopy_area[filter] = self.allometry._apply2_allometry_eq_for_xs(abg_biomass[filter], "canopy_area_coeffs")
         shoot_sys_width = self._calc_diameter_from_area(canopy_area)
         return basal_width, shoot_sys_width, height
 
@@ -212,16 +212,8 @@ class Graminoid(Habit):
 
     def calc_abg_dims_from_biomass(self, abg_biomass):
         # These dimensions are empirically derived allometric relationships for grasses.
-        basal_dia_cm = height = canopy_area = np.zeros_like(
-            abg_biomass
-        )
-        filter = np.nonzero(abg_biomass > self.grow_params["abg_biomass"]["min"])
-        basal_dia_cm[filter] = self._apply2_allometry_eq_for_xs(abg_biomass[filter], "basal_coeffs")
-        basal_width = basal_dia_cm / 100
-        height[filter] = self.allometry._apply2_allometry_eq_for_ys(basal_dia_cm[filter], "height_coeffs")
-        canopy_area[filter] = self._apply3_allometry_eq_for_zs(basal_dia_cm[filter], height[filter], "canopy_area_coeffs")
-        shoot_sys_width = self._calc_diameter_from_area(canopy_area)
-        return basal_width, height, shoot_sys_width
+        basal_dia, shoot_width, height = self.allometry._calc_abg_dims(abg_biomass)
+        return basal_dia, shoot_width, height
 
     def estimate_abg_biomass_from_cover(self, plants):
         # Edit to derive back from percent cover assuming cover for grasses is more reflective of basal diameter than canopy area
@@ -267,10 +259,12 @@ class Shrub(Habit):
 class Tree(Habit):
     def __init__(self, params, dt, empirical_coeffs={}):
         green_parts = ("leaf")
-        super().__init__(params, dt, green_parts)
+        allometry = self._select_allometry_class(params, empirical_coeffs)
+        super().__init__(params, allometry, dt, green_parts)
 
 
 class Vine(Habit):
     def __init__(self, params, dt, empirical_coeffs={}):
         green_parts = ("leaf")
-        super().__init__(params, dt, green_parts)
+        allometry = self._select_allometry_class(params, empirical_coeffs)
+        super().__init__(params, allometry, dt, green_parts)

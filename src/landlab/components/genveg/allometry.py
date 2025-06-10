@@ -5,12 +5,12 @@ class Biomass:
     def __init__(self, params, empirical_coeffs={}):
         self.abg_biomass = params["grow_params"]["abg_biomass"]
         params["morph_params"]["empirical_coeffs"] = empirical_coeffs
-        params = self._set_allometric_coeffs(params)
+        params["morph_params"]["empirical_coeffs"] = self._set_allometric_coeffs(params)
         self.morph_params = params["morph_params"]
 
     def _set_allometric_coeffs(self, params):
         if params["morph_params"]["allometry_method"] != "min-max":
-            return params
+            return params["morph_params"]["empirical_coeffs"]
         else:
             params["morph_params"]["empirical_coeffs"] = {}
             xs_coeffs_list = [
@@ -22,11 +22,13 @@ class Biomass:
                 params["morph_params"]["empirical_coeffs"][x[1]] = {}
                 x_min = params["morph_params"][x[0]]["min"]
                 x_max = params["morph_params"][x[0]]["max"]
-                a, b = self._calc2_allometry_coeffs(x_min, x_max, self.abg_biomass["min"], self.abg_biomass["max"])
+                a, b = self._calc2_allometry_coeffs(
+                    x_min, x_max, self.abg_biomass["min"], self.abg_biomass["max"]
+                )
                 params["morph_params"]["empirical_coeffs"][x[1]]["a"] = a
                 params["morph_params"]["empirical_coeffs"][x[1]]["b"] = b
-            return params
-        
+            return params["morph_params"]["empirical_coeffs"]
+
     def _calc2_allometry_coeffs(self, x_min, x_max, y_min, y_max):
         """
         Calculates coefficients for natural log relationships
@@ -56,15 +58,27 @@ class Biomass:
         ln_ys = a + (b * ln_xs)
         return np.exp(ln_ys)
 
-    def _calc_abg_dims(self, abg_biomass):
+    def _calc_abg_dims(self, abg_biomass, cm=False):
         # These dimensions are empirically derived allometric relationships.
         filter = np.nonzero(abg_biomass > self.abg_biomass["min"])
-        basal_dia_cm = height = canopy_area = np.zeros_like(abg_biomass)
-        basal_dia_cm[filter] = self._apply2_allometry_eq_for_xs(abg_biomass[filter], "basal_dia_coeffs")
-        basal_dia = basal_dia_cm / 100
-        height[filter] = self._apply2_allometry_eq_for_xs(abg_biomass[filter], "height_coeffs")
-        canopy_area[filter] = self._apply2_allometry_eq_for_xs(abg_biomass[filter], "canopy_area_coeffs")
+        basal_dia = np.zeros_like(abg_biomass)
+        height = np.zeros_like(abg_biomass)
+        canopy_area = np.zeros_like(abg_biomass)
+        basal_dia[filter] = self._apply2_allometry_eq_for_xs(
+            abg_biomass[filter], "basal_dia_coeffs"
+        )
+        print(basal_dia)
+        if cm is True:
+            basal_dia /= 100
+        height[filter] = self._apply2_allometry_eq_for_xs(
+            abg_biomass[filter], "height_coeffs"
+        )
+        print(basal_dia)
+        canopy_area[filter] = self._apply2_allometry_eq_for_xs(
+            abg_biomass[filter], "canopy_area_coeffs"
+        )
         shoot_width = np.sqrt(4 * canopy_area / np.pi)
+        print(basal_dia)
         return (basal_dia, shoot_width, height)
 
     def _calc_abg_biomass_from_dim(self, dim, var_name, cm=False):
@@ -72,7 +86,9 @@ class Biomass:
         filter = np.nonzero(dim > self.morph_params[var_name]["min"])
         if cm is True:
             dim *= 100
-        abg_biomass[filter] = self._apply2_allometry_eq_for_ys(dim[filter], var_name + "_coeffs")
+        abg_biomass[filter] = self._apply2_allometry_eq_for_ys(
+            dim[filter], var_name + "_coeffs"
+        )
         return abg_biomass
 
 
@@ -92,7 +108,9 @@ class Dimensional(Biomass):
         basal_dia = shoot_sys_width = height = np.zeros_like(abg_biomass)
         filter = np.nonzero(abg_biomass > self.abg_biomass["min"])
         basal_dia[filter] = self._apply2_allometry_eq_for_xs(abg_biomass[filter])
-        shoot_sys_width[filter] = self._calc_shoot_width_from_basal_dia(basal_dia[filter], cm=True)
+        shoot_sys_width[filter] = self._calc_shoot_width_from_basal_dia(
+            basal_dia[filter], cm=True
+        )
         height[filter] = self._calc_height_from_basal_dia(basal_dia[filter], cm=True)
         return (basal_dia, shoot_sys_width, height)
 
@@ -101,7 +119,9 @@ class Dimensional(Biomass):
         filter = np.nonzero(basal_dia > self.morph_params["basal_dia"]["min"])
         if cm is True:
             basal_dia *= 100
-        canopy_area[filter] = self._apply2_allometry_eq_for_ys(basal_dia[filter], "canopy_area_coeffs")
+        canopy_area[filter] = self._apply2_allometry_eq_for_ys(
+            basal_dia[filter], "canopy_area_coeffs"
+        )
         shoot_width = np.sqrt(4 * canopy_area / np.pi)
         return shoot_width
 
@@ -110,14 +130,18 @@ class Dimensional(Biomass):
         filter = np.nonzero(basal_dia > self.morph_params["basal_dia"]["min"])
         if cm is True:
             basal_dia *= 100
-        height[filter] = self._apply2_allometry_eq_for_ys(basal_dia[filter], "height_coeffs")
+        height[filter] = self._apply2_allometry_eq_for_ys(
+            basal_dia[filter], "height_coeffs"
+        )
         return height
 
     def _calc_basal_dia_from_shoot_width(self, shoot_width, cm=False):
         basal_dia = np.zeros_like(shoot_width)
         filter = np.nonzero(shoot_width > self.morph_params["shoot_sys_width"]["min"])
         canopy_area = 0.25 * np.pi * shoot_width**2
-        basal_dia[filter] = self._apply2_allometry_eq_for_xs(canopy_area[filter], "canopy_area_coeffs")
+        basal_dia[filter] = self._apply2_allometry_eq_for_xs(
+            canopy_area[filter], "canopy_area_coeffs"
+        )
         if cm is True:
             basal_dia /= 100
         return basal_dia
