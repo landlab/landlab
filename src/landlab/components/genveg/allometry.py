@@ -2,17 +2,17 @@ import numpy as np
 
 
 class Biomass:
-    def __init__(self, params, empirical_coeffs={}):
+    def __init__(self, params, empirical_coeffs={}, cm=False):
         self.abg_biomass = params["grow_params"]["abg_biomass"]
         params["morph_params"]["empirical_coeffs"] = empirical_coeffs
         params["morph_params"]["empirical_coeffs"] = self._set_allometric_coeffs(params)
+        self.cm = cm
         self.morph_params = params["morph_params"]
 
     def _set_allometric_coeffs(self, params):
         if params["morph_params"]["allometry_method"] != "min-max":
             return params["morph_params"]["empirical_coeffs"]
         else:
-            params["morph_params"]["empirical_coeffs"] = {}
             xs_coeffs_list = [
                 ["basal_dia", "basal_dia_coeffs"],
                 ["height", "height_coeffs"],
@@ -90,7 +90,7 @@ class Biomass:
 
 
 class Dimensional(Biomass):
-    def __init__(self, params, empirical_coeffs={}):
+    def __init__(self, params, empirical_coeffs, cm=True):
         # Formulation from LPJ-GUESS and BIOM-E are power formulations
         # This generally follows meta-analysis showing biomass is a function of abg volume
         # canopy area = a1 * basal diameter^b1 which is approx equiv to
@@ -99,7 +99,7 @@ class Dimensional(Biomass):
         # log(height) = a2 + b2 log(basal diameter)
         # cm paramater indicates allometric relationship assumes basal diameter is in cm
         # literature typically uses cm for basal diameter or diameter breast height
-        super().__init__(params, empirical_coeffs)
+        super().__init__(params, empirical_coeffs, cm)
 
     def calc_abg_dims(self, abg_biomass, cm=True):
         basal_dia = np.zeros_like(abg_biomass)

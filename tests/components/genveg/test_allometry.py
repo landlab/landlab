@@ -216,45 +216,4 @@ def test_apply3_allometry_eq_for_zs(example_input_params):
     abg = np.array([2.765432, 0.672101, 21.280764])
     assert_array_almost_equal(pred_abg, abg, decimal=6)
 
-
-def test__calc_basal_dia_from_shoot_width(example_input_params):
-    h = Dimensional(params=example_input_params["BTS"])
-    # zero array returns zero array
-    assert_array_almost_equal(
-        h._calc_canopy_area_from_shoot_width(shoot_sys_width=np.array([0, 0, 0])),
-        np.array([0, 0, 0]),
-    )
-    # single input returns correct input
-    assert_equal(
-        h._calc_canopy_area_from_shoot_width(shoot_sys_width=0.325), 0.08295768100885548
-    )
-    # an array of values
-    assert_allclose(
-        h._calc_canopy_area_from_shoot_width(
-            shoot_sys_width=np.array([0, 0.0004, 0.678, 1.5, 3])
-        ),
-        np.array(
-            [
-                0.00000000e00,
-                1.25663706e-07,
-                3.61034969e-01,
-                1.76714587e00,
-                7.06858347e00,
-            ]
-        ),
-    )
-def test__calc_diameter_from_area(example_input_params):
-    h = Multi_Dimensional(params=example_input_params["BTS"], green_parts=("leaf", "stem"))
-    canopy_area = np.array([0.1, 1.28, 3.7])
-    shoot_width = np.array([0.35682, 1.27662, 2.17048])
-    pred_shoot_width = h._calc_diameter_from_area(canopy_area)
-    assert_array_almost_equal(shoot_width, pred_shoot_width, decimal=5)    
-
-
-def test_calc_crown_area_from_shoot_width_raises_error(example_input_params):
-    create_species_object(example_input_params)
-    h = Habit(params=example_input_params["BTS"], green_parts=("leaf", "stem"))
-    with pytest.raises(ValueError):
-        h._calc_canopy_area_from_shoot_width(-1.5)
-        h._calc_canopy_area_from_shoot_width(np.array([0, 0.004, -0.678, 1.5, 3]))
 """

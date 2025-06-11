@@ -23,12 +23,12 @@ def create_habit_object(example_input_params):
     params["grow_params"]["abg_biomass"]["max"] = params["grow_params"]["plant_part_max"]["leaf"] + params["grow_params"]["plant_part_max"]["stem"]
     params["morph_params"]["canopy_area"]["min"] = params["morph_params"]["shoot_sys_width"]["min"]**2 * 0.25 * np.pi
     params["morph_params"]["canopy_area"]["max"] = params["morph_params"]["shoot_sys_width"]["max"]**2 * 0.25 * np.pi
-    allometry = Biomass(params)
+    allometry = Biomass(params, empirical_coeffs={"root_dia_coeffs": {"a": 0.08, "b": 0.24}})
     return Habit(params, allometry, dt=1, green_parts=("leaf", "stem"))
 
 
 def test_calc_canopy_area_from_shoot_width(example_input_params):
-    h = Habit(params=example_input_params["BTS"], green_parts=("leaf", "stem"))
+    h = create_habit_object(example_input_params)
     # zero array returns zero array
     assert_array_almost_equal(
         h._calc_canopy_area_from_shoot_width(shoot_sys_width=np.array([0, 0, 0])),
@@ -62,13 +62,38 @@ def test__calc_diameter_from_area(example_input_params):
     pred_shoot_width = h._calc_diameter_from_area(canopy_area)
     assert_array_almost_equal(shoot_width, pred_shoot_width, decimal=5)
 
+
+def test__calc_canopy_volume(example_input_params):
+    h = create_habit_object(example_input_params)
+    shoot_width = np.array([0.08, 0.35, 0.72])
+    height = np.array([0.1, 0.5, 1.7])
+    basal_dia = np.array([0.005, 0.02, 0.1])
+    volume = np.array([0.00017868, 0.017004, 0.2672])
+    pred_vol = h._calc_canopy_volume(shoot_width, basal_dia, height)
+    assert_allclose(pred_vol, volume, rtol=0.0001)
+
+
+def test_calc_root_sys_width(example_input_params):
+    h = create_habit_object(example_input_params)
+    print(h.morph_params["empirical_coeffs"])
+    print(h.allometry.morph_params["empirical_coeffs"])
+    shoot_width = np.array([0.08, 0.35, 0.72])
+    height = np.array([0.1, 0.5, 1.7])
+    basal_dia = np.array([0.005, 0.02, 0.1])
+    root_width = np.array([0.080043, 0.084081, 0.144128])
+    pred_root_width = h.calc_root_sys_width(shoot_width, basal_dia, height)
+    assert_allclose(pred_root_width, root_width, rtol=0.0001)
+
+
+def test_estimate_abg_biomass_from_cover(example_input_params, example_plant_array):
+    h = create_habit_object(example_input_params)
+    abg_biomass = example_plant_array["leaf"] + example_plant_array["stem"]
+    example_plant_array["basal_dia"], example_plant_array["shoot_sys_width"], example_plant_array["shoot_sys_height"] = h.calc_abg_dims_from_biomass(abg_biomass)
+    est_abg_biomass = h.estimate_abg_biomass_from_cover(example_plant_array)
+    assert_allclose(est_abg_biomass, abg_biomass, rtol=0.0001)
+
+
 """
-def test__calc_abg_dims_from_biomass(example_input_params):
-    h = Habit(params=example_input_params["BTS"], green_parts=("leaf", "stem"))
-    abg_biomass = np.array([2.1, 0.2, 15.2])
-    
-
-
 def test_calc_crown_area_from_shoot_width_raises_error(example_input_params):
     create_species_object(example_input_params)
     h = Habit(params=example_input_params["BTS"], green_parts=("leaf", "stem"))

@@ -125,6 +125,10 @@ def example_input_params():
                         "a": -9999,
                         "b": -9999,
                     },
+                    "root_dia_coeffs": {
+                        "a": -9999,
+                        "b": -9999,
+                    },
                 },
                 "lai_cr": 2,
                 "height": {
