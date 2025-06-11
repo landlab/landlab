@@ -58,7 +58,7 @@ class Biomass:
         ln_ys = a + (b * ln_xs)
         return np.exp(ln_ys)
 
-    def _calc_abg_dims(self, abg_biomass, cm=False):
+    def calc_abg_dims(self, abg_biomass, cm=False):
         # These dimensions are empirically derived allometric relationships.
         filter = np.nonzero(abg_biomass > self.abg_biomass["min"])
         basal_dia = np.zeros_like(abg_biomass)
@@ -78,7 +78,7 @@ class Biomass:
         shoot_width = np.sqrt(4 * canopy_area / np.pi)
         return (basal_dia, shoot_width, height)
 
-    def _calc_abg_biomass_from_dim(self, dim, var_name, cm=False):
+    def calc_abg_biomass_from_dim(self, dim, var_name, cm=False):
         abg_biomass = np.zeros_like(dim)
         filter = np.nonzero(dim > self.morph_params[var_name]["min"])
         if cm is True:
@@ -101,18 +101,18 @@ class Dimensional(Biomass):
         # literature typically uses cm for basal diameter or diameter breast height
         super().__init__(params, empirical_coeffs)
 
-    def _calc_abg_dims(self, abg_biomass, cm=True):
+    def calc_abg_dims(self, abg_biomass, cm=True):
         basal_dia = np.zeros_like(abg_biomass)
         shoot_sys_width = np.zeros_like(abg_biomass)
         height = np.zeros_like(abg_biomass)
         filter = np.nonzero(abg_biomass > self.abg_biomass["min"])
         basal_dia[filter] = self._apply2_allometry_eq_for_xs(abg_biomass[filter], "basal_dia_coeffs")
-        shoot_sys_width[filter] = self._calc_shoot_width_from_basal_dia(
-            basal_dia[filter], cm=True
-        )
-        height[filter] = self._calc_height_from_basal_dia(basal_dia[filter], cm=True)
         if cm is True:
             basal_dia /= 100
+        shoot_sys_width[filter] = self._calc_shoot_width_from_basal_dia(
+            basal_dia[filter], cm=cm
+        )
+        height[filter] = self._calc_height_from_basal_dia(basal_dia[filter], cm=cm)
         return (basal_dia, shoot_sys_width, height)
 
     def _calc_shoot_width_from_basal_dia(self, basal_dia, cm=False):

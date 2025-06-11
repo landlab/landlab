@@ -98,22 +98,10 @@ class Habit:
         plants = self.duration.emerge(plants)
         return plants
 
-    def _estimate_abg_biomass_from_cover(self, plants):
-        # redo this to back calculate percent cover and height to basal diameter and abg biomass
-        log_canopy_area = np.log(
-            0.25 * np.pi * (plants["shoot_sys_width"])**2,
-            out=np.zeros_like(plants["shoot_sys_width"], dtype=np.float64),
-            where=(plants["shoot_sys_width"] > 0.0),
-        )
-        log_abg_biomass = (
-            self.morph_params["canopy_area_coeffs"]["a"]
-            + self.morph_params["canopy_area_coeffs"]["b"] * log_canopy_area
-        )
-        est_abg_biomass = np.exp(
-            log_abg_biomass,
-            out=np.zeros_like(log_abg_biomass, dtype=np.float64),
-            where=(plants["basal_width"] > 0.0),
-        )
+    def estimate_abg_biomass_from_cover(self, plants):
+        # Edit to derive back from percent cover assuming cover for grasses is more reflective of basal diameter than canopy area
+        canopy_area = self._calc_canopy_area_from_shoot_width(plants["shoot_sys_width"])
+        est_abg_biomass = self.allometry.calc_abg_biomass_from_dim(canopy_area, "canopy_area")
         return est_abg_biomass
 
     def senesce(self, plants, ns_green_mass, persistent_mass):
@@ -169,7 +157,7 @@ class Graminoid(Habit):
         empirical_coeff_options={
             "perennial": {
                 "C3": {
-                    "basal_dia_coeffs": {"a": 0.4111, "b": 0.4498},
+                    "basal_dia_coeffs": {"a": 0.5093, "b": 0.47},
                     "height_coeffs": {"a": np.log(0.232995), "b": 0.619077},
                     "canopy_area_coeffs": {"a": np.log(0.23702483 * 0.2329925**0.9459644), "b": 0.72682 + (0.619077 * 0.9459644)},
                 },
@@ -181,7 +169,7 @@ class Graminoid(Habit):
             },
             "annual": {
                 "C3": {
-                    "basal_dia_coeffs": {"a": 0.5093, "b": 0.47},
+                    "basal_dia_coeffs": {"a": 0.4111, "b": 0.4498},
                     "height_coeffs": {"a": np.log(0.1476171), "b": 0.6995105},
                     "canopy_area_coeffs": {"a": np.log(0.12826361 * 0.1476171**0.7576721), "b": 0.7134629 + (0.6995105 * 0.7576721)},
                 },
@@ -200,11 +188,13 @@ class Graminoid(Habit):
         # - stem diameter and number of stems is a function of basal diameter
         # Default empirical parameters are directly or derived from Gao 2024
         dur_type = params["plant_factors"]["duration"].split("_")[0]
-        p_type = params["plant_factors"]["p_type"]
+        p_type = params["plant_factors"]["p_type"]0.
+        self.cm = True
         if params["morph_params"]["allometry_method"] == "default":
             empirical_coeffs = empirical_coeff_options[dur_type][p_type]
         elif params["morph_params"]["allometry_method"] == "min-max":
             empirical_coeffs = {}
+            self.cm = False
         allometry = self._select_allometry_class(params, empirical_coeffs)
         green_parts = ("leaf", "stem")
 
@@ -212,12 +202,12 @@ class Graminoid(Habit):
 
     def calc_abg_dims_from_biomass(self, abg_biomass):
         # These dimensions are empirically derived allometric relationships for grasses.
-        basal_dia, shoot_width, height = self.allometry._calc_abg_dims(abg_biomass)
+        basal_dia, shoot_width, height = self.allometry.calc_abg_dims(abg_biomass, cm=self.cm)
         return basal_dia, shoot_width, height
 
     def estimate_abg_biomass_from_cover(self, plants):
         # Edit to derive back from percent cover assuming cover for grasses is more reflective of basal diameter than canopy area
-        est_abg_biomass = self.allometry._calc_abg_biomass_from_dim(plants["basal_dia"], "basal_dia", cm=True)
+        est_abg_biomass = self.allometry.calc_abg_biomass_from_dim(plants["basal_dia"], "basal_dia", cm=True)
         return est_abg_biomass
 
 

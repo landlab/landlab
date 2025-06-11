@@ -26,7 +26,7 @@ def create_habit_object(example_input_params):
     allometry = Biomass(params)
     return Habit(params, allometry, dt=1, green_parts=("leaf", "stem"))
 
-"""
+
 def test_calc_canopy_area_from_shoot_width(example_input_params):
     h = Habit(params=example_input_params["BTS"], green_parts=("leaf", "stem"))
     # zero array returns zero array
@@ -53,7 +53,6 @@ def test_calc_canopy_area_from_shoot_width(example_input_params):
             ]
         ),
     )
-"""
 
 
 def test__calc_diameter_from_area(example_input_params):

@@ -34,7 +34,7 @@ def create_default_dimensional_object(example_input_params):
     params["morph_params"]["canopy_area"]["min"] = params["morph_params"]["shoot_sys_width"]["min"]**2 * 0.25 * np.pi
     params["morph_params"]["canopy_area"]["max"] = params["morph_params"]["shoot_sys_width"]["max"]**2 * 0.25 * np.pi
     empirical_coeffs = {
-        "basal_dia_coeffs": {"a": 0.4111, "b": 0.4498},
+        "basal_dia_coeffs": {"a": 0.5093, "b": 0.47},
         "height_coeffs": {"a": np.log(0.232995), "b": 0.619077},
         "canopy_area_coeffs": {"a": np.log(0.23702483 * 0.2329925**0.9459644), "b": 0.72682 + (0.619077 * 0.9459644)},
     }
@@ -74,14 +74,14 @@ def test_apply2_allometry_eq_for_ys(example_input_params):
 
 def test_allometric_coeffs_are_user_defined(example_input_params):
     example_input_params["BTS"]["morph_params"]["allometry_method"] = "user-defined"
-    b = create_biomass_object(example_input_params)    
+    b = create_biomass_object(example_input_params)
     assert b.morph_params["empirical_coeffs"] == example_input_params["BTS"]["morph_params"]["empirical_coeffs"]
 
 
 def test_allometric_coeffs_are_default(example_input_params):
     b = create_default_dimensional_object(example_input_params)
     empirical_coeffs = {
-        "basal_dia_coeffs": {"a": 0.4111, "b": 0.4498},
+        "basal_dia_coeffs": {"a": 0.5093, "b": 0.47},
         "height_coeffs": {"a": np.log(0.232995), "b": 0.619077},
         "canopy_area_coeffs": {"a": np.log(0.23702483 * 0.2329925**0.9459644), "b": 0.72682 + (0.619077 * 0.9459644)},
     }
@@ -101,24 +101,30 @@ def test_allometric_coeffs_calculated(example_input_params):
         assert b.morph_params["empirical_coeffs"][item] == pytest.approx(empirical_coeffs[item])
 
 
-def test__calc_abg_dims(example_input_params):
+def test_calc_abg_dims(example_input_params):
     # Biomass relationships
     b = create_biomass_object(example_input_params)
     abg_biomass = np.array([2.1, 0.5, 15.2])
     basal_diameter = np.array([0.041761, 0.018309, 0.130217])
     height = np.array([0.5572, 0.3432, 1.0873])
     shoot_sys_width = np.array([0.11132, 0.04365, 0.40486])
-    pred_bd, pred_ssw, pred_h = b._calc_abg_dims(abg_biomass, cm=False)
+    pred_bd, pred_ssw, pred_h = b.calc_abg_dims(abg_biomass, cm=False)
     assert_allclose(basal_diameter, pred_bd, rtol=0.001)
     assert_allclose(height, pred_h, rtol=0.001)
     assert_allclose(shoot_sys_width, pred_ssw, rtol=0.001)
     # Dimensional relationships
 
     d = create_default_dimensional_object(example_input_params)
-    basal_diameter = np.array([])
-    height = np.array([])
-    shoot_sys_width = np.array([])
-    pred_bd, pred_ssw, pred_h = d._calc_abg_dims(abg_biomass, cm=False)
+    print
+    print(d.morph_params["empirical_coeffs"])
+    basal_diameter = np.array([0.009, 0.036, 0.05])
+    height = np.array([0.218283, 0.514921, 0.631049])
+    shoot_sys_width = np.array([0.257388353, 0.639255015, 0.79304121])
+    abg_biomass = np.array([1.58372641, 3.03842384, 3.54570077])
+    pred_bd, pred_ssw, pred_h = d.calc_abg_dims(abg_biomass, cm=True)
+    assert_allclose(pred_bd, basal_diameter, rtol=0.001)
+    assert_allclose(pred_ssw, shoot_sys_width, rtol=0.001)
+    assert_allclose(pred_h, height, rtol=0.001)
 
 
 def test__calc_shoot_width_from_basal_dia(example_input_params):
@@ -145,15 +151,15 @@ def test__calc_basal_dia_from_shoot_width(example_input_params):
     assert_allclose(pred_basal_dia, basal_dia, rtol=0.001)
 
 
-def test__calc_abg_biomass_from_dim(example_input_params):
+def test_calc_abg_biomass_from_dim(example_input_params):
     b = create_biomass_object(example_input_params)
     basal_dia = np.array([0.005, 0.035, 0.12])
     shoot_sys_width = np.array([0.0640, 0.2, 0.48])
     abg_from_bd = np.array([0, 1.5445, 13.1851])
     abg_from_ssw = np.array([0.899, 5.156, 19.7325])
-    pred_abg_bd = b._calc_abg_biomass_from_dim(basal_dia, "basal_dia", cm=False)
+    pred_abg_bd = b.calc_abg_biomass_from_dim(basal_dia, "basal_dia", cm=False)
     assert_allclose(abg_from_bd, pred_abg_bd, rtol=0.001)
-    pred_abg_ssw = b._calc_abg_biomass_from_dim((0.25 * np.pi * shoot_sys_width**2), "canopy_area")
+    pred_abg_ssw = b.calc_abg_biomass_from_dim((0.25 * np.pi * shoot_sys_width**2), "canopy_area")
     assert_allclose(abg_from_ssw, pred_abg_ssw, rtol=0.001)
 
 
