@@ -62,14 +62,14 @@ def test_calc_area_of_circle(example_input_params):
     morph_params = example_input_params["BTS"]["morph_params"]
     m_params = [
         "shoot_sys_width",
-        "root_sys_width",    
+        "root_sys_width",
     ]
     vals = [
         "max",
         "min"
     ]
     # values from excel sheet
-    area_values = np.array([[0.070685835, 0.0000785398], [0.096211275, 0.0000785398]])
+    area_values = np.array([[0.070685835, 0.0000785398], [3.141592654, 0.0000785398]])
     idx = 0
     for m_param in m_params:
         for val, a_value in zip(vals, area_values[idx]):
@@ -127,6 +127,33 @@ def test_calculate_whole_plant_mortality(example_plant_array, one_cell_grid, exa
     min_temp = one_cell_grid["cell"]["air__min_temperature_C"]
     new_biomass = species_object_min.calculate_whole_plant_mortality(example_plant_array, min_temp, "2")
     assert_allclose(new_biomass["root"], np.zeros_like(new_biomass["root"]), rtol=0.0001)
+
+
+def test_update_morphology(example_input_params, example_plant_array):
+    # This method should update basal diameter, shoot width, shoot height, root
+    # width, live leaf area, dead leaf area
+    example_input_params["BTS"]["morph_params"]["allometry_method"] = "default"
+    sp_obj = create_species_object(example_input_params)
+    # change to default
+    pred_example_plant_array = sp_obj.update_morphology(example_plant_array)
+    known_plants = {}
+    known_plants["basal_dia"] = np.array([0.00002522, 0.2157987, 0.2157987, 0.9288838, 0.00002522, 0.2157987, 0.2157987, 0.9288838])
+    known_plants["shoot_sys_width"] = np.array([0, 2.0703735, 2.0703735, 5.3955576, 0, 2.0703735, 2.0703735, 5.3955576,])
+    known_plants["shoot_sys_height"] = np.array([0, 1.560362599, 1.560362599, 3.851822257, 0, 1.560362599, 1.560362599, 3.851822257])
+    known_plants["root_sys_width"] = np.array([0.08, 0.548613798, 0.548613798, 2, 0.08, 0.548613798, 0.548613798, 2])
+    known_plants["live_leaf_area"] = np.array([0.00037, 0.00037, 0.05180, 0.05180, 0.00037, 0.00037, 0.05180, 0.05180])
+    known_plants["total_leaf_area"] = np.array([0.0004579, 0.0004579, 0.0641025, 0.0641025, 0.0004579, 0.0004579, 0.0641025, 0.0641025])
+    update_vars = [
+        "basal_dia",
+        "shoot_sys_width",
+        "shoot_sys_height",
+        "root_sys_width",
+        "live_leaf_area",
+        "total_leaf_area",
+    ]
+    for var in update_vars:
+        print(var)
+        assert_allclose(known_plants[var], pred_example_plant_array[var], rtol=0.001)
 
 
 def test_emerge(example_plant, example_input_params):

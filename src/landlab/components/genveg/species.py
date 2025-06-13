@@ -487,7 +487,6 @@ class Species:
             plants, available_stored_biomass, total_persistent_biomass
         )
         plants = self.update_morphology(plants)
-
         return plants
 
     def get_daily_nsc_concentration(self, _current_jday):
@@ -728,7 +727,7 @@ class Species:
         )
         plants = self.habit.duration.set_initial_biomass(
             plants, in_growing_season
-        )  # what is this doing?
+        )
         return plants
 
     def set_new_biomass(self, plants):
@@ -736,37 +735,25 @@ class Species:
         return plants
 
     def update_morphology(self, plants):
+        # Right now this only tracks live biomass - should we track all?
+        # Assuming dead leaf area is 95% of live leaf area
         abg_biomass = self.sum_plant_parts(plants, parts="aboveground")
-        dead_abg_biomass = self.sum_plant_parts(plants, parts="dead_aboveground")
-        total_abg_biomass = abg_biomass + dead_abg_biomass
         plants["basal_dia"], plants["shoot_sys_width"], plants["shoot_sys_height"] = (
-            self.habit.calc_abg_dims_from_biomass(total_abg_biomass)
+            self.habit.calc_abg_dims_from_biomass(abg_biomass)
         )
         plants["root_sys_width"] = self.habit.calc_root_sys_width(
             plants["shoot_sys_width"], plants["basal_dia"], plants["shoot_sys_height"]
         )
-        dead_leaf_area = plants["total_leaf_area"] - plants["live_leaf_area"]
-        dead_leaf_area[dead_leaf_area < 0] = 0.0
-        filter = np.nonzero(dead_leaf_area > 0)
+        dead_leaf_area = np.zeros_like(plants["total_leaf_area"])
+        filter = np.nonzero(plants["dead_leaf"] > 0)
         plants["live_leaf_area"] = (
             plants["leaf"] * self.species_morph_params["sp_leaf_area"]
         )
-
-        cohort_dead_leaf_area = np.zeros_like(dead_leaf_area)
-        cohort_dead_leaf_area[filter] = dead_leaf_area[filter] / np.exp(
-            -self.species_morph_params["biomass_decay_rate"]["dead_leaf"]
-            * plants["dead_leaf_age"][filter]
-        )
-        dead_leaf_area_ratio = np.ones_like(plants["live_leaf_area"])
-        dead_leaf_area_ratio[filter] = (
-            dead_leaf_area[filter] / cohort_dead_leaf_area[filter]
-        )
-        plants["total_leaf_area"] = plants["live_leaf_area"] + (
-            plants["dead_leaf"]
+        dead_leaf_area[filter] = (
+            0.95 * plants["dead_leaf"][filter]
             * self.species_morph_params["sp_leaf_area"]
-            * dead_leaf_area_ratio
-            / 3
         )
+        plants["total_leaf_area"] = plants["live_leaf_area"] + dead_leaf_area
         return plants
 
     def update_dead_biomass(self, _new_biomass, old_biomass):

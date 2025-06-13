@@ -75,8 +75,6 @@ def test__calc_canopy_volume(example_input_params):
 
 def test_calc_root_sys_width(example_input_params):
     h = create_habit_object(example_input_params)
-    print(h.morph_params["empirical_coeffs"])
-    print(h.allometry.morph_params["empirical_coeffs"])
     shoot_width = np.array([0.08, 0.35, 0.72])
     height = np.array([0.1, 0.5, 1.7])
     basal_dia = np.array([0.005, 0.02, 0.1])
@@ -93,11 +91,8 @@ def test_estimate_abg_biomass_from_cover(example_input_params, example_plant_arr
     assert_allclose(est_abg_biomass, abg_biomass, rtol=0.0001)
 
 
-"""
-def test_calc_crown_area_from_shoot_width_raises_error(example_input_params):
-    create_species_object(example_input_params)
-    h = Habit(params=example_input_params["BTS"], green_parts=("leaf", "stem"))
+def test_calc_canopy_area_from_shoot_width_raises_error(example_input_params):
+    h = create_habit_object(example_input_params)
     with pytest.raises(ValueError):
         h._calc_canopy_area_from_shoot_width(-1.5)
         h._calc_canopy_area_from_shoot_width(np.array([0, 0.004, -0.678, 1.5, 3]))
-"""

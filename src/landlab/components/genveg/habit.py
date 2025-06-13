@@ -47,7 +47,7 @@ class Habit:
     def calc_root_sys_width(self, shoot_sys_width, basal_width, shoot_sys_height=1):
         volume = self._calc_canopy_volume(shoot_sys_width, basal_width, shoot_sys_height)
         root_sys_width = (
-            self.morph_params["empirical_coeffs"]["root_dia_coeffs"]["a"] 
+            self.morph_params["empirical_coeffs"]["root_dia_coeffs"]["a"]
             + self.morph_params["empirical_coeffs"]["root_dia_coeffs"]["b"] * volume
         )
         root_sys_width[root_sys_width > self.morph_params["root_sys_width"]["max"]] = (
@@ -173,7 +173,7 @@ class Graminoid(Habit):
         # - canopy area is a function of height and basal diameter (combined)
         # - stem diameter and number of stems is a function of basal diameter
         # Default empirical parameters are directly or derived from Gao 2024
-        dur_type = params["plant_factors"]["duration"].split("_")[0]
+        dur_type = params["plant_factors"]["duration"].split(" ")[0]
         p_type = params["plant_factors"]["p_type"]
         if params["morph_params"]["allometry_method"] == "default":
             empirical_coeffs = empirical_coeff_options[dur_type][p_type]
