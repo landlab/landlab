@@ -1211,9 +1211,12 @@ class LinearDiffuserMultiClass(Component):
         #^ Consider here only POSTIVE values
 
         positive_dz_bedrock_sediment = np.clip(dz_bedrock_sediment,0, np.inf)
-        grain_weight_node += positive_dz_bedrock_sediment[:, np.newaxis] * (1 - self._phi) * self._rho_sed * self._grid.at_node[
-            'bed_grains__proportions']  # in kg/m2
-
+        if self._n_classes>1:
+            grain_weight_node += positive_dz_bedrock_sediment[:, np.newaxis] * (1 - self._phi) * self._rho_sed * self._grid.at_node[
+                'bed_grains__proportions']  # in kg/m2
+        else:
+            grain_weight_node += positive_dz_bedrock_sediment[:] * (1 - self._phi) * self._rho_sed * self._grid.at_node[
+                'bed_grains__proportions']  # in kg/m2
 
         topo[:] = soil[:] + bed[:]
 
