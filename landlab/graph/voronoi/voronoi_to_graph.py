@@ -5,10 +5,11 @@ import xarray as xr
 from scipy.spatial import Delaunay
 from scipy.spatial import Voronoi
 
-from ...core.utils import as_id_array
-from ...utils import jaggedarray
-from ..sort.intpair import pair_isin
-from ..sort.sort import reverse_one_to_one
+from landlab.core.utils import as_id_array
+from landlab.graph.sort.intpair import IntPairCollection
+from landlab.graph.sort.intpair import IntPairMapping
+from landlab.graph.sort.sort import reverse_one_to_one
+from landlab.utils import jaggedarray
 
 
 class VoronoiDelaunay:
@@ -235,14 +236,10 @@ class VoronoiDelaunayToGraph(VoronoiDelaunay):
 
     @staticmethod
     def _links_at_patch(nodes_at_link, nodes_at_patch, n_links_at_patch=None):
-        from ..sort.intpair import map_rolling_pairs_to_values
+        """Construct links_at_path from nodes_at_link/nodes_at_path."""
+        pairs = IntPairMapping(nodes_at_link, values=np.arange(len(nodes_at_link)))
 
-        return map_rolling_pairs_to_values(
-            (nodes_at_link, np.arange(len(nodes_at_link))),
-            nodes_at_patch,
-            size_of_row=n_links_at_patch,
-            # (nodes_at_link[link_at_nodes], link_at_nodes), nodes_at_patch, sorted=True
-        )
+        return pairs.get_items(nodes_at_patch, wraparound=True)
 
     def is_perimeter_face(self):
         return np.any(self.corners_at_face == -1, axis=1)
@@ -263,7 +260,8 @@ class VoronoiDelaunayToGraph(VoronoiDelaunay):
 
     def is_perimeter_link(self):
         if self._perimeter_links is not None:
-            is_perimeter_link = pair_isin(self._perimeter_links, self.nodes_at_link)
+            pairs = IntPairCollection(self._perimeter_links)
+            is_perimeter_link = pairs.contains_pairs(self.nodes_at_link)
         else:
             is_perimeter_link = self.is_perimeter_face()
         return is_perimeter_link
@@ -354,7 +352,7 @@ class VoronoiDelaunayToGraph(VoronoiDelaunay):
         for name in self.ids_with_prefix(at):
             var = self._mesh[name]
             array = var.values.reshape((-1,))
-            array[np.in1d(array, dropped_ids)] = -1
+            array[np.isin(array, dropped_ids)] = -1
             for id_ in dropped_ids[::-1]:
                 array[array > id_] -= 1
 

@@ -39,7 +39,19 @@ Now operate on the link values for each node.
 array([ 6.,   8.,   9.,  17.,  22.,  22.,  11.,  19.,  16.])
 >>> values_at_node.foreach_row(np.min)
 array([0.,  0.,  1.,  2.,  2.,  3.,  4.,  4.,  5.])
->>> values_at_node.foreach_row(np.ptp)
+>>> values_at_node.foreach_row(np.max)
+array([ 6.,  7.,  8.,  9.,  10.,  11.,  7.,  10.,  11.])
+
+Note: `np.ptp` doesn't work on masked arrays but since `max` and `min` seem
+to, you can create a new `ptp` that returns the expected values.
+
+>>> ptp = lambda x, axis=None: np.max(x, axis=axis) - np.min(x, axis=axis)
+>>> values_at_node.foreach_row(ptp)
+array([6.,  7.,  7.,  7.,  8.,  8.,  3.,  6.,  6.])
+
+Or access the underlying masked array directly,
+
+>>> values_at_node.masked_array.ptp(axis=1).data
 array([6.,  7.,  7.,  7.,  8.,  8.,  3.,  6.,  6.])
 """
 

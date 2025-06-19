@@ -1,25 +1,21 @@
-import numpy as np
-
 cimport cython
-cimport numpy as np
 
 from landlab.core.messages import warning_message
 
-DTYPE_INT = int
-ctypedef np.int_t DTYPE_INT_t
-
-DTYPE_FLOAT = np.double
-ctypedef np.double_t DTYPE_FLOAT_t
+# https://cython.readthedocs.io/en/stable/src/userguide/fusedtypes.html
+ctypedef fused id_t:
+    cython.integral
+    long long
 
 
 @cython.boundscheck(False)
 cpdef find_lowest_node_on_lake_perimeter_c(
-        np.ndarray[DTYPE_INT_t, ndim=2] node_nbrs,
-        np.ndarray[DTYPE_INT_t, ndim=1] flood_status,
-        np.ndarray[DTYPE_FLOAT_t, ndim=1] elev,
-        np.ndarray[DTYPE_INT_t, ndim=1] nodes_this_depression,
-        DTYPE_INT_t pit_count,
-        DTYPE_FLOAT_t BIG_ELEV,
+    const id_t [:, :] node_nbrs,
+    id_t [:] flood_status,
+    cython.floating [:] elev,
+    id_t [:] nodes_this_depression,
+    long pit_count,
+    double BIG_ELEV,
 ):
     """Locate the lowest node on the margin of the "lake".
 
@@ -84,7 +80,7 @@ cpdef find_lowest_node_on_lake_perimeter_c(
     """
     # Start with the first node on the list, and an arbitrarily large elev
     cdef int lowest_node = nodes_this_depression[0]
-    cdef DTYPE_FLOAT_t lowest_elev = BIG_ELEV
+    cdef double lowest_elev = BIG_ELEV
 
     # set up a worst-case scanario array for the pits, and a counter to pull
     # the good entries later:
@@ -125,9 +121,9 @@ cpdef find_lowest_node_on_lake_perimeter_c(
             print("Node ID: ", i)
             print("Node Elevation: ", elev[i])
             print("Node Flood Status: ", flood_status[i])
-            print("Node Neigbors: ", node_nbrs[i])
-            print("Neighbor Elevations: ", elev[node_nbrs[i]])
-            print("Neigbor Flood Status: ", flood_status[node_nbrs[i]])
+            # print("Node Neigbors: ", node_nbrs[i])
+            # print("Neighbor Elevations: ", elev[node_nbrs[i]])
+            # print("Neigbor Flood Status: ", flood_status[node_nbrs[i]])
         warning_message(
             """If you see no data values in any of the elevation terms
             this may because you have disconnected open nodes (which

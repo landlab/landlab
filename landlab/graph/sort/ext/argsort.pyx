@@ -1,25 +1,19 @@
-import numpy as np
-
 cimport cython
-cimport numpy as np
-
-from cython.parallel import prange
-
 from cython cimport view
 from libc.stdlib cimport free
 from libc.stdlib cimport malloc
 
-ctypedef np.int_t INT_t
-ctypedef np.float_t FLOAT_t
+from cython.parallel import prange
+
 
 cdef struct Sorter:
-    INT_t index
-    FLOAT_t value
+    long index
+    double value
 
 
 cdef struct IntSorter:
-    INT_t index
-    INT_t value
+    long index
+    long value
 
 
 cdef extern from "stdlib.h":

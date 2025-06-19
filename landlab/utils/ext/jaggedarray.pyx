@@ -2,15 +2,13 @@ import numpy as np
 
 cimport cython
 cimport numpy as np
+from libc.stdint cimport int64_t
 from libc.string cimport memcpy
-
-ctypedef np.int_t INT_t
-ctypedef np.float_t FLOAT_t
 
 
 cdef void _pad_jaggedarray(
     void * data,
-    long * offset,
+    int64_t * offset,
     size_t n_rows,
     size_t size,
     void * buff,
@@ -31,7 +29,7 @@ cdef void _pad_jaggedarray(
 @cython.wraparound(False)
 def unravel(
     np.ndarray data,
-    np.ndarray[long, ndim=1, mode="c"] offset,
+    np.ndarray[int64_t, ndim=1, mode="c"] offset,
     np.ndarray out,
 ):
     _pad_jaggedarray(

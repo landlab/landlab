@@ -2,9 +2,11 @@ cimport cython
 from cython.parallel cimport prange
 from libc.stdint cimport int8_t
 
+# https://cython.readthedocs.io/en/stable/src/userguide/fusedtypes.html
 ctypedef fused float_or_int:
     cython.floating
     cython.integral
+    long long
     int8_t
 
 ctypedef fused id_t:

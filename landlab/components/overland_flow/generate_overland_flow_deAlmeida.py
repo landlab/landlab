@@ -919,4 +919,4 @@ def find_active_neighbors_for_fixed_links(grid):
     array([20, 21, 22, 23, 24, 14, 17, 27, 30, 20, 21, 22, 23, 24])
     """
     neighbors = links.neighbors_at_link(grid.shape, grid.fixed_links).flat
-    return neighbors[np.in1d(neighbors, grid.active_links)]
+    return neighbors[np.isin(neighbors, grid.active_links)]
