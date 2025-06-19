@@ -482,6 +482,7 @@ class PotentialEvapotranspiration(Component):
         self._etpRad._Tmax = self._Tmax
         self._etpRad._Tmin = self._Tmin
         self._etpRad._a = self._a
+        
         self._etpRad._latitude = self._latitude
 
         self._etpRad.update()
