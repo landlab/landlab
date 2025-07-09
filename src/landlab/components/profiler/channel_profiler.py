@@ -12,6 +12,10 @@ from landlab.core.utils import as_id_array
 from landlab.utils.flow__distance import calculate_flow__distance
 
 
+class ChannelProfilerError(Exception):
+    pass
+
+
 class ChannelProfiler(_BaseProfiler):
     """Extract and plot the channel profiles in drainage networks.
 
