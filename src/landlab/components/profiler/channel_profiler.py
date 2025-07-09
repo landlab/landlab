@@ -570,6 +570,25 @@ class ChannelProfiler(_BaseProfiler):
             A valid matplotlib cmap string. Default is "viridis".
 
         """
+        if number_of_watersheds is not None and number_of_watersheds <= 0:
+            raise ValueError(
+                f"invalid number of watersheds ({number_of_watersheds})."
+                " If provided, the number of watersheds must be greater than zero"
+            )
+
+        if outlet_nodes is not None:
+            n_outlets = len(outlet_nodes)
+            if n_outlets == 0:
+                raise ChannelProfilerError(
+                    "The number of provided outlet nodes must be greater than zero"
+                )
+            if number_of_watersheds is not None and n_outlets != number_of_watersheds:
+                raise ChannelProfilerError(
+                    f"Expected {number_of_watersheds} outlet nodes, but found "
+                    f"{len(outlet_nodes)}. The number of outlet nodes must match the "
+                    "specified number of watersheds."
+                )
+
         super().__init__(grid)
 
         self._cmap = plt.colormaps[cmap]
@@ -589,43 +608,47 @@ class ChannelProfiler(_BaseProfiler):
         self._main_channel_only = main_channel_only
         self._minimum_channel_threshold = minimum_channel_threshold
 
-        # verify that the number of starting nodes is the specified number of channels
-        if outlet_nodes is not None:
-            if (number_of_watersheds is not None) and (
-                len(outlet_nodes) is not number_of_watersheds
-            ):
-                raise ValueError(
-                    "Length of outlet_nodes must equal the" "number_of_watersheds!"
-                )
-        else:
-            large_outlet_ids = grid.boundary_nodes[
+        if outlet_nodes is None:
+            # Sort boundary nodes by the channel definition field (ascending)
+            sorted_boundary_nodes = grid.boundary_nodes[
                 np.argsort(self._channel_definition_field[grid.boundary_nodes])
             ]
 
             if number_of_watersheds is None:
-                big_enough_watersheds = self._channel_definition_field[
-                    large_outlet_ids
-                ] > max(minimum_outlet_threshold, minimum_channel_threshold)
-                outlet_nodes = large_outlet_ids[big_enough_watersheds]
+                threshold = max(minimum_outlet_threshold, minimum_channel_threshold)
+                mask = self._channel_definition_field[sorted_boundary_nodes] > threshold
+                outlet_nodes = sorted_boundary_nodes[mask]
+
+                if len(outlet_nodes) == 0:
+                    raise ChannelProfilerError(
+                        "No outlet nodes were found. The watershed delineation failed,"
+                        " possibly due to a missing or invalid flow direction field."
+                    )
             else:
-                outlet_nodes = large_outlet_ids[-number_of_watersheds:]
+                outlet_nodes = sorted_boundary_nodes[-number_of_watersheds:]
+
+                if len(outlet_nodes) != number_of_watersheds:
+                    raise ChannelProfilerError(
+                        f"The number of requested watersheds ({number_of_watersheds})"
+                        " was greater than the number of outlet nodes found"
+                        f" ({len(outlet_nodes)})."
+                    )
 
         starting_da = self._channel_definition_field[outlet_nodes]
         outlet_nodes = np.asarray(outlet_nodes)
 
-        bad_wshed = False
-        if outlet_nodes.size == 0:
-            bad_wshed = True  # not tested
         if np.any(starting_da <= minimum_outlet_threshold):
-            bad_wshed = True
-        if np.any(starting_da <= minimum_channel_threshold):
-            bad_wshed = True
+            raise ChannelProfilerError(
+                "Some outlet nodes have drainage areas below the minimum outlet"
+                f" threshold ({minimum_outlet_threshold}). These may not represent"
+                " valid watersheds."
+            )
 
-        if bad_wshed:
-            raise ValueError(
-                "The number of watersheds requested by the ChannelProfiler is "
-                "greater than the number in the domain with channel_definition_field"
-                f" area. {starting_da}"
+        if np.any(starting_da <= minimum_channel_threshold):
+            raise ChannelProfilerError(
+                "Some outlet nodes have drainage areas below the minimum channel"
+                f" threshold ({minimum_channel_threshold}). The ChannelProfiler"
+                " requires a minimum area to define valid channel networks."
             )
 
         self._outlet_nodes = outlet_nodes
