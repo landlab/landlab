@@ -6,6 +6,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import cm
+from numpy.typing import ArrayLike
 
 from landlab.components.profiler.base_profiler import _BaseProfiler
 from landlab.core.utils import as_id_array
@@ -852,3 +853,35 @@ class ChannelProfiler(_BaseProfiler):
                 ids = self._data_struct[outlet_id][segment_tuple]["ids"]
                 d = distance_upstream[ids]
                 self._data_struct[outlet_id][segment_tuple]["distances"] = d - offset
+
+
+def _raise_if_any_below_threshold(
+    array: ArrayLike,
+    threshold: float = 0.0,
+    indices: ArrayLike | None = None,
+) -> None:
+    array = np.asarray(array)
+    if indices is not None:
+        indices = np.asarray(indices)
+        values = array[indices]
+    else:
+        indices = np.arange(array.size)
+        values = array
+
+    is_below_threshold = values <= threshold
+    if np.any(is_below_threshold):
+        index_of_largest = np.argmax(is_below_threshold)
+        value_of_largest = values[index_of_largest]
+
+        n = np.count_nonzero(is_below_threshold)
+
+        error = ChannelProfilerError(
+            "One or more values are at or below the specified threshold"
+            f" of {threshold}."
+        )
+        error.add_note(
+            f"There {'is' if n == 1 else 'are'} {n} such value{'' if n == 1 else 's'}."
+            f" The largest of which has a value of {value_of_largest} and is located"
+            f" at index {indices[index_of_largest]}."
+        )
+        raise error
