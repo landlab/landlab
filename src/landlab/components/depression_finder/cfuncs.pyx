@@ -5,8 +5,6 @@ from cython.parallel import prange
 from libc.math cimport INFINITY
 from libc.stdint cimport uint8_t
 
-from landlab.core.messages import warning_message
-
 # https://cython.readthedocs.io/en/stable/src/userguide/fusedtypes.html
 ctypedef fused id_t:
     cython.integral
