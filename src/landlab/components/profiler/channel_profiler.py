@@ -594,14 +594,14 @@ class ChannelProfiler(_BaseProfiler):
         super().__init__(grid)
 
         self._cmap = plt.colormaps[cmap]
-        if channel_definition_field in grid.at_node:
-            self._channel_definition_field = grid.at_node[channel_definition_field]
-        else:
-            raise ValueError(
-                f"Required field {channel_definition_field!r} not present. "
-                "This field is required by the ChannelProfiler to define "
-                "the start and stop of channel networks."
+        if channel_definition_field not in grid.at_node:
+            raise ChannelProfilerError(
+                f"Missing required field {channel_definition_field!r}."
+                " The ChannelProfiler uses this field to determine the start and stop"
+                " points of channel networks."
             )
+
+        self._channel_definition_field = grid.at_node[channel_definition_field]
 
         self._flow_receiver = grid.at_node["flow__receiver_node"]
 
