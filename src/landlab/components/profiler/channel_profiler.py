@@ -636,24 +636,20 @@ class ChannelProfiler(_BaseProfiler):
                         f" ({len(outlet_nodes)})."
                     )
 
-        starting_da = self._channel_definition_field[outlet_nodes]
-        outlet_nodes = np.asarray(outlet_nodes)
+        thresholds = {
+            "minimum_outlet_threshold": minimum_outlet_threshold,
+            "minimum_channel_threshold": minimum_channel_threshold,
+        }
+        for name, value in thresholds.items():
+            try:
+                _raise_if_any_below_threshold(
+                    self._channel_definition_field, value, indices=outlet_nodes
+                )
+            except ChannelProfilerError as e:
+                e.add_note(f"You may need to increase the value of {name!r}.")
+                raise e
 
-        if np.any(starting_da <= minimum_outlet_threshold):
-            raise ChannelProfilerError(
-                "Some outlet nodes have drainage areas below the minimum outlet"
-                f" threshold ({minimum_outlet_threshold}). These may not represent"
-                " valid watersheds."
-            )
-
-        if np.any(starting_da <= minimum_channel_threshold):
-            raise ChannelProfilerError(
-                "Some outlet nodes have drainage areas below the minimum channel"
-                f" threshold ({minimum_channel_threshold}). The ChannelProfiler"
-                " requires a minimum area to define valid channel networks."
-            )
-
-        self._outlet_nodes = outlet_nodes
+        self._outlet_nodes = np.asarray(outlet_nodes)
 
     @property
     def data_structure(self):
