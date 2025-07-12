@@ -1,4 +1,8 @@
+from typing import Final
+
 import numpy as np
+from numpy.typing import ArrayLike
+from numpy.typing import NDArray
 
 from ..core.utils import make_optional_arg_into_id_array
 
@@ -391,3 +395,84 @@ def line_to_grid_coords(c0, r0, c1, r1):
         cc = np.flipud(cc)
 
     return rr, cc
+
+
+D4_ARROWS: Final[dict[tuple[int, int], str]] = {
+    (-1, 0): "↑",
+    (1, 0): "↓",
+    (0, -1): "←",
+    (0, 1): "→",
+    (0, 0): "○",
+}
+D8_ARROWS: Final[dict[tuple[int, int], str]] = {
+    **D4_ARROWS,
+    (-1, -1): "↖",
+    (-1, 1): "↗",
+    (1, -1): "↙",
+    (1, 1): "↘",
+}
+
+
+def neighbor_to_arrow(
+    neighbor_indices: ArrayLike,
+    diagonals_ok: bool = True,
+) -> NDArray[np.str_]:
+    """Convert an array of neighbor nodes to flow direction arrows.
+
+    Parameters
+    ----------
+    neighbor_indices : array_like of int
+        Indices of neighbor elements.
+    diagonals_ok : bool, optional
+        Allow diagonal neighbors.
+
+    Returns
+    -------
+    ndarray of str
+        Array for directions represented by arrows that point to
+        neighbor elements.
+
+    Examples
+    --------
+    >>> from landlab.grid.raster_funcs import neighbor_to_arrow
+    >>> x = [
+    ...     [0, 0, 1, 2],
+    ...     [0, 0, 3, 10],
+    ...     [4, 8, 9, 10],
+    ... ]
+
+    The *○* symbol means an element points to itself.
+
+    >>> neighbor_to_arrow(x)
+    array([['○', '←', '←', '←'],
+           ['↑', '↖', '↗', '↙'],
+           ['↑', '←', '←', '←']], dtype='<U1')
+
+    Set the `diagonals_ok` keyword to ``False`` to exclude diagonal neighbors.
+    The default is to include diagonal neighbors.
+
+    >>> neighbor_to_arrow(x, diagonals_ok=False)
+    array([['○', '←', '←', '←'],
+           ['↑', '?', '?', '?'],
+           ['↑', '←', '←', '←']], dtype='<U1')
+    """
+    direction_arrows = D8_ARROWS if diagonals_ok else D4_ARROWS
+
+    array = np.asarray(neighbor_indices)
+    original_shape = array.shape
+
+    if array.ndim > 2:
+        raise ValueError(
+            "The number of dimensions of the array must be either 1 or 2"
+            f" (got {array.ndim})"
+        )
+    matrix = np.atleast_2d(array)
+
+    n_rows, n_cols = matrix.shape
+    shift_row = matrix // n_cols - np.arange(n_rows).reshape((-1, 1))
+    shift_col = matrix % n_cols - np.arange(n_cols)
+
+    def get_arrow(row_shift, col_shift):
+        return direction_arrows.get((row_shift, col_shift), "?")
+
+    return np.vectorize(get_arrow)(shift_row, shift_col).reshape(original_shape)
