@@ -11,6 +11,7 @@ from numpy.typing import NDArray
 
 from landlab.components.profiler.base_profiler import _BaseProfiler
 from landlab.core.utils import as_id_array
+from landlab.grid.nodestatus import NodeStatus
 from landlab.utils.flow__distance import calculate_flow__distance
 
 
@@ -599,30 +600,17 @@ class ChannelProfiler(_BaseProfiler):
         self._minimum_channel_threshold = minimum_channel_threshold
 
         if outlet_nodes is None:
-            # Sort boundary nodes by the channel definition field (ascending)
-            sorted_boundary_nodes = grid.boundary_nodes[
-                np.argsort(self._channel_definition_field[grid.boundary_nodes])
-            ]
+            threshold = max(minimum_outlet_threshold, minimum_channel_threshold)
+            values = self._channel_definition_field
 
+            all_outlet_nodes = sort_with_mask(
+                values,
+                mask=(grid.status_at_node != NodeStatus.CORE) & (values > threshold),
+            )
             if number_of_watersheds is None:
-                threshold = max(minimum_outlet_threshold, minimum_channel_threshold)
-                mask = self._channel_definition_field[sorted_boundary_nodes] > threshold
-                outlet_nodes = sorted_boundary_nodes[mask]
-
-                if len(outlet_nodes) == 0:
-                    raise ChannelProfilerError(
-                        "No outlet nodes were found. The watershed delineation failed,"
-                        " possibly due to a missing or invalid flow direction field."
-                    )
+                outlet_nodes = all_outlet_nodes
             else:
-                outlet_nodes = sorted_boundary_nodes[-number_of_watersheds:]
-
-                if len(outlet_nodes) != number_of_watersheds:
-                    raise ChannelProfilerError(
-                        f"The number of requested watersheds ({number_of_watersheds})"
-                        " was greater than the number of outlet nodes found"
-                        f" ({len(outlet_nodes)})."
-                    )
+                outlet_nodes = all_outlet_nodes[-number_of_watersheds:]
 
         thresholds = {
             "minimum_outlet_threshold": minimum_outlet_threshold,
