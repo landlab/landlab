@@ -18,6 +18,19 @@ from landlab.components.profiler.channel_profiler import ChannelProfilerError
 matplotlib.use("agg")
 
 
+@pytest.mark.parametrize("field_name", (None, "drainage_area", "foo"))
+def test_missing_channel_definition_field(field_name):
+    grid = RasterModelGrid((4, 5))
+    grid.add_zeros("flow__receiver_node", at="node", dtype=int)
+    grid.add_zeros("flow__link_to_receiver_node", at="node", dtype=int)
+
+    kwargs = {} if field_name is None else {"channel_definition_field": field_name}
+    with pytest.raises(ChannelProfilerError) as excinfo:
+        ChannelProfiler(grid, **kwargs)
+    expected = "drainage_area" if field_name is None else field_name
+    assert expected in str(excinfo.value)
+
+
 def test_invalid_outlet_nodes():
     grid = RasterModelGrid((4, 5))
     with pytest.raises(ChannelProfilerError):
