@@ -33,6 +33,14 @@ def test_missing_channel_definition_field(field_name):
 
 def test_invalid_outlet_nodes():
     grid = RasterModelGrid((4, 5))
+    grid.at_node["topographic__elevation"] = [
+        [5, 5, 5, 5, 5],
+        [5, 4, 5, 4, 5],
+        [5, 3, 2, 3, 5],
+        [5, 5, 1, 5, 5.0],
+    ]
+    flow_accumulator = FlowAccumulator(grid, flow_director="D4")
+    flow_accumulator.run_one_step()
     with pytest.raises(ChannelProfilerError):
         ChannelProfiler(grid, outlet_nodes=[])
 
@@ -50,7 +58,7 @@ def test_invalid_number_of_watersheds(number_of_watersheds):
 
 
 @pytest.mark.parametrize("n_watersheds", (2, 3, 4))
-def test_too_many_watersheds(n_watersheds):
+def test_requesting_too_many_watersheds(n_watersheds):
     grid = RasterModelGrid((4, 5))
     grid.at_node["topographic__elevation"] = [
         [5, 5, 5, 5, 5],
@@ -62,8 +70,9 @@ def test_too_many_watersheds(n_watersheds):
     flow_accumulator.run_one_step()
 
     ChannelProfiler(grid, number_of_watersheds=1)
-    with pytest.raises(ChannelProfilerError):
+    with pytest.raises(ChannelProfilerError) as excinfo:
         ChannelProfiler(grid, number_of_watersheds=n_watersheds)
+    assert "must match" in str(excinfo.value)
 
 
 @pytest.mark.parametrize("n_watersheds", (None, 1, 2))
