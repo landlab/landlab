@@ -543,35 +543,35 @@ class ChannelProfiler(_BaseProfiler):
         """
         Parameters
         ----------
-        grid : Landlab Model Grid instance
-        channel_definition_field : field name as string, optional
-            Name of field used to identify the outlet and headwater nodes of the
-            channel network. Default is "drainage_area".
+        grid : ModelGrid
+            A Landlab model grid instance on which the channel profiles will be
+            computed.
+        channel_definition_field : str, optional
+            Name of the field used to identify outlet and headwater nodes of the channel
+            network. Typically this is a drainage area field.
         minimum_outlet_threshold : float, optional
-            Minimum value of the *channel_definition_field* to define a
-            watershed outlet. Default is 0.
+            Minimum value of the `channel_definition_field` required to define a
+            watershed outlet.
         minimum_channel_threshold : float, optional
-            Value to use for the minimum drainage area associated with a
-            plotted channel segment. Default values 0.
-        number_of_watersheds : int, optional
-            Total number of watersheds to plot. Default value is 1. If value is
-            greater than 1 and outlet_nodes is not specified, then the
-            number_of_watersheds largest watersheds is based on the drainage
-            area at the model grid boundary. If given as None, then all grid
-            cells on the domain boundary with a stopping field (typically
-            drainage area) greater than the minimum_outlet_threshold in area are used.
-        main_channel_only : Boolean, optional
-            Flag to determine if only the main channel should be plotted, or if
-            all stream segments with drainage area less than threshold should
-            be plotted. Default value is True.
-        outlet_nodes : length number_of_watersheds iterable, optional
-            Length number_of_watersheds iterable containing the node IDs of
-            nodes to start the channel profiles from. If not provided, the
-            default is the number_of_watersheds node IDs on the model grid
-            boundary with the largest terminal drainage area.
+            Minimum value of the `channel_definition_field` for a stream segment to be
+            included in the plotted channel network.
+        number_of_watersheds : int or None, optional
+            Number of watersheds to profile. If greater than 1 and `outlet_nodes` is not
+            specified, the outlets are chosen as the `number_of_watersheds` boundary
+            nodes with the largest values of the `channel_definition_field`. If set to
+            `None`, all boundary nodes with values above `minimum_outlet_threshold` are
+            used.
+        main_channel_only : bool, optional
+            If `True`, only the main channel of each watershed is plotted. If `False`,
+            all stream segments with values above `minimum_channel_threshold` are
+            included.
+        outlet_nodes : iterable of int, optional
+            Iterable of node IDs to be used as outlet points for channel profiling.
+            The number of nodes must equal `number_of_watersheds`. If not provided,
+            the outlets are chosen automatically based on the
+            `channel_definition_field`.
         cmap : str, optional
-            A valid matplotlib cmap string. Default is "viridis".
-
+            Name of a Matplotlib colormap to use for plotting.
         """
         if number_of_watersheds is not None and number_of_watersheds <= 0:
             raise ValueError(
