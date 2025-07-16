@@ -578,6 +578,7 @@ class ChannelProfiler(_BaseProfiler):
                 " If provided, the number of watersheds must be greater than zero"
             )
 
+        outlet_nodes = _validate_outlet_nodes(outlet_nodes)
         if outlet_nodes is not None:
             n_outlets = len(outlet_nodes)
             if n_outlets == 0:
