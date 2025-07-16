@@ -577,20 +577,7 @@ class ChannelProfiler(_BaseProfiler):
                 f"invalid number of watersheds ({number_of_watersheds})."
                 " If provided, the number of watersheds must be greater than zero"
             )
-
         outlet_nodes = _validate_outlet_nodes(outlet_nodes)
-        if outlet_nodes is not None:
-            n_outlets = len(outlet_nodes)
-            if n_outlets == 0:
-                raise ChannelProfilerError(
-                    "The number of provided outlet nodes must be greater than zero"
-                )
-            if number_of_watersheds is not None and n_outlets != number_of_watersheds:
-                raise ChannelProfilerError(
-                    f"Expected {number_of_watersheds} outlet nodes, but found "
-                    f"{len(outlet_nodes)}. The number of outlet nodes must match the "
-                    "specified number of watersheds."
-                )
 
         super().__init__(grid)
 
@@ -650,7 +637,22 @@ class ChannelProfiler(_BaseProfiler):
                 e.add_note(f"You may need to increase the value of {name!r}.")
                 raise e
 
-        self._outlet_nodes = np.asarray(outlet_nodes)
+        if outlet_nodes.size == 0:
+            raise ChannelProfilerError(
+                "The number of outlet nodes must be greater than zero"
+                f" ({outlet_nodes.size})"
+            )
+        if (
+            number_of_watersheds is not None
+            and outlet_nodes.size != number_of_watersheds
+        ):
+            raise ChannelProfilerError(
+                f"Expected {number_of_watersheds} outlet nodes, but found "
+                f"{outlet_nodes.size}. The number of outlet nodes must match the "
+                "specified number of watersheds."
+            )
+
+        self._outlet_nodes = outlet_nodes
 
     @property
     def data_structure(self):
