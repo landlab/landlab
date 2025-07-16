@@ -885,3 +885,14 @@ def _raise_if_any_below_threshold(
             f" at index {indices[index_of_largest]}."
         )
         raise error
+
+
+def _argsort_with_mask(values, mask=None):
+    if mask is None:
+        return np.argsort(values)
+
+    values = np.asarray(values)
+    masked_indices = np.flatnonzero(mask)
+    masked_values = values[masked_indices]
+
+    return masked_indices[np.argsort(masked_values)]
