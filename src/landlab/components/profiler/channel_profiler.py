@@ -855,6 +855,24 @@ class ChannelProfiler(_BaseProfiler):
                 self._data_struct[outlet_id][segment_tuple]["distances"] = d - offset
 
 
+def _validate_outlet_nodes(outlet_nodes: ArrayLike) -> ArrayLike | None:
+    if outlet_nodes is None:
+        return None
+
+    outlet_nodes = np.asarray(outlet_nodes)
+
+    if outlet_nodes.size == 0:
+        return np.array([], dtype=int)
+
+    if not np.issubdtype(outlet_nodes.dtype, np.integer):
+        raise ValueError(
+            "Expected an integer array suitable for indexing but got array of"
+            f" type {outlet_nodes.dtype}."
+        )
+
+    return outlet_nodes
+
+
 def _raise_if_any_below_threshold(
     array: ArrayLike,
     threshold: float = 0.0,
