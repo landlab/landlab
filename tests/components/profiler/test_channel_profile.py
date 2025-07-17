@@ -16,8 +16,29 @@ from landlab.components import FastscapeEroder
 from landlab.components import FlowAccumulator
 from landlab.components.profiler.channel_profiler import ChannelProfilerError
 from landlab.components.profiler.channel_profiler import _argsort_with_mask
+from landlab.components.profiler.channel_profiler import _validate_outlet_nodes
 
 matplotlib.use("agg")
+
+
+@pytest.mark.parametrize("array", [[0, 1, 2], [], [-1, -2]])
+def test_validate_outlet_nodes(array):
+    expected = np.array(array, dtype=int)
+    actual = _validate_outlet_nodes(array)
+    assert_array_equal(actual, expected)
+
+    values = np.arange(4.0) + 0.5
+    assert_array_equal(values[array], values[actual])
+
+
+def test_validate_outlet_nodes_bad_type():
+    with pytest.raises(ValueError) as excinfo:
+        _validate_outlet_nodes([0.0, 1, 2])
+    assert "indexing" in str(excinfo.value)
+
+
+def test_validate_outlet_nodes_with_none():
+    assert _validate_outlet_nodes(None) is None
 
 
 @pytest.mark.parametrize(
