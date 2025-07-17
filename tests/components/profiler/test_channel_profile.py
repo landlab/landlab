@@ -7,6 +7,7 @@ Created on Tue Feb 27 16:25:11 2018
 import matplotlib
 import numpy as np
 import pytest
+from numpy.testing import assert_array_equal
 
 from landlab import FieldError
 from landlab import RasterModelGrid
@@ -14,8 +15,22 @@ from landlab.components import ChannelProfiler
 from landlab.components import FastscapeEroder
 from landlab.components import FlowAccumulator
 from landlab.components.profiler.channel_profiler import ChannelProfilerError
+from landlab.components.profiler.channel_profiler import _argsort_with_mask
 
 matplotlib.use("agg")
+
+
+@pytest.mark.parametrize(
+    "mask,expected",
+    [
+        (None, [3, 0, 2, 1]),
+        ([True, True, True, True], [3, 0, 2, 1]),
+        ([True, True, True, False], [0, 2, 1]),
+        ([False, False, False, False], []),
+    ],
+)
+def test_argsort_with_mask(mask, expected):
+    assert_array_equal(_argsort_with_mask([1, 3, 2, 0], mask=mask), expected)
 
 
 @pytest.mark.parametrize("field_name", (None, "drainage_area", "foo"))
