@@ -16,9 +16,34 @@ from landlab.components import FastscapeEroder
 from landlab.components import FlowAccumulator
 from landlab.components.profiler.channel_profiler import ChannelProfilerError
 from landlab.components.profiler.channel_profiler import _argsort_with_mask
+from landlab.components.profiler.channel_profiler import _raise_if_any_below_threshold
 from landlab.components.profiler.channel_profiler import _validate_outlet_nodes
 
 matplotlib.use("agg")
+
+
+@pytest.mark.parametrize("value", (0, 0.5, 2, 2.5, np.inf))
+@pytest.mark.parametrize("indices", ([0, 1, 2], None))
+def test_raise_if_below_threshold(value, indices):
+    with pytest.raises(ChannelProfilerError):
+        _raise_if_any_below_threshold([0, 1, 2], threshold=value, indices=indices)
+
+
+@pytest.mark.parametrize("value", (-1, -1e-6, -np.inf))
+@pytest.mark.parametrize("indices", ([0, 1, 2], None))
+def test_raise_if_below_threshold_all_above(value, indices):
+    assert (
+        _raise_if_any_below_threshold([0, 1, 2], threshold=value, indices=indices)
+        is None
+    )
+
+
+@pytest.mark.parametrize("value", (0, 0.5, 2, 2.5, np.inf))
+def test_raise_if_below_threshold_subset(value):
+    with pytest.raises(ChannelProfilerError):
+        _raise_if_any_below_threshold(
+            [-0.5, 0, 1, 2.5, 2], threshold=value, indices=[1, 2, 4]
+        )
 
 
 @pytest.mark.parametrize("array", [[0, 1, 2], [], [-1, -2]])
