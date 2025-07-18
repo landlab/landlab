@@ -893,6 +893,44 @@ def _raise_if_any_below_threshold(
         raise error
 
 
+def _max_with_mask(values, mask=None):
+    """Find the largest value and its index in an array, optionally using a mask.
+
+    Identifies the largest value in the input array and its index. If a mask
+    is provided, only the values corresponding to `True` in the mask
+    are considered.
+
+    Parameters
+    ----------
+    values : array_like
+        Input array from which to find the largest value.
+    mask : array_like of bool, optional
+        A boolean mask indicating which elements of `values` to consider. If
+        `None`, all elements are considered.
+
+    Returns
+    -------
+    tuple
+        A tuple containing the largest value and its index. The index corresponds
+        to the position in the original array, even when a mask is applied.
+
+    Examples
+    --------
+    >>> _max_with_mask([1.0, 4.0, 3.0, 4.0])
+    (4.0, 1)
+    >>> _max_with_mask([1.0, 4.0, 3.0, 4.0], mask=[True, False, True, False])
+    (3.0, 2)
+    """
+    values = np.asarray(values)
+    if mask is None:
+        index_of_largest = np.argmax(values)
+        return values[index_of_largest], index_of_largest
+    else:
+        masked_values = values[mask]
+        index_of_largest = np.flatnonzero(mask)[np.argmax(masked_values)]
+        return np.max(masked_values), index_of_largest
+
+
 def _argsort_with_mask(values, mask=None):
     if mask is None:
         return np.argsort(values)
