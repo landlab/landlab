@@ -603,7 +603,7 @@ class ChannelProfiler(_BaseProfiler):
             threshold = max(minimum_outlet_threshold, minimum_channel_threshold)
             values = self._channel_definition_field
 
-            all_outlet_nodes = sort_with_mask(
+            all_outlet_nodes = _argsort_with_mask(
                 values,
                 mask=(grid.status_at_node != NodeStatus.CORE) & (values > threshold),
             )
