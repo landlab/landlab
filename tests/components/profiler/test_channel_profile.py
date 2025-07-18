@@ -59,7 +59,7 @@ def test_validate_outlet_nodes(array):
 def test_validate_outlet_nodes_bad_type():
     with pytest.raises(ValueError) as excinfo:
         _validate_outlet_nodes([0.0, 1, 2])
-    assert "indexing" in str(excinfo.value)
+    assert str(excinfo.value).startswith("Invalid array of outlets")
 
 
 def test_validate_outlet_nodes_with_none():
@@ -89,8 +89,9 @@ def test_missing_channel_definition_field(field_name):
     with pytest.raises(ChannelProfilerError) as excinfo:
         ChannelProfiler(grid, **kwargs)
     expected = "drainage_area" if field_name is None else field_name
-    assert expected in str(excinfo.value)
 
+    assert str(excinfo.value).startswith("Missing required field")
+    assert expected in str(excinfo.value)
 
 def test_invalid_outlet_nodes():
     grid = RasterModelGrid((4, 5))
@@ -133,7 +134,7 @@ def test_requesting_too_many_watersheds(n_watersheds):
     ChannelProfiler(grid, number_of_watersheds=1)
     with pytest.raises(ChannelProfilerError) as excinfo:
         ChannelProfiler(grid, number_of_watersheds=n_watersheds)
-    assert "must match" in str(excinfo.value)
+    assert str(excinfo.value).startswith("Mismatch between")
 
 
 @pytest.mark.parametrize("n_watersheds", (None, 1, 2))
