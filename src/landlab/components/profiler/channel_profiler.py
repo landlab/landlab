@@ -876,8 +876,9 @@ def _raise_if_any_below_threshold(
 
     is_below_threshold = values <= threshold
     if np.any(is_below_threshold):
-        index_of_largest = np.argmax(is_below_threshold)
-        value_of_largest = values[index_of_largest]
+        value_of_largest, index_of_largest = _max_with_mask(
+            values, mask=is_below_threshold
+        )
 
         n = np.count_nonzero(is_below_threshold)
 
