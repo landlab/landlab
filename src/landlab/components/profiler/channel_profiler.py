@@ -575,7 +575,7 @@ class ChannelProfiler(_BaseProfiler):
         """
         if number_of_watersheds is not None and number_of_watersheds <= 0:
             raise ValueError(
-                f"invalid number of watersheds ({number_of_watersheds})."
+                f"Invalid number of watersheds ({number_of_watersheds})."
                 " If provided, the number of watersheds must be greater than zero"
             )
         outlet_nodes = _validate_outlet_nodes(outlet_nodes)
@@ -585,7 +585,7 @@ class ChannelProfiler(_BaseProfiler):
         self._cmap = plt.colormaps[cmap]
         if channel_definition_field not in grid.at_node:
             raise ChannelProfilerError(
-                f"Missing required field {channel_definition_field!r}."
+                f"Missing required field ({channel_definition_field!r})."
                 " The ChannelProfiler uses this field to determine the start and stop"
                 " points of channel networks."
             )
@@ -627,17 +627,18 @@ class ChannelProfiler(_BaseProfiler):
 
         if outlet_nodes.size == 0:
             raise ChannelProfilerError(
-                "The number of outlet nodes must be greater than zero"
-                f" ({outlet_nodes.size})"
+                f"Invalid number of outlets ({outlet_nodes.size})."
+                " The number of outlet nodes must be greater than zero"
             )
         if (
             number_of_watersheds is not None
             and outlet_nodes.size != number_of_watersheds
         ):
             raise ChannelProfilerError(
-                f"Expected {number_of_watersheds} outlet nodes, but found "
-                f"{outlet_nodes.size}. The number of outlet nodes must match the "
-                "specified number of watersheds."
+                "Mismatch between the number of watersheds and the number of outlets"
+                f" ({number_of_watersheds} != {outlet_nodes.size})."
+                " The number of outlet nodes must match the specified number"
+                " of watersheds."
             )
 
         self._outlet_nodes = outlet_nodes
@@ -854,8 +855,8 @@ def _validate_outlet_nodes(outlet_nodes: ArrayLike) -> NDArray[np.int_] | None:
 
     if not np.issubdtype(outlet_nodes.dtype, np.integer):
         raise ValueError(
-            "Expected an integer array suitable for indexing but got array of"
-            f" type {outlet_nodes.dtype}."
+            "Invalid array of outlets. Expected an integer array suitable"
+            f" for indexing but got array of type {outlet_nodes.dtype}."
         )
 
     return outlet_nodes
@@ -882,10 +883,7 @@ def _raise_if_any_below_threshold(
 
         n = np.count_nonzero(is_below_threshold)
 
-        error = ChannelProfilerError(
-            "One or more values are at or below the specified threshold"
-            f" of {threshold}."
-        )
+        error = ChannelProfilerError(f"Values below threshold ({threshold}).")
         error.add_note(
             f"There {'is' if n == 1 else 'are'} {n} such value{'' if n == 1 else 's'}."
             f" The largest of which has a value of {value_of_largest} and is located"
