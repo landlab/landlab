@@ -16,10 +16,26 @@ from landlab.components import FastscapeEroder
 from landlab.components import FlowAccumulator
 from landlab.components.profiler.channel_profiler import ChannelProfilerError
 from landlab.components.profiler.channel_profiler import _argsort_with_mask
+from landlab.components.profiler.channel_profiler import _max_with_mask
 from landlab.components.profiler.channel_profiler import _raise_if_any_below_threshold
 from landlab.components.profiler.channel_profiler import _validate_outlet_nodes
 
 matplotlib.use("agg")
+
+
+@pytest.mark.parametrize(
+    "mask,expected",
+    [
+        (None, (4.0, 1)),
+        ([True, True, True, True], (4.0, 1)),
+        ([True, False, True, False], (3.0, 2)),
+    ],
+)
+def test_max_with_mask(mask, expected):
+    array = [1.0, 4.0, 3.0, 4.0]
+    value, index = _max_with_mask(array, mask=mask)
+    assert (value, index) == expected
+    assert array[index] == value
 
 
 @pytest.mark.parametrize("value", (0, 0.5, 2, 2.5, np.inf))
@@ -92,6 +108,7 @@ def test_missing_channel_definition_field(field_name):
 
     assert str(excinfo.value).startswith("Missing required field")
     assert expected in str(excinfo.value)
+
 
 def test_invalid_outlet_nodes():
     grid = RasterModelGrid((4, 5))
