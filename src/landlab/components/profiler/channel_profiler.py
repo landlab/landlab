@@ -6,10 +6,17 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import cm
+from numpy.typing import ArrayLike
+from numpy.typing import NDArray
 
 from landlab.components.profiler.base_profiler import _BaseProfiler
 from landlab.core.utils import as_id_array
+from landlab.grid.nodestatus import NodeStatus
 from landlab.utils.flow__distance import calculate_flow__distance
+
+
+class ChannelProfilerError(Exception):
+    pass
 
 
 class ChannelProfiler(_BaseProfiler):
@@ -536,47 +543,54 @@ class ChannelProfiler(_BaseProfiler):
         """
         Parameters
         ----------
-        grid : Landlab Model Grid instance
-        channel_definition_field : field name as string, optional
-            Name of field used to identify the outlet and headwater nodes of the
-            channel network. Default is "drainage_area".
+        grid : ModelGrid
+            A Landlab model grid instance on which the channel profiles will be
+            computed.
+        channel_definition_field : str, optional
+            Name of the field used to identify outlet and headwater nodes of the channel
+            network. Typically this is a drainage area field.
         minimum_outlet_threshold : float, optional
-            Minimum value of the *channel_definition_field* to define a
-            watershed outlet. Default is 0.
+            Minimum value of the `channel_definition_field` required to define a
+            watershed outlet.
         minimum_channel_threshold : float, optional
-            Value to use for the minimum drainage area associated with a
-            plotted channel segment. Default values 0.
-        number_of_watersheds : int, optional
-            Total number of watersheds to plot. Default value is 1. If value is
-            greater than 1 and outlet_nodes is not specified, then the
-            number_of_watersheds largest watersheds is based on the drainage
-            area at the model grid boundary. If given as None, then all grid
-            cells on the domain boundary with a stopping field (typically
-            drainage area) greater than the minimum_outlet_threshold in area are used.
-        main_channel_only : Boolean, optional
-            Flag to determine if only the main channel should be plotted, or if
-            all stream segments with drainage area less than threshold should
-            be plotted. Default value is True.
-        outlet_nodes : length number_of_watersheds iterable, optional
-            Length number_of_watersheds iterable containing the node IDs of
-            nodes to start the channel profiles from. If not provided, the
-            default is the number_of_watersheds node IDs on the model grid
-            boundary with the largest terminal drainage area.
+            Minimum value of the `channel_definition_field` for a stream segment to be
+            included in the plotted channel network.
+        number_of_watersheds : int or None, optional
+            Number of watersheds to profile. If greater than 1 and `outlet_nodes` is not
+            specified, the outlets are chosen as the `number_of_watersheds` boundary
+            nodes with the largest values of the `channel_definition_field`. If set to
+            `None`, all boundary nodes with values above `minimum_outlet_threshold` are
+            used.
+        main_channel_only : bool, optional
+            If `True`, only the main channel of each watershed is plotted. If `False`,
+            all stream segments with values above `minimum_channel_threshold` are
+            included.
+        outlet_nodes : iterable of int, optional
+            Iterable of node IDs to be used as outlet points for channel profiling.
+            The number of nodes must equal `number_of_watersheds`. If not provided,
+            the outlets are chosen automatically based on the
+            `channel_definition_field`.
         cmap : str, optional
-            A valid matplotlib cmap string. Default is "viridis".
-
+            Name of a Matplotlib colormap to use for plotting.
         """
+        if number_of_watersheds is not None and number_of_watersheds <= 0:
+            raise ValueError(
+                f"Invalid number of watersheds ({number_of_watersheds})."
+                " If provided, the number of watersheds must be greater than zero"
+            )
+        outlet_nodes = _validate_outlet_nodes(outlet_nodes)
+
         super().__init__(grid)
 
         self._cmap = plt.colormaps[cmap]
-        if channel_definition_field in grid.at_node:
-            self._channel_definition_field = grid.at_node[channel_definition_field]
-        else:
-            raise ValueError(
-                f"Required field {channel_definition_field!r} not present. "
-                "This field is required by the ChannelProfiler to define "
-                "the start and stop of channel networks."
+        if channel_definition_field not in grid.at_node:
+            raise ChannelProfilerError(
+                f"Missing required field ({channel_definition_field!r})."
+                " The ChannelProfiler uses this field to determine the start and stop"
+                " points of channel networks."
             )
+
+        self._channel_definition_field = grid.at_node[channel_definition_field]
 
         self._flow_receiver = grid.at_node["flow__receiver_node"]
 
@@ -585,43 +599,46 @@ class ChannelProfiler(_BaseProfiler):
         self._main_channel_only = main_channel_only
         self._minimum_channel_threshold = minimum_channel_threshold
 
-        # verify that the number of starting nodes is the specified number of channels
-        if outlet_nodes is not None:
-            if (number_of_watersheds is not None) and (
-                len(outlet_nodes) is not number_of_watersheds
-            ):
-                raise ValueError(
-                    "Length of outlet_nodes must equal the" "number_of_watersheds!"
-                )
-        else:
-            large_outlet_ids = grid.boundary_nodes[
-                np.argsort(self._channel_definition_field[grid.boundary_nodes])
-            ]
+        if outlet_nodes is None:
+            threshold = max(minimum_outlet_threshold, minimum_channel_threshold)
+            values = self._channel_definition_field
 
+            all_outlet_nodes = _argsort_with_mask(
+                values,
+                mask=(grid.status_at_node != NodeStatus.CORE) & (values > threshold),
+            )
             if number_of_watersheds is None:
-                big_enough_watersheds = self._channel_definition_field[
-                    large_outlet_ids
-                ] > max(minimum_outlet_threshold, minimum_channel_threshold)
-                outlet_nodes = large_outlet_ids[big_enough_watersheds]
+                outlet_nodes = all_outlet_nodes
             else:
-                outlet_nodes = large_outlet_ids[-number_of_watersheds:]
+                outlet_nodes = all_outlet_nodes[-number_of_watersheds:]
 
-        starting_da = self._channel_definition_field[outlet_nodes]
-        outlet_nodes = np.asarray(outlet_nodes)
+        thresholds = {
+            "minimum_outlet_threshold": minimum_outlet_threshold,
+            "minimum_channel_threshold": minimum_channel_threshold,
+        }
+        for name, value in thresholds.items():
+            try:
+                _raise_if_any_below_threshold(
+                    self._channel_definition_field, value, indices=outlet_nodes
+                )
+            except ChannelProfilerError as e:
+                e.add_note(f"You may need to increase the value of {name!r}.")
+                raise e
 
-        bad_wshed = False
         if outlet_nodes.size == 0:
-            bad_wshed = True  # not tested
-        if np.any(starting_da <= minimum_outlet_threshold):
-            bad_wshed = True
-        if np.any(starting_da <= minimum_channel_threshold):
-            bad_wshed = True
-
-        if bad_wshed:
-            raise ValueError(
-                "The number of watersheds requested by the ChannelProfiler is "
-                "greater than the number in the domain with channel_definition_field"
-                f" area. {starting_da}"
+            raise ChannelProfilerError(
+                f"Invalid number of outlets ({outlet_nodes.size})."
+                " The number of outlet nodes must be greater than zero"
+            )
+        if (
+            number_of_watersheds is not None
+            and outlet_nodes.size != number_of_watersheds
+        ):
+            raise ChannelProfilerError(
+                "Mismatch between the number of watersheds and the number of outlets"
+                f" ({number_of_watersheds} != {outlet_nodes.size})."
+                " The number of outlet nodes must match the specified number"
+                " of watersheds."
             )
 
         self._outlet_nodes = outlet_nodes
@@ -825,3 +842,100 @@ class ChannelProfiler(_BaseProfiler):
                 ids = self._data_struct[outlet_id][segment_tuple]["ids"]
                 d = distance_upstream[ids]
                 self._data_struct[outlet_id][segment_tuple]["distances"] = d - offset
+
+
+def _validate_outlet_nodes(outlet_nodes: ArrayLike) -> NDArray[np.int_] | None:
+    if outlet_nodes is None:
+        return None
+
+    outlet_nodes = np.asarray(outlet_nodes)
+
+    if outlet_nodes.size == 0:
+        return np.array([], dtype=int)
+
+    if not np.issubdtype(outlet_nodes.dtype, np.integer):
+        raise ValueError(
+            "Invalid array of outlets. Expected an integer array suitable"
+            f" for indexing but got array of type {outlet_nodes.dtype}."
+        )
+
+    return outlet_nodes
+
+
+def _raise_if_any_below_threshold(
+    array: ArrayLike,
+    threshold: float = 0.0,
+    indices: ArrayLike | None = None,
+) -> None:
+    array = np.asarray(array)
+    if indices is not None:
+        indices = np.asarray(indices)
+        values = array[indices]
+    else:
+        indices = np.arange(array.size)
+        values = array
+
+    is_below_threshold = values <= threshold
+    if np.any(is_below_threshold):
+        value_of_largest, index_of_largest = _max_with_mask(
+            values, mask=is_below_threshold
+        )
+
+        n = np.count_nonzero(is_below_threshold)
+
+        error = ChannelProfilerError(f"Values below threshold ({threshold}).")
+        error.add_note(
+            f"There {'is' if n == 1 else 'are'} {n} such value{'' if n == 1 else 's'}."
+            f" The largest of which has a value of {value_of_largest} and is located"
+            f" at index {indices[index_of_largest]}."
+        )
+        raise error
+
+
+def _max_with_mask(values, mask=None):
+    """Find the largest value and its index in an array, optionally using a mask.
+
+    Identifies the largest value in the input array and its index. If a mask
+    is provided, only the values corresponding to `True` in the mask
+    are considered.
+
+    Parameters
+    ----------
+    values : array_like
+        Input array from which to find the largest value.
+    mask : array_like of bool, optional
+        A boolean mask indicating which elements of `values` to consider. If
+        `None`, all elements are considered.
+
+    Returns
+    -------
+    tuple
+        A tuple containing the largest value and its index. The index corresponds
+        to the position in the original array, even when a mask is applied.
+
+    Examples
+    --------
+    >>> _max_with_mask([1.0, 4.0, 3.0, 4.0])
+    (4.0, 1)
+    >>> _max_with_mask([1.0, 4.0, 3.0, 4.0], mask=[True, False, True, False])
+    (3.0, 2)
+    """
+    values = np.asarray(values)
+    if mask is None:
+        index_of_largest = np.argmax(values)
+        return values[index_of_largest], index_of_largest
+    else:
+        masked_values = values[mask]
+        index_of_largest = np.flatnonzero(mask)[np.argmax(masked_values)]
+        return np.max(masked_values), index_of_largest
+
+
+def _argsort_with_mask(values, mask=None):
+    if mask is None:
+        return np.argsort(values)
+
+    values = np.asarray(values)
+    masked_indices = np.flatnonzero(mask)
+    masked_values = values[masked_indices]
+
+    return masked_indices[np.argsort(masked_values)]

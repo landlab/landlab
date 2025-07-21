@@ -7,111 +7,211 @@ Created on Tue Feb 27 16:25:11 2018
 import matplotlib
 import numpy as np
 import pytest
+from numpy.testing import assert_array_equal
 
 from landlab import FieldError
 from landlab import RasterModelGrid
 from landlab.components import ChannelProfiler
-from landlab.components import DepressionFinderAndRouter
 from landlab.components import FastscapeEroder
 from landlab.components import FlowAccumulator
-from landlab.components import LinearDiffuser
+from landlab.components.profiler.channel_profiler import ChannelProfilerError
+from landlab.components.profiler.channel_profiler import _argsort_with_mask
+from landlab.components.profiler.channel_profiler import _max_with_mask
+from landlab.components.profiler.channel_profiler import _raise_if_any_below_threshold
+from landlab.components.profiler.channel_profiler import _validate_outlet_nodes
 
 matplotlib.use("agg")
 
 
-def test_assertion_error():
-    """Test that the correct assertion error will be raised."""
-    mg = RasterModelGrid((10, 10))
-    z = mg.add_zeros("topographic__elevation", at="node")
-    z += 200 + mg.x_of_node + mg.y_of_node + np.random.randn(mg.size("node"))
+@pytest.mark.parametrize(
+    "mask,expected",
+    [
+        (None, (4.0, 1)),
+        ([True, True, True, True], (4.0, 1)),
+        ([True, False, True, False], (3.0, 2)),
+    ],
+)
+def test_max_with_mask(mask, expected):
+    array = [1.0, 4.0, 3.0, 4.0]
+    value, index = _max_with_mask(array, mask=mask)
+    assert (value, index) == expected
+    assert array[index] == value
 
-    mg.set_closed_boundaries_at_grid_edges(
-        bottom_is_closed=True,
-        left_is_closed=True,
-        right_is_closed=True,
-        top_is_closed=True,
+
+@pytest.mark.parametrize("value", (0, 0.5, 2, 2.5, np.inf))
+@pytest.mark.parametrize("indices", ([0, 1, 2], None))
+def test_raise_if_below_threshold(value, indices):
+    with pytest.raises(ChannelProfilerError):
+        _raise_if_any_below_threshold([0, 1, 2], threshold=value, indices=indices)
+
+
+@pytest.mark.parametrize("value", (-1, -1e-6, -np.inf))
+@pytest.mark.parametrize("indices", ([0, 1, 2], None))
+def test_raise_if_below_threshold_all_above(value, indices):
+    assert (
+        _raise_if_any_below_threshold([0, 1, 2], threshold=value, indices=indices)
+        is None
     )
-    mg.set_watershed_boundary_condition_outlet_id(0, z, -9999)
-    fa = FlowAccumulator(
-        mg, flow_director="D8", depression_finder=DepressionFinderAndRouter
-    )
-    sp = FastscapeEroder(mg, K_sp=0.0001, m_sp=0.5, n_sp=1, erode_flooded_nodes=True)
-    ld = LinearDiffuser(mg, linear_diffusivity=0.0001)
 
-    dt = 100
-    for _ in range(200):
-        fa.run_one_step()
-        sp.run_one_step(dt=dt)
-        ld.run_one_step(dt=dt)
-        mg.at_node["topographic__elevation"][0] -= 0.001  # Uplift
 
+@pytest.mark.parametrize("value", (0, 0.5, 2, 2.5, np.inf))
+def test_raise_if_below_threshold_subset(value):
+    with pytest.raises(ChannelProfilerError):
+        _raise_if_any_below_threshold(
+            [-0.5, 0, 1, 2.5, 2], threshold=value, indices=[1, 2, 4]
+        )
+
+
+@pytest.mark.parametrize("array", [[0, 1, 2], [], [-1, -2]])
+def test_validate_outlet_nodes(array):
+    expected = np.array(array, dtype=int)
+    actual = _validate_outlet_nodes(array)
+    assert_array_equal(actual, expected)
+
+    values = np.arange(4.0) + 0.5
+    assert_array_equal(values[array], values[actual])
+
+
+def test_validate_outlet_nodes_bad_type():
+    with pytest.raises(ValueError) as excinfo:
+        _validate_outlet_nodes([0.0, 1, 2])
+    assert str(excinfo.value).startswith("Invalid array of outlets")
+
+
+def test_validate_outlet_nodes_with_none():
+    assert _validate_outlet_nodes(None) is None
+
+
+@pytest.mark.parametrize(
+    "mask,expected",
+    [
+        (None, [3, 0, 2, 1]),
+        ([True, True, True, True], [3, 0, 2, 1]),
+        ([True, True, True, False], [0, 2, 1]),
+        ([False, False, False, False], []),
+    ],
+)
+def test_argsort_with_mask(mask, expected):
+    assert_array_equal(_argsort_with_mask([1, 3, 2, 0], mask=mask), expected)
+
+
+@pytest.mark.parametrize("field_name", (None, "drainage_area", "foo"))
+def test_missing_channel_definition_field(field_name):
+    grid = RasterModelGrid((4, 5))
+    grid.add_zeros("flow__receiver_node", at="node", dtype=int)
+    grid.add_zeros("flow__link_to_receiver_node", at="node", dtype=int)
+
+    kwargs = {} if field_name is None else {"channel_definition_field": field_name}
+    with pytest.raises(ChannelProfilerError) as excinfo:
+        ChannelProfiler(grid, **kwargs)
+    expected = "drainage_area" if field_name is None else field_name
+
+    assert str(excinfo.value).startswith("Missing required field")
+    assert expected in str(excinfo.value)
+
+
+def test_invalid_outlet_nodes():
+    grid = RasterModelGrid((4, 5))
+    grid.at_node["topographic__elevation"] = [
+        [5, 5, 5, 5, 5],
+        [5, 4, 5, 4, 5],
+        [5, 3, 2, 3, 5],
+        [5, 5, 1, 5, 5.0],
+    ]
+    flow_accumulator = FlowAccumulator(grid, flow_director="D4")
+    flow_accumulator.run_one_step()
+    with pytest.raises(ChannelProfilerError):
+        ChannelProfiler(grid, outlet_nodes=[])
+
+    with pytest.raises(ChannelProfilerError):
+        ChannelProfiler(grid, outlet_nodes=[0], number_of_watersheds=2)
+
+
+@pytest.mark.parametrize("number_of_watersheds", (-1, 0))
+def test_invalid_number_of_watersheds(number_of_watersheds):
+    grid = RasterModelGrid((4, 5))
     with pytest.raises(ValueError):
-        ChannelProfiler(mg, outlet_nodes=[0], number_of_watersheds=2)
+        ChannelProfiler(
+            grid, outlet_nodes=[0], number_of_watersheds=number_of_watersheds
+        )
 
 
-def test_asking_for_too_many_watersheds():
-    mg = RasterModelGrid((10, 10))
-    z = mg.add_zeros("topographic__elevation", at="node")
-    z += 200 + mg.x_of_node + mg.y_of_node
-    mg.set_closed_boundaries_at_grid_edges(
-        bottom_is_closed=True,
-        left_is_closed=True,
-        right_is_closed=True,
-        top_is_closed=True,
-    )
-    mg.set_watershed_boundary_condition_outlet_id(0, z, -9999)
-    fa = FlowAccumulator(mg, flow_director="D8")
-    sp = FastscapeEroder(mg, K_sp=0.0001, m_sp=0.5, n_sp=1)
+@pytest.mark.parametrize("n_watersheds", (2, 3, 4))
+def test_requesting_too_many_watersheds(n_watersheds):
+    grid = RasterModelGrid((4, 5))
+    grid.at_node["topographic__elevation"] = [
+        [5, 5, 5, 5, 5],
+        [5, 4, 5, 4, 5],
+        [5, 3, 2, 3, 5],
+        [5, 5, 1, 5, 5.0],
+    ]
+    flow_accumulator = FlowAccumulator(grid, flow_director="D4")
+    flow_accumulator.run_one_step()
 
-    dt = 100
-    for _ in range(200):
-        fa.run_one_step()
-        sp.run_one_step(dt=dt)
-        mg.at_node["topographic__elevation"][0] -= 0.001
+    ChannelProfiler(grid, number_of_watersheds=1)
+    with pytest.raises(ChannelProfilerError) as excinfo:
+        ChannelProfiler(grid, number_of_watersheds=n_watersheds)
+    assert str(excinfo.value).startswith("Mismatch between")
 
-    with pytest.raises(ValueError):
-        ChannelProfiler(mg, number_of_watersheds=3)
 
-    with pytest.raises(ValueError):
-        ChannelProfiler(mg, number_of_watersheds=None, minimum_outlet_threshold=200)
+@pytest.mark.parametrize("n_watersheds", (None, 1, 2))
+def test_no_outlet_nodes(n_watersheds):
+    grid = RasterModelGrid((4, 5))
+    grid.at_node["topographic__elevation"] = [
+        [5, 5, 5, 5, 5],
+        [5, 4, 3, 4, 5],
+        [5, 4, 3, 4, 5],
+        [5, 5, 5, 5, 5.0],
+    ]
+    flow_accumulator = FlowAccumulator(grid, flow_director="D4")
+    flow_accumulator.run_one_step()
+
+    with pytest.raises(ChannelProfilerError):
+        ChannelProfiler(grid, number_of_watersheds=n_watersheds)
+
+
+def test_too_small_watersheds():
+    grid = RasterModelGrid((4, 5))
+    grid.at_node["topographic__elevation"] = [
+        [5, 5, 5, 5, 5],
+        [5, 4, 5, 4, 5],
+        [5, 3, 2, 3, 5],
+        [5, 5, 1, 5, 5.0],
+    ]
+    flow_accumulator = FlowAccumulator(grid, flow_director="D4")
+    flow_accumulator.run_one_step()
+
+    with pytest.raises(ChannelProfilerError):
+        ChannelProfiler(grid, minimum_outlet_threshold=6.0)
+    ChannelProfiler(grid, minimum_outlet_threshold=6.0 - 1e-6)
 
 
 def test_no_minimum_channel_threshold():
-    mg = RasterModelGrid((10, 10))
-    z = mg.add_zeros("topographic__elevation", at="node")
-    z += 200 + mg.x_of_node + mg.y_of_node + np.random.randn(mg.size("node"))
+    grid = RasterModelGrid((4, 5))
+    grid.at_node["topographic__elevation"] = [
+        [5, 5, 5, 5, 5],
+        [5, 4, 5, 4, 5],
+        [5, 3, 2, 3, 5],
+        [5, 5, 1, 5, 5.0],
+    ]
+    flow_accumulator = FlowAccumulator(grid, flow_director="D4")
+    flow_accumulator.run_one_step()
 
-    mg.set_closed_boundaries_at_grid_edges(
-        bottom_is_closed=True,
-        left_is_closed=True,
-        right_is_closed=True,
-        top_is_closed=True,
-    )
-    mg.set_watershed_boundary_condition_outlet_id(0, z, -9999)
-    fa = FlowAccumulator(
-        mg, flow_director="D8", depression_finder=DepressionFinderAndRouter
-    )
-    fa.run_one_step()
-
-    profiler = ChannelProfiler(mg)
-
-    assert profiler._minimum_channel_threshold == 0.0
+    channel_profiler = ChannelProfiler(grid)
+    assert channel_profiler._minimum_channel_threshold == 0.0
 
 
-def test_no_flow__link_to_receiver_node():
+@pytest.mark.parametrize(
+    "missing_field", ("flow__receiver_node", "flow__link_to_receiver_node")
+)
+def test_missing_required_field(missing_field):
     mg = RasterModelGrid((10, 10))
     mg.add_zeros("topographic__elevation", at="node")
     mg.add_zeros("drainage_area", at="node")
     mg.add_zeros("flow__receiver_node", at="node")
-    with pytest.raises(FieldError):
-        ChannelProfiler(mg)
-
-
-def test_no_flow__receiver_node():
-    mg = RasterModelGrid((10, 10))
-    mg.add_zeros("topographic__elevation", at="node")
-    mg.add_zeros("drainage_area", at="node")
     mg.add_zeros("flow__link_to_receiver_node", at="node")
+
+    mg.at_node.pop(missing_field)
     with pytest.raises(FieldError):
         ChannelProfiler(mg)
 
