@@ -88,7 +88,7 @@ jobs:
 
       - name: Build wheels
         if: ${{ startsWith(needs.check-tag.outputs.publish_url, 'http') }}
-        uses: pypa/cibuildwheel@v2.22.0
+        uses: pypa/cibuildwheel@v3.1.3
         with:
           only: ${{ matrix.cibw-only }}
 
@@ -157,7 +157,7 @@ jobs:
           sudo tar fvxz openmp-13.0.0-darwin21-Release.tar.gz -C /
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.22.0
+        uses: pypa/cibuildwheel@v3.1.3
         with:
           only: ${{ matrix.cibw-only }}
 
