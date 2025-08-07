@@ -225,7 +225,7 @@ def docs_check_links(session: nox.Session) -> None:
     ]
 
     if broken_links:
-        print("\n".join(sorted(broken_links)))
+        print("\n".join(f"❌ {link}" for link in sorted(broken_links)))
         session.error(
             f"{len(broken_links)} broken links were found."
             f" see {output_json} for a complete log"
