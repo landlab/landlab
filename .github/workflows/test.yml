@@ -77,6 +77,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/build-bdist/
+        env:
+          CIBW_ENVIRONMENT: >-
+            LANDLAB_BUILD_RELEASE=${{ startsWith(needs.check-tag.outputs.publish_url, 'http') && '1' || '0' }}
+
         with:
           cibw-only: ${{ matrix.cibw-only }}
           upload-name: build-wheels-${{ matrix.cibw-only }}
