@@ -1,2 +1,0 @@
-Added support for parallel builds. The build process now utilizes
-multiple CPU cores where available, significantly reducing build time.

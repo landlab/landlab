@@ -1,2 +1,0 @@
-Changed the *mixed-line-ending* *pre-commit* hook to ensure all files
-use a line feed as the end-of-line character.

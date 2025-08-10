@@ -1,2 +1,0 @@
-Updated `KinwaveImplicitOverlandFlow` to accept arrays of floats in
-addition to scalars for both the `runoff_rate` and `roughness` keywords.

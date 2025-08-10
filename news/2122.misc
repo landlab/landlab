@@ -1,2 +1,0 @@
-Simplified the github actions job that builds the docs by using
-the setup-python action rather than setup-miniconda.

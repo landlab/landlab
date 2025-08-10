@@ -1,3 +1,0 @@
-
-Deprecated passing the `at` keyword as the first argument to
-functions like, for example, :meth:`~.GraphFields.add_ones`.

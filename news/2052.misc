@@ -1,2 +1,0 @@
-Removed the current module from *sphinx* autosummary tables to be compatible
-with newer version of *sphinx*.

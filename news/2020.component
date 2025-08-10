@@ -1,1 +1,0 @@
-Added ConcentrationTrackerForSpace companion component to the SpaceLargeScaleEroder. The component calculates the movement of sediment property concentrations by fluvial transport across the Landlab grid.

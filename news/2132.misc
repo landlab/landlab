@@ -1,2 +1,0 @@
-Added ubuntu arm64 runners to our continuous integration builds. This drastically
-speeds up building for arm64 as compared to using emulation via QEMU.
