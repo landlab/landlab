@@ -1,2 +1,0 @@
-Fixed an issue that caused a `TypeError` to be raised when printing numpy arrays using
-older versions of numpy.

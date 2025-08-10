@@ -7,6 +7,75 @@
 
 <!-- towncrier release notes start -->
 
+## 2.10.1 (2025-08-10)
+
+
+### ✨ New Components
+
+- Adds a new 2D flow solver to Landlab. RiverFlowDynamics implements a semi-implicit,
+  semi-Lagrangian finite-volume approximation of the depth-averaged shallow water
+  equations, originally proposed by Casulli and Cheng in 1992, along with
+  subsequent related work. [#1979](https://github.com/landlab/landlab/issues/1979)
+- Added ConcentrationTrackerForSpace companion component to the SpaceLargeScaleEroder. The component calculates the movement of sediment property concentrations by fluvial transport across the Landlab grid. [#2020](https://github.com/landlab/landlab/issues/2020)
+
+
+### 🍰 New Features
+
+- Updated `KinwaveImplicitOverlandFlow` to accept arrays of floats in
+  addition to scalars for both the `runoff_rate` and `roughness` keywords. [#2098](https://github.com/landlab/landlab/issues/2098)
+- Added `neighbor_to_arrow` function that converts neighbor node indices into
+  arrow symbols. [#2178](https://github.com/landlab/landlab/issues/2178)
+
+
+### 🛠️ Bug Fixes
+
+- Fixed an issue that caused a `TypeError` to be raised when printing numpy arrays using
+  older versions of numpy. [#2018](https://github.com/landlab/landlab/issues/2018)
+- Fix dimensional error in calculation of Courant number. [#2163](https://github.com/landlab/landlab/issues/2163)
+
+
+### 📖 Documentation Enhancements
+
+- Update notebooks that demonstrate Mesa + Landlab. [#2032](https://github.com/landlab/landlab/issues/2032)
+- Fixed an issue with the citation section of the docs that caused the
+  tabs to not render correctly. [#2049](https://github.com/landlab/landlab/issues/2049)
+- Moved *Lithology* text from the top-level reference page to the *layers* page,
+  which describes different types of layering that *Landlab* supports. [#2050](https://github.com/landlab/landlab/issues/2050)
+- Updated the links to the landlab documentation to point to landlab.csdms.io. [#2117](https://github.com/landlab/landlab/issues/2117)
+- Fixed a number of broken links in the documentation. [#2118](https://github.com/landlab/landlab/issues/2118)
+- Fixed some formatting in the developer installation instructions. [#2155](https://github.com/landlab/landlab/issues/2155)
+- Update list of publications in "usedby" [#2170](https://github.com/landlab/landlab/issues/2170)
+
+
+### 🔩 Other Changes and Additions
+
+- Minor improvements to plot_network_and_parcels to allow straightforward compatability with imshowgrid. [#1986](https://github.com/landlab/landlab/issues/1986)
+- Deprecated passing the `at` keyword as the first argument to
+  functions like, for example, :meth:`~.GraphFields.add_ones`. [#1999](https://github.com/landlab/landlab/issues/1999)
+- Added support for Python 3.13 and dropped support for 3.10. [#2017](https://github.com/landlab/landlab/issues/2017)
+- Removed unnecessary toctree directives from the docs. [#2048](https://github.com/landlab/landlab/issues/2048)
+- Fixed a *jinja* error when building the docs using newer versions of
+  *sphinx*. [#2051](https://github.com/landlab/landlab/issues/2051)
+- Removed the current module from *sphinx* autosummary tables to be compatible
+  with newer version of *sphinx*. [#2052](https://github.com/landlab/landlab/issues/2052)
+- Changed the *mixed-line-ending* *pre-commit* hook to ensure all files
+  use a line feed as the end-of-line character. [#2083](https://github.com/landlab/landlab/issues/2083)
+- Removed the benchmarks from our unit tests, as they'll be moved to a separate
+  repostory. This reduces the amount of time our continuous integration
+  tests take to run. [#2087](https://github.com/landlab/landlab/issues/2087)
+- Added a new GitHub Actions job that checks the documentation for broken links. [#2121](https://github.com/landlab/landlab/issues/2121)
+- Simplified the github actions job that builds the docs by using
+  the setup-python action rather than setup-miniconda. [#2122](https://github.com/landlab/landlab/issues/2122)
+- Improved the speed of the continuous integration tests by switching to using
+  the *setup-python* action and running the *richdem* tests as their own job
+  using a *conda* environment. [#2129](https://github.com/landlab/landlab/issues/2129)
+- Added ubuntu arm64 runners to our continuous integration builds. This drastically
+  speeds up building for arm64 as compared to using emulation via QEMU. [#2132](https://github.com/landlab/landlab/issues/2132)
+- Changed from *coveralls* to *codecov* for tracking test coverage. [#2133](https://github.com/landlab/landlab/issues/2133)
+- Added a mass balance check in the unit tests for deAlmeida OverlandFlow component. [#2166](https://github.com/landlab/landlab/issues/2166)
+- Added support for parallel builds. The build process now utilizes
+  multiple CPU cores where available, significantly reducing build time. [#2200](https://github.com/landlab/landlab/issues/2200)
+
 ## 2.9.1 (2024-10-10)
 
 
