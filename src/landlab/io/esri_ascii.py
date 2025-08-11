@@ -48,25 +48,28 @@ def dump(
     stream: TextIO | None = None,
     at: Literal["node", "patch", "corner", "cell"] = "node",
     name: str | None = None,
+    nodata_value: int | float = -9999,
 ) -> str | None:
     """Dump a grid field to ESRII ASCII format.
 
     Parameters
     ----------
-    grid :
+    grid : ModelGrid
         A Landlab grid.
-    stream :
+    stream : file-like, optional
         A ``file_like`` object to write to. If ``None``, return
         a string containing the serialized grid.
-    at :
+    at : str, optional
         Where the field to be written is located on the grid.
-    name :
+    name : str, optional
         The name of the field to be written. If ``None``, only the header
         information will be written.
+    nodata_value : float or int, optional
+        The value to indicate there is no-data at this point.
 
     Returns
     -------
-    :
+    str or None
         The grid field in ESRI ASCII format or ``None`` if a ``file_like``
         object was provided.
 
@@ -84,13 +87,13 @@ def dump(
     YLLCENTER 0.0
     NODATA_VALUE -9999
 
-    >>> print(esri_ascii.dump(grid, at="cell"))
+    >>> print(esri_ascii.dump(grid, at="cell", nodata_value=0))
     NROWS 1
     NCOLS 2
     CELLSIZE 2.0
     XLLCENTER 2.0
     YLLCENTER 2.0
-    NODATA_VALUE -9999
+    NODATA_VALUE 0
     """
     grid = _validate_grid(grid)
 
@@ -108,6 +111,7 @@ def dump(
         xllcenter=grid.xy_of_lower_left[0] - grid.dx * shift,
         yllcenter=grid.xy_of_lower_left[1] - grid.dx * shift,
         cellsize=grid.dx,
+        nodata_value=nodata_value,
     )
     lines = [str(header)]
 
