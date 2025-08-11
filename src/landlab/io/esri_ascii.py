@@ -54,20 +54,22 @@ def dump(
 
     Parameters
     ----------
-    grid :
+    grid : ModelGrid
         A Landlab grid.
-    stream :
+    stream : file-like, optional
         A ``file_like`` object to write to. If ``None``, return
         a string containing the serialized grid.
-    at :
+    at : str, optional
         Where the field to be written is located on the grid.
-    name :
+    name : str, optional
         The name of the field to be written. If ``None``, only the header
         information will be written.
+    nodata_value : float or int, optional
+        The value to indicate there is no-data at this point.
 
     Returns
     -------
-    :
+    str or None
         The grid field in ESRI ASCII format or ``None`` if a ``file_like``
         object was provided.
 
