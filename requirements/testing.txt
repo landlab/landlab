@@ -1,6 +1,6 @@
 coveralls==4.0.1
 flaky==3.8.1
-hypothesis==6.122.3
+hypothesis==6.137.3
 pytest==8.3.4
 pytest-benchmark==5.1.0
 pytest-cov==6.0.0
