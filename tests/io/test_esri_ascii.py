@@ -342,3 +342,13 @@ def test_dump_unequal_spacing():
 
     with pytest.raises(esri_ascii.EsriAsciiError):
         esri_ascii.dump(grid)
+
+
+def test_reference_shift_with_bad_args():
+    with pytest.raises(ValueError) as exc_info:
+        esri_ascii._get_lower_left_shift(at="foo", ref="center")
+    assert str(exc_info.value).startswith("Unrecognized grid location")
+
+    with pytest.raises(ValueError) as exc_info:
+        esri_ascii._get_lower_left_shift(at="node", ref="foo")
+    assert str(exc_info.value).startswith("Unrecognized reference")
