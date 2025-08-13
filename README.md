@@ -93,10 +93,10 @@ To launch a Binder instance that goes straight to the [teaching notebooks click 
 
 The Landlab notebooks can also be run on [EarthscapeHub].
 Visit this link to learn how to sign up for a free account.
-Explore the example notebooks on the
-[lab](https://lab.openearthscape.org/hub/user-redirect/git-pull?repo=https%3A%2F%2Fgithub.com%2Flandlab%2Flandlab&urlpath=lab%2Ftree%2Flandlab%2Fnotebooks%2Fwelcome.ipynb&branch=master) or [jupyter](https://jupyter.openearthscape.org/hub/user-redirect/git-pull?repo=https%3A%2F%2Fgithub.com%2Flandlab%2Flandlab&urlpath=lab%2Ftree%2Flandlab%2Fnotebooks%2Fwelcome.ipynb&branch=master) Hub instance.
+Try the example notebooks on the
+[explore](https://explore.openearthscape.org/hub/user-redirect/git-pull?repo=https%3A%2F%2Fgithub.com%2Flandlab%2Flandlab&urlpath=lab%2Ftree%2Flandlab%2Fnotebooks%2Fwelcome.ipynb&branch=master) or [jupyter](https://jupyter.openearthscape.org/hub/user-redirect/git-pull?repo=https%3A%2F%2Fgithub.com%2Flandlab%2Flandlab&urlpath=lab%2Ftree%2Flandlab%2Fnotebooks%2Fwelcome.ipynb&branch=master) Hub instance.
 Or, use the teaching notebooks on the
-[lab](https://lab.openearthscape.org/hub/user-redirect/git-pull?repo=https%3A%2F%2Fgithub.com%2Flandlab%2Flandlab&urlpath=lab%2Ftree%2Flandlab%2Fnotebooks%2Fteaching%2Fwelcome_teaching.ipynb&branch=master) or [jupyter](https://jupyter.openearthscape.org/hub/user-redirect/git-pull?repo=https%3A%2F%2Fgithub.com%2Flandlab%2Flandlab&urlpath=lab%2Ftree%2Flandlab%2Fnotebooks%2Fteaching%2Fwelcome_teaching.ipynb&branch=master) Hub instance.
+[explore](https://explore.openearthscape.org/hub/user-redirect/git-pull?repo=https%3A%2F%2Fgithub.com%2Flandlab%2Flandlab&urlpath=lab%2Ftree%2Flandlab%2Fnotebooks%2Fteaching%2Fwelcome_teaching.ipynb&branch=master) or [jupyter](https://jupyter.openearthscape.org/hub/user-redirect/git-pull?repo=https%3A%2F%2Fgithub.com%2Flandlab%2Flandlab&urlpath=lab%2Ftree%2Flandlab%2Fnotebooks%2Fteaching%2Fwelcome_teaching.ipynb&branch=master) Hub instance.
 Be sure to run all notebooks with the *CSDMS* kernel.
 
 ## License
