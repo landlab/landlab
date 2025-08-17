@@ -578,18 +578,24 @@ def _get_lower_left_shift(at="node", ref="center"):
         The unit shift between the lower left of an ESRI ASCII field
         and a ``RasterModelGrid``.
     """
-    if at == "node" or (at == "patch" and ref == "corner"):
-        return 0.0
-    elif (
-        at == "corner"
-        or (at == "patch" and ref == "center")
-        or (at == "cell" and ref == "corner")
-    ):
-        return -0.5
-    elif at == "cell" and ref == "center":
-        return -1.0
+    if ref not in ("center", "corner"):
+        raise ValueError(
+            f"Unrecognized reference location ({ref!r} not one of 'center', 'corner')"
+        )
 
-    raise RuntimeError(f"unreachable code ({at!r}, {ref!r}")
+    if at == "node":
+        return 0.0 if ref == "center" else 0.5
+    if at == "patch":
+        return -0.5 if ref == "center" else 0.0
+    if at == "corner":
+        return -0.5 if ref == "center" else 0.0
+    if at == "cell":
+        return -1.0 if ref == "center" else -0.5
+
+    raise ValueError(
+        f"Unrecognized grid location ({at!r} not one of"
+        " 'cell', 'corner', 'node', 'patch')"
+    )
 
 
 class _Header:
