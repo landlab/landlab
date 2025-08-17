@@ -1,0 +1,2 @@
+Fixed an issue where the location of the lower left corner was
+being written by `esri_ascii.dump`.
