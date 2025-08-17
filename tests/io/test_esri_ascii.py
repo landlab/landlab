@@ -120,6 +120,24 @@ cellsize {cellsize}
         esri_ascii.loads(contents.format(**header))
 
 
+@pytest.mark.parametrize("nodata_value", (0, 1, -999))
+def test_dump_with_nodata_value(nodata_value):
+    grid = RasterModelGrid((4, 3), xy_spacing=10.0, xy_of_lower_left=(1.0, 2.0))
+    actual = esri_ascii.dump(grid, nodata_value=nodata_value)
+
+    assert (
+        actual
+        == f"""\
+NROWS 4
+NCOLS 3
+CELLSIZE 10.0
+XLLCENTER 1.0
+YLLCENTER 2.0
+NODATA_VALUE {nodata_value}
+"""
+    )
+
+
 def test_dump_to_string_no_data():
     grid = RasterModelGrid((4, 3), xy_spacing=10.0, xy_of_lower_left=(1.0, 2.0))
     actual = esri_ascii.dump(grid)
