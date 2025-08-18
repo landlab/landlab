@@ -157,7 +157,7 @@ jobs:
           auto-update-conda: true
           channels: conda-forge,defaults
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         name: Download build artifacts
         with:
           pattern: "build-wheels-*"
@@ -219,7 +219,7 @@ jobs:
         with:
           python-version: '3.13'
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         name: Download build artifact
         with:
           pattern: notebooks-*
@@ -273,7 +273,7 @@ jobs:
       id-token: write
 
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           pattern: "build-*"
           merge-multiple: true
