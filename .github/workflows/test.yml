@@ -40,7 +40,7 @@ jobs:
     needs: check-tag
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Build sdist
         run: pipx run build --sdist
@@ -75,7 +75,7 @@ jobs:
           - { os: windows-2022, cibw-only: cp313-win_amd64 }
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/build-bdist/
         env:
           CIBW_ENVIRONMENT: >-
@@ -100,7 +100,7 @@ jobs:
         pytest-marker: ["slow", "not slow"]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/run-tests/
         with:
           python-version: ${{ matrix.python-version }}
@@ -121,7 +121,7 @@ jobs:
         pytest-marker: ["slow", "not slow"]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/run-notebooks/
         with:
           python-version: ${{ matrix.python-version }}
@@ -148,7 +148,7 @@ jobs:
         shell: bash -l {0}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: conda-incubator/setup-miniconda@v3
         with:
           python-version: ${{ matrix.python-version }}
@@ -190,7 +190,7 @@ jobs:
         shell: bash -l {0}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Use Python 3.12
         uses: actions/setup-python@v5
         with:
@@ -213,7 +213,7 @@ jobs:
         shell: bash -l {0}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Use Python 3.13
         uses: actions/setup-python@v5
         with:
