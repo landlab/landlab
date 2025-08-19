@@ -247,11 +247,11 @@ class AtMostNodes(SegmentReducer):
 
 
 def spacing_from_drainage_area(
-    drainage_area,
-    a=9.68,
-    b=0.32,
-    n_widths=20.0,
-):
+    drainage_area: npt.NDArray[np.floating] | float,
+    a: float = 9.68,
+    b: float = 0.32,
+    n_widths: float = 20.0,
+) -> npt.NDArray[np.floating] | float:
     """Calculate channel spacing based on upstream drainage area of each node.
 
     Parameters
