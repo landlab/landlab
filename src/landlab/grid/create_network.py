@@ -256,8 +256,12 @@ def spacing_from_drainage_area(
 
     Parameters
     ----------
-    drainage_area : number or ndarray
+    drainage_area : float or ndarray
         Upstream drainage area in km ** 2.
+    a, b : float, optional
+        Coefficient and exponent to use for channel width calculation.
+    n_widths: float, optional
+        Number of channel widths for the spacing.
 
     Returns
     -------
