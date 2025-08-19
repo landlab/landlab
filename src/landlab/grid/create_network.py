@@ -268,7 +268,7 @@ def spacing_from_drainage_area(
     ndarray
         Node spacing in meters.
     """
-    return n_widths * (a * drainage_area / (1000**2)) ** b
+    return n_widths * (a * drainage_area / 1e6) ** b
 
 
 def _reduce_nodes(distance_along_segment, spacing=1.0):
