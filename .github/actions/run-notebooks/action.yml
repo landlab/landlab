@@ -2,9 +2,6 @@ name: "Run notebooks"
 inputs:
   python-version:
     required: true
-  pytest-addopts:
-    required: false
-    default: ''
   nox-session:
     required: true
   upload-name:
@@ -14,29 +11,10 @@ runs:
   using: "composite"
   steps:
     - uses: actions/checkout@v4
-    - name: Python ${{ inputs.python-version }}
-      uses: actions/setup-python@v5
+    - uses: ./.github/actions/run-tests/
       with:
+        nox-session: ${{ inputs.nox-session }}
         python-version: ${{ inputs.python-version }}
-
-    - uses: actions/download-artifact@v4
-      name: Download build artifacts
-      with:
-        pattern: "build-*"
-        merge-multiple: true
-        path: ${{ github.workspace }}/dist
-
-    - name: Test
-      env:
-        OPENTOPOGRAPHY_API_KEY: ${{ inputs.opentopography_api_key }}
-        MPLBACKEND: "module://matplotlib_inline.backend_inline"
-        PYTEST_ADDOPTS: ${{ inputs.pytest-addopts }}
-      shell: bash -l {0}
-      run: |
-        pip install nox
-        nox --verbose -s ${{ inputs.nox-session }} \
-            --force-pythons=${{ inputs.python-version }} \
-            -- dist/
 
     - name: Find executed notebooks
       shell: bash -l {0}

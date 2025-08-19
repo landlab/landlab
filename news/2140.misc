@@ -1,0 +1,4 @@
+Added a new GitHub workflow to optimize CI performance by separating
+quick tests from comprehensive testing. The quick tests run on every push
+and pull request using a single configuration, while the full test suite
+only runs on ready-for-review pull requests.

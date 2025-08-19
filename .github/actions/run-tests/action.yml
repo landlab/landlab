@@ -2,13 +2,8 @@ name: "Run tests"
 inputs:
   python-version:
     required: true
-  pytest-addopts:
-    required: true
   nox-session:
     required: true
-  codedov-token:
-    required: true
-
 runs:
   using: "composite"
   steps:
@@ -26,10 +21,6 @@ runs:
         path: ${{ github.workspace }}/dist
 
     - name: Test
-      env:
-        HYPOTHESIS_PROFILE: "ci"
-        MPLBACKEND: "Agg"
-        PYTEST_ADDOPTS: ${{ inputs.pytest-addopts }}
       shell: bash -l {0}
       run: |
         pip install nox
@@ -39,5 +30,3 @@ runs:
 
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v5
-      with:
-        token: ${{ inputs.codecov-token }}

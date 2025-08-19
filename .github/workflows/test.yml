@@ -1,8 +1,9 @@
 name: Test
 
 on:
-  - push
-  - pull_request
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
 
 concurrency:
   group: ${{ github.ref }}-${{ github.workflow }}
@@ -10,11 +11,7 @@ concurrency:
 
 jobs:
   check-tag:
-    # Run on external PRs, but not on internal PRs, to avoid duplicate runs
-    if: |
-      github.event_name == 'push' ||
-      github.event.pull_request.head.repo.full_name != github.repository
-
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     outputs:
       publish_url: ${{ steps.check-publish.outputs.publish_url }}
@@ -102,11 +99,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/run-tests/
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          HYPOTHESIS_PROFILE: "ci"
+          MPLBACKEND: "Agg"
+          PYTEST-ADDOPTS: "-m '${{ matrix.pytest-marker }} and not richdem'"
         with:
           python-version: ${{ matrix.python-version }}
           nox-session: "test"
-          pytest-addopts: "-m '${{ matrix.pytest-marker }} and not richdem'"
-          codecov-token: ${{ secrets.CODECOV_TOKEN }}
 
   test-notebooks:
     name: Run the notebooks
@@ -117,19 +117,20 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, windows-latest]
-        python-version: ["3.13"]
         pytest-marker: ["slow", "not slow"]
 
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/run-notebooks/
+        env:
+          OPENTOPOGRAPHY_API_KEY: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          MPLBACKEND: "module://matplotlib_inline.backend_inline"
+          PYTEST_ADDOPTS: "--overwrite -m '${{ matrix.pytest-marker }} and not richdem'"
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.13"
           nox-session: "test-notebooks"
-          pytest-addopts: "--overwrite -m '${{ matrix.pytest-marker }} and not richdem'"
-          opentopography-api-key: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
           upload-name: ${{ matrix.os == 'macos-latest' && format('notebooks-{0}', matrix.pytest-marker) || '' }}
-
 
   test-richdem:
     needs: build-wheels
