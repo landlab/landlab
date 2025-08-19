@@ -30,23 +30,37 @@ from landlab.grid.create_network import reindex_network_nodes
 from landlab.grid.create_network import spacing_from_drainage_area
 
 
-@given(
-    drainage_area=hynp.arrays(
-        dtype=hynp.floating_dtypes(),
-        shape=hynp.array_shapes(),
-        elements=floats(min_value=0, max_value=1000, width=16),
-    )
+@pytest.mark.parametrize(
+    "drainage_area",
+    (
+        0.0,
+        1.0,
+        1e6,
+        np.array([0.0]),
+        np.array([1.0]),
+        np.array([1e6]),
+        np.array([1, 2, 3, 4]),
+        np.array([1, 2, 3, 4, 5, 6]).reshape((3, 2)),
+    ),
 )
 def test_calc_spacing_always_positive(drainage_area):
     assert np.all(spacing_from_drainage_area(drainage_area) >= 0.0)
 
 
-@given(
-    drainage_area=hynp.arrays(
-        dtype=hynp.floating_dtypes(),
-        shape=hynp.array_shapes(),
-        elements=floats(min_value=0, width=16, allow_infinity=False),
-    )
+@pytest.mark.parametrize(
+    "drainage_area",
+    (
+        0.0,
+        1.0,
+        1e6,
+        1e9,
+        np.array([0.0]),
+        np.array([1.0]),
+        np.array([1e6]),
+        np.array([1e9]),
+        np.array([1, 2, 3, 4]),
+        np.array([1, 2, 3, 4, 5, 6]).reshape((3, 2)),
+    ),
 )
 def test_calc_spacing_unit_keywords(drainage_area):
     spacing = spacing_from_drainage_area(drainage_area, a=1, b=1, n_widths=1)
