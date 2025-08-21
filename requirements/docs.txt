@@ -1,4 +1,4 @@
-furo==2024.8.6
+furo==2025.7.19
 ipython==8.29.0
 myst-parser==4.0.0
 nbsphinx==0.9.7
