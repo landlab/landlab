@@ -17,7 +17,7 @@ jobs:
 
     runs-on: "macos-14"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/build-bdist/
         with:
           cibw-only: "cp313-macosx_arm64"
@@ -27,7 +27,7 @@ jobs:
     needs: build
     runs-on: "macos-14"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/run-tests/
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
@@ -42,7 +42,7 @@ jobs:
     needs: build
     runs-on: "macos-14"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/run-notebooks/
         env:
           OPENTOPOGRAPHY_API_KEY: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
