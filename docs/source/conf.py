@@ -54,6 +54,7 @@ source_suffix = ".rst"
 # source_encoding = 'utf-8-sig'
 
 linkcheck_retries = 5
+linkcheck_ignore = [r"https://csdms\.colorado\.edu/.*"]
 
 master_doc = "index"
 
