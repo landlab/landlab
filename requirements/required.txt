@@ -1,5 +1,5 @@
 bmipy==2.0.1
-importlib-resources==6.4.0; python_version < '3.12'
+importlib-resources==6.5.2; python_version < '3.12'
 matplotlib==3.10.0
 netcdf4==1.7.2
 numpy==2.2.3
