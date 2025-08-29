@@ -1,3 +1,4 @@
+import argparse
 import difflib
 import glob
 import json
@@ -40,14 +41,19 @@ def build(session: nox.Session) -> str:
 
 @nox.session(python=PYTHON_VERSION)
 def install(session: nox.Session) -> None:
-    arg = session.posargs[0] if session.posargs else build(session)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("target", nargs="?")
+
+    install_args, _ = parser.parse_known_args(session.posargs)
+
+    target = install_args.target or build(session)
 
     session.install("-r", PATH["requirements"] / "required.txt")
 
-    if os.path.isdir(arg):
-        session.install("landlab", f"--find-links={arg}", "--no-deps", "--no-index")
-    elif os.path.isfile(arg):
-        session.install(arg, "--no-deps")
+    if os.path.isdir(target):
+        session.install("landlab", f"--find-links={target}", "--no-deps", "--no-index")
+    elif os.path.isfile(target):
+        session.install(target, "--no-deps")
     else:
         session.error("first argument must be either a wheel or a wheelhouse folder")
 
