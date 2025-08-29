@@ -549,7 +549,12 @@ def list_ci_matrix(session):
 
 
 def _get_wheels(session):
-    platforms = session.posargs or ["linux", "macos", "windows"]
+    parser = argparse.ArgumentParser()
+    parser.add_argument("platform", nargs="*")
+
+    args, _ = parser.parse_known_args(session.posargs)
+
+    platforms = args.platform or ["linux", "macos", "windows"]
     session.install("cibuildwheel")
 
     wheels = []
