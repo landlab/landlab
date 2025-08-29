@@ -372,7 +372,11 @@ def check_package_versions(session, files=("required.txt",)):
 @nox.session
 def locks(session: nox.Session) -> None:
     """Create lock files."""
-    folders = session.posargs or [".", "docs", "notebooks"]
+    parser = argparse.ArgumentParser()
+    parser.add_argument("folder", nargs="*")
+    args, _ = parser.parse_known_args(session.posargs)
+
+    folders = args.folder or [".", "docs", "notebooks"]
 
     session.install("pip-tools")
 
