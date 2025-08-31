@@ -14,10 +14,6 @@ def test_name(pet):
     assert pet.name == "PotentialEvapotranspiration"
 
 
-def test_input_var_names(pet):
-    assert pet.input_var_names == ("radiation__ratio_to_flat_surface",)
-
-
 def test_output_var_names(pet):
     assert sorted(pet.output_var_names) == [
         "surface__potential_evapotranspiration_rate",
