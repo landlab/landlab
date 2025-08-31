@@ -260,7 +260,7 @@ class PotentialEvapotranspiration(Component):
 
         self._cell_values = self._grid["cell"]
 
-        # Internal closed elevations field enables the component to disregard closed nodes when calculating PET
+        # Omit closed nodes from PET calculations
         self._gridCopy = copy.deepcopy(self._grid)
         self._gridCopy.add_field(
             "pet_status_at_node", self._grid.status_at_node, at="node"
@@ -418,9 +418,11 @@ class PotentialEvapotranspiration(Component):
             raise ValueError(
                 f"""Elevation of wind speed observation, Zm ({self._zm}) must exceed
                 the vegetation height, Zdveg ({self._zveg}).
-                if wind was measured at a local station, use a logarithmic wind profile to estimate wind speed above canopy height."""
+                if wind was measured at a local station, use a logarithmic wind profile to
+                estimate wind speed above canopy height."""
             )
-        # If user didn't provide Zveg, ensure that wind measurements are done above the zero-plane displacement height
+        # If user didn't provide Zveg, ensure that wind measurements are done
+        # above the zero-plane displacement height
         elif np.any((self._zm - self._zd) <= 0):
             raise ValueError(
                 f"""Elevation of wind speed observation, Zm ({self._zm}) must exceed
