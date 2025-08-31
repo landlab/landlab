@@ -5,7 +5,7 @@ import numpy as np
 from landlab import Component
 from landlab.grid.mappers import map_node_to_cell
 
-_VALID_METHODS = {"PriestleyTaylor", "Cosine", "NetRadEqPE", "PenmanMonteith"}
+_VALID_METHODS = {"PriestleyTaylor", "PenmanMonteith", "NetRadEqPE"}
 
 
 def _assert_method_is_valid(method):
@@ -135,7 +135,7 @@ class PotentialEvapotranspiration(Component):
         ----------
         grid: RasterModelGrid
             A grid.
-        method: {'PriestleyTaylor', 'PenmanMonteith', 'Cosine', 'NetRadEqPE'}, optional
+        method: {'PriestleyTaylor', 'PenmanMonteith', 'NetRadEqPE'}, optional
             Priestley Taylor method will spit out radiation outputs too.
         priestley_taylor_constant: float, optional
             Alpha used in Priestley Taylor method.
