@@ -38,7 +38,7 @@ class PotentialEvapotranspiration(Component):
     ...     [3.0, 4.0, 4.0, 3.0],
     ...     [4.0, 4.0, 4.0, 4.0],
     ... ]
-    >>> PET = PotentialEvapotranspiration(grid)
+    >>> PET = PotentialEvapotranspiration(grid, latitude=40.0)
     >>> PET.name
     'PotentialEvapotranspiration'
     >>> sorted(PET.output_var_names)
