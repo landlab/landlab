@@ -240,6 +240,7 @@ class Radiation(Component):
         self._cell_values["Slope"] = self._slope
         self._cell_values["Aspect"] = self._aspect
 
+        # Omit closed nodes from radiation calculations
         self._gridCopy = copy.deepcopy(self._grid)
         self._gridCopy.add_field(
             "radiation_status_at_node", self._grid.status_at_node, at="node"
