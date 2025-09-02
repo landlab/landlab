@@ -203,6 +203,7 @@ def test_latitude(latitude, hemisphere):
     assert np.all(radiation_at_equator > radiation_at_half_latitude)
     assert np.all(radiation_at_half_latitude > radiation_at_latitude)
 
+
 def test_one_step():
     """Ensure coverage for the run_one_step method"""
     equinox = 81.0 / 365.0
@@ -212,6 +213,7 @@ def test_one_step():
     radiation = Radiation(grid, latitude=0.0, current_time=equinox)
 
     radiation.run_one_step()
+
 
 @pytest.mark.parametrize("min_temp", [25.0])
 @pytest.mark.parametrize("max_temp", [35.0])
@@ -224,4 +226,4 @@ def test_temperature_validation(min_temp, max_temp):
     radiation = Radiation(grid, latitude=0.0, current_time=equinox)
 
     min_temp, max_temp = radiation._validate_temperature_range(min_temp, max_temp)
-    assert min_temp <= max_temp    
+    assert min_temp <= max_temp
