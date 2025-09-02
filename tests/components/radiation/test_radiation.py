@@ -227,3 +227,19 @@ def test_temperature_validation(min_temp, max_temp):
 
     min_temp, max_temp = radiation._validate_temperature_range(min_temp, max_temp)
     assert min_temp <= max_temp
+
+    with pytest.raises(ValueError):
+        radiation._validate_temperature_range(None, None)
+
+@pytest.mark.parametrize("field", np.ones(25))
+@pytest.mark.parametrize("field_name", "ZeroField")
+def test_process_field(field, field_name):
+    """Ensure coverage for inserting a new field into internal grid"""
+    equinox = 81.0 / 365.0
+
+    grid = RasterModelGrid((5, 5), xy_spacing=10e0)
+    grid.add_zeros("topographic__elevation", at="node")
+    radiation = Radiation(grid, latitude=0.0, current_time=equinox)
+
+    field = radiation._process_field(field, field_name)
+    assert not np.allclose(np.zeros(25), field)
