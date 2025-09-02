@@ -231,6 +231,7 @@ def test_temperature_validation(min_temp, max_temp):
     with pytest.raises(ValueError):
         radiation._validate_temperature_range(None, None)
 
+
 @pytest.mark.parametrize("field", np.ones(25))
 @pytest.mark.parametrize("field_name", "ZeroField")
 def test_process_field(field, field_name):
