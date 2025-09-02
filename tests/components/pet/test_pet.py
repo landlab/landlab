@@ -4,8 +4,9 @@ Unit tests for landlab.components.pet.potential_evapotranspiration_field
 
 import numpy as np
 import pytest
-from landlab import RasterModelGrid
 from numpy.testing import assert_array_almost_equal
+
+from landlab import RasterModelGrid
 
 (_SHAPE, _SPACING, _ORIGIN) = ((20, 20), (10e0, 10e0), (0.0, 0.0))
 _ARGS = (_SHAPE, _SPACING, _ORIGIN)
@@ -104,6 +105,7 @@ def test_priestley_taylor_method(pet):
 
     pet.update()
     assert not np.allclose(pet._PET_value, 0.0)
+
 
 def test_penman_method(pet):
     sample_grid = RasterModelGrid((5, 4), xy_spacing=(0.2, 0.2))
