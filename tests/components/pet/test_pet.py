@@ -4,6 +4,7 @@ Unit tests for landlab.components.pet.potential_evapotranspiration_field
 
 import numpy as np
 import pytest
+from landlab import RasterModelGrid
 from numpy.testing import assert_array_almost_equal
 
 (_SHAPE, _SPACING, _ORIGIN) = ((20, 20), (10e0, 10e0), (0.0, 0.0))
@@ -66,3 +67,57 @@ def test_field_initialized_to_zero(pet):
     for name in pet.grid["cell"]:
         field = pet.grid["cell"][name]
         assert_array_almost_equal(field, np.zeros(pet.grid.number_of_cells))
+
+
+def test_temperature_validation(pet):
+    with pytest.raises(ValueError):
+        pet._validate_temperature_range(None, None)
+
+    with pytest.raises(ValueError):
+        pet._validate_temperature_range(10.0, 0.0)
+
+
+def test_value_fixation(pet):
+    error_value = 0.0
+    fixed_value = 1.0
+
+    for name in pet.grid["cell"]:
+        field = pet.grid["cell"][name]
+        pet._fix_values(field, error_value, fixed_value)
+        assert not np.any(field == error_value)
+        assert_array_almost_equal(field, np.ones(pet.grid.number_of_cells))
+
+
+def test_priestley_taylor_method(pet):
+    sample_grid = RasterModelGrid((5, 4), xy_spacing=(0.2, 0.2))
+    sample_grid.at_node["topographic__elevation"] = [
+        [0.0, 0.0, 0.0, 0.0],
+        [1.0, 1.0, 1.0, 1.0],
+        [2.0, 2.0, 2.0, 2.0],
+        [3.0, 4.0, 4.0, 3.0],
+        [4.0, 4.0, 4.0, 4.0],
+    ]
+
+    pet._method = "PriestleyTaylor"
+    pet._grid = sample_grid
+    pet._latitude = 40.0
+
+    pet.update()
+    assert not np.allclose(pet._PET_value, 0.0)
+
+def test_penman_method(pet):
+    sample_grid = RasterModelGrid((5, 4), xy_spacing=(0.2, 0.2))
+    sample_grid.at_node["topographic__elevation"] = [
+        [0.0, 0.0, 0.0, 0.0],
+        [1.0, 1.0, 1.0, 1.0],
+        [2.0, 2.0, 2.0, 2.0],
+        [3.0, 4.0, 4.0, 3.0],
+        [4.0, 4.0, 4.0, 4.0],
+    ]
+
+    pet._method = "PenmanMonteith"
+    pet._grid = sample_grid
+    pet._latitude = 40.0
+
+    pet.update()
+    assert not np.allclose(pet._PET_value, 0.0)
