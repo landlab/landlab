@@ -1,4 +1,4 @@
-coverage==7.10.5
+coverage==7.10.6
 flaky==3.8.1
 hypothesis==6.138.7
 pytest==8.4.1
