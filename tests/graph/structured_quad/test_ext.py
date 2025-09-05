@@ -1,9 +1,11 @@
 import numpy as np
 import pytest
+from numpy.testing import assert_array_equal
 
 from landlab.graph.structured_quad.ext.at_cell import fill_node_at_cell
 from landlab.graph.structured_quad.ext.at_face import fill_nodes_at_face
 from landlab.graph.structured_quad.ext.at_link import fill_nodes_at_link
+from landlab.graph.structured_quad.ext.at_link import fill_parallel_links_at_link
 from landlab.graph.structured_quad.ext.at_link import fill_patches_at_link
 from landlab.graph.structured_quad.ext.at_node import fill_links_at_node
 from landlab.graph.structured_quad.ext.at_node import fill_patches_at_node
@@ -47,6 +49,7 @@ def number_of_cells(shape):
         (fill_patches_at_node, lambda shape: (number_of_nodes(shape), 4)),
         (fill_links_at_node, lambda shape: (number_of_nodes(shape), 4)),
         (fill_links_at_patch, lambda shape: (number_of_patches(shape), 4)),
+        (fill_parallel_links_at_link, lambda shape: (number_of_links(shape), 2)),
     ),
 )
 def test_fill_over_under_flow(n_rows, n_cols, dtype, func, shape):
@@ -64,3 +67,24 @@ def test_fill_over_under_flow(n_rows, n_cols, dtype, func, shape):
     assert np.all(actual[:buffer_size] == -2)
     assert np.all(actual[-buffer_size:] == -2)
     assert np.all(actual[buffer_size:-buffer_size] >= -1)
+
+
+def test_fill_parallel_links():
+    # from landlab.graph.structured_quad.structured_quad import StructuredQuadLayoutCython
+    shape = (3, 4)
+
+    parallel_links_at_link = np.full((number_of_links(shape), 2), -2, dtype=int)
+
+    fill_parallel_links_at_link(shape, parallel_links_at_link)
+
+    assert not np.any(parallel_links_at_link == -2)
+    assert_array_equal(
+        parallel_links_at_link,
+        [
+            *([-1, 1], [0, 2], [1, -1]),
+            *([-1, 10], [-1, 11], [-1, 12], [-1, 13]),
+            *([-1, 8], [7, 9], [8, -1]),
+            *([3, -1], [4, -1], [5, -1], [6, -1]),
+            *([-1, 15], [14, 16], [15, -1]),
+        ],
+    )
