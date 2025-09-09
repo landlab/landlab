@@ -416,17 +416,17 @@ class PotentialEvapotranspiration(Component):
         # Ensure that wind measurements are done above the vegetation canopy
         if self._is_zveg_defined and np.any((self._zm - self._zveg) <= 0):
             raise ValueError(
-                f"""Elevation of wind speed observation, Zm ({self._zm}) must exceed
-                the vegetation height, Zdveg ({self._zveg}).
-                if wind was measured at a local station, use a logarithmic wind profile to
-                estimate wind speed above canopy height."""
+                f"Elevation of wind speed observation, Zm ({self._zm}) must exceed"
+                f" the vegetation height, Zdveg ({self._zveg})."
+                " If wind was measured at a local station, use a logarithmic wind"
+                " profile to estimate wind speed above canopy height."
             )
         # If user didn't provide Zveg, ensure that wind measurements are done
         # above the zero-plane displacement height
         elif np.any((self._zm - self._zd) <= 0):
             raise ValueError(
-                f"""Elevation of wind speed observation, Zm ({self._zm}) must exceed
-                the zero-plane displacement height, ({self._zd})."""
+                f"Elevation of wind speed observation, Zm ({self._zm}) must exceed"
+                f" the zero-plane displacement height, {self._zd}."
             )
 
         # Aerodynamic resistance
@@ -515,20 +515,20 @@ class PotentialEvapotranspiration(Component):
         # Assert proper dimensions for these fields, all sizes must match grid cell dimensions
         if is_zveg_field and self._zveg.size != cell_sz:
             raise ValueError(
-                f"""Zveg field dimensions must match grid dimensions, Zveg size was
-                {self._zveg.size} while grid size was {cell_sz}"""
+                "Zveg field dimensions must match grid dimensions, Zveg size was"
+                f" {self._zveg.size} while grid size was {cell_sz}"
             )
 
         if is_zo_field and self._zo.size != cell_sz:
             raise ValueError(
-                f"""Zo field dimensions must match grid dimensions, Zo size was
-                {self._zo.size} while grid size was {cell_sz}"""
+                "Zo field dimensions must match grid dimensions, Zo size was"
+                f" {self._zo.size} while grid size was {cell_sz}"
             )
 
         if is_zd_field and self._zd.size != cell_sz:
             raise ValueError(
-                f"""Zd field dimensions must match grid dimensions, Zd size was
-                {self._zd.size} while grid size was {cell_sz}"""
+                "Zd field dimensions must match grid dimensions, Zd size was"
+                f" {self._zd.size} while grid size was {cell_sz}"
             )
 
         if self._is_zveg_defined and is_zo_default and is_zd_default:
