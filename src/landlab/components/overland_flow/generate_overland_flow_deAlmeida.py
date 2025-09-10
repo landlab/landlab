@@ -60,11 +60,6 @@ array([[0.  , 0.  , 0.  , 0.  , 0.  ],
        [0.  , 0.07, 0.07, 0.07, 0.  ],
        [0.1 , 0.1 , 0.1 , 0.1 , 0.1 ]])
 
-array([1.000000e-05, 1.000000e-05, 1.000000e-05, 1.000000e-05, 1.000000e-05,
-       1.000000e-05, 1.000000e-05, 1.000000e-05, 1.000000e-05, 1.000000e-05,
-       1.000000e-05, 2.001193e-02, 2.001193e-02, 2.001193e-02, 1.000000e-05,
-       1.000100e-01, 1.000100e-01, 1.000100e-01, 1.000100e-01, 1.000100e-01])
-
 The `surface_water__discharge` field is defined at links. Because our initial
 topography was a dipping plane, there is no water discharge in the horizontal
 direction, only toward the bottom of the grid.
