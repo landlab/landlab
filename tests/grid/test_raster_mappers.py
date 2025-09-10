@@ -77,6 +77,11 @@ def test_map_max_of_link_nodes_to_link_cmp():
 
     assert_array_equal(actual, expected)
 
+    expected = map_max_of_link_nodes_to_link_slow(grid, value_at_node)
+    actual = map_max_of_link_nodes_to_link_fast(grid, value_at_node)
+
+    assert_array_equal(actual, expected)
+
 
 @pytest.mark.parametrize(
     "func",
