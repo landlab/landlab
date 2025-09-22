@@ -2,15 +2,15 @@
 ![[Documentation][rtd-link]][rtd-badge]
 ![[Coverage][coveralls-link]][coveralls-badge]
 ![[Testing][test-link]][test-badge]
-![[Lint][lint-link]][lint-badge]
+![[pre-commit.ci status][lint-link]][lint-badge]
 
 
 [coveralls-badge]: https://coveralls.io/repos/landlab/landlab/badge.png
 [coveralls-link]: https://coveralls.io/r/landlab/landlab
 [doi-badge]: https://zenodo.org/badge/DOI/10.5281/zenodo.3776837.svg
 [doi-link]: https://doi.org/10.5281/zenodo.3776837
-[lint-badge]: https://github.com/landlab/landlab/actions/workflows/lint.yml/badge.svg
-[lint-link]: https://github.com/landlab/landlab/actions/workflows/lint.yml
+[lint-badge]: https://results.pre-commit.ci/badge/github/landlab/landlab/master.svg
+[lint-link]: https://results.pre-commit.ci/latest/github/landlab/landlab/master
 [rtd-badge]:https://readthedocs.org/projects/landlab/badge/?version=latest
 [rtd-link]: https://landlab.csdms.io
 [test-badge]: https://github.com/landlab/landlab/actions/workflows/test.yml/badge.svg
