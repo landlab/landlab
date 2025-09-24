@@ -8,13 +8,13 @@ def check_vals(vals, vals_e):
     np.testing.assert_allclose(vals, vals_e, atol=1e-4)
 
 
-def test__flaten_lol():
+def test_flaten_lol():
     lol = [[1, 2, 3], [3, 2, 4], ["3", "a"]]
     l_e = [1, 2, 3, 3, 2, 4, "3", "a"]
     assert l_e == gt._flatten_lol(lol)
 
 
-def test__dist_func():
+def test_dist_func():
     check_vals(gt._dist_func(0, 1, 0, 1), 1.414213)
 
 
@@ -257,13 +257,13 @@ class TestMapNMGLinksToRMGCoincidentNodes:
             nmg_link_to_rmg_coincident_nodes_mapper_e,
         )
 
-        # check that duplicate notes are included
+        # check that duplicate nodes are included
         assert len(
             np.unique(nmg_link_to_rmg_coincident_nodes_mapper["coincident_node"].values)
         ) != len(nmg_link_to_rmg_coincident_nodes_mapper["coincident_node"].values)
 
     def test_map_nmg_links_to_rmg_coincident_nodes_3(self, grid, nmgrid_f):
-        """use the fine-scale network model grid, remove dupilcates"""
+        """use the fine-scale network model grid, remove duplicates"""
         link_nodes_f = gt.get_link_nodes(nmgrid_f)
         nmg_link_to_rmg_coincident_nodes_mapper = (
             gt.map_nmg_links_to_rmg_coincident_nodes(
