@@ -155,39 +155,31 @@ def extract_terrace_nodes(grid, terrace_width, acn, fcn):
 
     Returns
     -------
-    TerraceNodes : np array
+    terrace_nodes : np array
         array of all node IDs included in the terrace
 
     """
-    terrace_width = np.round(terrace_width).astype(
-        int
-    )  # round to int in case provided as float
+    # round to int in case provided as float
+    terrace_width = round(terrace_width)
+    if terrace_width < 1:
+        raise ValueError(f"terrace width must be 1 or greater ({terrace_width})")
 
-    if terrace_width < 1:  # check that at least 1
-        msg = "terrace width must be 1 or greater"
-        raise ValueError(msg)
+    acn = np.asarray(acn, dtype=int)
+    current_nodes = np.asarray(fcn, dtype=int)
+    terrace_nodes = np.array([], dtype=int)
 
-    for i in range(terrace_width):
-        if i == 0:
-            # diagonal adjacent nodes to channel nodes
-            AdjDN = np.ravel(grid.diagonal_adjacent_nodes_at_node[fcn])
-            # adjacent nodes to channel nodes
-            AdjN = np.ravel(grid.adjacent_nodes_at_node[fcn])
-        elif i > 0:
-            # diagonal adjacent nodes to channel nodes
-            AdjDN = grid.diagonal_adjacent_nodes_at_node[TerraceNodes]
-            # adjacent nodes to channel nodes
-            AdjN = grid.adjacent_nodes_at_node[TerraceNodes]
-        # all adjacent nodes to channel nodes
-        AllNodes = np.concatenate((AdjN, AdjDN))
-        # unique adjacent nodes
-        AllNodes = np.unique(AllNodes)
-        # unique adjacent nodes, excluding all channel nodes.
-        TerraceNodes = AllNodes[np.isin(AllNodes, acn, invert=True)]
-        # finally, remove any -1 nodes, which represent adjacent nodes outside
-        # of the model grid
-        TerraceNodes = TerraceNodes[~(TerraceNodes == -1)]
-    return TerraceNodes
+    for _ in range(terrace_width):
+        adj_dn = grid.diagonal_adjacent_nodes_at_node[current_nodes].ravel()
+        adj_n = grid.adjacent_nodes_at_node[current_nodes].ravel()
+
+        neighbors = np.unique(np.concatenate((adj_n, adj_dn)))
+        neighbors = neighbors[neighbors != -1]
+
+        terrace_nodes = np.setdiff1d(neighbors, acn, assume_unique=True)
+
+        current_nodes = terrace_nodes
+
+    return terrace_nodes
 
 
 def min_distance_to_network(grid, acn, node_id):
