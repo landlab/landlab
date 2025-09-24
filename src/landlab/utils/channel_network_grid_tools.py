@@ -12,25 +12,26 @@ network model grid and raster model grid representation of a channel network.
 
 
 def _flatten_lol(lol):
-    """
-    for list (l) in list of lists (lol) for item (i) in l append i"
+    """Flatten a list of lists.
 
     Parameters
     ----------
-    lol : list of lists
+    lol : list of list
+        A list where each element is itself a list.
 
     Returns
     -------
-    the list of lists concatenated into a single list
+    list
+        A single list containing all elements from the sublists.
     """
     return list(itertools.chain.from_iterable(lol))
 
 
 def get_link_nodes(nmgrid):
-    """get the downstream (head) and upstream (tail) nodes at a link from
+    """Get the downstream (head) and upstream (tail) nodes at a link from
     flow director. The network model grid nodes_at_link attribute may not be
     ordered according to flow direction. Output from this function should be
-    used for all ChannelNetworkGridTool functions that require a link_nodes input
+    used for all channel_network_grid_tools functions that require a link_nodes input
 
     Parameters
     ----------
@@ -132,8 +133,8 @@ def extract_channel_nodes(grid, Ct):
 
 
 def extract_terrace_nodes(grid, terrace_width, acn, fcn):
-    """determine which raster model grid nodes coincide with channel terraces,
-    which presently are asssumed to be a fixed width (number of nodes) from
+    """Determine which raster model grid nodes coincide with channel terraces,
+    which presently are assumed to be a fixed width (number of nodes) from
     the channel nodes
 
 
@@ -214,7 +215,7 @@ def min_distance_to_network(grid, acn, node_id):
     )
     xyDF.index = acn
     nmg_dist = xyDF.apply(lambda row: distance_to_network(grid, row), axis=1)
-    offset = nmg_dist.min()  # minimum distancce
+    offset = nmg_dist.min()  # minimum distance
     mdn = xyDF[nmg_dist == offset].index.values  # find closest node
     if len(mdn) > 1:
         mdn = mdn[0]  # pick first in list if more than one
@@ -224,10 +225,10 @@ def min_distance_to_network(grid, acn, node_id):
 def map_nmg_links_to_rmg_coincident_nodes(
     grid, nmgrid, link_nodes, remove_duplicates=False
 ):
-    """maps the links of the network model grid to all coincident raster model grid
-    nodes. Each coincident raster model grid node is defined in terms of it's
-    x and y coordinates, the the link it is mapped to and distance downstream from
-    the upstream end (tail end) of the link.
+    """Map links of a network model grid to all coincident raster model grid
+    nodes. Each coincident raster model grid node is defined in terms of its
+    x and y coordinates, the link it is mapped to and distance downstream from
+    the upstream (tail) end of the link.
 
 
     Parameters
@@ -238,7 +239,7 @@ def map_nmg_links_to_rmg_coincident_nodes(
         head and tail node of each link
     remove_duplicates : bool
         if True, when two or more links are coincident with the same node,
-        the node is assigned to the link with the larges drainage area. If False,
+        the node is assigned to the link with the largest drainage area. If False,
         the node is assigned to each coincident link. The default is False.
 
     Returns
@@ -317,7 +318,7 @@ def map_nmg_links_to_rmg_coincident_nodes(
                     other_link_a = nmgrid.at_link["drainage_area"][other_link]
                     dup = np.intersect1d(link_coin_nodes, other_link_coin_nodes)
                     # if contributing area of link is larger than contributing area
-                    # of other_link, remove dupilcate nodes from other link
+                    # of other_link, remove duplicate nodes from other link
                     if len(dup) > 0:
                         if link_a >= other_link_a:
                             mask = ~np.isin(other_link_coin_nodes, dup)
