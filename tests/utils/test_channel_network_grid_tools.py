@@ -51,6 +51,7 @@ class TestGetLinknodes:
                 [1, 3],
             ]
         )
+        check_vals(link_nodes_c, link_nodes_c_e)
 
 
 class TestExtractChannelNodes:
