@@ -189,8 +189,8 @@ def extract_terrace_nodes(grid, terrace_width, acn, fcn):
 
 
 def min_distance_to_network(grid, acn, node_id):
-    """determine the shortest distance (as the crow flies) from a node to the channel network and
-    the closest channel node
+    """Determine the shortest distance (as the crow flies) from a node to the
+    channel network and the closest channel node
 
     Parameters
     ----------
@@ -257,15 +257,16 @@ def map_nmg_links_to_rmg_coincident_nodes(
 
     """
     Lnodelist = []  # list of lists of all nodes that coincide with each link
-    Ldistlist = (
-        []
-    )  # list of lists of the distance on the link (measured from upstream link node) for all nodes that coincide with each link
+
+    # list of lists of the distance on the link (measured from upstream link node)
+    # for all nodes that coincide with each link
+    Ldistlist = []
     LlinkIDlist = []
     Lxlist = []
     Lylist = []
     Lxy = []  # list of all nodes the coincide with the network links
-    # loop through all links in network grid to determine raster grid cells that coincide with each link
-    # and equivalent distance from upstream node on link
+    # loop through all links in network grid to determine raster grid cells that
+    # coincide with each link and equivalent distance from upstream node on link
     for linkID, lknd in enumerate(link_nodes):  # for each link in network grid
 
         x0 = nmgrid.x_of_node[lknd[0]]  # x and y of downstream link node
@@ -285,9 +286,9 @@ def map_nmg_links_to_rmg_coincident_nodes(
         for i, y in enumerate(Y):
             x = X[i]
             node = grid.find_nearest_node((x, y))  # change to grid.find_nearest_node
-            if (
-                node not in nodelist
-            ):  # if node not already in list, append - many points will be in same cell; only need to list cell once
+            # if node not already in list, append - many points will be in same cell;
+            # only need to list cell once
+            if node not in nodelist:
                 nodelist.append(node)
                 distlist.append(dist[i])
                 linkIDlist.append(linkID)
@@ -324,7 +325,6 @@ def map_nmg_links_to_rmg_coincident_nodes(
                     # if contributing area of link is larger than contributing area
                     # of other_link, remove dupilcate nodes from other link
                     if len(dup) > 0:
-                        # print('link {} and link {} have duplicates: {}'.format(link, other_link, dup))
                         if link_a >= other_link_a:
                             mask = ~np.isin(other_link_coin_nodes, dup)
                             Lnodelist[other_link] = list(
