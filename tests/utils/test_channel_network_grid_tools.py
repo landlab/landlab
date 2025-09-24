@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 import pytest
 
 import landlab.utils.channel_network_grid_tools as gt
@@ -129,7 +128,7 @@ class TestExtractTerraceNodes:
         acn = np.array([3, 9, 17, 23, 30, 31, 32, 36])
         fcn = np.array([3, 9, 17, 23])
         with pytest.raises(ValueError) as exc_info:
-            tn = gt.extract_terrace_nodes(grid, terrace_width, acn, fcn)
+            gt.extract_terrace_nodes(grid, terrace_width, acn, fcn)
         assert exc_info.match("terrace width must be 1 or greater")
 
     def test_extract_terrace_nodes_4(self, grid):
