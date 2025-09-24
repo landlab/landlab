@@ -1,3 +1,5 @@
+import itertools
+
 import numpy as np
 import pandas as pd
 
@@ -21,7 +23,7 @@ def _flatten_lol(lol):
     -------
     the list of lists concatenated into a single list
     """
-    return [i for l in lol for i in l]
+    return list(itertools.chain.from_iterable(lol))
 
 
 def get_link_nodes(nmgrid):
