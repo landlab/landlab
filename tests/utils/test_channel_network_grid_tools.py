@@ -53,6 +53,297 @@ class TestGetLinknodes:
         check_vals(link_nodes_c, link_nodes_c_e)
 
 
+class TestLinkToPointsAndDist:
+    def test_link_to_points_and_dist_1(self):
+        """from 0,0 to 1,1"""
+        x0 = 0
+        x1 = 1
+        y0 = 0
+        y1 = 1
+        x_, y_, dist_ = gt._link_to_points_and_dist(
+            (x0, y0), (x1, y1), number_of_points=5
+        )
+
+        v_e = (
+            np.array([0.0, 0.25, 0.5, 0.75, 1.0]),
+            np.array([0.0, 0.25, 0.5, 0.75, 1.0]),
+            np.array([0.0, 0.35355339, 0.70710678, 1.06066017, 1.41421356]),
+        )
+        check_vals(x_, v_e[0])
+        check_vals(y_, v_e[1])
+        check_vals(dist_, v_e[2])
+
+    def test_link_to_points_and_dist_2(self):
+        """from 1,1 to 0,0"""
+        x0 = 1
+        x1 = 0
+        y0 = 1
+        y1 = 0
+        x_, y_, dist_ = gt._link_to_points_and_dist(
+            (x0, y0), (x1, y1), number_of_points=5
+        )
+        v_e = (
+            np.array([1.0, 0.75, 0.5, 0.25, 0.0]),
+            np.array([1.0, 0.75, 0.5, 0.25, 0.0]),
+            np.array([0.0, 0.35355339, 0.70710678, 1.06066017, 1.41421356]),
+        )
+        check_vals(x_, v_e[0])
+        check_vals(y_, v_e[1])
+        check_vals(dist_, v_e[2])
+
+    def test_link_to_points_and_dist_3(self):
+        """from 0,0 to 1,-1"""
+        x0 = 0
+        x1 = 1
+        y0 = 0
+        y1 = -1
+        x_, y_, dist_ = gt._link_to_points_and_dist(
+            (x0, y0), (x1, y1), number_of_points=5
+        )
+        v_e = (
+            np.array([0.0, 0.25, 0.5, 0.75, 1.0]),
+            np.array([0.0, -0.25, -0.5, -0.75, -1.0]),
+            np.array([0.0, 0.35355339, 0.70710678, 1.06066017, 1.41421356]),
+        )
+        check_vals(x_, v_e[0])
+        check_vals(y_, v_e[1])
+        check_vals(dist_, v_e[2])
+
+    def test_link_to_points_and_dist_4(self):
+        """from 1,-1 to 0,0"""
+        x0 = 1
+        x1 = 0
+        y0 = -1
+        y1 = 0
+        x_, y_, dist_ = gt._link_to_points_and_dist(
+            (x0, y0), (x1, y1), number_of_points=5
+        )
+        v_e = (
+            np.array([1.0, 0.75, 0.5, 0.25, 0.0]),
+            np.array([-1.0, -0.75, -0.5, -0.25, 0.0]),
+            np.array([0.0, 0.35355339, 0.70710678, 1.06066017, 1.41421356]),
+        )
+        check_vals(x_, v_e[0])
+        check_vals(y_, v_e[1])
+        check_vals(dist_, v_e[2])
+
+    def test_link_to_points_and_dist_5(self):
+        """from 0,0 to -1,-1"""
+        x0 = 0
+        x1 = -1
+        y0 = 0
+        y1 = -1
+        x_, y_, dist_ = gt._link_to_points_and_dist(
+            (x0, y0), (x1, y1), number_of_points=5
+        )
+        v_e = (
+            np.array([0.0, -0.25, -0.5, -0.75, -1.0]),
+            np.array([0.0, -0.25, -0.5, -0.75, -1.0]),
+            np.array([0.0, 0.35355339, 0.70710678, 1.06066017, 1.41421356]),
+        )
+        check_vals(x_, v_e[0])
+        check_vals(y_, v_e[1])
+        check_vals(dist_, v_e[2])
+
+    def test_link_to_points_and_dist_6(self):
+        """from -1,-1 to 0,0"""
+        x0 = -1
+        x1 = 0
+        y0 = -1
+        y1 = 0
+        x_, y_, dist_ = gt._link_to_points_and_dist(
+            (x0, y0), (x1, y1), number_of_points=5
+        )
+        v_e = (
+            np.array([-1.0, -0.75, -0.5, -0.25, 0.0]),
+            np.array([-1.0, -0.75, -0.5, -0.25, 0.0]),
+            np.array([0.0, 0.35355339, 0.70710678, 1.06066017, 1.41421356]),
+        )
+        check_vals(x_, v_e[0])
+        check_vals(y_, v_e[1])
+        check_vals(dist_, v_e[2])
+
+    def test_link_to_points_and_dist_7(self):
+        """from 0,0 to -1,1"""
+        x0 = 0
+        x1 = -1
+        y0 = 0
+        y1 = 1
+        x_, y_, dist_ = gt._link_to_points_and_dist(
+            (x0, y0), (x1, y1), number_of_points=5
+        )
+        v_e = (
+            np.array([0.0, -0.25, -0.5, -0.75, -1.0]),
+            np.array([0.0, 0.25, 0.5, 0.75, 1.0]),
+            np.array([0.0, 0.35355339, 0.70710678, 1.06066017, 1.41421356]),
+        )
+        check_vals(x_, v_e[0])
+        check_vals(y_, v_e[1])
+        check_vals(dist_, v_e[2])
+
+    def test_link_to_points_and_dist_8(self):
+        """from -1,1 to 0,0"""
+        x0 = -1
+        x1 = 0
+        y0 = 1
+        y1 = 0
+        x_, y_, dist_ = gt._link_to_points_and_dist(
+            (x0, y0), (x1, y1), number_of_points=5
+        )
+        v_e = (
+            np.array([-1.0, -0.75, -0.5, -0.25, 0.0]),
+            np.array([1.0, 0.75, 0.5, 0.25, 0.0]),
+            np.array([0.0, 0.35355339, 0.70710678, 1.06066017, 1.41421356]),
+        )
+        check_vals(x_, v_e[0])
+        check_vals(y_, v_e[1])
+        check_vals(dist_, v_e[2])
+
+    def test_link_to_points_and_dist_9(self):
+        """from 0,0 to 1,0"""
+        x0 = 0
+        x1 = 1
+        y0 = 0
+        y1 = 0
+        x_, y_, dist_ = gt._link_to_points_and_dist(
+            (x0, y0), (x1, y1), number_of_points=5
+        )
+        v_e = (
+            np.array([0.0, 0.25, 0.5, 0.75, 1.0]),
+            np.array([0.0, 0.0, 0.0, 0.0, 0.0]),
+            np.array([0.0, 0.25, 0.5, 0.75, 1.0]),
+        )
+        check_vals(x_, v_e[0])
+        check_vals(y_, v_e[1])
+        check_vals(dist_, v_e[2])
+
+    def test_link_to_points_and_dist_10(self):
+        """from 1,0 to 0,0"""
+        x0 = 1
+        x1 = 0
+        y0 = 0
+        y1 = 0
+        x_, y_, dist_ = gt._link_to_points_and_dist(
+            (x0, y0), (x1, y1), number_of_points=5
+        )
+        v_e = (
+            np.array([1.0, 0.75, 0.5, 0.25, 0.0]),
+            np.array([0.0, 0.0, 0.0, 0.0, 0.0]),
+            np.array([0.0, 0.25, 0.5, 0.75, 1.0]),
+        )
+        check_vals(x_, v_e[0])
+        check_vals(y_, v_e[1])
+        check_vals(dist_, v_e[2])
+
+    def test_link_to_points_and_dist_11(self):
+        """from 0,0 to 0,-1"""
+        x0 = 0
+        x1 = 0
+        y0 = 0
+        y1 = -1
+        x_, y_, dist_ = gt._link_to_points_and_dist(
+            (x0, y0), (x1, y1), number_of_points=5
+        )
+        v_e = (
+            np.array([0.0, 0.0, 0.0, 0.0, 0.0]),
+            np.array([0.0, -0.25, -0.5, -0.75, -1.0]),
+            np.array([0.0, 0.25, 0.5, 0.75, 1.0]),
+        )
+        check_vals(x_, v_e[0])
+        check_vals(y_, v_e[1])
+        check_vals(dist_, v_e[2])
+
+    def test_link_to_points_and_dist_12(self):
+        """from 0,-1 to 0,0"""
+        x0 = 0
+        x1 = 0
+        y0 = -1
+        y1 = 0
+        x_, y_, dist_ = gt._link_to_points_and_dist(
+            (x0, y0), (x1, y1), number_of_points=5
+        )
+        v_e = (
+            np.array([0.0, 0.0, 0.0, 0.0, 0.0]),
+            np.array([-1.0, -0.75, -0.5, -0.25, 0.0]),
+            np.array([0.0, 0.25, 0.5, 0.75, 1.0]),
+        )
+        check_vals(x_, v_e[0])
+        check_vals(y_, v_e[1])
+        check_vals(dist_, v_e[2])
+
+    def test_link_to_points_and_dist_13(self):
+        """from 0,0 to -1,0"""
+        x0 = 0
+        x1 = -1
+        y0 = 0
+        y1 = 0
+        x_, y_, dist_ = gt._link_to_points_and_dist(
+            (x0, y0), (x1, y1), number_of_points=5
+        )
+        v_e = (
+            np.array([0.0, -0.25, -0.5, -0.75, -1.0]),
+            np.array([0.0, 0.0, 0.0, 0.0, 0.0]),
+            np.array([0.0, 0.25, 0.5, 0.75, 1.0]),
+        )
+        check_vals(x_, v_e[0])
+        check_vals(y_, v_e[1])
+        check_vals(dist_, v_e[2])
+
+    def test_link_to_points_and_dist_14(self):
+        """from -1,0 to 0,0"""
+        x0 = -1
+        x1 = 0
+        y0 = 0
+        y1 = 0
+        x_, y_, dist_ = gt._link_to_points_and_dist(
+            (x0, y0), (x1, y1), number_of_points=5
+        )
+        v_e = (
+            np.array([-1.0, -0.75, -0.5, -0.25, 0.0]),
+            np.array([0.0, 0.0, 0.0, 0.0, 0.0]),
+            np.array([0.0, 0.25, 0.5, 0.75, 1.0]),
+        )
+        check_vals(x_, v_e[0])
+        check_vals(y_, v_e[1])
+        check_vals(dist_, v_e[2])
+
+    def test_link_to_points_and_dist_15(self):
+        """from 0,0 to 0,1"""
+        x0 = 0
+        x1 = 0
+        y0 = 0
+        y1 = 1
+        x_, y_, dist_ = gt._link_to_points_and_dist(
+            (x0, y0), (x1, y1), number_of_points=5
+        )
+        v_e = (
+            np.array([0.0, 0.0, 0.0, 0.0, 0.0]),
+            np.array([0.0, 0.25, 0.5, 0.75, 1.0]),
+            np.array([0.0, 0.25, 0.5, 0.75, 1.0]),
+        )
+        check_vals(x_, v_e[0])
+        check_vals(y_, v_e[1])
+        check_vals(dist_, v_e[2])
+
+    def test_link_to_points_and_dist_16(self):
+        """from 0,1 to 0,0"""
+        x0 = 0
+        x1 = 0
+        y0 = 1
+        y1 = 0
+        x_, y_, dist_ = gt._link_to_points_and_dist(
+            (x0, y0), (x1, y1), number_of_points=5
+        )
+        v_e = (
+            np.array([0.0, 0.0, 0.0, 0.0, 0.0]),
+            np.array([1.0, 0.75, 0.5, 0.25, 0.0]),
+            np.array([0.0, 0.25, 0.5, 0.75, 1.0]),
+        )
+        check_vals(x_, v_e[0])
+        check_vals(y_, v_e[1])
+        check_vals(dist_, v_e[2])
+
+
 class TestExtractChannelNodes:
 
     def test_extract_channel_nodes_1(self, grid):
