@@ -7,11 +7,13 @@ import landlab.utils.channel_network_grid_tools as gt
 def check_vals(vals, vals_e):
     np.testing.assert_allclose(vals, vals_e, atol=1e-4)
 
+
 def test_create_lol():
     a_list = [1, 2, 3, 3, 2, 4, 5, 6]
     linkID = [0, 0, 0, 1, 1, 1, 2, 2]
     lol_e = [[1, 2, 3], [3, 2, 4], [5, 6]]
     assert lol_e == gt._create_lol(linkID, a_list)
+
 
 def test_flaten_lol():
     lol = [[1, 2, 3], [3, 2, 4], [5, 6]]
