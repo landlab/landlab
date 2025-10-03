@@ -11,6 +11,16 @@ network model grids and a raster model grid representation of a channel network.
 """
 
 
+def _create_lol(linkID, list_of_vals):
+    """convert a list of values to a list of lists of values, where each sublist
+    contains the values for each unique link id in list linkID"""
+    list_of_lists = []
+    for link in np.unique(linkID):
+        mask = np.array(linkID) == link
+        list_of_lists.append(np.array(list_of_vals)[mask].tolist())
+    return list_of_lists
+
+
 def _flatten_lol(lol):
     """Flatten a list of lists.
 
@@ -205,6 +215,76 @@ def min_distance_to_network(grid, acn, node_id):
     return float(offset), int(mdn)
 
 
+def _remove_duplicates(nmgrid, nmg_link_to_rmg_coincident_nodes_mapper):
+    # for each link, compare node ids with each other_link
+    # attributes for each link, formatted as a list of lists
+    linkID = nmg_link_to_rmg_coincident_nodes_mapper["linkID"]
+    Lnodelist = _create_lol(
+        linkID, nmg_link_to_rmg_coincident_nodes_mapper["coincident_node"]
+    )
+    Ldistlist = _create_lol(linkID, nmg_link_to_rmg_coincident_nodes_mapper["dist"])
+    Lnodelist = _create_lol(
+        linkID, nmg_link_to_rmg_coincident_nodes_mapper["coincident_node"]
+    )
+    LlinkIDlist = _create_lol(linkID, nmg_link_to_rmg_coincident_nodes_mapper["linkID"])
+    Lxlist = _create_lol(linkID, nmg_link_to_rmg_coincident_nodes_mapper["x"])
+    Lylist = _create_lol(linkID, nmg_link_to_rmg_coincident_nodes_mapper["y"])
+
+    for link in range(len(np.unique(linkID))):
+        for other_link in range(len(np.unique(linkID))):
+            if link != other_link:
+                link_coin_nodes = Lnodelist[link]
+                other_link_coin_nodes = Lnodelist[other_link]
+                link_a = nmgrid.at_link["drainage_area"][link]
+                other_link_a = nmgrid.at_link["drainage_area"][other_link]
+                dup = np.intersect1d(link_coin_nodes, other_link_coin_nodes)
+                # if contributing area of link is larger than contributing area
+                # of other_link, remove duplicate nodes from other_link
+                if len(dup) > 0:
+                    if link_a >= other_link_a:
+                        mask = ~np.isin(other_link_coin_nodes, dup)
+                        Lnodelist[other_link] = list(
+                            np.array(other_link_coin_nodes)[mask]
+                        )
+                        Ldistlist[other_link] = list(
+                            np.array(Ldistlist[other_link])[mask]
+                        )
+                        LlinkIDlist[other_link] = list(
+                            np.array(LlinkIDlist[other_link])[mask]
+                        )
+                        Lxlist[other_link] = list(np.array(Lxlist[other_link])[mask])
+                        Lylist[other_link] = list(np.array(Lylist[other_link])[mask])
+                    else:  # else, remove duplicates from link
+                        mask = ~np.isin(link_coin_nodes, dup)
+                        Lnodelist[link] = list(np.array(link_coin_nodes)[mask])
+                        Ldistlist[link] = list(np.array(Ldistlist[link])[mask])
+                        LlinkIDlist[link] = list(np.array(LlinkIDlist[link])[mask])
+                        Lxlist[link] = list(np.array(Lxlist[link])[mask])
+                        Lylist[link] = list(np.array(Lylist[link])[mask])
+    LinkIDs = _flatten_lol(LlinkIDlist)
+    nmg_link_to_rmg_coincident_nodes_mapper = pd.DataFrame(
+        np.array(
+            [
+                LinkIDs,
+                _flatten_lol(Lnodelist),
+                _flatten_lol(Lxlist),
+                _flatten_lol(Lylist),
+                _flatten_lol(Ldistlist),
+                nmgrid.at_link["drainage_area"][np.array(LinkIDs)],
+            ]
+        ).T,
+        columns=["linkID", "coincident_node", "x", "y", "dist", "drainage_area"],
+    )
+    nmg_link_to_rmg_coincident_nodes_mapper["linkID"] = (
+        nmg_link_to_rmg_coincident_nodes_mapper["linkID"].astype(int)
+    )
+    nmg_link_to_rmg_coincident_nodes_mapper["coincident_node"] = (
+        nmg_link_to_rmg_coincident_nodes_mapper["coincident_node"].astype(int)
+    )
+
+    return nmg_link_to_rmg_coincident_nodes_mapper
+
+
 def map_nmg_links_to_rmg_coincident_nodes(
     grid, nmgrid, link_nodes, remove_duplicates=False
 ):
@@ -263,7 +343,7 @@ def map_nmg_links_to_rmg_coincident_nodes(
         ylist = []
         for i, y in enumerate(Y):
             x = X[i]
-            node = grid.find_nearest_node((x, y))  # change to grid.find_nearest_node
+            node = grid.find_nearest_node((x, y))
             # if node not already in list, append - many points will be in same cell;
             # only need to list cell once
             if node not in nodelist:
@@ -293,61 +373,7 @@ def map_nmg_links_to_rmg_coincident_nodes(
     # if remove_duplicates, remove duplicate node id from link with smaller
     # contributing area.
     if remove_duplicates:
-        # for each link, compare node ids with each other_link
-        for link in range(len(link_nodes)):
-            for other_link in range(len(link_nodes)):
-                if link != other_link:
-                    link_coin_nodes = Lnodelist[link]
-                    other_link_coin_nodes = Lnodelist[other_link]
-                    link_a = nmgrid.at_link["drainage_area"][link]
-                    other_link_a = nmgrid.at_link["drainage_area"][other_link]
-                    dup = np.intersect1d(link_coin_nodes, other_link_coin_nodes)
-                    # if contributing area of link is larger than contributing area
-                    # of other_link, remove duplicate nodes from other_link
-                    if len(dup) > 0:
-                        if link_a >= other_link_a:
-                            mask = ~np.isin(other_link_coin_nodes, dup)
-                            Lnodelist[other_link] = list(
-                                np.array(other_link_coin_nodes)[mask]
-                            )
-                            Ldistlist[other_link] = list(
-                                np.array(Ldistlist[other_link])[mask]
-                            )
-                            LlinkIDlist[other_link] = list(
-                                np.array(LlinkIDlist[other_link])[mask]
-                            )
-                            Lxlist[other_link] = list(
-                                np.array(Lxlist[other_link])[mask]
-                            )
-                            Lylist[other_link] = list(
-                                np.array(Lylist[other_link])[mask]
-                            )
-                        else:  # else, remove duplicates from link
-                            mask = ~np.isin(link_coin_nodes, dup)
-                            Lnodelist[link] = list(np.array(link_coin_nodes)[mask])
-                            Ldistlist[link] = list(np.array(Ldistlist[link])[mask])
-                            LlinkIDlist[link] = list(np.array(LlinkIDlist[link])[mask])
-                            Lxlist[link] = list(np.array(Lxlist[link])[mask])
-                            Lylist[link] = list(np.array(Lylist[link])[mask])
-        LinkIDs = _flatten_lol(LlinkIDlist)
-        nmg_link_to_rmg_coincident_nodes_mapper = pd.DataFrame(
-            np.array(
-                [
-                    LinkIDs,
-                    _flatten_lol(Lnodelist),
-                    _flatten_lol(Lxlist),
-                    _flatten_lol(Lylist),
-                    _flatten_lol(Ldistlist),
-                    nmgrid.at_link["drainage_area"][np.array(LinkIDs)],
-                ]
-            ).T,
-            columns=["linkID", "coincident_node", "x", "y", "dist", "drainage_area"],
+        nmg_link_to_rmg_coincident_nodes_mapper = _remove_duplicates(
+            nmgrid, nmg_link_to_rmg_coincident_nodes_mapper
         )
-        nmg_link_to_rmg_coincident_nodes_mapper["linkID"] = (
-            nmg_link_to_rmg_coincident_nodes_mapper["linkID"].astype(int)
-        )
-        nmg_link_to_rmg_coincident_nodes_mapper["coincident_node"] = (
-            nmg_link_to_rmg_coincident_nodes_mapper["coincident_node"].astype(int)
-        )
-
     return nmg_link_to_rmg_coincident_nodes_mapper
