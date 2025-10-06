@@ -1,6 +1,6 @@
 import numpy as np
-import pytest
 import pandas as pd
+import pytest
 
 import landlab.utils.channel_network_grid_tools as gt
 
