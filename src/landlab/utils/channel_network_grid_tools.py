@@ -441,12 +441,19 @@ def map_nmg_links_to_rmg_coincident_nodes(
                     "drainage_area": nmgrid.at_link["drainage_area"][linkID],
                 }
                 Lxy.append(xy)
-    nmg_link_to_rmg_coincident_nodes_mapper = pd.DataFrame(Lxy)
+    df = pd.DataFrame(Lxy)
 
     # if remove_duplicates, remove duplicate node id from link with smaller
     # contributing area.
     if remove_duplicates:
-        nmg_link_to_rmg_coincident_nodes_mapper = _remove_duplicates(
-            nmg_link_to_rmg_coincident_nodes_mapper
-        )
-    return nmg_link_to_rmg_coincident_nodes_mapper
+        values = df["coincident_node"].to_numpy()
+        area = df["drainage_area"].to_numpy()
+
+        row = np.arange(len(df), dtype=np.int64)
+
+        idx = choose_unique(values=values, order_by=[area, -row], choose="last")
+        idx.sort()
+
+        df = df.iloc[idx].reset_index(drop=True)
+
+    return df
