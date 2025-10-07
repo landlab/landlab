@@ -1,7 +1,11 @@
 import itertools
+from collections.abc import Sequence
+from typing import Literal
 
 import numpy as np
 import pandas as pd
+from numpy.typing import ArrayLike
+from numpy.typing import NDArray
 
 from landlab.components.flow_director.flow_director_steepest import FlowDirectorSteepest
 
@@ -215,74 +219,35 @@ def min_distance_to_network(grid, acn, node_id):
     return float(offset), int(mdn)
 
 
-def _remove_duplicates_(nmgrid, nmg_link_to_rmg_coincident_nodes_mapper):
-    # for each link, compare node ids with each other_link
-    # attributes for each link, formatted as a list of lists
-    linkID = nmg_link_to_rmg_coincident_nodes_mapper["linkID"]
-    Lnodelist = _create_lol(
-        linkID, nmg_link_to_rmg_coincident_nodes_mapper["coincident_node"]
-    )
-    Ldistlist = _create_lol(linkID, nmg_link_to_rmg_coincident_nodes_mapper["dist"])
-    Lnodelist = _create_lol(
-        linkID, nmg_link_to_rmg_coincident_nodes_mapper["coincident_node"]
-    )
-    LlinkIDlist = _create_lol(linkID, nmg_link_to_rmg_coincident_nodes_mapper["linkID"])
-    Lxlist = _create_lol(linkID, nmg_link_to_rmg_coincident_nodes_mapper["x"])
-    Lylist = _create_lol(linkID, nmg_link_to_rmg_coincident_nodes_mapper["y"])
+def choose_unique(
+    values: ArrayLike,
+    order_by: Sequence[ArrayLike] | None = None,
+    choose: Literal["first", "last"] = "last",
+) -> NDArray[np.intp]:
+    """Find indices of unique values, selecting one representative if repeated.
 
-    for link in range(len(np.unique(linkID))):
-        for other_link in range(len(np.unique(linkID))):
-            if link != other_link:
-                link_coin_nodes = Lnodelist[link]
-                other_link_coin_nodes = Lnodelist[other_link]
-                link_a = nmgrid.at_link["drainage_area"][link]
-                other_link_a = nmgrid.at_link["drainage_area"][other_link]
-                dup = np.intersect1d(link_coin_nodes, other_link_coin_nodes)
-                # if contributing area of link is larger than contributing area
-                # of other_link, remove duplicate nodes from other_link
-                if len(dup) > 0:
-                    if link_a >= other_link_a:
-                        mask = ~np.isin(other_link_coin_nodes, dup)
-                        Lnodelist[other_link] = list(
-                            np.array(other_link_coin_nodes)[mask]
-                        )
-                        Ldistlist[other_link] = list(
-                            np.array(Ldistlist[other_link])[mask]
-                        )
-                        LlinkIDlist[other_link] = list(
-                            np.array(LlinkIDlist[other_link])[mask]
-                        )
-                        Lxlist[other_link] = list(np.array(Lxlist[other_link])[mask])
-                        Lylist[other_link] = list(np.array(Lylist[other_link])[mask])
-                    else:  # else, remove duplicates from link
-                        mask = ~np.isin(link_coin_nodes, dup)
-                        Lnodelist[link] = list(np.array(link_coin_nodes)[mask])
-                        Ldistlist[link] = list(np.array(Ldistlist[link])[mask])
-                        LlinkIDlist[link] = list(np.array(LlinkIDlist[link])[mask])
-                        Lxlist[link] = list(np.array(Lxlist[link])[mask])
-                        Lylist[link] = list(np.array(Lylist[link])[mask])
-    LinkIDs = _flatten_lol(LlinkIDlist)
-    nmg_link_to_rmg_coincident_nodes_mapper = pd.DataFrame(
-        np.array(
-            [
-                LinkIDs,
-                _flatten_lol(Lnodelist),
-                _flatten_lol(Lxlist),
-                _flatten_lol(Lylist),
-                _flatten_lol(Ldistlist),
-                nmgrid.at_link["drainage_area"][np.array(LinkIDs)],
-            ]
-        ).T,
-        columns=["linkID", "coincident_node", "x", "y", "dist", "drainage_area"],
-    )
-    nmg_link_to_rmg_coincident_nodes_mapper["linkID"] = (
-        nmg_link_to_rmg_coincident_nodes_mapper["linkID"].astype(int)
-    )
-    nmg_link_to_rmg_coincident_nodes_mapper["coincident_node"] = (
-        nmg_link_to_rmg_coincident_nodes_mapper["coincident_node"].astype(int)
+    Examples
+    --------
+    >>> choose_unique([0, 1, 0, 0, 1], order_by=([10.0, 11.0, 12.0, 13.0, 14],))
+    array([3, 4])
+
+    >>> choose_unique([1, 0, 0, 1, 0], order_by=([10.0, 11.0, 12.0, 13.0, 14],))
+    array([3, 4])
+    """
+    values = np.asarray(values).ravel()
+
+    order_by = (
+        () if order_by is None else tuple(np.asarray(key).ravel() for key in order_by)
     )
 
-    return nmg_link_to_rmg_coincident_nodes_mapper
+    if any(key.size != values.size for key in order_by):
+        raise ValueError("All `order_by` arrays must match `values` length")
+
+    sorted_rows = np.lexsort(order_by + (values,))
+
+    is_last = choose_from_repeated(values[sorted_rows], choose=choose)
+
+    return np.sort(sorted_rows[is_last])
 
 
 def _remove_duplicates(nmg_link_to_rmg_coincident_nodes_mapper):
