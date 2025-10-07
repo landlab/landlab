@@ -219,6 +219,45 @@ def min_distance_to_network(grid, acn, node_id):
     return float(offset), int(mdn)
 
 
+def choose_from_repeated(
+    sorted_array: ArrayLike,
+    choose: Literal["first", "last"] = "last",
+) -> NDArray[np.bool_]:
+    """Mark the first/last element of repeated values in a **sorted** 1-D array.
+
+    Parameters
+    ----------
+    sorted_array : array_like
+        Assumed sorted by the grouping key.
+    choose : {'first','last'}, optional
+        Whether to mark the first or last item of each run.
+
+    Examples
+    --------
+    >>> array = [0, 0, 0, 2, 2, 5, 6, 6, 6, 6, 6]
+    >>> is_last = choose_from_repeated(array, choose="last")
+    >>> is_last.astype(int)
+    array([0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1])
+    """
+    a = np.asarray(sorted_array).ravel()
+
+    same_as_previous = np.zeros(a.size, dtype=bool)
+
+    if a.size <= 1:
+        return np.ones(a.size, dtype=bool)
+
+    same_as_previous[1:] = a[1:] == a[:-1]
+    if choose == "last":
+        keep_mask = np.ones_like(same_as_previous)
+        keep_mask[:-1] = ~same_as_previous[1:]
+    elif choose == "first":
+        keep_mask = ~same_as_previous
+    else:
+        raise ValueError(f"choose must be 'first' or 'last', got {choose!r}")
+
+    return keep_mask
+
+
 def choose_unique(
     values: ArrayLike,
     order_by: Sequence[ArrayLike] | None = None,
