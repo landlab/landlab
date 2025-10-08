@@ -18,11 +18,15 @@ class DepthDependentDiffuser(Component):
 
     .. math::
 
-        q_s = - D S H^* (1.0 - exp( - H / H^*)
+        q_s = K H^* (1.0 - exp[-H / H^*]) S
 
-    where :math:`D` is is the diffusivity, :math:`S` is the slope (defined as
-    negative downward), :math:`H` is the soil depth on links, and :math:`H^*`
+    where :math:`K` is a soil creep coefficient with dimensions of velocity, 
+    :math:`S` is the slope gradient (defined as negative downward), 
+    :math:`H` is the soil depth on links, and :math:`H^*`
     is the soil transport decay depth.
+
+    Note that the commonly used "hillslope diffusivity" coefficient is equal
+    to the product of :math:`K` and :math:`H^*`.
 
     This component will ignore soil thickness located at non-core nodes.
 
