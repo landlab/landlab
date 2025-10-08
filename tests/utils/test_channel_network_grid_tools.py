@@ -1,12 +1,46 @@
 import numpy as np
 import pandas as pd
 import pytest
+from numpy.testing import assert_array_equal
 
 import landlab.utils.channel_network_grid_tools as gt
+from landlab.utils.channel_network_grid_tools import choose_from_repeated
+from landlab.utils.channel_network_grid_tools import choose_unique
 
 
 def check_vals(vals, vals_e):
     np.testing.assert_allclose(vals, vals_e, atol=1e-4)
+
+
+@pytest.mark.parametrize(
+    "array, choose, expected",
+    (
+        ([0, 0, 1, 1, 1, 2, 2], "last", [0, 1, 0, 0, 1, 0, 1]),
+        ([2, 2, 2, 0, 0, 1, 1, 1], "last", [0, 0, 1, 0, 1, 0, 0, 1]),
+        ([0, 0, 1, 1, 1, 2, 2], "first", [1, 0, 1, 0, 0, 1, 0]),
+        ([2, 2, 2, 0, 0, 1, 1, 1], "first", [1, 0, 0, 1, 0, 1, 0, 0]),
+        ([2, 2, 2], "first", [1, 0, 0]),
+        ([2, 2, 2], "last", [0, 0, 1]),
+    ),
+)
+def test_choose_from_repeated_normal(array, choose, expected):
+    actual = choose_from_repeated(array, choose=choose)
+    assert_array_equal(actual, expected)
+    assert actual.dtype == bool
+
+
+@pytest.mark.parametrize("choose", ("first", "last"))
+@pytest.mark.parametrize("size", (0, 1))
+def test_choose_from_repeated_small_input(choose, size):
+    actual = choose_from_repeated(np.zeros(size, dtype=int), choose=choose)
+    assert_array_equal(actual, np.ones(size, dtype=bool))
+    assert actual.dtype == bool
+
+
+@pytest.mark.parametrize("choose", ("foo", "FIRST", " last", "last ", ""))
+def test_choose_from_repeated_bad_keyword(choose):
+    with pytest.raises(ValueError, match="choose must be"):
+        choose_from_repeated([0, 0, 1, 1], choose=choose)
 
 
 def test_create_lol():
