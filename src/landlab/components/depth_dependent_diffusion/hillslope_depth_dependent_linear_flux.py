@@ -211,8 +211,8 @@ class DepthDependentDiffuser(Component):
             Coefficient for soil creep speed, m/yr (default 1.0)
         soil_transport_decay_depth: float, optional
             Characteristic transport soil depth, m (default 1.0)
-        linear_diffusivity: float, DEPRECATED
-            Hillslope diffusivity, m**2/yr
+        linear_diffusivity: float, optional
+            **DEPRECATED** Hillslope diffusivity, m**2/yr
         """
         super().__init__(grid)
 
