@@ -218,12 +218,14 @@ class DepthDependentDiffuser(Component):
 
         # Store grid and parameters
         if linear_diffusivity is not None:
-            message = """Use of linear_diffusivity is deprecated, because the
-                         name is misleading: it is actually a velocity;
-                         diffusivity is obtained by multiplying by soil
-                         transport decay depth. Use soil_transport_velocity
-                         instead."""
-            print(deprecation_message(message))
+            print(
+                deprecation_message(
+                    "Use of linear_diffusivity is deprecated, because the name is"
+                    " misleading: it is actually a velocity; diffusivity is obtained"
+                    " by multiplying by soil transport decay depth. Use"
+                    " soil_transport_velocity instead."
+                )
+            )
             if soil_transport_velocity is None:
                 soil_transport_velocity = linear_diffusivity
         elif soil_transport_velocity is None:
