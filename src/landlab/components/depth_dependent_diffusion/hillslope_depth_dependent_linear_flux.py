@@ -207,10 +207,10 @@ class DepthDependentDiffuser(Component):
         ----------
         grid: ModelGrid
             Landlab ModelGrid object
-        soil_transport_velocity : float
-            Coefficient for soil creep speed, m/yr
-        soil_transport_decay_depth: float
-            Characteristic transport soil depth, m
+        soil_transport_velocity : float, optional
+            Coefficient for soil creep speed, m/yr (default 1.0)
+        soil_transport_decay_depth: float, optional
+            Characteristic transport soil depth, m (default 1.0)
         linear_diffusivity: float, DEPRECATED
             Hillslope diffusivity, m**2/yr
         """
