@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 import pytest
 from numpy.testing import assert_array_equal
 
@@ -575,70 +574,6 @@ class TestMinDistToNetwork:
         mdn_e = 3
         check_vals(dist, dist_e)
         check_vals(mdn, mdn_e)
-
-
-class TestRemoveDuplicates:
-    def test_remove_duplicates_1(self):
-        """three links have same coincident node, different drainage area, link
-        1 has largest drainage area"""
-        mapper = pd.DataFrame(
-            zip([0, 1, 2], [3, 3, 3], [1, 2, 3], [1, 2, 3], [1, 1, 1], [1, 5, 3]),
-            columns=["linkID", "coincident_node", "x", "y", "dist", "drainage_area"],
-        )
-        df_e = pd.DataFrame(
-            zip([1], [3], [2], [2], [1], [5]),
-            columns=["linkID", "coincident_node", "x", "y", "dist", "drainage_area"],
-        )
-        check_vals(gt._remove_duplicates(mapper).values, df_e.values)
-
-    def test_remove_duplicates_2(self):
-        """three links have same coincident node, different drainage area, link
-        2 has largest drainage area"""
-        mapper = pd.DataFrame(
-            zip([0, 1, 2], [3, 3, 3], [1, 2, 3], [1, 2, 3], [1, 1, 1], [1, 2, 3]),
-            columns=["linkID", "coincident_node", "x", "y", "dist", "drainage_area"],
-        )
-        df_e = pd.DataFrame(
-            zip([2], [3], [3], [3], [1], [3]),
-            columns=["linkID", "coincident_node", "x", "y", "dist", "drainage_area"],
-        )
-        check_vals(gt._remove_duplicates(mapper).values, df_e.values)
-
-    def test_remove_duplicates_3(self):
-        """all three links have same coincident node, same drainage area"""
-        mapper = pd.DataFrame(
-            zip([0, 1, 2], [3, 3, 3], [1, 2, 3], [1, 2, 3], [1, 1, 1], [3, 3, 3]),
-            columns=["linkID", "coincident_node", "x", "y", "dist", "drainage_area"],
-        )
-        df_e = pd.DataFrame(
-            zip([0], [3], [1], [1], [1], [3]),
-            columns=["linkID", "coincident_node", "x", "y", "dist", "drainage_area"],
-        )
-        check_vals(gt._remove_duplicates(mapper).values, df_e.values)
-
-    def test_remove_duplicates_4(self):
-        """links 0 and 2 have same coincident node, same drainage area"""
-        mapper = pd.DataFrame(
-            zip([0, 1, 2], [3, 1, 3], [1, 2, 3], [1, 2, 3], [1, 1, 1], [3, 3, 3]),
-            columns=["linkID", "coincident_node", "x", "y", "dist", "drainage_area"],
-        )
-        df_e = pd.DataFrame(
-            zip([0, 1], [3, 1], [1, 2], [1, 2], [1, 1], [3, 3]),
-            columns=["linkID", "coincident_node", "x", "y", "dist", "drainage_area"],
-        )
-        check_vals(gt._remove_duplicates(mapper).values, df_e.values)
-
-    def test_remove_duplicates_5(self):
-        """links 1 and 2 have same coincident node, same drainage area"""
-        mapper = pd.DataFrame(
-            zip([0, 1, 2], [1, 3, 3], [1, 2, 3], [1, 2, 3], [1, 1, 1], [3, 3, 3]),
-            columns=["linkID", "coincident_node", "x", "y", "dist", "drainage_area"],
-        )
-        df_e = pd.DataFrame(
-            zip([0, 1], [1, 3], [1, 2], [1, 2], [1, 1], [3, 3]),
-            columns=["linkID", "coincident_node", "x", "y", "dist", "drainage_area"],
-        )
-        check_vals(gt._remove_duplicates(mapper).values, df_e.values)
 
 
 class TestMapNMGLinksToRMGCoincidentNodes:
