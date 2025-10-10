@@ -7,6 +7,7 @@ import numpy as np
 
 from landlab import Component
 from landlab import LinkStatus
+from landlab.core.messages import deprecation_message
 
 
 class DepthDependentDiffuser(Component):
@@ -18,11 +19,15 @@ class DepthDependentDiffuser(Component):
 
     .. math::
 
-        q_s = - D S H^* (1.0 - exp( - H / H^*)
+        q_s = K H^* (1.0 - exp[-H / H^*]) S
 
-    where :math:`D` is is the diffusivity, :math:`S` is the slope (defined as
-    negative downward), :math:`H` is the soil depth on links, and :math:`H^*`
+    where :math:`K` is a soil creep coefficient with dimensions of velocity,
+    :math:`S` is the slope gradient (defined as negative downward),
+    :math:`H` is the soil depth on links, and :math:`H^*`
     is the soil transport decay depth.
+
+    Note that the commonly used "hillslope diffusivity" coefficient is equal
+    to the product of :math:`K` and :math:`H^*`.
 
     This component will ignore soil thickness located at non-core nodes.
 
@@ -190,21 +195,53 @@ class DepthDependentDiffuser(Component):
         },
     }
 
-    def __init__(self, grid, linear_diffusivity=1.0, soil_transport_decay_depth=1.0):
+    def __init__(
+        self,
+        grid,
+        soil_transport_velocity=None,
+        soil_transport_decay_depth=1.0,
+        linear_diffusivity=None,
+    ):
         """
         Parameters
         ----------
         grid: ModelGrid
             Landlab ModelGrid object
-        linear_diffusivity: float
-            Hillslope diffusivity, m**2/yr
-        soil_transport_decay_depth: float
-            Characteristic transport soil depth, m
+        soil_transport_velocity : float, optional
+            Coefficient for soil creep speed, m/yr (default 1.0)
+        soil_transport_decay_depth: float, optional
+            Characteristic transport soil depth, m (default 1.0)
+        linear_diffusivity: float, optional
+            **DEPRECATED** Hillslope diffusivity, m**2/yr
         """
         super().__init__(grid)
-        # Store grid and parameters
 
-        self._K = linear_diffusivity
+        # Store grid and parameters
+        if linear_diffusivity is not None:
+            if soil_transport_velocity is not None:
+                print(
+                    deprecation_message(
+                        "Both 'linear_diffusivity' (deprecated) and"
+                        " 'soil_transport_velocity' were provided."
+                        " Ignoring 'linear_diffusivity' and using"
+                        " 'soil_transport_velocity' instead.",
+                    )
+                )
+            else:
+                print(
+                    deprecation_message(
+                        "Use of linear_diffusivity is deprecated, because the name is"
+                        " misleading: it is actually a velocity; diffusivity is obtained"
+                        " by multiplying by soil transport decay depth. Use"
+                        " soil_transport_velocity instead."
+                    )
+                )
+                soil_transport_velocity = linear_diffusivity
+
+        if soil_transport_velocity is None:
+            soil_transport_velocity = 1.0
+
+        self._K = soil_transport_velocity
         self._soil_transport_decay_depth = soil_transport_decay_depth
 
         # get reference to inputs
