@@ -133,7 +133,7 @@ jobs:
           MPLBACKEND: "module://matplotlib_inline.backend_inline"
           PYTEST_ADDOPTS: "--overwrite -m '${{ matrix.pytest-marker }} and not richdem'"
         with:
-          python-version: "3.13"
+          python-version: "3.14"
           nox-session: "test-notebooks"
           upload-name: ${{ matrix.os == 'macos-latest' && format('notebooks-{0}', matrix.pytest-marker) || '' }}
 
