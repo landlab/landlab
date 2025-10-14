@@ -21,7 +21,7 @@ jobs:
       - uses: ./.github/actions/build-bdist/
         with:
           cibw-only: "cp314-macosx_arm64"
-          upload-name: build-wheels-cp313-macosx_arm64
+          upload-name: build-wheels-cp314-macosx_arm64
 
   run-tests:
     needs: build
