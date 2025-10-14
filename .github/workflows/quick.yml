@@ -35,7 +35,7 @@ jobs:
           MPLBACKEND: "Agg"
           PYTEST_ADDOPTS: "-m 'not richdem'"
         with:
-          python-version: "3.13"
+          python-version: "3.14"
           nox-session: "test"
 
   run-notebooks:
