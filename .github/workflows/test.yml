@@ -58,18 +58,23 @@ jobs:
           - { os: macos-latest, cibw-only: cp311-macosx_x86_64, mac_deployment: "10.9" }
           - { os: macos-latest, cibw-only: cp312-macosx_x86_64, mac_deployment: "10.9" }
           - { os: macos-latest, cibw-only: cp313-macosx_x86_64, mac_deployment: "10.9" }
+          - { os: macos-latest, cibw-only: cp314-macosx_x86_64, mac_deployment: "10.9" }
           - { os: macos-latest, cibw-only: cp311-macosx_arm64, mac_deployment: "11.0" }
           - { os: macos-latest, cibw-only: cp312-macosx_arm64, mac_deployment: "11.0" }
           - { os: macos-latest, cibw-only: cp313-macosx_arm64, mac_deployment: "11.0" }
+          - { os: macos-latest, cibw-only: cp314-macosx_arm64, mac_deployment: "11.0" }
           - { os: ubuntu-latest, cibw-only: cp311-manylinux_x86_64 }
           - { os: ubuntu-latest, cibw-only: cp312-manylinux_x86_64 }
           - { os: ubuntu-latest, cibw-only: cp313-manylinux_x86_64 }
+          - { os: ubuntu-latest, cibw-only: cp314-manylinux_x86_64 }
           - { os: ubuntu-24.04-arm, cibw-only: cp311-manylinux_aarch64 }
           - { os: ubuntu-24.04-arm, cibw-only: cp312-manylinux_aarch64 }
           - { os: ubuntu-24.04-arm, cibw-only: cp313-manylinux_aarch64 }
+          - { os: ubuntu-24.04-arm, cibw-only: cp314-manylinux_aarch64 }
           - { os: windows-2022, cibw-only: cp311-win_amd64 }
           - { os: windows-2022, cibw-only: cp312-win_amd64 }
           - { os: windows-2022, cibw-only: cp313-win_amd64 }
+          - { os: windows-2022, cibw-only: cp314-win_amd64 }
 
     steps:
       - uses: actions/checkout@v5
