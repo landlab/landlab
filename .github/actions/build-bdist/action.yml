@@ -26,7 +26,7 @@ runs:
         sudo tar fvxz openmp-13.0.0-darwin21-Release.tar.gz -C /
 
     - name: Build wheels
-      uses: pypa/cibuildwheel@v2.22.0
+      uses: pypa/cibuildwheel@v3.2.1
       with:
         only: ${{ inputs.cibw-only }}
 
