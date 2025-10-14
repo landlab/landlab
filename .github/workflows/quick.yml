@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/build-bdist/
         with:
-          cibw-only: "cp313-macosx_arm64"
+          cibw-only: "cp314-macosx_arm64"
           upload-name: build-wheels-cp313-macosx_arm64
 
   run-tests:
