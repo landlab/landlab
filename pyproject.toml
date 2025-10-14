@@ -138,7 +138,7 @@ profile = "black"
 ignore = [".nox", "build"]
 
 [tool.cibuildwheel]
-build = "cp311-* cp312-* cp313-*"
+build = "cp311-* cp312-* cp313-* cp314-*"
 skip = "*-musllinux_* *-win32*"
 archs = "x86_64,aarch64,arm64,AMD64,x86"
 test-command = [
