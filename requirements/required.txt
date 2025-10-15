@@ -5,7 +5,7 @@ netcdf4==1.7.2
 pandas==2.3.2
 numpy==2.3.4
 pyshp==2.3.1
-pyyaml==6.0.2
+pyyaml==6.0.3
 rich-click==1.8.9
 scipy==1.15.1
 statsmodels==0.14.5
