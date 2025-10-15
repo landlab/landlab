@@ -4,7 +4,7 @@ matplotlib==3.10.0
 netcdf4==1.7.2
 pandas==2.3.2
 numpy==2.3.4
-pyshp==2.3.1
+pyshp==3.0.2.post1
 pyyaml==6.0.3
 rich-click==1.8.9
 scipy==1.15.1
