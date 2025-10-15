@@ -50,5 +50,5 @@ jobs:
           MPLBACKEND: "module://matplotlib_inline.backend_inline"
           PYTEST_ADDOPTS: "--overwrite -m 'not richdem'"
         with:
-          python-version: "3.14"
+          python-version: "3.13"
           nox-session: "test-notebooks"
