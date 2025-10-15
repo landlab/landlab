@@ -3,7 +3,7 @@ importlib-resources==6.5.2; python_version < '3.12'
 matplotlib==3.10.0
 netcdf4==1.7.2
 pandas==2.3.2
-numpy==2.3.3
+numpy==2.3.4
 pyshp==2.3.1
 pyyaml==6.0.2
 rich-click==1.8.9
