@@ -8,11 +8,11 @@ need.
 
 ## Quick Start Tutorial
 New contributors are encouraged to watch the tutorial video below for an overview of
-the general workflow for how to contribute to the Landlab GitHub repository. 
+the general workflow for how to contribute to the Landlab GitHub repository.
 
-This tutorial video is part of the CSDMS webinar series: *"From issue to pull request: 
-how to contribute to CSDMS' open-source community code repositories"*. 
-A summary of the steps covered in this video can also be found 
+This tutorial video is part of the CSDMS webinar series: *"From issue to pull request:
+how to contribute to CSDMS' open-source community code repositories"*.
+A summary of the steps covered in this video can also be found
 [here](https://csdms.colorado.edu/wiki/Presenters-0697).
 
 <div align="center">
