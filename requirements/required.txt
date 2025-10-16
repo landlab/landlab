@@ -6,7 +6,7 @@ pandas==2.3.3
 numpy==2.3.4
 pyshp==3.0.2.post1
 pyyaml==6.0.3
-rich-click==1.8.9
+rich-click==1.9.3
 scipy==1.16.2
 statsmodels==0.14.5
 xarray==2025.1.2
