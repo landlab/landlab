@@ -23,8 +23,7 @@ A summary of the steps covered in this video can also be found
       title="From issue to pull request: how to contribute to CSDMS' open-source
       community code repositories"
       frameborder="0"
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope;
-      picture-in-picture"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
       allowfullscreen>
   </iframe>
 </div>
