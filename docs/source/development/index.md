@@ -6,6 +6,29 @@ If you're intending to make changes to the Landlab code base, or want to
 develop your own components, this set of pages will provide information you
 need.
 
+## Quick Start Tutorial
+New contributors are encouraged to watch the tutorial video below for an overview of
+the general workflow for how to contribute to the Landlab GitHub repository. 
+
+This tutorial video is part of the CSDMS webinar series: *"From issue to pull request: 
+how to contribute to CSDMS' open-source community code repositories"*. 
+A summary of the steps covered in this video can also be found 
+[here](https://csdms.colorado.edu/wiki/Presenters-0697).
+
+<div align="center">
+  <iframe
+      width="700"
+      height="394"
+      src="https://www.youtube.com/embed/YuFhdzVZUFI?start=0"
+      title="From issue to pull request: how to contribute to CSDMS' open-source
+      community code repositories"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope;
+      picture-in-picture"
+      allowfullscreen>
+  </iframe>
+</div>
+
 ## Key Development Recommendations
 
 The most important things to remember are to:
