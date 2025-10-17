@@ -364,6 +364,11 @@ class Flexure(Component):
         dz.fill(0.0)
 
         if row_col_of_load is None:
+            if loads.size != self.grid.number_of_nodes:
+                raise ValueError(
+                    f"'loads' array has incorrect size ({loads.size}), expecting"
+                    f" number_of_nodes ({self.grid.number_of_nodes})"
+                )
             loads, row_col_of_load = self._handle_no_row_col(loads)
         row_of_load, col_of_load = row_col_of_load
 
