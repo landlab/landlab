@@ -354,8 +354,9 @@ class Flexure(Component):
         """
         loads = np.asarray(loads)
         if out is None:
-            out = self.grid.zeros(at="node")
+            out = self.grid.empty(at="node")
         dz = out.reshape(self.grid.shape)
+        dz.fill(0.0)
 
         if row_col_of_load is None:
             loads, row_col_of_load = self._handle_no_row_col(loads)
