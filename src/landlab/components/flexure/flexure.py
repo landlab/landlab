@@ -285,8 +285,6 @@ class Flexure(Component):
 
         new_load = load.copy()
 
-        deflection.fill(0.0)
-
         if self.method == "airy":
             deflection[:] = new_load / self.gamma_mantle
         else:
