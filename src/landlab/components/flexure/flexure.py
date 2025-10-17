@@ -58,6 +58,8 @@ array([[0., 0., 0., 0.],
 """
 
 import numpy as np
+from numpy.typing import ArrayLike
+from numpy.typing import NDArray
 
 from landlab import Component
 from landlab.components.flexure._ext.flexure2d import subside_loads as _subside_loads
@@ -321,7 +323,12 @@ class Flexure(Component):
 
         return out
 
-    def subside_loads(self, loads, row_col_of_load=None, out=None):
+    def subside_loads(
+        self,
+        loads: ArrayLike,
+        row_col_of_load: tuple[ArrayLike, ArrayLike] | None = None,
+        out: NDArray[np.floating] | None = None,
+    ) -> NDArray:
         """Subside surface due to multiple loads.
 
         Parameters
