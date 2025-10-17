@@ -137,6 +137,30 @@ def test_flexure_cmp():
     assert_array_almost_equal(actual, expected)
 
 
+@pytest.mark.parametrize("n", (10,))
+@pytest.mark.parametrize("method", ["airy", "flexure"])
+def test_subside_zero_load(method, n):
+    n_rows = n_cols = 2**n + 1
+
+    grid = RasterModelGrid((n_rows, n_cols), xy_spacing=10.0)
+    grid.add_zeros("lithosphere__overlying_pressure_increment", at="node")
+    flex = Flexure(grid, method=method)
+
+    loads = grid.zeros(at="node").reshape(grid.shape)
+
+    actual = flex.subside_loads(loads)
+    assert_array_almost_equal(actual, 0.0)
+
+    actual = grid.empty(at="node")
+    flex.subside_loads(loads, out=actual)
+    assert_array_almost_equal(actual, 0.0)
+
+    actual = flex.subside_loads(
+        (0.0,), row_col_of_load=((0, n_rows - 1), (n_cols - 1, 0))
+    )
+    assert_array_almost_equal(actual, 0.0)
+
+
 def test_subside_is_symetric():
     n, load_0 = 10, 1e9
 
