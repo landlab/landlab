@@ -369,7 +369,7 @@ class Flexure(Component):
                     f"'loads' array has incorrect size ({loads.size}), expecting"
                     f" number_of_nodes ({self.grid.number_of_nodes})"
                 )
-            loads, row_col_of_load = self._handle_no_row_col(loads)
+            loads, row_col_of_load = _find_nonzero_loads(loads.reshape(self.grid.shape))
         row_of_load, col_of_load = row_col_of_load
 
         _subside_loads(
