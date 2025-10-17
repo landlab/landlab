@@ -384,16 +384,6 @@ class Flexure(Component):
 
         return out
 
-    def _handle_no_row_col(self, loads, tol=1e-6):
-        """Handle the case where the row_col_of_load keyword is not provided."""
-        loads = loads.reshape(self.grid.shape)
-        row_col_of_load = np.unravel_index(
-            np.flatnonzero(np.abs(loads) > tol), self.grid.shape
-        )
-        loads = loads[row_col_of_load]
-
-        return loads, row_col_of_load
-
 
 def _find_nonzero_loads(
     loads: NDArray[np.floating], tol: float = 1e-6
