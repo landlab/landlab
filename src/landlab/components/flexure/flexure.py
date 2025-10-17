@@ -355,6 +355,11 @@ class Flexure(Component):
         loads = np.asarray(loads)
         if out is None:
             out = self.grid.empty(at="node")
+        elif out.size != self.grid.number_of_nodes:
+            raise ValueError(
+                f"'out' array has incorrect size ({out.size}), expecting"
+                f" number_of_nodes ({self.grid.number_of_nodes})"
+            )
         dz = out.reshape(self.grid.shape)
         dz.fill(0.0)
 
