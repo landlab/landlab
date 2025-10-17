@@ -370,16 +370,21 @@ class Flexure(Component):
                     f" number_of_nodes ({self.grid.number_of_nodes})"
                 )
             loads, row_col_of_load = _find_nonzero_loads(loads.reshape(self.grid.shape))
-        row_of_load, col_of_load = row_col_of_load
+
+        rows = _validate_range(row_col_of_load[0], low=0, high=self.grid.shape[0])
+        cols = _validate_range(row_col_of_load[1], low=0, high=self.grid.shape[1])
+
+        if rows.size != cols.size:
+            raise ValueError("'rows' and 'cols' must have the same length.")
 
         _subside_loads(
             dz,
             self._r.reshape(self.grid.shape),
             loads * self.grid.dx * self.grid.dy,
-            np.asarray(row_of_load),
-            np.asarray(col_of_load),
-            self.alpha,
-            self.gamma_mantle,
+            rows,
+            cols,
+            float(self.alpha),
+            float(self.gamma_mantle),
         )
 
         return out
