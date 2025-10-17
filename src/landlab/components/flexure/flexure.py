@@ -390,6 +390,19 @@ class Flexure(Component):
         return loads, row_col_of_load
 
 
+def _find_nonzero_loads(
+    loads: NDArray[np.floating], tol: float = 1e-6
+) -> tuple[NDArray, tuple[NDArray, NDArray]]:
+    """Find the rows and columns where there is a load."""
+    if loads.ndim != 2:
+        raise ValueError(f"'loads' must be 2D (got {loads.shape})")
+
+    is_a_load = np.abs(loads) > tol
+    rows, cols = np.nonzero(is_a_load)
+
+    return loads[rows, cols], (rows, cols)
+
+
 def _validate_range(array: ArrayLike, low: int | None, high: int | None) -> NDArray:
     array = np.asarray(array).ravel()
     if low is not None and np.any(array < low):
