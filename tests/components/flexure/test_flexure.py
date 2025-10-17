@@ -187,7 +187,8 @@ def test_subside_is_symmetric(method):
     assert not np.allclose(dz, 0.0)
 
 
-def test_subside_negative_load():
+@pytest.mark.parametrize("method", ["airy", "flexure"])
+def test_subside_negative_load(method):
     n, load_0 = 10, 1e9
 
     n_rows = 2**n + 1
@@ -195,18 +196,18 @@ def test_subside_negative_load():
 
     grid = RasterModelGrid((n_rows, n_cols), xy_spacing=10.0)
     grid.add_zeros("lithosphere__overlying_pressure_increment", at="node")
-    flex = Flexure(grid, method="flexure")
+    flex = Flexure(grid, method=method)
 
     row_col_of_load = [
         [2 ** (n - 1), 0, 0, n_rows - 1, n_rows - 1],
         [2 ** (n - 1), 0, n_cols - 1, 0, n_cols - 1],
     ]
 
-    actual = np.zeros((n_rows, n_cols))
+    actual = np.empty((n_rows, n_cols))
     flex.subside_loads([load_0] * 5, row_col_of_load=row_col_of_load, out=actual)
 
-    expected = np.zeros((n_rows, n_cols))
-    flex.subside_loads([-load_0] * 5, row_col_of_load=row_col_of_load, out=actual)
+    expected = np.empty((n_rows, n_cols))
+    flex.subside_loads([-load_0] * 5, row_col_of_load=row_col_of_load, out=expected)
 
     assert_array_almost_equal(actual, -expected)
 
