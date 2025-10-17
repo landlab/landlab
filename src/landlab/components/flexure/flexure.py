@@ -388,3 +388,12 @@ class Flexure(Component):
         loads = loads[row_col_of_load]
 
         return loads, row_col_of_load
+
+
+def _validate_range(array: ArrayLike, low: int | None, high: int | None) -> NDArray:
+    array = np.asarray(array).ravel()
+    if low is not None and np.any(array < low):
+        raise ValueError(f"array has values below the lower limit of {low}")
+    if high is not None and np.any(array >= high):
+        raise ValueError(f"array has values above the upper limit of {high}")
+    return array
