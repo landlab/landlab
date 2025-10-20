@@ -10,6 +10,33 @@ from numpy.testing import assert_array_equal
 from landlab import RasterModelGrid
 from landlab.components import Flexure
 from landlab.components.flexure._ext.flexure2d import subside_loads
+from landlab.components.flexure.flexure import _validate_range
+
+
+@pytest.mark.parametrize("array", ([1, 2, 3, 4], (1, 2, 3, 4), np.array([1, 2, 3, 4])))
+def test_validate_range_with_sequences(array):
+    actual = _validate_range(array)
+    assert np.allclose(actual, array)
+
+
+def test_validate_range_out_is_in():
+    array = np.arange(12)
+    actual = _validate_range(array)
+    assert np.shares_memory(actual, array)
+    assert np.allclose(actual, array)
+
+
+@pytest.mark.parametrize("low,high", ((2, None), (None, 4), (-1, 2), (3, 9)))
+def test_validate_range_out_of_range(low, high):
+    with pytest.raises(ValueError, match="array has values"):
+        _validate_range([1, 2, 3, 4], low=low, high=high)
+
+
+@pytest.mark.parametrize("low,high", ((None, None), (0, 9)))
+@pytest.mark.parametrize("array", ([1, 2, 3, 4], [], [1], [1, 1, 1, 1], [0, 8.999999]))
+def test_validate_range_in_range(array, low, high):
+    actual = _validate_range(array, low=low, high=high)
+    assert np.allclose(actual, array)
 
 
 @pytest.mark.parametrize("n", [4, 5, 6, 7, 8, 9, 10])

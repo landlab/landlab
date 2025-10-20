@@ -401,7 +401,9 @@ def _find_nonzero_loads(
     return loads[rows, cols], (rows, cols)
 
 
-def _validate_range(array: ArrayLike, low: int | None, high: int | None) -> NDArray:
+def _validate_range(
+    array: ArrayLike, low: int | None = None, high: int | None = None
+) -> NDArray:
     array = np.asarray(array).ravel()
     if low is not None and np.any(array < low):
         raise ValueError(f"array has values below the lower limit of {low}")
