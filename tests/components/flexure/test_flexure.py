@@ -299,6 +299,32 @@ def test_method_bad_name():
         Flexure(grid, method="bad-name")
 
 
+@pytest.mark.parametrize("size", (399, 401))
+def test_out_is_wrong_size(size):
+    grid = RasterModelGrid((20, 20), xy_spacing=1e3)
+    grid.add_zeros("lithosphere__overlying_pressure_increment", at="node")
+    flexure = Flexure(grid)
+    with pytest.raises(ValueError, match="'out' array has incorrect size"):
+        flexure.subside_loads(grid.zeros(at="node"), out=np.empty(size))
+
+
+@pytest.mark.parametrize("size", (399, 401))
+def test_loads_is_wrong_size(size):
+    grid = RasterModelGrid((20, 20), xy_spacing=1e3)
+    grid.add_zeros("lithosphere__overlying_pressure_increment", at="node")
+    flexure = Flexure(grid)
+    with pytest.raises(ValueError, match="'loads' array has incorrect size"):
+        flexure.subside_loads(np.zeros(size), row_col_of_load=None)
+
+
+def test_row_col_of_load_is_wrong_size():
+    grid = RasterModelGrid((20, 20), xy_spacing=1e3)
+    grid.add_zeros("lithosphere__overlying_pressure_increment", at="node")
+    flexure = Flexure(grid)
+    with pytest.raises(ValueError, match="'rows' and 'cols' must have the same length"):
+        flexure.subside_loads([0, 0, 0], row_col_of_load=([0, 1, 2], [2, 3]))
+
+
 @pytest.mark.parametrize("eet", [1e4, 1e3])
 def test_eet_attribute(eet):
     grid = RasterModelGrid((20, 20), xy_spacing=1e3)
