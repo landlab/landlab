@@ -10,7 +10,31 @@ from numpy.testing import assert_array_equal
 from landlab import RasterModelGrid
 from landlab.components import Flexure
 from landlab.components.flexure._ext.flexure2d import subside_loads
+from landlab.components.flexure.flexure import _find_nonzero_loads
 from landlab.components.flexure.flexure import _validate_range
+
+
+@pytest.mark.parametrize(
+    "loads,expected",
+    (
+        ([[0, 0], [1.5, 0]], ([1.5], ([1], [0]))),
+        ([[0, 0], [-1.5, 0]], ([-1.5], ([1], [0]))),
+        ([[0, 0], [0, 0]], ([], ([], []))),
+        ([[]], ([], ([], []))),
+        ([[1, 2], [-1, -2]], ([1, 2, -1, -2], ([0, 0, 1, 1], [0, 1, 0, 1]))),
+    ),
+)
+def test_find_nonzero_loads(loads, expected):
+    loads, (rows, cols) = _find_nonzero_loads(loads)
+    assert_array_equal(loads, expected[0])
+    assert_array_equal(rows, expected[1][0])
+    assert_array_equal(cols, expected[1][1])
+
+
+@pytest.mark.parametrize("loads", ([], [0, 1, 0], [[[0, 1, 0]]]))
+def test_find_nonzero_loads_wrong_ndim(loads):
+    with pytest.raises(ValueError, match="'loads' must be 2D"):
+        _find_nonzero_loads(loads)
 
 
 @pytest.mark.parametrize("array", ([1, 2, 3, 4], (1, 2, 3, 4), np.array([1, 2, 3, 4])))
