@@ -139,9 +139,9 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
             x-coordinate of points
         y : array_like
             y-coordinate of points
-        perimeter_links (optional) : array_like
+        perimeter_links : array_like, optional
             Sequence of (tail, head) node ID pairs for perimeter links
-        reorient_links (optional) : bool
+        reorient_links : bool, optional
             whether to point all links to the upper-right quadrant
         xy_of_reference : tuple, optional
             Coordinate value in projected space of (0., 0.)
