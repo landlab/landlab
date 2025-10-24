@@ -289,11 +289,12 @@ def test_method_names(method):
     assert Flexure(grid, method=method).method == method
 
 
-def test_method_bad_name():
+@pytest.mark.parametrize("method", ["Airy", "FlExUrE", "", " airy", "airy ", "foo"])
+def test_method_bad_name(method):
     grid = RasterModelGrid((20, 20), xy_spacing=1e3)
     grid.add_zeros("lithosphere__overlying_pressure_increment", at="node")
-    with pytest.raises(ValueError):
-        Flexure(grid, method="bad-name")
+    with pytest.raises(ValueError, match=f"{method}: method not understood"):
+        Flexure(grid, method=method)
 
 
 @pytest.mark.parametrize("size", (399, 401))
