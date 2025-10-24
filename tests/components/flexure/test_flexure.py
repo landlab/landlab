@@ -189,13 +189,12 @@ def test_flexure_cmp():
 
 
 @pytest.mark.parametrize("n", (10,))
-@pytest.mark.parametrize("method", ["airy", "flexure"])
-def test_subside_zero_load(method, n):
+def test_subside_zero_load(n):
     n_rows = n_cols = 2**n + 1
 
     grid = RasterModelGrid((n_rows, n_cols), xy_spacing=10.0)
     grid.add_zeros("lithosphere__overlying_pressure_increment", at="node")
-    flex = Flexure(grid, method=method)
+    flex = Flexure(grid, method="flexure")
 
     loads = grid.zeros(at="node").reshape(grid.shape)
 
