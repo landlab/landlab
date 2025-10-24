@@ -398,16 +398,16 @@ def test_field_initialized_to_zero(flex):
         assert np.all(field == 0.0)
 
 
-def test_update():
-    n = 5
-    n_rows = 2**n + 1
-    n_cols = 2**n + 1
+@pytest.mark.parametrize("method", ["airy", "flexure"])
+@pytest.mark.parametrize("n", (10,))
+def test_update(n, method):
+    n_rows = n_cols = 2**n + 1
 
     load_0 = 1e9
 
     grid = RasterModelGrid((n_rows, n_cols), xy_spacing=1e3)
     grid.add_zeros("lithosphere__overlying_pressure_increment", at="node")
-    flex = Flexure(grid, method="flexure")
+    flex = Flexure(grid, method=method)
 
     load = grid.at_node["lithosphere__overlying_pressure_increment"].reshape(grid.shape)
     load[2 ** (n - 1), 2 ** (n - 1)] = load_0
