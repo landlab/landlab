@@ -42,7 +42,7 @@ jobs:
       - name: Build sdist
         run: pipx run build --sdist
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: build-sdist
           path: ${{ github.workspace }}/dist/*.tar.gz
