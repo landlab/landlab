@@ -121,7 +121,7 @@ The following list shows how to use [nox] for some of the more common tasks:
 - Build the docs:
 
   ```bash
-  nox -s build-docs
+  nox -s docs-build
   ```
 
 - Run the linters:
