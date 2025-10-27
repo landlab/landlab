@@ -122,6 +122,7 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         self,
         x=None,
         y=None,
+        perimeter_links=None,
         reorient_links=True,
         xy_of_reference=(0.0, 0.0),
         xy_axis_name=("x", "y"),
@@ -138,7 +139,9 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
             x-coordinate of points
         y : array_like
             y-coordinate of points
-        reorient_links (optional) : bool
+        perimeter_links : array_like, optional
+            Sequence of (tail, head) node ID pairs for perimeter links
+        reorient_links : bool, optional
             whether to point all links to the upper-right quadrant
         xy_of_reference : tuple, optional
             Coordinate value in projected space of (0., 0.)
@@ -158,7 +161,12 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         >>> vmg.number_of_nodes
         25
         """
-        DualVoronoiGraph.__init__(self, (y, x), sort=True)
+        DualVoronoiGraph.__init__(
+            self,
+            (y, x),
+            sort=True,
+            perimeter_links=perimeter_links,
+        )
         ModelGrid.__init__(
             self,
             xy_axis_name=xy_axis_name,
