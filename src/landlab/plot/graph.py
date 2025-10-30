@@ -159,6 +159,18 @@ def _parse_locations_as_set(locations):
     return as_set
 
 
+def _merge_kwds(
+    base: Mapping[str, Any] | None = None,
+    *,
+    defaults: Mapping[str, Any] | None = None,
+    aliases: Sequence[tuple[str, str]] | None = None,
+) -> dict[str, Any]:
+    return {
+        **_norm_dict_with_aliases(defaults or {}, aliases=aliases),
+        **_norm_dict_with_aliases(base or {}, aliases=aliases),
+    }
+
+
 def _norm_dict_with_aliases(
     base: Mapping[str, Any] | Iterable[tuple[str, Any]],
     *,
