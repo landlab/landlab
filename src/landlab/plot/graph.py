@@ -1,3 +1,8 @@
+from collections.abc import Iterable
+from collections.abc import Mapping
+from collections.abc import Sequence
+from typing import Any
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -152,3 +157,22 @@ def _parse_locations_as_set(locations):
         )
 
     return as_set
+
+
+def _norm_dict_with_aliases(
+    base: Mapping[str, Any] | Iterable[tuple[str, Any]],
+    *,
+    aliases: Sequence[tuple[str, str]] | None = None,
+) -> dict[str, Any]:
+    base_map = dict(base or {})
+    if not aliases:
+        return base_map
+
+    alias_map = {alias: primary for primary, alias in aliases}
+    for alias, primary in alias_map.items():
+        if alias in base_map and primary in base_map:
+            raise ValueError(
+                f"conflicting keys. Both {primary!r} and its alias, {alias!r}, provided"
+            )
+
+    return {alias_map.get(k, k): v for k, v in base_map.items()}
