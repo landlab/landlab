@@ -1,6 +1,7 @@
 from collections.abc import Iterable
 from collections.abc import Mapping
 from collections.abc import Sequence
+from functools import partial
 from typing import Any
 
 import matplotlib.pyplot as plt
@@ -162,7 +163,7 @@ def _parse_locations_as_set(locations):
 def _merge_kwds(
     base: Mapping[str, Any] | None = None,
     *,
-    defaults: Mapping[str, Any] | None = None,
+    defaults: Mapping[str, Any] | Iterable[tuple[str, Any]] | None = None,
     aliases: Sequence[tuple[str, str]] | None = None,
 ) -> dict[str, Any]:
     return {
@@ -188,3 +189,13 @@ def _norm_dict_with_aliases(
             )
 
     return {alias_map.get(k, k): v for k, v in base_map.items()}
+
+
+merge_text_kwds = partial(
+    _merge_kwds,
+    aliases=[
+        ("color", "c"),
+        ("fontsize", "size"),
+        ("fontstyle", "style"),
+    ],
+)
