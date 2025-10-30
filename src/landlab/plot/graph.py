@@ -95,7 +95,14 @@ def plot_patches(
             plt.text(x, y, patch, **text_kwds)
 
 
-def plot_graph(graph, at="node,link,patch", with_id=True, axes=None):
+def plot_graph(
+    graph,
+    *,
+    at="node,link,patch",
+    with_id=True,
+    axes=None,
+    text_props: Mapping[str, Any] | None = None,
+):
     """Plot elements of a graph.
 
     Parameters
@@ -129,19 +136,42 @@ def plot_graph(graph, at="node,link,patch", with_id=True, axes=None):
     ax.set_xlim([min(graph.x_of_node) - 0.5, max(graph.x_of_node) + 0.5])
     ax.set_ylim([min(graph.y_of_node) - 0.5, max(graph.y_of_node) + 0.5])
 
+    text_props = merge_text_kwds(text_props, defaults=DEFAULT_TEXT_PROPS)
+
     if "node" in locs:
-        plot_nodes(graph, with_id="node" in with_id, markersize=4)
+        plot_nodes(
+            graph,
+            with_id="node" in with_id,
+            text=text_props,
+        )
     if "link" in locs:
-        plot_links(graph, with_id="link" in with_id, linewidth=None, as_arrow=True)
+        plot_links(
+            graph,
+            with_id="link" in with_id,
+            as_arrow=True,
+            text=text_props,
+        )
     if "patch" in locs:
-        plot_patches(graph, with_id="patch" in with_id)
+        plot_patches(
+            graph,
+            with_id="patch" in with_id,
+            text=text_props,
+        )
 
     if "corner" in locs:
-        plot_nodes(graph.dual, color="c", with_id="corner" in with_id)
+        plot_nodes(
+            graph.dual,
+            with_id="corner" in with_id,
+            text=text_props,
+        )
     if "face" in locs:
-        plot_links(graph.dual, linestyle="dotted", color="k", with_id="face" in with_id)
-    if "cell" in locs and graph.number_of_cells > 0:
-        plot_patches(graph.dual, color="m", with_id="cell" in with_id)
+        plot_links(
+            graph.dual,
+            with_id="face" in with_id,
+            text=text_props,
+        )
+    if "cell" in locs and getattr(graph, "number_of_cells", 0) > 0:
+        plot_patches(graph.dual, with_id="cell" in with_id, text=text_props)
 
     ax.set_xlabel("x")
     ax.set_ylabel("y")
