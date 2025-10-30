@@ -6,9 +6,19 @@ from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.typing import ColorType
 
 
-def plot_nodes(graph, color="r", with_id=True, markersize=4):
+def plot_nodes(
+    graph,
+    *,
+    color: ColorType = "r",
+    with_id: bool = True,
+    markersize: int = 4,
+    text: dict[str, Any] | None = None,
+):
+    text_kwds = merge_text_kwds(text, defaults={"size": 16, "color": color})
+
     for node in range(len(graph.x_of_node)):
         x, y = graph.x_of_node[node], graph.y_of_node[node]
         plt.plot(
@@ -19,7 +29,7 @@ def plot_nodes(graph, color="r", with_id=True, markersize=4):
             markersize=markersize,
         )
         if with_id:
-            plt.text(x, y, node, color=color, size=16)
+            plt.text(x, y, node, **text_kwds)
 
 
 def plot_links(
