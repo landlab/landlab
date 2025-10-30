@@ -66,8 +66,24 @@ def plot_links(
             plt.text(x + dx * 0.5, y + dy * 0.5, link, **text_kwds)
 
 
-def plot_patches(graph, color="g", with_id=False):
+def plot_patches(
+    graph,
+    *,
+    color: ColorType = "g",
+    with_id: bool = False,
+    text: dict[str, Any] | None = None,
+):
     from matplotlib.patches import Polygon
+
+    text_kwds = merge_text_kwds(
+        text,
+        defaults={
+            "size": 16,
+            "color": color,
+            "horizontalalignment": "center",
+            "verticalalignment": "center",
+        },
+    )
 
     for patch, nodes in enumerate(graph.nodes_at_patch):
         nodes = nodes[nodes >= 0]
@@ -76,15 +92,7 @@ def plot_patches(graph, color="g", with_id=False):
             Polygon(graph.xy_of_node[nodes], ec=color, fc=None, alpha=0.5)
         )
         if with_id:
-            plt.text(
-                x,
-                y,
-                patch,
-                color=color,
-                size=16,
-                horizontalalignment="center",
-                verticalalignment="center",
-            )
+            plt.text(x, y, patch, **text_kwds)
 
 
 def plot_graph(graph, at="node,link,patch", with_id=True, axes=None):
