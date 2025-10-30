@@ -1,8 +1,39 @@
 import pytest
 
 from landlab import RasterModelGrid
+from landlab.plot.graph import _norm_dict_with_aliases
 from landlab.plot.graph import _parse_locations_as_set
 from landlab.plot.graph import plot_graph
+
+
+@pytest.mark.parametrize("base", ({"foo": 0, "bar": 1}, {}))
+@pytest.mark.parametrize(
+    "aliases",
+    (
+        [("baz", "foobar")],
+        [("foo", "foobar")],
+        None,
+    ),
+)
+def test_norm_dict_with_aliases_unchanged(base, aliases):
+    actual = _norm_dict_with_aliases(base, aliases=aliases)
+    assert actual == base
+    assert actual is not base
+
+
+def test_norm_dict_with_aliases_conflicting_keys():
+    with pytest.raises(ValueError, match="conflicting keys"):
+        _norm_dict_with_aliases({"foo": 0, "bar": 1}, aliases=(("bar", "foo"),))
+
+
+def test_norm_dict_with_aliases():
+    actual = _norm_dict_with_aliases({"foo": 0, "bar": 1}, aliases=(("baz", "foo"),))
+    assert actual == {"baz": 0, "bar": 1}
+
+    actual = _norm_dict_with_aliases(
+        {"foo": 0, "bar": 1}, aliases=(("baz", "foo"), ("foobar", "bar"))
+    )
+    assert actual == {"baz": 0, "foobar": 1}
 
 
 def _axes_arrows(ax):
