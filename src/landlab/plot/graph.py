@@ -33,12 +33,21 @@ def plot_nodes(
 
 
 def plot_links(
-    graph, color="b", linestyle="solid", with_id=True, as_arrow=True, linewidth=None
+    graph,
+    *,
+    color: ColorType = "b",
+    linestyle="solid",
+    with_id=True,
+    as_arrow=True,
+    linewidth=None,
+    text: dict[str, Any] | None = None,
 ):
     if as_arrow:
         head_width = 0.1
     else:
         head_width = 0.0
+    text_kwds = merge_text_kwds(text, defaults={"size": 16, "color": color})
+
     for link, nodes in enumerate(graph.nodes_at_link):
         x, y = graph.x_of_node[nodes[0]], graph.y_of_node[nodes[0]]
         dx, dy = graph.x_of_node[nodes[1]] - x, graph.y_of_node[nodes[1]] - y
@@ -54,7 +63,7 @@ def plot_links(
             linestyle=linestyle,
         )
         if with_id:
-            plt.text(x + dx * 0.5, y + dy * 0.5, link, size=16, color=color)
+            plt.text(x + dx * 0.5, y + dy * 0.5, link, **text_kwds)
 
 
 def plot_patches(graph, color="g", with_id=False):
