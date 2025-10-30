@@ -95,6 +95,9 @@ def plot_patches(
             plt.text(x, y, patch, **text_kwds)
 
 
+DEFAULT_TEXT_PROPS = (("fontsize", 16),)
+
+
 def plot_graph(
     graph,
     *,
