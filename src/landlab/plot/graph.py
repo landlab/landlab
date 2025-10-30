@@ -120,6 +120,12 @@ def plot_graph(
         ids for all elements of ``False`` for no elements.
     axes : , optional
         Add the plot to an existing matplotlib ``Axes``, otherwise, create a new one.
+    text_props : dict, optional
+        Mapping of keyword arguments passed to :func:`matplotlib.pyplot.text`
+        for all text objects (for example, element IDs). Use this to control
+        text appearance such as font size, color, alignment, and weight.
+        Keys and values correspond to valid Matplotlib text properties
+        (e.g., ``{"fontsize": 8, "color": "gray"}``).
 
     Returns
     -------
