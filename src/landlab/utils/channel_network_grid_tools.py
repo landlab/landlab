@@ -1,4 +1,3 @@
-import itertools
 from collections.abc import Sequence
 from typing import Literal
 
@@ -11,34 +10,8 @@ from landlab.components.flow_director.flow_director_steepest import FlowDirector
 
 """
 A collection of tools for mapping values (e.g., flow, shear stress) between
-network model grids and a raster model grid representation of a channel network.
+network model grid and raster model grid representations of a channel network.
 """
-
-
-def _create_lol(linkID, list_of_vals):
-    """convert a list of values to a list of lists of values, where each sublist
-    contains the values for each unique link id in list linkID"""
-    list_of_lists = []
-    for link in np.unique(linkID):
-        mask = np.array(linkID) == link
-        list_of_lists.append(np.array(list_of_vals)[mask].tolist())
-    return list_of_lists
-
-
-def _flatten_lol(lol):
-    """Flatten a list of lists.
-
-    Parameters
-    ----------
-    lol : list of list
-        A list where each element is itself a list.
-
-    Returns
-    -------
-    list
-        A single list containing all elements from the sublists.
-    """
-    return list(itertools.chain.from_iterable(lol))
 
 
 def get_link_nodes(nmgrid):
@@ -357,12 +330,8 @@ def map_nmg_links_to_rmg_coincident_nodes(
     if remove_duplicates:
         values = df["coincident_node"].to_numpy()
         area = df["drainage_area"].to_numpy()
-
-        row = np.arange(len(df), dtype=np.int64)
-
-        idx = choose_unique(values=values, order_by=[area, -row], choose="last")
+        idx = choose_unique(values=values, order_by=[area], choose="last")
         idx.sort()
-
         df = df.iloc[idx].reset_index(drop=True)
 
     return df
