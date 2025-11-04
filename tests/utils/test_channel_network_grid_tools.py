@@ -2,11 +2,12 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from landlab import RasterModelGrid
-from landlab.components import FlowAccumulator, DepressionFinderAndRouter
-from landlab.grid.create_network import AtMostNodes, network_grid_from_raster
-
 import landlab.utils.channel_network_grid_tools as gt
+from landlab import RasterModelGrid
+from landlab.components import DepressionFinderAndRouter
+from landlab.components import FlowAccumulator
+from landlab.grid.create_network import AtMostNodes
+from landlab.grid.create_network import network_grid_from_raster
 
 
 def check_vals(vals, vals_e):
