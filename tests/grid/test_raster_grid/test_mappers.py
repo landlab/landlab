@@ -1,8 +1,43 @@
 import numpy as np
+import pytest
 from numpy.testing import assert_array_equal
 
+# from landlab.grid.mappers import map_max_of_link_nodes_to_link
+# from landlab.grid.raster_mappers as map_max_of_link_nodes_to_link_raster
 import landlab.grid.mappers as maps
+import landlab.grid.mappers as mappers
+import landlab.grid.raster_mappers as raster_mappers
 from landlab import RasterModelGrid
+
+
+@pytest.mark.parametrize(
+    "func",
+    (
+        mappers.map_max_of_link_nodes_to_link,
+        raster_mappers.map_max_of_link_nodes_to_link,
+    ),
+)
+def test_max_link_nodes(func):
+    grid = RasterModelGrid((4, 5))
+
+    value_at_node = np.arange(grid.number_of_nodes)
+
+    value_at_link = func(grid, value_at_node)
+
+    assert_array_equal(
+        value_at_link,
+        [
+            *[1, 2, 3],
+            *[4, 5, 6, 7],
+            *[8, 9, 6],
+            *[7, 8, 9, 10],
+            *[11, 12, 13],
+            *[14, 11, 12, 13],
+            *[14, 15, 16],
+            *[17, 18, 19, 16],
+            *[17, 18, 19],
+        ],
+    )
 
 
 class TestLinkEndsToLink:
