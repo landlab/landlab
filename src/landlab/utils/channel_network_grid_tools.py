@@ -114,7 +114,7 @@ def create_df_of_link_points(nmgrid, link_nodes, number_of_points):
 
 
 def map_nmg1_links_to_nmg2_links(nmgrid_1, nmgrid_2, number_of_points=11):
-    """given two slighly different network model grids of the same channel network,
+    """given two slightly different network model grids of the same channel network,
     map links from one network model grid (nmgrid_1) to the closest links of the
     other network model grid (nmgrid_2). If two or more links of nmgrid_2 are equally
     close to a link of nmgrid_1, the link with the largest drainage area is mapped
