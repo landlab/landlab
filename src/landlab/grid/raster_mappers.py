@@ -1,4 +1,6 @@
 #! /usr/bin/env python
+from __future__ import annotations
+
 """Grid element mappers that are specific to raster grids.
 
 Mapping functions unique to raster grids
@@ -22,6 +24,8 @@ Mapping functions unique to raster grids
 """
 
 import numpy as np
+from numpy.typing import ArrayLike
+from numpy.typing import NDArray
 
 
 def _node_out_link_ids(shape):
@@ -144,6 +148,73 @@ def _number_of_links_per_node(shape):
     n_links_at_node[layout.corner_nodes] = 2
 
     return n_links_at_node.reshape(shape)
+
+
+def map_max_of_link_nodes_to_link(
+    grid, var_name: str | ArrayLike, out: NDArray | None = None
+) -> NDArray[np.floating]:
+    """Map the max of a link's head and tail node to the link.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A landlab ModelGrid.
+    var_name : array or field name
+        Values defined at links.
+    out : ndarray, optional
+        Buffer to place mapped values into or `None` to create a new array.
+
+    Returns
+    -------
+    ndarray
+        Mapped values at links.
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.grid.raster_mappers import map_max_of_link_nodes_to_link
+
+    >>> grid = RasterModelGrid((3, 3))
+    >>> z = [
+    ...     [0, 1, 2],
+    ...     [3, 4, 5],
+    ...     [6, 7, 8],
+    ... ]
+    >>> map_max_of_link_nodes_to_link(grid, z)
+    array([1, 2, 3, 4, 5, 4, 5, 6, 7, 8, 7, 8])
+    """
+    if out is None:
+        out = grid.empty(at="link")
+
+    n_rows, n_cols = grid.shape[0], grid.shape[1]
+    if out.size != grid.number_of_links:
+        raise ValueError()
+
+    if isinstance(var_name, str):
+        value_at_node = grid.at_node[var_name]
+    else:
+        value_at_node = var_name
+
+    value_at_node = np.asarray(value_at_node).reshape(grid.shape)
+
+    links_per_row = (n_cols - 1) + n_cols
+    last_row = (n_rows - 1) * links_per_row
+
+    out_rows = out[:last_row].reshape(n_rows - 1, links_per_row)
+
+    np.maximum(
+        value_at_node[:-1, :-1], value_at_node[:-1, 1:], out=out_rows[:, : (n_cols - 1)]
+    )
+    np.maximum(
+        value_at_node[:-1, :], value_at_node[1:, :], out=out_rows[:, (n_cols - 1) :]
+    )
+    np.maximum(
+        value_at_node[-1, :-1],
+        value_at_node[-1, 1:],
+        out=out[last_row : last_row + (n_cols - 1)],
+    )
+
+    return out
 
 
 def map_sum_of_inlinks_to_node(grid, var_name, out=None):
