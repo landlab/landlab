@@ -20,26 +20,31 @@ from landlab.grid.nodestatus import NodeStatus
 from .cfuncs import non_local_depo
 
 
-class NonlocalDiffuser(Component):
+class NonLocalDiffuser(Component):
     r"""Non local diffusion.
 
     #TODO
     Correct for rho soil vs bedrock
+    Clean up the math
 
         Hillslope diffusion component in the style of Carretier et al. (2016,
     ESurf), and Davy and Lague (2009)
 
     .. math::
 
-        \frac{dz}{dt} = -E + D (+ U)
+        \frac{dz}{dt} = D - E + B
 
-        D = \frac{q_s}{L}
+        E = k S
 
-        E = k S (1 - \exp(-H / H_*))
+        D = \phi q_s
 
-        L = \frac{dx}{(1 - (S / S_c)^2}
+        \phi = \frac{\max (1 - (S / S_c)^2, 0}{L)}
 
-    Works on regular raster-type grid (RasterModelGrid, dx=dy).
+        L = \max (L_c, \Delta x)
+
+
+    Works on a regular raster-type grid (RasterModelGrid with dx=dy).
+
     To be coupled with FlowDirectorSteepest for the calculation of steepest
     slope at each timestep.
 
