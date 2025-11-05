@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-
+from landlab.components.flow_director.flow_director_steepest import FlowDirectorSteepest
 
 def _dist_func(x0, x1, y0, y1):
     return np.hypot(x0 - x1, y0 - y1)
@@ -42,3 +42,29 @@ def _link_to_points_and_dist(
     dist = np.hypot(X - x0, Y - y0)
 
     return X, Y, dist
+
+
+def get_link_nodes(nmgrid):
+    """Get the downstream (head) and upstream (tail) nodes at a link from
+    flow director. The network model grid nodes_at_link attribute may not be
+    ordered according to flow direction. Output from this function should be
+    used for all channel_network_grid_tools functions that require a link_nodes
+    input
+
+    Parameters
+    ----------
+    nmgrid : network model grid
+
+    Returns
+    -------
+    link_nodes : np.array
+        for a nmgrid of n nodes, returns a nx2 np array, the ith row of the
+        array is the [downstream node id, upstream node id] of the ith link
+    """
+
+    fd = FlowDirectorSteepest(nmgrid, "topographic__elevation")
+    fd.run_one_step()
+
+    return np.column_stack(
+        (fd.downstream_node_at_link(), fd.upstream_node_at_link())
+    ).astype(int, copy=False)

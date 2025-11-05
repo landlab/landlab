@@ -6,7 +6,8 @@ import landlab.utils.channel_network_grid_tools as gt
 from landlab import RasterModelGrid
 from landlab.components import DepressionFinderAndRouter
 from landlab.components import FlowAccumulator
-
+from landlab.grid.create_network import AtMostNodes
+from landlab.grid.create_network import network_grid_from_raster
 
 def check_vals(vals, vals_e):
     np.testing.assert_allclose(vals, vals_e, atol=1e-4)
@@ -172,3 +173,20 @@ def nmgrid_c_up(grid_up):
         "drainage_area"
     )
     return nmg_c_up
+
+
+@pytest.fixture
+def nmgrid_s(grid):
+    """single-channel-reach network model grid representation of watershed"""
+    nmg_s = network_grid_from_raster(
+        grid,
+        reducer=AtMostNodes(count=2),
+        minimum_channel_threshold=1000,
+        include=["drainage_area", "topographic__elevation"],
+    )
+    nmg_s.at_link["drainage_area"] = nmg_s.map_mean_of_link_nodes_to_link(
+        "drainage_area"
+    )
+    return nmg_s
+
+        
