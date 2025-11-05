@@ -9,6 +9,7 @@ from landlab.components import FlowAccumulator
 from landlab.grid.create_network import AtMostNodes
 from landlab.grid.create_network import network_grid_from_raster
 
+
 def check_vals(vals, vals_e):
     np.testing.assert_allclose(vals, vals_e, atol=1e-4)
 
@@ -189,4 +190,87 @@ def nmgrid_s(grid):
     )
     return nmg_s
 
-        
+
+class TestMapNmg1LinksToNmg2Links:
+
+    def test_map_nmg1_links_to_nmg2_links_1(self, nmgrid_c, nmgrid_f):
+        """map fine grid to coarse grid"""
+        link_mapper = gt.map_nmg1_links_to_nmg2_links(nmgrid_c, nmgrid_f)
+        v = pd.DataFrame.from_dict(link_mapper, orient="index").values
+        v_e = np.array([[0], [3], [4]])
+        check_vals(v, v_e)
+
+    def test_map_nmg1_links_to_nmg2_links_2(self, nmgrid_c, nmgrid_f):
+        """map coarse grid to fine grid"""
+        link_mapper = gt.map_nmg1_links_to_nmg2_links(nmgrid_f, nmgrid_c)
+        v = pd.DataFrame.from_dict(link_mapper, orient="index").values
+        v_e = np.array([[0], [0], [0], [1], [2], [2], [1]])
+        check_vals(v, v_e)
+
+    def test_map_nmg1_links_to_nmg2_links_3(self, nmgrid_c_up, nmgrid_f_up):
+        """map upside down fine grid to the upside-down coarse grids"""
+        link_mapper_up = gt.map_nmg1_links_to_nmg2_links(nmgrid_c_up, nmgrid_f_up)
+        v = pd.DataFrame.from_dict(link_mapper_up, orient="index").values
+        v_e = np.array([[2], [3], [6]])
+        check_vals(v, v_e)
+
+    def test_map_nmg1_links_to_nmg2_links_4(self, nmgrid_c_up, nmgrid_f_up):
+        """map upside down coarse grid to the upside-down fine grids"""
+        link_mapper_up = gt.map_nmg1_links_to_nmg2_links(nmgrid_f_up, nmgrid_c_up)
+        v = pd.DataFrame.from_dict(link_mapper_up, orient="index").values
+        v_e = np.array([[1], [0], [0], [1], [2], [2], [2]])
+        check_vals(v, v_e)
+
+
+class TestCreateDfOfLinkPoints:
+
+    def test_create_df_of_link_points_1(self, nmgrid_s):
+        """for single-channel grid"""
+        number_of_points = 3
+        link_nodes_s = np.array([[0, 1]])
+        df = gt.create_df_of_link_points(nmgrid_s, link_nodes_s, number_of_points)
+        v_e = np.array([[0.0, 30.0, 0.0], [0.0, 25.0, 15.0], [0.0, 20.0, 30.0]])
+
+        check_vals(df.values, v_e)
+
+    def test_create_df_of_link_points_2(self, nmgrid_c):
+        """for coarse grid"""
+        number_of_points = 3
+        link_nodes_c = np.array([[0, 1], [1, 2], [1, 3]])
+        df = gt.create_df_of_link_points(nmgrid_c, link_nodes_c, number_of_points)
+        v_e = np.array(
+            [
+                [0.0, 30.0, 0.0],
+                [0.0, 25.0, 15.0],
+                [0.0, 20.0, 30.0],
+                [1.0, 20.0, 30.0],
+                [1.0, 20.0, 35.0],
+                [1.0, 20.0, 40.0],
+                [2.0, 20.0, 30.0],
+                [2.0, 30.0, 35.0],
+                [2.0, 40.0, 40.0],
+            ]
+        )
+
+        check_vals(df.values, v_e)
+
+    def test_create_df_of_link_points_3(self, nmgrid_c_up):
+        """for upside-down coarse grid"""
+        number_of_points = 3
+        link_nodes_c_up = np.array([[2, 0], [2, 1], [3, 2]])
+        df = gt.create_df_of_link_points(nmgrid_c_up, link_nodes_c_up, number_of_points)
+        v_e = np.array(
+            [
+                [0.0, 40.0, 40.0],
+                [0.0, 30.0, 35.0],
+                [0.0, 20.0, 30.0],
+                [1.0, 40.0, 40.0],
+                [1.0, 40.0, 35.0],
+                [1.0, 40.0, 30.0],
+                [2.0, 30.0, 70.0],
+                [2.0, 35.0, 55.0],
+                [2.0, 40.0, 40.0],
+            ]
+        )
+
+        check_vals(df.values, v_e)
