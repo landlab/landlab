@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-
+from scipy.spatial.distance import cdist
 from landlab.components.flow_director.flow_director_steepest import FlowDirectorSteepest
 
 
@@ -145,56 +145,52 @@ def map_nmg1_links_to_nmg2_links(nmgrid_1, nmgrid_2, number_of_points=11):
             row["X"], XY[0], row["Y"], XY[1]
         )  # ((row['x']-XY[0])**2+(row['y']-XY[1])**2)**.5
 
-    # get the head and tail nodes of each link
-    linknodes_1 = get_link_nodes(nmgrid_1)
-    linknodes_2 = get_link_nodes(nmgrid_2)
-
     # convert the network model grid to a point representation, as described by
     # the link ID, x and y value of each point
     nmgrid_1_link_points = create_df_of_link_points(
-        nmgrid_1, linknodes_1, number_of_points
+        nmgrid_1, nmgrid_1.nodes_at_link, number_of_points
     )
+    nmg1_linkIDs = nmgrid_1_link_points["linkID"].astype(int).values
+
     nmgrid_2_link_points = create_df_of_link_points(
-        nmgrid_2, linknodes_2, number_of_points
+        nmgrid_2, nmgrid_2.nodes_at_link, number_of_points
     )
-
+    nmg2_linkIDs = nmgrid_2_link_points["linkID"].astype(int).values
     # for each point of each link of nmgrid_1, find the closest nmgrid_2 point
-    # and link. nmgrid_2 link with highest number of points mapped to nmgrid_1
-    # link is mapped to the nmgrid_1 link.
+    # and link. nmgrid_2 link with highest number of points closest to the
+    # nmgrid_1 link is mapped to the nmgrid_1 link.
+
+    sublist1 = nmgrid_1_link_points[["X", "Y"]]  # get points that represent nmgrid_1
+    sublist2 = nmgrid_2_link_points[["X", "Y"]]  # get points that represent nmgrid_2
+    distance_matrix = cdist(
+        sublist1, sublist2, metric="euclidean"
+    )  # create the distance matrix, which lists the distance between all nmgrid_1 and nmgrid_2 points
+    distance_matrix_nodiag = distance_matrix  # fill the diagonal values with inf
+    np.fill_diagonal(distance_matrix_nodiag, np.inf)
+    closest_point_indices = np.argmin(
+        distance_matrix_nodiag, axis=1
+    )  # find the minimum values
+    linkID_array = np.tile(
+        nmg2_linkIDs, (len(nmg1_linkIDs), 1)
+    )  # create a matrix of the nmg 2 link ids
+    nmg2_link_matrix = linkID_array[
+        np.arange(len(nmg1_linkIDs)), closest_point_indices
+    ]  # get the link id of the closest node
+
+    # now count the number of times each nmgrid_2 point was closest to nmgrid_1 link
     link_mapper = {}
-    for linkID, lknd in enumerate(linknodes_1):  # for each link in nmgrid 1
-
-        sublist = nmgrid_1_link_points[["X", "Y"]][
-            nmgrid_1_link_points["linkID"] == linkID
-        ]
-        LinkL = []  # id of nmg2 link that is closest to nmg1 rmg node
-        for j in range(len(sublist)):
-            XY = [sublist.iloc[j]["X"], sublist.iloc[j]["Y"]]
-            distances = nmgrid_2_link_points.apply(
-                lambda row: distance_between_links(row, XY), axis=1
-            )  # compute the distance from the nmgrid_1 point and all nmgrid_2 points
-            offset = (
-                distances.min()
-            )  # find the minimum distance between the nmg1 point and all nmg2 points
-            mdl = (
-                nmgrid_2_link_points["linkID"][(distances == offset)]
-                .values[0]
-                .astype(int)
-            )  # get the nmg2 link id with point at minimum distance from nmg1 point, if more than one, pick the first one
-            LinkL.append(mdl)
-        Links = np.array(LinkL)
-        # number of times each nmgrid_2 point was closest to nmgrid_1 link
-        count = np.bincount(Links)
-
-        # nmgrid_2 link with highest count is matched to nmg1 link
+    for linkID_1 in nmg1_linkIDs:
+        linkIDs_2 = nmg2_link_matrix[nmg1_linkIDs == linkID_1]
+        count = np.bincount(linkIDs_2)
+        # nmgrid_2 link with highest count is matched to nmgrid_1 link
         # if only one nmgrid_2 link has highest count, that is the link
         if (count == count.max()).sum() == 1:
-            Link = np.argmax(count)
+            linkID_2 = np.argmax(count)
         else:  # if two or more nmgrid_2 links have the hightest count, select the
             # one that drains the largest area
             links_with_same_count = np.arange(len(count))[count == count.max()]
             DAs_ = nmgrid_2.at_link["drainage_area"][links_with_same_count]
-            Link = links_with_same_count[DAs_ == DAs_.max()][0]  # to remove bracket
-        link_mapper[linkID] = Link
+            linkID_2 = links_with_same_count[DAs_ == DAs_.max()][0]  # to remove bracket
+        link_mapper[linkID_1] = linkID_2
 
     return link_mapper
