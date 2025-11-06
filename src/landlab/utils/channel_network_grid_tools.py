@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from scipy.spatial.distance import cdist
+
 from landlab.components.flow_director.flow_director_steepest import FlowDirectorSteepest
 
 
