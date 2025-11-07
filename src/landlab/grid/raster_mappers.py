@@ -27,6 +27,11 @@ import numpy as np
 from numpy.typing import ArrayLike
 from numpy.typing import NDArray
 
+from landlab.core._validate import validate_array
+from landlab.grid.ext.raster_mappers import (
+    map_max_of_link_nodes_to_link as _map_max_of_link_nodes_to_link,
+)
+
 
 def _node_out_link_ids(shape):
     """Links leaving each node.
@@ -151,18 +156,20 @@ def _number_of_links_per_node(shape):
 
 
 def map_max_of_link_nodes_to_link(
-    grid, var_name: str | ArrayLike, out: NDArray | None = None
-) -> NDArray[np.floating]:
+    grid, value_at_node: str | ArrayLike, out: NDArray | None = None
+) -> NDArray:
     """Map the max of a link's head and tail node to the link.
 
     Parameters
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : array or field name
-        Values defined at links.
+    value_at_node : array or str
+        Values defined at nodes. Can be either an array of values or the
+        name of an *at-node* field.
     out : ndarray, optional
-        Buffer to place mapped values into or `None` to create a new array.
+        Buffer of length `n_links` to place mapped values into or `None`
+        to create a new array.
 
     Returns
     -------
@@ -183,36 +190,25 @@ def map_max_of_link_nodes_to_link(
     >>> map_max_of_link_nodes_to_link(grid, z)
     array([1, 2, 3, 4, 5, 4, 5, 6, 7, 8, 7, 8])
     """
-    if out is None:
-        out = grid.empty(at="link")
-
-    n_rows, n_cols = grid.shape[0], grid.shape[1]
-    if out.size != grid.number_of_links:
-        raise ValueError()
-
-    if isinstance(var_name, str):
-        value_at_node = grid.at_node[var_name]
+    if isinstance(value_at_node, str):
+        value_at_node = grid.at_node[value_at_node]
     else:
-        value_at_node = var_name
+        value_at_node = np.asarray(value_at_node)
 
-    value_at_node = np.asarray(value_at_node).reshape(grid.shape)
+    value_at_node = validate_array(value_at_node.ravel(), shape=(grid.number_of_nodes,))
 
-    links_per_row = (n_cols - 1) + n_cols
-    last_row = (n_rows - 1) * links_per_row
+    if out is None:
+        out = grid.empty(at="link", dtype=value_at_node.dtype)
 
-    out_rows = out[:last_row].reshape(n_rows - 1, links_per_row)
-
-    np.maximum(
-        value_at_node[:-1, :-1], value_at_node[:-1, 1:], out=out_rows[:, : (n_cols - 1)]
+    out = validate_array(
+        out,
+        shape=(grid.number_of_links,),
+        dtype=value_at_node.dtype,
+        writable=True,
+        contiguous=True,
     )
-    np.maximum(
-        value_at_node[:-1, :], value_at_node[1:, :], out=out_rows[:, (n_cols - 1) :]
-    )
-    np.maximum(
-        value_at_node[-1, :-1],
-        value_at_node[-1, 1:],
-        out=out[last_row : last_row + (n_cols - 1)],
-    )
+
+    _map_max_of_link_nodes_to_link(out, np.ascontiguousarray(value_at_node), grid.shape)
 
     return out
 
