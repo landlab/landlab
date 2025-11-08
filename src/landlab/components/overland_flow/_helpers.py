@@ -11,7 +11,7 @@ def update_water_depths(
     *,
     dt: float = 1.0,
     rainfall_rate_at_node: ArrayLike | None = None,
-    nodes: ArrayLike | None = None,
+    where: ArrayLike | bool = True,
     out: NDArray | None = None,
 ) -> NDArray:
     """Update water depths
@@ -31,8 +31,9 @@ def update_water_depths(
         Timestep.
     rainfall_rate_at_node : array_like, optional
         Rainfall rate at each node. If None, treated as 0.0.
-    nodes : array_like of int, optional
-        Node indices to update (must be unique). If ``None``, update all nodes.
+    where : array_like of bool, optional
+        Boolean mask selecting which nodes to update. If ``None``,
+        all nodes are updated (default NumPy ufunc behavior).
     out : ndarray, optional
         Destination array. If ``None``, create a new array.
 
@@ -52,42 +53,35 @@ def update_water_depths(
     ... )
     array([ 2., 2., 12., 2., 2.])
     """
-    q = np.asarray(q_at_node)
     h = np.asarray(h_at_node)
+    q = np.asarray(q_at_node)
+
+    n_nodes = h.size
 
     if q.shape != h.shape:
         raise ValueError(f"q_at_node shape {q.shape} must match h_at_node {h.shape}")
 
     if rainfall_rate_at_node is None:
         r = 0.0
-        is_scalar_rainfall = True
     else:
         r = np.asarray(rainfall_rate_at_node)
-        is_scalar_rainfall = np.ndim(r) == 0
-        if not is_scalar_rainfall and r.shape != h.shape:
+        if r.ndim != 0 and r.shape != h.shape:
             raise ValueError(
                 f"rainfall_rate_at_node shape {r.shape} must be scalar or {h.shape}"
             )
 
-    if nodes is None:
-        idx = slice(None)
-    else:
-        idx = np.asarray(nodes, dtype=np.intp)
+    where = np.asarray(where, dtype=bool)
 
     if out is None:
-        out = np.empty_like(h, dtype=np.result_type(h, q, r, float))
-        out[...] = h
-    elif nodes is None or nodes is Ellipsis:
-        if out.shape != h.shape:
-            raise ValueError(f"out shape {out.shape} must match {h.shape}")
+        out = np.empty_like(h, dtype=float)
         out[...] = h
 
-    if is_scalar_rainfall:
-        tmp = out[idx] + (r - q[idx]) * dt
-    else:
-        tmp = out[idx] + (r[idx] - q[idx]) * dt
+    if not (out.size == n_nodes and out.ndim == 1):
+        raise ValueError(f"out array must be of length {n_nodes}, got {out.size}")
 
-    np.maximum(tmp, 0.0, out=tmp)
-    out[idx] = tmp
+    np.subtract(r, q, out=out, where=where)
+    np.multiply(out, dt, out=out, where=where)
+    np.add(h, out, out=out, where=where)
+    np.maximum(out, 0.0, out=out, where=where)
 
     return out
