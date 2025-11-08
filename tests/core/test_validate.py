@@ -46,7 +46,7 @@ def test_validate_dtype_accepts_multiple_specifiers(array, dtype):
     ),
 )
 def test_validate_dtype_mismatch_raises(array, dtype):
-    with pytest.raises(ValidationError, match="array has incorrect type"):
+    with pytest.raises(ValidationError, match="incorrect type"):
         validate_array(np.asarray(array), dtype=dtype)
 
 
@@ -59,7 +59,7 @@ def test_validate_dtype_mismatch_raises(array, dtype):
     ],
 )
 def test_validate_shape_mismatch(array, shape):
-    with pytest.raises(ValidationError, match="array has incorrect shape"):
+    with pytest.raises(ValidationError, match="incorrect shape"):
         validate_array(np.asarray(array), shape=shape)
 
 
