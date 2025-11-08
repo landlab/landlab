@@ -6,7 +6,7 @@ from enum import unique
 class FloodStatus(IntEnum):
     """Codes for depression status"""
 
-    _UNFLOODED = 0
-    _PIT = 1
-    _CURRENT_LAKE = 2
-    _FLOODED = 3
+    UNFLOODED = 0
+    PIT = 1
+    CURRENT_LAKE = 2
+    FLOODED = 3
