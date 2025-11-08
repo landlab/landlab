@@ -85,3 +85,86 @@ def update_water_depths(
     np.maximum(out, 0.0, out=out, where=where)
 
     return out
+
+
+def calc_grad_at_link(
+    values: ArrayLike,
+    *,
+    length_of_link: ArrayLike = 1.0,
+    axis: int = -1,
+    where: ArrayLike | bool = True,
+    out: NDArray | None = None,
+) -> NDArray:
+    """Calculate gradients at raster links.
+
+    The function computes the difference in ``values`` across each link of a
+    raster grid in the canonical Landlab ordering.
+
+    Parameters
+    ----------
+    values : array_like of float, shape (n_rows, n_cols)
+        Node values on a regular raster grid.
+    length_of_link : array_like of float or scalar, optional
+        Length of each link. Can be a scalar applied to all links or an array
+        of shape ``(n_links,)`` matching the output.
+    where : array_like of bool, optional
+        Boolean mask of shape ``(n_links,)`` selecting which link gradients
+        to compute. Where ``False``, the corresponding entries in ``out`` are
+        left unchanged. If omitted, all links are computed.
+    out : ndarray, optional
+        Optional output buffer of shape ``(n_links,)`` into which results are
+        written. If provided, it must have the correct size and dtype
+        compatible with ``values``.
+
+    Returns
+    -------
+    out : ndarray of float
+        Array of link gradients in Landlab order. The dtype is determined by
+        the input.
+
+    Examples
+    --------
+    >>> z = [
+    ...     [0, 2, 4],
+    ...     [1, 3, 5],
+    ... ]
+    >>> calc_grad_at_link(z, axis=0)
+    array([[1., 1., 1.]])
+    >>> calc_grad_at_link(z, axis=1)
+    array([[2., 2.],
+           [2., 2.]])
+    >>> calc_grad_at_link([0.0, 1.0, 2.0, 4.0, 8.0])
+    array([1., 1., 2., 4.])
+    """
+    values = np.asarray(values)
+    length_of_link = np.asarray(length_of_link)
+
+    if values.ndim == 0:
+        raise ValueError("values must be at least 1d")
+
+    axis = np.core.numeric.normalize_axis_index(axis, values.ndim)
+
+    values = np.moveaxis(values, axis, -1)
+
+    out_shape = values.shape[:-1] + (values.shape[-1] - 1,)
+
+    if out is None:
+        out = np.empty(out_shape, dtype=float)
+        out_provided_by_us = True
+    else:
+        out = np.moveaxis(out, axis, -1)
+        if out.shape != out_shape:
+            raise ValueError("shape mismatch for out")
+        out_provided_by_us = False
+
+    np.subtract(
+        values[..., 1:],
+        values[..., :-1],
+        out=out,
+        where=where,
+    )
+    np.divide(out, length_of_link, out=out, where=where)
+
+    if out_provided_by_us:
+        return np.moveaxis(out, -1, axis)
+    return out
