@@ -168,3 +168,82 @@ def calc_grad_at_link(
     if out_provided_by_us:
         return np.moveaxis(out, -1, axis)
     return out
+
+
+def calc_mean_of_neighbors(
+    values: ArrayLike,
+    *,
+    weight: float = 0.5,
+    axis: int = -1,
+    out: NDArray | None = None,
+):
+    """Calculate a weighted mean of a value with its neighbors.
+
+    The mean is calculated as,
+
+        mean = weight * value_at_center + (1.0 - weight) * 0.5 * (value_at_left + value_at_right)
+
+    Parameters
+    ----------
+    values : array_like
+        Values to average.
+    weight : float, optional
+        Weighting value between 0 and 1. A value of zero
+        means to average the two neighbors. A value of one
+        means to use the center value.
+    out : NDArray, optional
+        Optional output buffer, of the same shape as ``values``,
+        into which results are written.
+
+    Returns
+    -------
+    out : ndarray of float
+        Array of calculated means.
+
+    Examples
+    --------
+    >>> calc_mean_of_neighbors([1, 1, 2, 3, 5], weight=1.0)
+    array([1., 1., 2., 3., 5.])
+    >>> calc_mean_of_neighbors([1, 1, 2, 3, 5], weight=0.0)
+    array([1. , 1.5, 2. , 3.5, 5. ])
+    >>> x = [
+    ...     [0, 1, 3, 6],
+    ...     [0, 1, 3, 6],
+    ...     [0, 1, 3, 6],
+    ...     [0, 1, 3, 6],
+    ... ]
+    >>> calc_mean_of_neighbors(x, weight=0.0, axis=1)
+    array([[0. , 1.5, 3.5, 6. ],
+           [0. , 1.5, 3.5, 6. ],
+           [0. , 1.5, 3.5, 6. ],
+           [0. , 1.5, 3.5, 6. ]])
+    >>> calc_mean_of_neighbors(x, weight=0.0, axis=0)
+    array([[0., 1., 3., 6.],
+           [0., 1., 3., 6.],
+           [0., 1., 3., 6.],
+           [0., 1., 3., 6.]])
+    """
+    if not (0.0 <= weight <= 1.0):
+        raise ValueError(f"weight must be between 0 and 1, got {weight}")
+
+    values = np.asarray(values)
+    original_shape = values.shape
+
+    values = np.moveaxis(values, axis, -1)
+
+    if out is None:
+        out = np.empty_like(values, dtype=float)
+    else:
+        out = np.moveaxis(out, axis, -1)
+        if out.shape != values.shape:
+            raise ValueError(
+                f"out must have the same shape as values {out.shape} != {values.shape}"
+            )
+
+    out[..., 1:-1] = weight * values[..., 1:-1] + (1.0 - weight) * 0.5 * (
+        values[..., :-2] + values[..., 2:]
+    )
+    out[..., 0] = values[..., 0]
+    out[..., -1] = values[..., -1]
+
+    return np.moveaxis(out, -1, axis)
