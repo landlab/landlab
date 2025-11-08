@@ -47,19 +47,15 @@ def validate_array(
     landlab.core.errors.ValidationError: incorrect shape: expected (2, 2), got (4,)
     """
     if shape is not None and array.shape != shape:
-        raise ValidationError(
-            f"array has incorrect shape: array should be {shape}, got {array.shape}"
-        )
+        raise ValidationError(f"incorrect shape: expected {shape}, got {array.shape}")
 
     if dtype is not None and array.dtype != np.dtype(dtype):
-        raise ValidationError(
-            f"array has incorrect type: array should be {dtype}, got {array.dtype}"
-        )
+        raise ValidationError(f"incorrect type: expected {dtype}, got {array.dtype}")
 
     if writable and not array.flags.writeable:
-        raise ValidationError("array must be writable.")
+        raise ValidationError("array is not writable")
 
     if contiguous and not array.flags.c_contiguous:
-        raise ValidationError("array must be contiguous.")
+        raise ValidationError("array is not contiguous")
 
     return array
