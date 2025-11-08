@@ -247,3 +247,106 @@ def calc_mean_of_neighbors(
     out[..., -1] = values[..., -1]
 
     return np.moveaxis(out, -1, axis)
+
+
+def calc_flow_height(
+    z_at_node: ArrayLike,
+    h_at_node: ArrayLike,
+    *,
+    axis: int = -1,
+    where: ArrayLike | bool = True,
+    out: NDArray | None = None,
+):
+    """Compute Bates-style flow height along one axis of an array.
+
+    For adjacent pairs along the chosen `axis`, this computes
+
+        max(z + h at i, z + h at i+1) - max(z at i, z at i+1)
+
+    which corresponds to the Bates et al. (2010) shallow-water update using
+    the higher water surface on the pair minus the higher bed elevation.
+
+    The output has the same shape as the inputs except that the selected axis
+    is reduced by one (because it represents link-wise values between neighbors).
+
+    Parameters
+    ----------
+    z_at_node : array_like
+        Bed elevation array.
+    h_at_node : array_like
+        Water depth array. Must have the same shape as `z_at_node`.
+    axis : int, optional
+        Axis along which to compute pairwise link values.
+    where : bool or array_like of bool, optional
+        Mask selecting elements to update (NumPy ufunc semantics). Must be
+        broadcastable to the output shape. Where `False`, the corresponding
+        entries in `out` are left unchanged. If `out` is not provided, those
+        entries will be uninitialized.
+    out : ndarray, optional
+        Destination array. Must have the same shape as the result
+        (i.e., input shape with the selected axis reduced by one). When
+        provided, only entries where `where` is `True` are overwritten.
+
+    Returns
+    -------
+    ndarray
+        The result array. If `out` is provided, it is returned.
+
+    Examples
+    --------
+    >>> z = [
+    ...     [10.0, 11.0, 13.0],
+    ...     [9.0, 10.0, 12.0],
+    ... ]
+    >>> h = [
+    ...     [0.5, 0.2, 0.3],
+    ...     [0.4, 0.1, 0.6],
+    ... ]
+    >>> calc_flow_height(z, h, axis=0).shape
+    (1, 3)
+    >>> calc_flow_height(z, h, axis=1).shape
+    (2, 2)
+
+    >>> where = [
+    ...     [True, False],
+    ...     [True, True],
+    ... ]
+    >>> out = np.zeros((2, 2))
+    >>> calc_flow_height(z, h, axis=1, where=where, out=out)
+    array([[0.2, 0. ],
+           [0.1, 0.6]])
+    """
+    z = np.asarray(z_at_node)
+    h = np.asarray(h_at_node)
+
+    if z.shape != h.shape:
+        raise ValueError(
+            f"z_at_node and h_at_node must be the same shape, got {z_at_node.shape}"
+            f" and {h_at_node.shape}."
+        )
+
+    axis = np.lib.array_utils.normalize_axis_index(axis, z.ndim)
+
+    z = np.moveaxis(z_at_node, axis, -1)
+    h = np.moveaxis(h_at_node, axis, -1)
+
+    out_shape = z.shape[:-1] + (z.shape[-1] - 1,)
+
+    if out is None:
+        out = np.empty(out_shape, dtype=float)
+    else:
+        out = np.moveaxis(out, axis, -1)
+        if out.shape != out_shape:
+            raise ValueError("shape mismatch for out")
+
+    z_max = np.empty_like(z[..., :-1], dtype=float)
+    w_tail = np.empty_like(z_max)
+    w_head = np.empty_like(z_max)
+
+    np.add(z[..., :-1], h[..., :-1], where=where, out=w_tail)
+    np.add(z[..., 1:], h[..., 1:], where=where, out=w_head)
+    np.maximum(w_tail, w_head, where=where, out=out)
+    np.maximum(z[..., :-1], z[..., 1:], where=where, out=z_max)
+    np.subtract(out, z_max, where=where, out=out)
+
+    return np.moveaxis(out, -1, axis)
