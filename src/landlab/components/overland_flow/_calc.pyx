@@ -2,10 +2,17 @@ cimport cython
 from cython.parallel cimport prange
 from libc.stdint cimport int32_t
 from libc.stdint cimport int64_t
+from libc.stdint cimport uint8_t
 
 ctypedef fused id_t:
     int32_t
     int64_t
+
+
+ctypedef fused float_or_int_t:
+    cython.integral
+    cython.floating
+    long long
 
 
 @cython.boundscheck(False)
@@ -61,6 +68,80 @@ def calc_grad_at_link(
         out[link] = (
             value_at_node[head] - value_at_node[tail]
         ) / length_of_link[link]
+
+    return (<object>out).base
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def calc_weighted_mean_of_parallel_links(
+    const cython.floating[:] value_at_link,
+    const id_t[:, :] parallel_links_at_link,
+    const uint8_t[:] status_at_link,
+    const id_t[:] where,
+    const double theta,
+    cython.floating[:] out,
+):
+    """Calculate a weighted mean of each link and its parallel neighbors.
+
+    For each link in ``where``, compute a weighted combination of that link's
+    value and the values of its left and right parallel links. The combination
+    weight is controlled by ``theta`` such that::
+
+        out[link] = theta * value_at_link[link] + (1 - theta) / 2 * (
+            value_at_link[left] + value_at_link[right]
+        )
+
+    Links with invalid or inactive neighbors retain their original value.
+
+    Parameters
+    ----------
+    value_at_link : array_like of float
+        Values defined at links. Must have length equal to the number of links.
+    parallel_links_at_link : ndarray of int, shape (n_links, 2)
+        IDs of the two parallel links (left, right) associated with each link.
+        A value of ``-1`` indicates that no parallel link exists.
+    status_at_link : ndarray of uint8
+        Link status codes. A value of ``4`` indicates an inactive link that
+        should not contribute to the weighted mean.
+    where : ndarray of int
+        Indices of links for which to update ``out``. Each link in ``where``
+        is processed exactly once. Must not contain duplicates.
+    theta : float
+        Weighting coefficient between 0 and 1. A value of 1.0 means the link's
+        own value is kept unchanged; a value of 0.0 means a simple mean of the
+        two parallel links.
+    out : ndarray of float
+        Output buffer into which results are written. Must be the same shape
+        and dtype as ``value_at_link``.
+    """
+
+    cdef long n_links = len(where)
+    cdef long link
+    cdef long left
+    cdef long right
+    cdef long i
+    cdef double WEIGHT_AT_NEIGHBOR = (1.0 - theta) * 0.5
+    cdef double WEIGHT_AT_CENTER = theta
+    cdef int LINK_IS_INACTIVE = 4
+    cdef int LINK_IS_MISSING = -1
+
+    for i in prange(n_links, nogil=True, schedule="static"):
+        link = where[i]
+        left = parallel_links_at_link[link, 0]
+        right = parallel_links_at_link[link, 1]
+
+        if (
+            left == LINK_IS_MISSING
+            or right == LINK_IS_MISSING
+            or status_at_link[left] == LINK_IS_INACTIVE
+            or status_at_link[right] == LINK_IS_INACTIVE
+        ):
+            out[link] = value_at_link[link]
+        else:
+            out[link] = WEIGHT_AT_CENTER * value_at_link[link] + WEIGHT_AT_NEIGHBOR * (
+                value_at_link[left] + value_at_link[right]
+            )
 
     return (<object>out).base
 
