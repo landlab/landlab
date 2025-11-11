@@ -439,24 +439,6 @@ class OverlandFlow(Component):
             self._grid.shape, self._active_ids
         )
 
-        if self._default_fixed_links is True:
-            fixed_link_ids = links.fixed_link_ids(
-                self._grid.shape, self._grid.status_at_node
-            )
-            fixed_horizontal_links = links.horizontal_fixed_link_ids(
-                self._grid.shape, fixed_link_ids
-            )
-            fixed_vertical_links = links.vertical_fixed_link_ids(
-                self._grid.shape, fixed_link_ids
-            )
-            self._horizontal_active_link_ids = np.maximum(
-                self._horizontal_active_link_ids, fixed_horizontal_links
-            )
-            self._vertical_active_link_ids = np.maximum(
-                self._vertical_active_link_ids, fixed_vertical_links
-            )
-            self._active_neighbors = find_active_neighbors_for_fixed_links(self._grid)
-
         self._vert_bdy_ids = self._active_links_at_open_bdy[
             links.is_vertical_link(self._grid.shape, self._active_links_at_open_bdy)
         ]
@@ -581,11 +563,6 @@ class OverlandFlow(Component):
             self._water_surface_slope[self._active_links] = (
                 self._water_surface__gradient
             )
-            # If the user chooses to set boundary links to the neighbor value,
-            # we set the discharge array to have the boundary links set to
-            # their neighbor value
-            if self._default_fixed_links is True:
-                self._q[self._grid.fixed_links] = self._q[self._active_neighbors]
 
             # Now we can calculate discharge. To handle links with neighbors
             # that do not exist, we will do a fancy indexing trick. Non-
@@ -681,11 +658,6 @@ class OverlandFlow(Component):
             # of all links), we delete the extra 0.0 value from the end of the
             # array.
             self._q = np.delete(self._q, len(self._q) - 1)
-
-            # Updating the discharge array to have the boundary links set to
-            # their neighbor
-            if self._default_fixed_links is True:
-                self._q[self._grid.fixed_links] = self._q[self._active_neighbors]
 
             if self._steep_slopes is True:
                 # To prevent water from draining too fast for our time steps...
