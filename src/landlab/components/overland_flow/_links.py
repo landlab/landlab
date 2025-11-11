@@ -1,7 +1,7 @@
 import numpy as np
 
-from ...core.utils import as_id_array
-from ...graph.structured_quad.structured_quad import StructuredQuadGraphTopology
+from landlab.core.utils import as_id_array
+from landlab.graph.structured_quad.structured_quad import StructuredQuadGraphTopology
 
 
 def vertical_link_ids(shape):
