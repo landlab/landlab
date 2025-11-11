@@ -1629,12 +1629,11 @@ class ExtendedGravelBedrockEroder(Component):
         dh_by_class = self._grid.at_node["grains__weight"] / (
             self._rho_sed * (1 - self._sediment_porosity)
         )
-
         if self._n_classes > 1:
-            sed_is_declining = np.logical_and(dhdt_by_class < 0.0, dh_by_class > 0.0)
+            sed_is_declining = np.logical_and(dhdt_by_class < 0.0, dh_by_class > self._d_min/self._n_classes)
         else:
             sed_is_declining = np.logical_and(
-                dhdt_by_class[:, 0] < 0.0, dh_by_class > 0.0
+                dhdt_by_class[:, 0] < 0.0, dh_by_class > self._d_min
             )
 
         if np.any(sed_is_declining):
