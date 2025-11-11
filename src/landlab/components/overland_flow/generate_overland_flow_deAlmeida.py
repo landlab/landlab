@@ -248,7 +248,6 @@ class OverlandFlow(Component):
     def __init__(
         self,
         grid,
-        default_fixed_links=False,
         h_init=0.00001,
         alpha=0.7,
         mannings_n=0.03,
@@ -350,13 +349,6 @@ class OverlandFlow(Component):
         # that every iteration of self.overland_flow does NOT need to
         # reinitalize the neighbors and saves computation time.
         self._neighbor_flag = False
-
-        # When looking for neighbors, we automatically ignore inactive links
-        # by default. However, what about when we want to look at fixed links
-        # too? By default, we ignore these, but if they are important to your
-        # model and will be updated in your driver loop, they can be used by
-        # setting the flag in the initialization of  the class to 'True'
-        self._default_fixed_links = default_fixed_links
 
         # Assiging a class variable to the elevation field.
         self._z = self._grid.at_node["topographic__elevation"]
