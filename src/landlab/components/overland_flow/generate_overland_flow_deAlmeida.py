@@ -418,14 +418,14 @@ class OverlandFlow(Component):
         """
         # First we identify all active links
 
-        self._active_ids = active_link_ids(self._grid.shape, self._grid.status_at_node)
+        active_ids = active_link_ids(self._grid.shape, self._grid.status_at_node)
 
-        self._active_links_at_open_bdy = _active_links_at_node(
+        active_links_at_open_bdy = _active_links_at_node(
             self.grid, self.grid.open_boundary_nodes
         ).transpose()
 
-        self._active_links_at_open_bdy = self._active_links_at_open_bdy[
-            np.where(self._active_links_at_open_bdy > -1)
+        active_links_at_open_bdy = active_links_at_open_bdy[
+            np.where(active_links_at_open_bdy > -1)
         ]
 
         # And then find all horizontal link IDs (Active and Inactive)
@@ -435,8 +435,8 @@ class OverlandFlow(Component):
         self._horizontal_ids = self._horizontal_ids.flatten()
 
         # Find all horizontal active link ids
-        self._horizontal_active_link_ids = horizontal_active_link_ids(
-            self._grid.shape, self._active_ids
+        _horizontal_active_link_ids = horizontal_active_link_ids(
+            self._grid.shape, active_ids
         )
 
         # Now we repeat this process for the vertical links.
@@ -444,56 +444,56 @@ class OverlandFlow(Component):
         self._vertical_ids = vertical_link_ids(self._grid.shape).flatten()
 
         # Find the *active* verical link ids
-        self._vertical_active_link_ids = vertical_active_link_ids(
-            self._grid.shape, self._active_ids
+        _vertical_active_link_ids = vertical_active_link_ids(
+            self._grid.shape, active_ids
         )
 
-        self._vert_bdy_ids = self._active_links_at_open_bdy[
-            is_vertical_link(self._grid.shape, self._active_links_at_open_bdy)
+        vert_bdy_ids = active_links_at_open_bdy[
+            is_vertical_link(self._grid.shape, active_links_at_open_bdy)
         ]
 
-        self._vert_bdy_ids = nth_vertical_link(self._grid.shape, self._vert_bdy_ids)
+        vert_bdy_ids = nth_vertical_link(self._grid.shape, vert_bdy_ids)
 
-        self._horiz_bdy_ids = self._active_links_at_open_bdy[
-            is_horizontal_link(self._grid.shape, self._active_links_at_open_bdy)
+        horiz_bdy_ids = active_links_at_open_bdy[
+            is_horizontal_link(self._grid.shape, active_links_at_open_bdy)
         ]
 
-        self._horiz_bdy_ids = nth_horizontal_link(self._grid.shape, self._horiz_bdy_ids)
+        horiz_bdy_ids = nth_horizontal_link(self._grid.shape, horiz_bdy_ids)
 
         # Using the active vertical link ids we can find the north
         # and south vertical neighbors
         self._north_neighbors = vertical_north_link_neighbor(
-            self._grid.shape, self._vertical_active_link_ids
+            self._grid.shape, _vertical_active_link_ids
         )
         self._south_neighbors = vertical_south_link_neighbor(
-            self._grid.shape, self._vertical_active_link_ids
+            self._grid.shape, _vertical_active_link_ids
         )
 
         # Using the horizontal active link ids, we can find the west and
         # east neighbors
         self._west_neighbors = horizontal_west_link_neighbor(
-            self._grid.shape, self._horizontal_active_link_ids
+            self._grid.shape, _horizontal_active_link_ids
         )
         self._east_neighbors = horizontal_east_link_neighbor(
-            self._grid.shape, self._horizontal_active_link_ids
+            self._grid.shape, _horizontal_active_link_ids
         )
 
         # replace bdy condition links
-        (ids,) = np.where(self._west_neighbors[self._horiz_bdy_ids] == -1)
-        ids = self._horiz_bdy_ids[ids]
-        self._west_neighbors[ids] = self._horizontal_active_link_ids[ids]
+        (ids,) = np.where(self._west_neighbors[horiz_bdy_ids] == -1)
+        ids = horiz_bdy_ids[ids]
+        self._west_neighbors[ids] = _horizontal_active_link_ids[ids]
 
-        (ids,) = np.where(self._east_neighbors[self._horiz_bdy_ids] == -1)
-        ids = self._horiz_bdy_ids[ids]
-        self._east_neighbors[ids] = self._horizontal_active_link_ids[ids]
+        (ids,) = np.where(self._east_neighbors[horiz_bdy_ids] == -1)
+        ids = horiz_bdy_ids[ids]
+        self._east_neighbors[ids] = _horizontal_active_link_ids[ids]
 
-        (ids,) = np.where(self._north_neighbors[self._vert_bdy_ids] == -1)
-        ids = self._vert_bdy_ids[ids]
-        self._north_neighbors[ids] = self._vertical_active_link_ids[ids]
+        (ids,) = np.where(self._north_neighbors[vert_bdy_ids] == -1)
+        ids = vert_bdy_ids[ids]
+        self._north_neighbors[ids] = _vertical_active_link_ids[ids]
 
-        (ids,) = np.where(self._south_neighbors[self._vert_bdy_ids] == -1)
-        ids = self._vert_bdy_ids[ids]
-        self._south_neighbors[ids] = vertical_active_link_ids[ids]
+        (ids,) = np.where(self._south_neighbors[vert_bdy_ids] == -1)
+        ids = vert_bdy_ids[ids]
+        self._south_neighbors[ids] = _vertical_active_link_ids[ids]
 
         # Once the neighbor arrays are set up, we change the flag to True!
         self._neighbor_flag = True
