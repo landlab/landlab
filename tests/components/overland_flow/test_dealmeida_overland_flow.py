@@ -15,6 +15,15 @@ from landlab.components.overland_flow._links import horizontal_link_ids
 _ARGS = (_SHAPE, _SPACING, _ORIGIN)
 
 
+@pytest.fixture
+def deAlm():
+    grid = RasterModelGrid((32, 240), xy_spacing=25)
+    grid.add_zeros("surface_water__depth", at="node")
+    grid.add_zeros("topographic__elevation", at="node")
+    grid.add_zeros("surface_water__discharge", at="link")
+    return OverlandFlow(grid, mannings_n=0.01, h_init=0.001)
+
+
 def _left_edge_horizontal_ids(shape):
     return horizontal_link_ids(shape)[:, 0]
 
