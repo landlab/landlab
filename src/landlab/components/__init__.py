@@ -1,3 +1,21 @@
+from landlab.components.flow_accum.flow_accumulator import FlowAccumulator
+from landlab.components.overland_flow.generate_overland_flow_Bates import (
+    OverlandFlowBates,
+)
+from landlab.components.overland_flow.generate_overland_flow_deAlmeida import (
+    OverlandFlow,
+)
+from landlab.components.overland_flow.generate_overland_flow_implicit_kinwave import (
+    KinwaveImplicitOverlandFlow,
+)
+from landlab.components.overland_flow.generate_overland_flow_kinwave import (
+    KinwaveOverlandFlowModel,
+)
+from landlab.components.overland_flow.kinematic_wave_rengers import KinematicWaveRengers
+from landlab.components.overland_flow.linear_diffusion_overland_flow_router import (
+    LinearDiffusionOverlandFlowRouter,
+)
+
 from .advection import AdvectionSolverTVD
 from .area_slope_transporter import AreaSlopeTransporter
 from .bedrock_landslider import BedrockLandslider
@@ -19,7 +37,6 @@ from .erosion_deposition import SharedStreamPower
 from .fire_generator import FireGenerator
 from .flexure import Flexure
 from .flexure import Flexure1D
-from .flow_accum import FlowAccumulator
 from .flow_accum import LossyFlowAccumulator
 from .flow_director import FlowDirectorD8
 from .flow_director import FlowDirectorDINF
@@ -58,12 +75,6 @@ from .network_sediment_transporter.sediment_pulser_each_parcel import (
 )
 from .nonlinear_diffusion import PerronNLDiffuse
 from .normal_fault import NormalFault
-from .overland_flow import KinematicWaveRengers
-from .overland_flow import KinwaveImplicitOverlandFlow
-from .overland_flow import KinwaveOverlandFlowModel
-from .overland_flow import LinearDiffusionOverlandFlowRouter
-from .overland_flow import OverlandFlow
-from .overland_flow import OverlandFlowBates
 from .pet import PotentialEvapotranspiration
 from .plant_competition_ca import VegCA
 from .potentiality_flowrouting import PotentialityFlowRouter
