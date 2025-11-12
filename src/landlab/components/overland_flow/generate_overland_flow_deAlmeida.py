@@ -502,6 +502,10 @@ class OverlandFlow(Component):
         local_elapsed_time = 0.0
         if dt is None:
             dt = np.inf  # to allow the loop to begin
+
+        if not self._neighbor_flag:
+            self.set_up_neighbor_arrays()
+
         while local_elapsed_time < dt:
             dt_local = self.calc_time_step()
             # Can really get into trouble if nothing happens but we still run:
@@ -510,11 +514,6 @@ class OverlandFlow(Component):
             if local_elapsed_time + dt_local > dt:
                 dt_local = dt - local_elapsed_time
             self._dt = dt_local
-
-            # First, we check and see if the neighbor arrays have been
-            # initialized
-            if self._neighbor_flag is False:
-                self.set_up_neighbor_arrays()
 
             # In case another component has added data to the fields, we just
             # reset our water depths, topographic elevations and water
