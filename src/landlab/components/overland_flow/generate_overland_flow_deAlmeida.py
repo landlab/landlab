@@ -321,8 +321,7 @@ class OverlandFlow(Component):
             self._h_links.fill(0.0)
         self._h_links += self._h_init
 
-        self._h = grid.at_node["surface_water__depth"]
-        self._h += self._h_init
+        grid.at_node["surface_water__depth"] += self._h_init
 
         # For water surface slopes at links
         try:
@@ -359,7 +358,7 @@ class OverlandFlow(Component):
     @property
     def h(self):
         """The depth of water at each node."""
-        return self._h
+        return self._grid.at_node["surface_water__depth"]
 
     @property
     def dt(self):
@@ -518,6 +517,8 @@ class OverlandFlow(Component):
         if not self._neighbor_flag:
             self.set_up_neighbor_arrays()
 
+        h_at_node = self._grid.at_node["surface_water__depth"]
+
         while local_elapsed_time < dt:
             dt_local = self.calc_time_step()
             # Can really get into trouble if nothing happens but we still run:
@@ -530,7 +531,6 @@ class OverlandFlow(Component):
             # In case another component has added data to the fields, we just
             # reset our water depths, topographic elevations and water
             # discharge variables to the fields.
-            self._h = self._grid["node"]["surface_water__depth"]
             self._z = self._grid["node"]["topographic__elevation"]
             self._q = self._grid["link"]["surface_water__discharge"]
             self._h_links = self._grid["link"]["surface_water__depth"]
@@ -543,7 +543,7 @@ class OverlandFlow(Component):
             # between the highest water surface in the two cells and the
             # highest bed elevation
             zmax = self._grid.map_max_of_link_nodes_to_link(self._z)
-            w = self._h + self._z
+            w = h_at_node + self._z
             wmax = self._grid.map_max_of_link_nodes_to_link(w)
             hflow = wmax[self._grid.active_links] - zmax[self._grid.active_links]
 
@@ -744,8 +744,8 @@ class OverlandFlow(Component):
             )
 
             # Updating our water depths...
-            self._h[self._core_nodes] = (
-                self._h[self._core_nodes] + self._dhdt[self._core_nodes] * self._dt
+            h_at_node[self._core_nodes] = (
+                h_at_node[self._core_nodes] + self._dhdt[self._core_nodes] * self._dt
             )
 
             # To prevent divide by zero errors, a minimum threshold water depth
@@ -755,11 +755,10 @@ class OverlandFlow(Component):
             # as it showed the smallest amount of mass creation in the grid
             # during testing.
             if self._steep_slopes is True:
-                self._h[self._h < self._h_init] = self._h_init * 10.0**-3
+                h_at_node[h_at_node < self._h_init] = self._h_init * 10.0**-3
 
             # And reset our field values with the newest water depth and
             # discharge.
-            self._grid.at_node["surface_water__depth"] = self._h
             self._grid.at_link["surface_water__discharge"] = self._q
             #
             #
