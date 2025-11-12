@@ -352,9 +352,6 @@ class OverlandFlow(Component):
         # setting the flag in the initialization of  the class to 'True'
         self._default_fixed_links = default_fixed_links
 
-        # Assiging a class variable to the elevation field.
-        self._z = self._grid.at_node["topographic__elevation"]
-
     @property
     def h(self):
         """The depth of water at each node."""
@@ -518,6 +515,7 @@ class OverlandFlow(Component):
             self.set_up_neighbor_arrays()
 
         h_at_node = self._grid.at_node["surface_water__depth"]
+        z_at_node = self._grid.at_node["topographic__elevation"]
 
         while local_elapsed_time < dt:
             dt_local = self.calc_time_step()
@@ -531,7 +529,6 @@ class OverlandFlow(Component):
             # In case another component has added data to the fields, we just
             # reset our water depths, topographic elevations and water
             # discharge variables to the fields.
-            self._z = self._grid["node"]["topographic__elevation"]
             self._q = self._grid["link"]["surface_water__discharge"]
             self._h_links = self._grid["link"]["surface_water__depth"]
 
@@ -542,8 +539,8 @@ class OverlandFlow(Component):
             # Per Bates et al., 2010, this solution needs to find difference
             # between the highest water surface in the two cells and the
             # highest bed elevation
-            zmax = self._grid.map_max_of_link_nodes_to_link(self._z)
-            w = h_at_node + self._z
+            zmax = self._grid.map_max_of_link_nodes_to_link(z_at_node)
+            w = h_at_node + z_at_node
             wmax = self._grid.map_max_of_link_nodes_to_link(w)
             hflow = wmax[self._grid.active_links] - zmax[self._grid.active_links]
 
