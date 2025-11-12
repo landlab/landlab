@@ -507,15 +507,9 @@ class OverlandFlow(Component):
         ids = self._vert_bdy_ids[ids]
         self._north_neighbors[ids] = self._vertical_active_link_ids[ids]
 
-        (ids,) = np.where(self._south_neighbors[self._vert_bdy_ids] == -1)
-        ids = self._vert_bdy_ids[ids]
-        self._south_neighbors[ids] = self._vertical_active_link_ids[ids]
-
-        # Set up arrays for discharge in the horizontal & vertical directions.
-        self._q_horizontal = np.zeros(
-            links.number_of_horizontal_links(self._grid.shape)
-        )
-        self._q_vertical = np.zeros(links.number_of_vertical_links(self._grid.shape))
+        (ids,) = np.where(self._south_neighbors[vert_bdy_ids] == -1)
+        ids = vert_bdy_ids[ids]
+        self._south_neighbors[ids] = vertical_active_link_ids[ids]
 
         # Once the neighbor arrays are set up, we change the flag to True!
         self._neighbor_flag = True
