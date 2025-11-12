@@ -94,14 +94,12 @@ from landlab import FieldError
 from landlab.components.overland_flow._links import active_link_ids
 from landlab.components.overland_flow._links import horizontal_active_link_ids
 from landlab.components.overland_flow._links import horizontal_east_link_neighbor
-from landlab.components.overland_flow._links import horizontal_link_ids
 from landlab.components.overland_flow._links import horizontal_west_link_neighbor
 from landlab.components.overland_flow._links import is_horizontal_link
 from landlab.components.overland_flow._links import is_vertical_link
 from landlab.components.overland_flow._links import nth_horizontal_link
 from landlab.components.overland_flow._links import nth_vertical_link
 from landlab.components.overland_flow._links import vertical_active_link_ids
-from landlab.components.overland_flow._links import vertical_link_ids
 from landlab.components.overland_flow._links import vertical_north_link_neighbor
 from landlab.components.overland_flow._links import vertical_south_link_neighbor
 from landlab.core._validate import require_between
@@ -428,20 +426,10 @@ class OverlandFlow(Component):
             np.where(active_links_at_open_bdy > -1)
         ]
 
-        # And then find all horizontal link IDs (Active and Inactive)
-        self._horizontal_ids = horizontal_link_ids(self._grid.shape)
-
-        # And make the array 1-D
-        self._horizontal_ids = self._horizontal_ids.flatten()
-
         # Find all horizontal active link ids
         _horizontal_active_link_ids = horizontal_active_link_ids(
             self._grid.shape, active_ids
         )
-
-        # Now we repeat this process for the vertical links.
-        # First find the vertical link ids and reshape it into a 1-D array
-        self._vertical_ids = vertical_link_ids(self._grid.shape).flatten()
 
         # Find the *active* verical link ids
         _vertical_active_link_ids = vertical_active_link_ids(
@@ -571,8 +559,8 @@ class OverlandFlow(Component):
             # units of L^2/T) to the end of the discharge array.
             self._q = np.append(self._q, [0])
 
-            horiz = self._horizontal_ids
-            vert = self._vertical_ids
+            horiz = self._grid.horizontal_links
+            vert = self._grid.vertical_links
             # Now we calculate discharge in the horizontal direction
             try:
                 self._q[horiz] = (
@@ -643,7 +631,7 @@ class OverlandFlow(Component):
                     - self._g
                     * self._h_links[vert]
                     * self._dt
-                    * self._water_surface_slope[self._vertical_ids]
+                    * self._water_surface_slope[vert]
                 ) / (
                     1
                     + self._g
