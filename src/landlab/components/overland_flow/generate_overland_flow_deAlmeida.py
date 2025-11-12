@@ -510,6 +510,8 @@ class OverlandFlow(Component):
         h_at_link = self._grid.at_link["surface_water__depth"]
         water_surface_slope = self._grid.at_link["water_surface__gradient"]
 
+        core_nodes = self._grid.core_nodes
+
         while local_elapsed_time < dt:
             dt_local = self.calc_time_step()
             # Can really get into trouble if nothing happens but we still run:
@@ -520,7 +522,6 @@ class OverlandFlow(Component):
             self._dt = dt_local
 
             # Here we identify the core nodes and active links for later use.
-            self._core_nodes = self._grid.core_nodes
             self._active_links = self._grid.active_links
 
             # Per Bates et al., 2010, this solution needs to find difference
@@ -722,8 +723,8 @@ class OverlandFlow(Component):
             )
 
             # Updating our water depths...
-            h_at_node[self._core_nodes] = (
-                h_at_node[self._core_nodes] + self._dhdt[self._core_nodes] * self._dt
+            h_at_node[core_nodes] = (
+                h_at_node[core_nodes] + self._dhdt[core_nodes] * self._dt
             )
 
             # To prevent divide by zero errors, a minimum threshold water depth
