@@ -100,8 +100,6 @@ from landlab.components.overland_flow._links import is_horizontal_link
 from landlab.components.overland_flow._links import is_vertical_link
 from landlab.components.overland_flow._links import nth_horizontal_link
 from landlab.components.overland_flow._links import nth_vertical_link
-from landlab.components.overland_flow._links import number_of_horizontal_links
-from landlab.components.overland_flow._links import number_of_vertical_links
 from landlab.components.overland_flow._links import vertical_active_link_ids
 from landlab.components.overland_flow._links import vertical_link_ids
 from landlab.components.overland_flow._links import vertical_north_link_neighbor
@@ -495,11 +493,7 @@ class OverlandFlow(Component):
 
         (ids,) = np.where(self._south_neighbors[self._vert_bdy_ids] == -1)
         ids = self._vert_bdy_ids[ids]
-        self._south_neighbors[ids] = self._vertical_active_link_ids[ids]
-
-        # Set up arrays for discharge in the horizontal & vertical directions.
-        self._q_horizontal = np.zeros(number_of_horizontal_links(self._grid.shape))
-        self._q_vertical = np.zeros(number_of_vertical_links(self._grid.shape))
+        self._south_neighbors[ids] = vertical_active_link_ids[ids]
 
         # Once the neighbor arrays are set up, we change the flag to True!
         self._neighbor_flag = True
