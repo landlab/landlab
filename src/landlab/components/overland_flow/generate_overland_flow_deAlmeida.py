@@ -472,6 +472,7 @@ class OverlandFlow(Component):
         water_surface_slope = self._grid.at_link["water_surface__gradient"]
 
         core_nodes = self._grid.core_nodes
+        active_links = self._grid.active_links
 
         while local_elapsed_time < dt:
             dt_local = self.calc_time_step()
@@ -481,26 +482,23 @@ class OverlandFlow(Component):
             if local_elapsed_time + dt_local > dt:
                 dt_local = dt - local_elapsed_time
 
-            # Here we identify the core nodes and active links for later use.
-            self._active_links = self._grid.active_links
-
             # Per Bates et al., 2010, this solution needs to find difference
             # between the highest water surface in the two cells and the
             # highest bed elevation
             zmax = self._grid.map_max_of_link_nodes_to_link(z_at_node)
             w = h_at_node + z_at_node
             wmax = self._grid.map_max_of_link_nodes_to_link(w)
-            hflow = wmax[self._grid.active_links] - zmax[self._grid.active_links]
+            hflow = wmax[active_links] - zmax[active_links]
 
             # Insert this water depth into an array of water depths at the
             # links.
-            h_at_link[self._active_links] = hflow
+            h_at_link[active_links] = hflow
 
             # Now we calculate the slope of the water surface elevation at
             # active links
             # And insert these values into an array of all links
-            water_surface_slope[self._active_links] = self._grid.calc_grad_at_link(w)[
-                self._grid.active_links
+            water_surface_slope[active_links] = self._grid.calc_grad_at_link(w)[
+                active_links
             ]
 
             # Now we can calculate discharge. To handle links with neighbors
