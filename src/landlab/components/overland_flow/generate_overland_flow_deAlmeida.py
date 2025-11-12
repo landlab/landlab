@@ -317,9 +317,7 @@ class OverlandFlow(Component):
         # For water depths calculated at links
         grid.at_link["surface_water__depth"].fill(self._h_init)
         grid.at_node["surface_water__depth"] += self._h_init
-
-        self._water_surface_slope = grid.at_link["water_surface__gradient"]
-        self._water_surface_slope.fill(0.0)
+        grid.at_link["water_surface__gradient"].fill(0.0)
 
         # Start time of simulation is at 1.0 s
         self._elapsed_time = 1.0
@@ -471,6 +469,7 @@ class OverlandFlow(Component):
         z_at_node = self._grid.at_node["topographic__elevation"]
         q_at_link = self._grid.at_link["surface_water__discharge"]
         h_at_link = self._grid.at_link["surface_water__depth"]
+        water_surface_slope = self._grid.at_link["water_surface__gradient"]
 
         while local_elapsed_time < dt:
             dt_local = self.calc_time_step()
@@ -498,14 +497,10 @@ class OverlandFlow(Component):
 
             # Now we calculate the slope of the water surface elevation at
             # active links
-            self._water_surface__gradient = self._grid.calc_grad_at_link(w)[
+            # And insert these values into an array of all links
+            water_surface_slope[self._active_links] = self._grid.calc_grad_at_link(w)[
                 self._grid.active_links
             ]
-
-            # And insert these values into an array of all links
-            self._water_surface_slope[self._active_links] = (
-                self._water_surface__gradient
-            )
 
             # Now we can calculate discharge. To handle links with neighbors
             # that do not exist, we will do a fancy indexing trick. Non-
@@ -523,10 +518,7 @@ class OverlandFlow(Component):
                 + (1.0 - self._theta)
                 / 2.0
                 * (q_at_link[self._west_neighbors] + q_at_link[self._east_neighbors])
-                - self._g
-                * h_at_link[horiz]
-                * dt_local
-                * self._water_surface_slope[horiz]
+                - self._g * h_at_link[horiz] * dt_local * water_surface_slope[horiz]
             ) / (
                 1
                 + self._g
@@ -542,7 +534,7 @@ class OverlandFlow(Component):
                 + (1 - self._theta)
                 / 2.0
                 * (q_at_link[self._north_neighbors] + q_at_link[self._south_neighbors])
-                - self._g * h_at_link[vert] * dt_local * self._water_surface_slope[vert]
+                - self._g * h_at_link[vert] * dt_local * water_surface_slope[vert]
             ) / (
                 1
                 + self._g
