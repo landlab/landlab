@@ -410,36 +410,24 @@ class OverlandFlow(Component):
         """
         # First we identify all active links
 
-        self._active_ids = links.active_link_ids(
-            self._grid.shape, self._grid.status_at_node
-        )
+        active_ids = links.active_link_ids(self._grid.shape, self._grid.status_at_node)
 
-        self._active_links_at_open_bdy = _active_links_at_node(
+        active_links_at_open_bdy = _active_links_at_node(
             self.grid, self.grid.open_boundary_nodes
         ).transpose()
 
-        self._active_links_at_open_bdy = self._active_links_at_open_bdy[
-            np.where(self._active_links_at_open_bdy > -1)
+        active_links_at_open_bdy = active_links_at_open_bdy[
+            np.where(active_links_at_open_bdy > -1)
         ]
 
-        # And then find all horizontal link IDs (Active and Inactive)
-        self._horizontal_ids = links.horizontal_link_ids(self._grid.shape)
-
-        # And make the array 1-D
-        self._horizontal_ids = self._horizontal_ids.flatten()
-
         # Find all horizontal active link ids
-        self._horizontal_active_link_ids = links.horizontal_active_link_ids(
-            self._grid.shape, self._active_ids
+        horizontal_active_link_ids = links.horizontal_active_link_ids(
+            self._grid.shape, active_ids
         )
 
-        # Now we repeat this process for the vertical links.
-        # First find the vertical link ids and reshape it into a 1-D array
-        self._vertical_ids = links.vertical_link_ids(self._grid.shape).flatten()
-
         # Find the *active* verical link ids
-        self._vertical_active_link_ids = links.vertical_active_link_ids(
-            self._grid.shape, self._active_ids
+        vertical_active_link_ids = links.vertical_active_link_ids(
+            self._grid.shape, active_ids
         )
 
         if self._default_fixed_links is True:
@@ -452,70 +440,60 @@ class OverlandFlow(Component):
             fixed_vertical_links = links.vertical_fixed_link_ids(
                 self._grid.shape, fixed_link_ids
             )
-            self._horizontal_active_link_ids = np.maximum(
-                self._horizontal_active_link_ids, fixed_horizontal_links
+            horizontal_active_link_ids = np.maximum(
+                horizontal_active_link_ids, fixed_horizontal_links
             )
-            self._vertical_active_link_ids = np.maximum(
-                self._vertical_active_link_ids, fixed_vertical_links
+            vertical_active_link_ids = np.maximum(
+                vertical_active_link_ids, fixed_vertical_links
             )
             self._active_neighbors = find_active_neighbors_for_fixed_links(self._grid)
 
-        self._vert_bdy_ids = self._active_links_at_open_bdy[
-            links.is_vertical_link(self._grid.shape, self._active_links_at_open_bdy)
+        vert_bdy_ids = active_links_at_open_bdy[
+            links.is_vertical_link(self._grid.shape, active_links_at_open_bdy)
         ]
 
-        self._vert_bdy_ids = links.nth_vertical_link(
-            self._grid.shape, self._vert_bdy_ids
-        )
+        vert_bdy_ids = links.nth_vertical_link(self._grid.shape, vert_bdy_ids)
 
-        self._horiz_bdy_ids = self._active_links_at_open_bdy[
-            links.is_horizontal_link(self._grid.shape, self._active_links_at_open_bdy)
+        horiz_bdy_ids = active_links_at_open_bdy[
+            links.is_horizontal_link(self._grid.shape, active_links_at_open_bdy)
         ]
 
-        self._horiz_bdy_ids = links.nth_horizontal_link(
-            self._grid.shape, self._horiz_bdy_ids
-        )
+        horiz_bdy_ids = links.nth_horizontal_link(self._grid.shape, horiz_bdy_ids)
 
         # Using the active vertical link ids we can find the north
         # and south vertical neighbors
         self._north_neighbors = links.vertical_north_link_neighbor(
-            self._grid.shape, self._vertical_active_link_ids
+            self._grid.shape, vertical_active_link_ids
         )
         self._south_neighbors = links.vertical_south_link_neighbor(
-            self._grid.shape, self._vertical_active_link_ids
+            self._grid.shape, vertical_active_link_ids
         )
 
         # Using the horizontal active link ids, we can find the west and
         # east neighbors
         self._west_neighbors = links.horizontal_west_link_neighbor(
-            self._grid.shape, self._horizontal_active_link_ids
+            self._grid.shape, horizontal_active_link_ids
         )
         self._east_neighbors = links.horizontal_east_link_neighbor(
-            self._grid.shape, self._horizontal_active_link_ids
+            self._grid.shape, horizontal_active_link_ids
         )
 
         # replace bdy condition links
-        (ids,) = np.where(self._west_neighbors[self._horiz_bdy_ids] == -1)
-        ids = self._horiz_bdy_ids[ids]
-        self._west_neighbors[ids] = self._horizontal_active_link_ids[ids]
+        (ids,) = np.where(self._west_neighbors[horiz_bdy_ids] == -1)
+        ids = horiz_bdy_ids[ids]
+        self._west_neighbors[ids] = horizontal_active_link_ids[ids]
 
-        (ids,) = np.where(self._east_neighbors[self._horiz_bdy_ids] == -1)
-        ids = self._horiz_bdy_ids[ids]
-        self._east_neighbors[ids] = self._horizontal_active_link_ids[ids]
+        (ids,) = np.where(self._east_neighbors[horiz_bdy_ids] == -1)
+        ids = horiz_bdy_ids[ids]
+        self._east_neighbors[ids] = horizontal_active_link_ids[ids]
 
-        (ids,) = np.where(self._north_neighbors[self._vert_bdy_ids] == -1)
-        ids = self._vert_bdy_ids[ids]
-        self._north_neighbors[ids] = self._vertical_active_link_ids[ids]
+        (ids,) = np.where(self._north_neighbors[vert_bdy_ids] == -1)
+        ids = vert_bdy_ids[ids]
+        self._north_neighbors[ids] = vertical_active_link_ids[ids]
 
-        (ids,) = np.where(self._south_neighbors[self._vert_bdy_ids] == -1)
-        ids = self._vert_bdy_ids[ids]
-        self._south_neighbors[ids] = self._vertical_active_link_ids[ids]
-
-        # Set up arrays for discharge in the horizontal & vertical directions.
-        self._q_horizontal = np.zeros(
-            links.number_of_horizontal_links(self._grid.shape)
-        )
-        self._q_vertical = np.zeros(links.number_of_vertical_links(self._grid.shape))
+        (ids,) = np.where(self._south_neighbors[vert_bdy_ids] == -1)
+        ids = vert_bdy_ids[ids]
+        self._south_neighbors[ids] = vertical_active_link_ids[ids]
 
         # Once the neighbor arrays are set up, we change the flag to True!
         self._neighbor_flag = True
@@ -536,6 +514,10 @@ class OverlandFlow(Component):
         local_elapsed_time = 0.0
         if dt is None:
             dt = np.inf  # to allow the loop to begin
+
+        if not self._neighbor_flag:
+            self.set_up_neighbor_arrays()
+
         while local_elapsed_time < dt:
             dt_local = self.calc_time_step()
             # Can really get into trouble if nothing happens but we still run:
@@ -544,11 +526,6 @@ class OverlandFlow(Component):
             if local_elapsed_time + dt_local > dt:
                 dt_local = dt - local_elapsed_time
             self._dt = dt_local
-
-            # First, we check and see if the neighbor arrays have been
-            # initialized
-            if self._neighbor_flag is False:
-                self.set_up_neighbor_arrays()
 
             # In case another component has added data to the fields, we just
             # reset our water depths, topographic elevations and water
@@ -598,8 +575,8 @@ class OverlandFlow(Component):
             # units of L^2/T) to the end of the discharge array.
             self._q = np.append(self._q, [0])
 
-            horiz = self._horizontal_ids
-            vert = self._vertical_ids
+            horiz = self._grid.horizontal_links
+            vert = self._grid.vertical_links
             # Now we calculate discharge in the horizontal direction
             try:
                 self._q[horiz] = (
@@ -670,7 +647,7 @@ class OverlandFlow(Component):
                     - self._g
                     * self._h_links[vert]
                     * self._dt
-                    * self._water_surface_slope[self._vertical_ids]
+                    * self._water_surface_slope[vert]
                 ) / (
                     1
                     + self._g
