@@ -91,6 +91,7 @@ import scipy.constants
 
 from landlab import Component
 from landlab import FieldError
+from landlab.components.overland_flow._calc import calc_weighted_mean_of_parallel_links
 from landlab.components.overland_flow._links import active_link_ids
 from landlab.components.overland_flow._links import horizontal_active_link_ids
 from landlab.components.overland_flow._links import horizontal_east_link_neighbor
@@ -542,6 +543,9 @@ class OverlandFlow(Component):
         local_elapsed_time = 0.0
         if dt is None:
             dt = np.inf  # to allow the loop to begin
+
+        q_mean_at_link = self.grid.empty(at="link")
+
         while local_elapsed_time < dt:
             dt_local = self.calc_time_step()
             # Can really get into trouble if nothing happens but we still run:
@@ -604,15 +608,22 @@ class OverlandFlow(Component):
             # units of L^2/T) to the end of the discharge array.
             self._q = np.append(self._q, [0])
 
+            q_mean_at_link.fill(0.0)
+            q_mean_at_link = calc_weighted_mean_of_parallel_links(
+                self._q,
+                parallel_links_at_link=self.grid.parallel_links_at_link,
+                status_at_link=self.grid.status_at_link,
+                theta=self._theta,
+                where=self._grid.active_links,
+                out=q_mean_at_link,
+            )
+
             horiz = self._horizontal_ids
             vert = self._vertical_ids
             # Now we calculate discharge in the horizontal direction
             try:
                 self._q[horiz] = (
-                    self._theta * self._q[horiz]
-                    + (1.0 - self._theta)
-                    / 2.0
-                    * (self._q[self._west_neighbors] + self._q[self._east_neighbors])
+                    q_mean_at_link[horiz]
                     - self._g
                     * self._h_links[horiz]
                     * self._dt
@@ -628,10 +639,7 @@ class OverlandFlow(Component):
 
                 # ... and in the vertical direction
                 self._q[vert] = (
-                    self._theta * self._q[vert]
-                    + (1 - self._theta)
-                    / 2.0
-                    * (self._q[self._north_neighbors] + self._q[self._south_neighbors])
+                    q_mean_at_link[vert]
                     - self._g
                     * self._h_links[vert]
                     * self._dt
@@ -650,10 +658,7 @@ class OverlandFlow(Component):
                 # if manning's n in a field
                 # calc discharge in horizontal
                 self._q[horiz] = (
-                    self._theta * self._q[horiz]
-                    + (1.0 - self._theta)
-                    / 2.0
-                    * (self._q[self._west_neighbors] + self._q[self._east_neighbors])
+                    q_mean_at_link[horiz]
                     - self._g
                     * self._h_links[horiz]
                     * self._dt
@@ -669,10 +674,7 @@ class OverlandFlow(Component):
 
                 # ... and in the vertical direction
                 self._q[vert] = (
-                    self._theta * self._q[vert]
-                    + (1 - self._theta)
-                    / 2.0
-                    * (self._q[self._north_neighbors] + self._q[self._south_neighbors])
+                    q_mean_at_link[vert]
                     - self._g
                     * self._h_links[vert]
                     * self._dt
