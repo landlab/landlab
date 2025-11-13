@@ -91,6 +91,7 @@ import scipy.constants
 from numpy.typing import NDArray
 
 from landlab import Component
+from landlab.components.overland_flow._calc import calc_bates_flow_height
 from landlab.components.overland_flow._calc import calc_grad_at_link
 from landlab.components.overland_flow._calc import calc_weighted_mean_of_parallel_links
 from landlab.components.overland_flow._calc import zero_out_dry_links
@@ -559,21 +560,20 @@ class OverlandFlow(Component):
             # Per Bates et al., 2010, this solution needs to find difference
             # between the highest water surface in the two cells and the
             # highest bed elevation
-            zmax = self._grid.map_max_of_link_nodes_to_link(z_at_node)
-            w = h_at_node + z_at_node
-            wmax = self._grid.map_max_of_link_nodes_to_link(w)
-            hflow = wmax[active_links] - zmax[active_links]
+            h_at_link = calc_bates_flow_height(
+                z_at_node,
+                h_at_node,
+                nodes_at_link=self.grid.nodes_at_link,
+                where=active_links,
+                out=h_at_link,
+            )
 
-            hflow = np.clip(hflow, self._h_init, None, out=hflow)
-
-            # Insert this water depth into an array of water depths at the
-            # links.
-            h_at_link[active_links] = hflow
+            h_at_link = np.clip(h_at_link, self._h_init, None, out=h_at_link)
 
             # Now we calculate the slope of the water surface elevation at
             # active links
             water_surface_slope = calc_grad_at_link(
-                w,
+                h_at_node + z_at_node,
                 length_of_link=self.grid.length_of_link,
                 nodes_at_link=self.grid.nodes_at_link,
                 where=active_links,
