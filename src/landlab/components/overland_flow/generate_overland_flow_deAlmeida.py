@@ -91,6 +91,7 @@ import scipy.constants
 
 from landlab import Component
 from landlab import FieldError
+from landlab.components.overland_flow._calc import calc_grad_at_link
 
 from . import _links as links
 
@@ -576,14 +577,14 @@ class OverlandFlow(Component):
 
             # Now we calculate the slope of the water surface elevation at
             # active links
-            self._water_surface__gradient = self._grid.calc_grad_at_link(w)[
-                self._grid.active_links
-            ]
-
-            # And insert these values into an array of all links
-            self._water_surface_slope[self._active_links] = (
-                self._water_surface__gradient
+            self._water_surface_slope = calc_grad_at_link(
+                self._h + self._z,
+                length_of_link=self.grid.length_of_link,
+                nodes_at_link=self.grid.nodes_at_link,
+                where=self._active_links,
+                out=self._water_surface_slope,
             )
+
             # If the user chooses to set boundary links to the neighbor value,
             # we set the discharge array to have the boundary links set to
             # their neighbor value
