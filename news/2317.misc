@@ -1,0 +1,2 @@
+Added a *cython* implementation of `calc_grad_at_link` for the overland flow component
+that operates only at specified links.
