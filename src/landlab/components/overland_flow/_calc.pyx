@@ -9,12 +9,6 @@ ctypedef fused id_t:
     int64_t
 
 
-ctypedef fused float_or_int_t:
-    cython.integral
-    cython.floating
-    long long
-
-
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.nonecheck(False)
@@ -74,13 +68,14 @@ def calc_grad_at_link(
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.nonecheck(False)
 def calc_weighted_mean_of_parallel_links(
-    const cython.floating[:] value_at_link,
-    const id_t[:, :] parallel_links_at_link,
-    const uint8_t[:] status_at_link,
-    const id_t[:] where,
+    const cython.floating[::1] value_at_link,
+    const id_t[:, ::1] parallel_links_at_link,
+    const uint8_t[::1] status_at_link,
+    const id_t[::1] where,
     const double theta,
-    cython.floating[:] out,
+    cython.floating[::1] out,
 ):
     """Calculate a weighted mean of each link and its parallel neighbors.
 
@@ -114,8 +109,13 @@ def calc_weighted_mean_of_parallel_links(
     out : ndarray of float
         Output buffer into which results are written. Must be the same shape
         and dtype as ``value_at_link``.
-    """
 
+    Returns
+    -------
+    out : ndarray of float
+        Array of means at links corresponding to those indexed
+        by ``where``. This is the same object as the input ``out`` array.
+    """
     cdef long n_links = len(where)
     cdef long link
     cdef long left
