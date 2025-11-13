@@ -10,6 +10,57 @@ from numpy.testing import assert_array_equal
 from landlab import RasterModelGrid
 from landlab.components import Flexure
 from landlab.components.flexure._ext.flexure2d import subside_loads
+from landlab.components.flexure.flexure import _find_nonzero_loads
+from landlab.components.flexure.flexure import _validate_range
+
+
+@pytest.mark.parametrize(
+    "loads,expected",
+    (
+        ([[0, 0], [1.5, 0]], ([1.5], ([1], [0]))),
+        ([[0, 0], [-1.5, 0]], ([-1.5], ([1], [0]))),
+        ([[0, 0], [0, 0]], ([], ([], []))),
+        ([[]], ([], ([], []))),
+        ([[1, 2], [-1, -2]], ([1, 2, -1, -2], ([0, 0, 1, 1], [0, 1, 0, 1]))),
+    ),
+)
+def test_find_nonzero_loads(loads, expected):
+    loads, (rows, cols) = _find_nonzero_loads(loads)
+    assert_array_equal(loads, expected[0])
+    assert_array_equal(rows, expected[1][0])
+    assert_array_equal(cols, expected[1][1])
+
+
+@pytest.mark.parametrize("loads", ([], [0, 1, 0], [[[0, 1, 0]]]))
+def test_find_nonzero_loads_wrong_ndim(loads):
+    with pytest.raises(ValueError, match="'loads' must be 2D"):
+        _find_nonzero_loads(loads)
+
+
+@pytest.mark.parametrize("array", ([1, 2, 3, 4], (1, 2, 3, 4), np.array([1, 2, 3, 4])))
+def test_validate_range_with_sequences(array):
+    actual = _validate_range(array)
+    assert np.allclose(actual, array)
+
+
+def test_validate_range_out_is_in():
+    array = np.arange(12)
+    actual = _validate_range(array)
+    assert np.shares_memory(actual, array)
+    assert np.allclose(actual, array)
+
+
+@pytest.mark.parametrize("low,high", ((2, None), (None, 4), (-1, 2), (3, 9)))
+def test_validate_range_out_of_range(low, high):
+    with pytest.raises(ValueError, match="array has values"):
+        _validate_range([1, 2, 3, 4], low=low, high=high)
+
+
+@pytest.mark.parametrize("low,high", ((None, None), (0, 9)))
+@pytest.mark.parametrize("array", ([1, 2, 3, 4], [], [1], [1, 1, 1, 1], [0, 8.999999]))
+def test_validate_range_in_range(array, low, high):
+    actual = _validate_range(array, low=low, high=high)
+    assert np.allclose(actual, array)
 
 
 @pytest.mark.parametrize("n", [4, 5, 6, 7, 8, 9, 10])
@@ -137,7 +188,30 @@ def test_flexure_cmp():
     assert_array_almost_equal(actual, expected)
 
 
-def test_subside_is_symetric():
+@pytest.mark.parametrize("n", (10,))
+def test_subside_zero_load(n):
+    n_rows = n_cols = 2**n + 1
+
+    grid = RasterModelGrid((n_rows, n_cols), xy_spacing=10.0)
+    grid.add_zeros("lithosphere__overlying_pressure_increment", at="node")
+    flex = Flexure(grid, method="flexure")
+
+    loads = grid.zeros(at="node").reshape(grid.shape)
+
+    actual = flex.subside_loads(loads)
+    assert_array_almost_equal(actual, 0.0)
+
+    actual = grid.empty(at="node")
+    flex.subside_loads(loads, out=actual)
+    assert_array_almost_equal(actual, 0.0)
+
+    actual = flex.subside_loads(
+        (0.0,), row_col_of_load=((0, n_rows - 1), (n_cols - 1, 0))
+    )
+    assert_array_almost_equal(actual, 0.0)
+
+
+def test_subside_is_symmetric():
     n, load_0 = 10, 1e9
 
     n_rows = 2**n + 1
@@ -153,11 +227,13 @@ def test_subside_is_symetric():
         [2 ** (n - 1), 0, n_cols - 1, 0, n_cols - 1],
     ]
 
-    dz = np.zeros((n_rows, n_cols))
+    dz = np.empty((n_rows, n_cols))
     flex.subside_loads(loads, row_col_of_load=row_col_of_load, out=dz)
 
     assert_array_almost_equal(dz, dz[:, ::-1])
     assert_array_almost_equal(dz, dz[::-1, :])
+
+    assert not np.allclose(dz, 0.0)
 
 
 def test_subside_negative_load():
@@ -175,11 +251,11 @@ def test_subside_negative_load():
         [2 ** (n - 1), 0, n_cols - 1, 0, n_cols - 1],
     ]
 
-    actual = np.zeros((n_rows, n_cols))
+    actual = np.empty((n_rows, n_cols))
     flex.subside_loads([load_0] * 5, row_col_of_load=row_col_of_load, out=actual)
 
-    expected = np.zeros((n_rows, n_cols))
-    flex.subside_loads([-load_0] * 5, row_col_of_load=row_col_of_load, out=actual)
+    expected = np.empty((n_rows, n_cols))
+    flex.subside_loads([-load_0] * 5, row_col_of_load=row_col_of_load, out=expected)
 
     assert_array_almost_equal(actual, -expected)
 
@@ -213,11 +289,38 @@ def test_method_names(method):
     assert Flexure(grid, method=method).method == method
 
 
-def test_method_bad_name():
+@pytest.mark.parametrize("method", ["Airy", "FlExUrE", "", " airy", "airy ", "foo"])
+def test_method_bad_name(method):
     grid = RasterModelGrid((20, 20), xy_spacing=1e3)
     grid.add_zeros("lithosphere__overlying_pressure_increment", at="node")
-    with pytest.raises(ValueError):
-        Flexure(grid, method="bad-name")
+    with pytest.raises(ValueError, match=f"{method}: method not understood"):
+        Flexure(grid, method=method)
+
+
+@pytest.mark.parametrize("size", (399, 401))
+def test_out_is_wrong_size(size):
+    grid = RasterModelGrid((20, 20), xy_spacing=1e3)
+    grid.add_zeros("lithosphere__overlying_pressure_increment", at="node")
+    flexure = Flexure(grid)
+    with pytest.raises(ValueError, match="'out' array has incorrect size"):
+        flexure.subside_loads(grid.zeros(at="node"), out=np.empty(size))
+
+
+@pytest.mark.parametrize("size", (399, 401))
+def test_loads_is_wrong_size(size):
+    grid = RasterModelGrid((20, 20), xy_spacing=1e3)
+    grid.add_zeros("lithosphere__overlying_pressure_increment", at="node")
+    flexure = Flexure(grid)
+    with pytest.raises(ValueError, match="'loads' array has incorrect size"):
+        flexure.subside_loads(np.zeros(size), row_col_of_load=None)
+
+
+def test_row_col_of_load_is_wrong_size():
+    grid = RasterModelGrid((20, 20), xy_spacing=1e3)
+    grid.add_zeros("lithosphere__overlying_pressure_increment", at="node")
+    flexure = Flexure(grid)
+    with pytest.raises(ValueError, match="'rows' and 'cols' must have the same length"):
+        flexure.subside_loads([0, 0, 0], row_col_of_load=([0, 1, 2], [2, 3]))
 
 
 @pytest.mark.parametrize("eet", [1e4, 1e3])
@@ -295,16 +398,16 @@ def test_field_initialized_to_zero(flex):
         assert np.all(field == 0.0)
 
 
-def test_update():
-    n = 5
-    n_rows = 2**n + 1
-    n_cols = 2**n + 1
+@pytest.mark.parametrize("method", ["airy", "flexure"])
+@pytest.mark.parametrize("n", (10,))
+def test_update(n, method):
+    n_rows = n_cols = 2**n + 1
 
     load_0 = 1e9
 
     grid = RasterModelGrid((n_rows, n_cols), xy_spacing=1e3)
     grid.add_zeros("lithosphere__overlying_pressure_increment", at="node")
-    flex = Flexure(grid, method="flexure")
+    flex = Flexure(grid, method=method)
 
     load = grid.at_node["lithosphere__overlying_pressure_increment"].reshape(grid.shape)
     load[2 ** (n - 1), 2 ** (n - 1)] = load_0
