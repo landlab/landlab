@@ -22,6 +22,7 @@ def adjust_supercritical_discharge(
     const double g,
     const double froude,
     const id_t [::1] where,
+    cython.floating [::1] out,
 ):
     cdef long n_links = len(where)
     cdef long i
@@ -37,4 +38,6 @@ def adjust_supercritical_discharge(
         h = h_at_link[link]
 
         max_q = factor * h * sqrt(h)
-        q_at_link[link] = copysign(fmin(fabs(q), max_q), q)
+        out[link] = copysign(fmin(fabs(q), max_q), q)
+
+    return (<object>out).base
