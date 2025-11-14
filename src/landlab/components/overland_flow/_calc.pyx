@@ -19,6 +19,38 @@ ctypedef fused id_t:
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.nonecheck(False)
+def adjust_unstable_discharge(
+    cython.floating [::1] q_at_link,
+    const cython.floating [::1] h_at_link,
+    *,
+    const double dx,
+    const double dt,
+    const id_t [::1] where,
+    cython.floating [::1] out,
+):
+    cdef Py_ssize_t n_links = where.shape[0]
+    cdef Py_ssize_t i
+    cdef id_t link
+    cdef double dx_over_dt = dx / dt
+    cdef double factor_of_safety = 0.8
+    cdef double q_threshold
+    cdef double q
+    cdef double h
+
+    for i in prange(n_links, nogil=True, schedule="static"):
+        link = where[i]
+        q = q_at_link[link]
+        h = h_at_link[link]
+
+        q_threshold = 0.25 * h * dx_over_dt * factor_of_safety
+        out[link] = copysign(fmin(fabs(q), q_threshold), q)
+
+    return (<object>out).base
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.nonecheck(False)
 def calc_bates_flow_height(
     const cython.floating [::1] z_at_node,
     const cython.floating [::1] h_at_node,
