@@ -91,6 +91,7 @@ import scipy.constants
 
 from landlab import Component
 from landlab import FieldError
+from landlab.components.overland_flow._calc import adjust_supercritical_discharge
 
 from . import _links as links
 
@@ -692,14 +693,8 @@ class OverlandFlow(Component):
 
             if self._steep_slopes is True:
                 # To prevent water from draining too fast for our time steps...
-                # Our Froude number.
-                Fr = 1.0
                 # Our two limiting factors, the froude number and courant
                 # number.
-                # Looking a calculated q to be compared to our Fr number.
-                calculated_q = (self._q / self._h_links) / np.sqrt(
-                    self._g * self._h_links
-                )
 
                 # Looking at our calculated q and comparing it to Courant no.,
                 q_courant = self._q * self._dt / self._grid.dx
@@ -713,12 +708,6 @@ class OverlandFlow(Component):
                 # ... and negative.
                 (negative_q,) = np.where(self._q < 0)
 
-                # Where does our calculated q exceed the Froude number? If q
-                # does exceed the Froude number, we are getting supercritical
-                # flow and discharge needs to be reduced to maintain stability.
-                (Froude_logical,) = np.where((calculated_q) > Fr)
-                (Froude_abs_logical,) = np.where(abs(calculated_q) > Fr)
-
                 # Where does our calculated q exceed the Courant number and
                 # water depth divided amongst 4 links? If the calculated q
                 # exceeds the Courant number and is greater than the water
@@ -730,21 +719,25 @@ class OverlandFlow(Component):
                 # Where are these conditions met? For positive and negative q,
                 # there are specific rules to reduce q. This step finds where
                 # the discharge values are positive or negative and where
-                # discharge exceeds the Froude or Courant number.
-                self._if_statement_1 = np.intersect1d(positive_q, Froude_logical)
-                self._if_statement_2 = np.intersect1d(negative_q, Froude_abs_logical)
+                # discharge exceeds the Courant number.
                 self._if_statement_3 = np.intersect1d(positive_q, water_logical)
                 self._if_statement_4 = np.intersect1d(negative_q, water_abs_logical)
 
-                # Rules 1 and 2 reduce discharge by the Froude number.
-                self._q[self._if_statement_1] = self._h_links[self._if_statement_1] * (
-                    np.sqrt(self._g * self._h_links[self._if_statement_1]) * Fr
+                # Looking a calculated q to be compared to our Fr number.
+                calculated_q = (self._q / self._h_links) / np.sqrt(
+                    self._g * self._h_links
                 )
 
-                self._q[self._if_statement_2] = 0.0 - (
-                    self._h_links[self._if_statement_2]
-                    * np.sqrt(self._g * self._h_links[self._if_statement_2])
-                    * Fr
+                # Where does our calculated q exceed the Froude number? If q
+                # does exceed the Froude number, we are getting supercritical
+                # flow and discharge needs to be reduced to maintain stability.
+                self._q = adjust_supercritical_discharge(
+                    calculated_q,
+                    self._h_links,
+                    g=self._g,
+                    froude=1.0,
+                    where=self._active_links,
+                    out=self._q,
                 )
 
                 # Rules 3 and 4 reduce discharge by the Courant number.
