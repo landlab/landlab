@@ -1,5 +1,9 @@
 cimport cython
 from cython.parallel cimport prange
+from libc.math cimport copysign
+from libc.math cimport fabs
+from libc.math cimport fmin
+from libc.math cimport sqrt
 from libc.stdint cimport int32_t
 from libc.stdint cimport int64_t
 from libc.stdint cimport uint8_t
@@ -66,6 +70,35 @@ def calc_bates_flow_height(
             h_at_node[tail] + z_at_node[tail],
             h_at_node[head] + z_at_node[head],
         ) - max(z_at_node[tail], z_at_node[head])
+
+    return (<object>out).base
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.nonecheck(False)
+def adjust_supercritical_discharge(
+    cython.floating [::1] q_at_link,
+    const cython.floating [::1] h_at_link,
+    *,
+    const double g,
+    const double froude,
+    const id_t [::1] where,
+    cython.floating [::1] out,
+):
+    cdef long n_links = len(where)
+    cdef long i
+    cdef long link
+    cdef double factor = froude * sqrt(g)
+    cdef double q
+    cdef double h
+
+    for i in prange(n_links, nogil=True, schedule="static"):
+        link = where[i]
+        q = q_at_link[link]
+        h = h_at_link[link]
+
+        out[link] = copysign(fmin(fabs(q), factor * h * sqrt(h)), q)
 
     return (<object>out).base
 
