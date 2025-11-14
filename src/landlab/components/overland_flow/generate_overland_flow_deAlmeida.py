@@ -91,8 +91,23 @@ import scipy.constants
 
 from landlab import Component
 from landlab import FieldError
-
-from . import _links as links
+from landlab.components.overland_flow._calc import calc_weighted_mean_of_parallel_links
+from landlab.components.overland_flow._links import active_link_ids
+from landlab.components.overland_flow._links import horizontal_active_link_ids
+from landlab.components.overland_flow._links import horizontal_east_link_neighbor
+from landlab.components.overland_flow._links import horizontal_link_ids
+from landlab.components.overland_flow._links import horizontal_west_link_neighbor
+from landlab.components.overland_flow._links import is_horizontal_link
+from landlab.components.overland_flow._links import is_vertical_link
+from landlab.components.overland_flow._links import neighbors_at_link
+from landlab.components.overland_flow._links import nth_horizontal_link
+from landlab.components.overland_flow._links import nth_vertical_link
+from landlab.components.overland_flow._links import number_of_horizontal_links
+from landlab.components.overland_flow._links import number_of_vertical_links
+from landlab.components.overland_flow._links import vertical_active_link_ids
+from landlab.components.overland_flow._links import vertical_link_ids
+from landlab.components.overland_flow._links import vertical_north_link_neighbor
+from landlab.components.overland_flow._links import vertical_south_link_neighbor
 
 _SEVEN_OVER_THREE = 7.0 / 3.0
 
@@ -410,9 +425,7 @@ class OverlandFlow(Component):
         """
         # First we identify all active links
 
-        self._active_ids = links.active_link_ids(
-            self._grid.shape, self._grid.status_at_node
-        )
+        self._active_ids = active_link_ids(self._grid.shape, self._grid.status_at_node)
 
         self._active_links_at_open_bdy = _active_links_at_node(
             self.grid, self.grid.open_boundary_nodes
@@ -423,34 +436,34 @@ class OverlandFlow(Component):
         ]
 
         # And then find all horizontal link IDs (Active and Inactive)
-        self._horizontal_ids = links.horizontal_link_ids(self._grid.shape)
+        self._horizontal_ids = horizontal_link_ids(self._grid.shape)
 
         # And make the array 1-D
         self._horizontal_ids = self._horizontal_ids.flatten()
 
         # Find all horizontal active link ids
-        self._horizontal_active_link_ids = links.horizontal_active_link_ids(
+        self._horizontal_active_link_ids = horizontal_active_link_ids(
             self._grid.shape, self._active_ids
         )
 
         # Now we repeat this process for the vertical links.
         # First find the vertical link ids and reshape it into a 1-D array
-        self._vertical_ids = links.vertical_link_ids(self._grid.shape).flatten()
+        self._vertical_ids = vertical_link_ids(self._grid.shape).flatten()
 
         # Find the *active* verical link ids
-        self._vertical_active_link_ids = links.vertical_active_link_ids(
+        self._vertical_active_link_ids = vertical_active_link_ids(
             self._grid.shape, self._active_ids
         )
 
         if self._default_fixed_links is True:
-            fixed_link_ids = links.fixed_link_ids(
+            _fixed_link_ids = fixed_link_ids(
                 self._grid.shape, self._grid.status_at_node
             )
-            fixed_horizontal_links = links.horizontal_fixed_link_ids(
-                self._grid.shape, fixed_link_ids
+            fixed_horizontal_links = horizontal_fixed_link_ids(
+                self._grid.shape, _fixed_link_ids
             )
-            fixed_vertical_links = links.vertical_fixed_link_ids(
-                self._grid.shape, fixed_link_ids
+            fixed_vertical_links = vertical_fixed_link_ids(
+                self._grid.shape, _fixed_link_ids
             )
             self._horizontal_active_link_ids = np.maximum(
                 self._horizontal_active_link_ids, fixed_horizontal_links
@@ -461,36 +474,32 @@ class OverlandFlow(Component):
             self._active_neighbors = find_active_neighbors_for_fixed_links(self._grid)
 
         self._vert_bdy_ids = self._active_links_at_open_bdy[
-            links.is_vertical_link(self._grid.shape, self._active_links_at_open_bdy)
+            is_vertical_link(self._grid.shape, self._active_links_at_open_bdy)
         ]
 
-        self._vert_bdy_ids = links.nth_vertical_link(
-            self._grid.shape, self._vert_bdy_ids
-        )
+        self._vert_bdy_ids = nth_vertical_link(self._grid.shape, self._vert_bdy_ids)
 
         self._horiz_bdy_ids = self._active_links_at_open_bdy[
-            links.is_horizontal_link(self._grid.shape, self._active_links_at_open_bdy)
+            is_horizontal_link(self._grid.shape, self._active_links_at_open_bdy)
         ]
 
-        self._horiz_bdy_ids = links.nth_horizontal_link(
-            self._grid.shape, self._horiz_bdy_ids
-        )
+        self._horiz_bdy_ids = nth_horizontal_link(self._grid.shape, self._horiz_bdy_ids)
 
         # Using the active vertical link ids we can find the north
         # and south vertical neighbors
-        self._north_neighbors = links.vertical_north_link_neighbor(
+        self._north_neighbors = vertical_north_link_neighbor(
             self._grid.shape, self._vertical_active_link_ids
         )
-        self._south_neighbors = links.vertical_south_link_neighbor(
+        self._south_neighbors = vertical_south_link_neighbor(
             self._grid.shape, self._vertical_active_link_ids
         )
 
         # Using the horizontal active link ids, we can find the west and
         # east neighbors
-        self._west_neighbors = links.horizontal_west_link_neighbor(
+        self._west_neighbors = horizontal_west_link_neighbor(
             self._grid.shape, self._horizontal_active_link_ids
         )
-        self._east_neighbors = links.horizontal_east_link_neighbor(
+        self._east_neighbors = horizontal_east_link_neighbor(
             self._grid.shape, self._horizontal_active_link_ids
         )
 
@@ -512,10 +521,8 @@ class OverlandFlow(Component):
         self._south_neighbors[ids] = self._vertical_active_link_ids[ids]
 
         # Set up arrays for discharge in the horizontal & vertical directions.
-        self._q_horizontal = np.zeros(
-            links.number_of_horizontal_links(self._grid.shape)
-        )
-        self._q_vertical = np.zeros(links.number_of_vertical_links(self._grid.shape))
+        self._q_horizontal = np.zeros(number_of_horizontal_links(self._grid.shape))
+        self._q_vertical = np.zeros(number_of_vertical_links(self._grid.shape))
 
         # Once the neighbor arrays are set up, we change the flag to True!
         self._neighbor_flag = True
@@ -536,6 +543,9 @@ class OverlandFlow(Component):
         local_elapsed_time = 0.0
         if dt is None:
             dt = np.inf  # to allow the loop to begin
+
+        q_mean_at_link = self.grid.empty(at="link")
+
         while local_elapsed_time < dt:
             dt_local = self.calc_time_step()
             # Can really get into trouble if nothing happens but we still run:
@@ -598,15 +608,22 @@ class OverlandFlow(Component):
             # units of L^2/T) to the end of the discharge array.
             self._q = np.append(self._q, [0])
 
+            q_mean_at_link.fill(0.0)
+            q_mean_at_link = calc_weighted_mean_of_parallel_links(
+                self._q,
+                parallel_links_at_link=self.grid.parallel_links_at_link,
+                status_at_link=self.grid.status_at_link,
+                theta=self._theta,
+                where=self._grid.active_links,
+                out=q_mean_at_link,
+            )
+
             horiz = self._horizontal_ids
             vert = self._vertical_ids
             # Now we calculate discharge in the horizontal direction
             try:
                 self._q[horiz] = (
-                    self._theta * self._q[horiz]
-                    + (1.0 - self._theta)
-                    / 2.0
-                    * (self._q[self._west_neighbors] + self._q[self._east_neighbors])
+                    q_mean_at_link[horiz]
                     - self._g
                     * self._h_links[horiz]
                     * self._dt
@@ -622,10 +639,7 @@ class OverlandFlow(Component):
 
                 # ... and in the vertical direction
                 self._q[vert] = (
-                    self._theta * self._q[vert]
-                    + (1 - self._theta)
-                    / 2.0
-                    * (self._q[self._north_neighbors] + self._q[self._south_neighbors])
+                    q_mean_at_link[vert]
                     - self._g
                     * self._h_links[vert]
                     * self._dt
@@ -644,10 +658,7 @@ class OverlandFlow(Component):
                 # if manning's n in a field
                 # calc discharge in horizontal
                 self._q[horiz] = (
-                    self._theta * self._q[horiz]
-                    + (1.0 - self._theta)
-                    / 2.0
-                    * (self._q[self._west_neighbors] + self._q[self._east_neighbors])
+                    q_mean_at_link[horiz]
                     - self._g
                     * self._h_links[horiz]
                     * self._dt
@@ -663,10 +674,7 @@ class OverlandFlow(Component):
 
                 # ... and in the vertical direction
                 self._q[vert] = (
-                    self._theta * self._q[vert]
-                    + (1 - self._theta)
-                    / 2.0
-                    * (self._q[self._north_neighbors] + self._q[self._south_neighbors])
+                    q_mean_at_link[vert]
                     - self._g
                     * self._h_links[vert]
                     * self._dt
@@ -918,5 +926,5 @@ def find_active_neighbors_for_fixed_links(grid):
     >>> find_active_neighbors_for_fixed_links(rmg)
     array([20, 21, 22, 23, 24, 14, 17, 27, 30, 20, 21, 22, 23, 24])
     """
-    neighbors = links.neighbors_at_link(grid.shape, grid.fixed_links).flat
+    neighbors = neighbors_at_link(grid.shape, grid.fixed_links).flat
     return neighbors[np.isin(neighbors, grid.active_links)]

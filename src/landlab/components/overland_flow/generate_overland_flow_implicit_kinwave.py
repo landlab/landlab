@@ -10,7 +10,7 @@ import numpy as np
 from scipy.optimize import newton
 
 from landlab import Component
-from landlab.components import FlowAccumulator
+from landlab.components.flow_accum.flow_accumulator import FlowAccumulator
 
 
 def water_fn(x, a, b, c, d, e):
