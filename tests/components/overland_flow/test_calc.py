@@ -10,10 +10,19 @@ def reference(vals, parallels, status, where, theta):
     out = np.array(vals)
     for link in where:
         l, r = parallels[link]
-        if l == -1 or r == -1 or status[l] == 4 or status[r] == 4:
-            pass
+
+        total, n_neighbors = 0.0, 0
+        if l != -1 and status[l] != -4:
+            n_neighbors += 1
+            total += vals[l]
+        if r != -1 and status[r] != -4:
+            n_neighbors += 1
+            total += vals[r]
+
+        if n_neighbors > 0:
+            out[link] = theta * vals[link] + (1 - theta) * total / n_neighbors
         else:
-            out[link] = theta * vals[link] + 0.5 * (1 - theta) * (vals[l] + vals[r])
+            out[link] = vals[link]
 
     return out
 
