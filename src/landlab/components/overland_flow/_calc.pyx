@@ -121,8 +121,9 @@ def calc_weighted_mean_of_parallel_links(
     cdef long left
     cdef long right
     cdef long i
-    cdef double WEIGHT_AT_NEIGHBOR = (1.0 - theta) * 0.5
-    cdef double WEIGHT_AT_CENTER = theta
+    cdef long n_neighbors
+    cdef double total
+    cdef double ONE_MINUS_THETA = (1.0 - theta)
     cdef int LINK_IS_INACTIVE = 4
     cdef int LINK_IS_MISSING = -1
 
@@ -131,17 +132,23 @@ def calc_weighted_mean_of_parallel_links(
         left = parallel_links_at_link[link, 0]
         right = parallel_links_at_link[link, 1]
 
-        if (
-            left == LINK_IS_MISSING
-            or right == LINK_IS_MISSING
-            or status_at_link[left] == LINK_IS_INACTIVE
-            or status_at_link[right] == LINK_IS_INACTIVE
-        ):
-            out[link] = value_at_link[link]
+        total = 0.0
+        n_neighbors = 0
+
+        if left != LINK_IS_MISSING and status_at_link[left] != LINK_IS_INACTIVE:
+            n_neighbors = n_neighbors + 1
+            total = total + value_at_link[left]
+
+        if right != LINK_IS_MISSING and status_at_link[right] != LINK_IS_INACTIVE:
+            n_neighbors = n_neighbors + 1
+            total = total + value_at_link[right]
+
+        if n_neighbors == 2:
+            out[link] = theta * value_at_link[link] + ONE_MINUS_THETA * total * 0.5
+        elif n_neighbors == 1:
+            out[link] = theta * value_at_link[link] + ONE_MINUS_THETA * total
         else:
-            out[link] = WEIGHT_AT_CENTER * value_at_link[link] + WEIGHT_AT_NEIGHBOR * (
-                value_at_link[left] + value_at_link[right]
-            )
+            out[link] = value_at_link[link]
 
     return (<object>out).base
 
