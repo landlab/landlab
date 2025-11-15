@@ -208,7 +208,9 @@ def map_max_of_link_nodes_to_link(
         contiguous=True,
     )
 
-    _map_max_of_link_nodes_to_link(out, np.ascontiguousarray(value_at_node), grid.shape)
+    _map_max_of_link_nodes_to_link(
+        np.ascontiguousarray(value_at_node), grid.shape, out=out
+    )
 
     return out
 
