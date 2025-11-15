@@ -91,6 +91,7 @@ import scipy.constants
 
 from landlab import Component
 from landlab import FieldError
+from landlab.components.overland_flow._calc import adjust_unstable_discharge
 
 from . import _links as links
 
@@ -701,12 +702,6 @@ class OverlandFlow(Component):
                     self._g * self._h_links
                 )
 
-                # Looking at our calculated q and comparing it to Courant no.,
-                q_courant = self._q * self._dt / self._grid.dx
-
-                # Water depth split equally between four links..
-                water_div_4 = self._h_links / 4.0
-
                 # IDs where water discharge is positive...
                 (positive_q,) = np.where(self._q > 0)
 
@@ -719,22 +714,12 @@ class OverlandFlow(Component):
                 (Froude_logical,) = np.where((calculated_q) > Fr)
                 (Froude_abs_logical,) = np.where(abs(calculated_q) > Fr)
 
-                # Where does our calculated q exceed the Courant number and
-                # water depth divided amongst 4 links? If the calculated q
-                # exceeds the Courant number and is greater than the water
-                # depth divided by 4 links, we reduce discharge to maintain
-                # stability.
-                (water_logical,) = np.where(q_courant > water_div_4)
-                (water_abs_logical,) = np.where(abs(q_courant) > water_div_4)
-
                 # Where are these conditions met? For positive and negative q,
                 # there are specific rules to reduce q. This step finds where
                 # the discharge values are positive or negative and where
                 # discharge exceeds the Froude or Courant number.
                 self._if_statement_1 = np.intersect1d(positive_q, Froude_logical)
                 self._if_statement_2 = np.intersect1d(negative_q, Froude_abs_logical)
-                self._if_statement_3 = np.intersect1d(positive_q, water_logical)
-                self._if_statement_4 = np.intersect1d(negative_q, water_abs_logical)
 
                 # Rules 1 and 2 reduce discharge by the Froude number.
                 self._q[self._if_statement_1] = self._h_links[self._if_statement_1] * (
@@ -747,15 +732,18 @@ class OverlandFlow(Component):
                     * Fr
                 )
 
-                # Rules 3 and 4 reduce discharge by the Courant number.
-                self._q[self._if_statement_3] = (
-                    (self._h_links[self._if_statement_3] * self._grid.dx) / 5.0
-                ) / self._dt
-
-                self._q[self._if_statement_4] = (
-                    0.0
-                    - (self._h_links[self._if_statement_4] * self._grid.dx / 5.0)
-                    / self._dt
+                # Where does our calculated q exceed the Courant number and
+                # water depth divided amongst 4 links? If the calculated q
+                # exceeds the Courant number and is greater than the water
+                # depth divided by 4 links, we reduce discharge to maintain
+                # stability.
+                self._q = adjust_unstable_discharge(
+                    self._q,
+                    self._h_link,
+                    dx=self._grid.dx,
+                    dt=self._dt,
+                    where=self._active_links,
+                    out=self._q,
                 )
 
             # Once stability has been restored, we calculate the change in
