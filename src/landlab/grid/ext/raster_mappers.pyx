@@ -9,21 +9,23 @@ ctypedef fused float_or_int:
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.nonecheck(False)
 def map_max_of_link_nodes_to_link(
-    float_or_int[:] out,
-    const float_or_int[:] value_at_node,
+    const float_or_int[::1] value_at_node,
     shape,
+    *,
+    float_or_int[::1] out,
 ):
-    cdef long n_rows = shape[0]
-    cdef long nodes_per_row = shape[1]
-    cdef long horizontal_links_per_row = nodes_per_row - 1
-    cdef long vertical_links_per_row = nodes_per_row
-    cdef long links_per_row = horizontal_links_per_row + vertical_links_per_row
-    cdef long link
-    cdef long node
-    cdef long row
-    cdef long first_link
-    cdef long first_node
+    cdef Py_ssize_t n_rows = shape[0]
+    cdef Py_ssize_t nodes_per_row = shape[1]
+    cdef Py_ssize_t horizontal_links_per_row = nodes_per_row - 1
+    cdef Py_ssize_t vertical_links_per_row = nodes_per_row
+    cdef Py_ssize_t links_per_row = horizontal_links_per_row + vertical_links_per_row
+    cdef Py_ssize_t link
+    cdef Py_ssize_t node
+    cdef Py_ssize_t row
+    cdef Py_ssize_t first_link
+    cdef Py_ssize_t first_node
 
     for row in prange(n_rows - 1, nogil=True, schedule="static"):
         first_link = row * links_per_row
