@@ -63,3 +63,24 @@ def calc_grad_at_link(
         ) / length_of_link[link]
 
     return (<object>out).base
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.nonecheck(False)
+def zero_out_dry_links(
+    const cython.floating [::1] h_at_link,
+    *,
+    const id_t [::1] where,
+    cython.floating [::1] out,
+):
+    cdef Py_ssize_t n_links = where.shape[0]
+    cdef Py_ssize_t link
+    cdef Py_ssize_t i
+
+    for i in prange(n_links, nogil=True, schedule="static"):
+        link = where[i]
+        if h_at_link[link] <= 0.0:
+            out[link] = 0.0
+
+    return (<object>out).base
