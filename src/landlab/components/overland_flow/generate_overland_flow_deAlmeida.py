@@ -481,10 +481,15 @@ class OverlandFlow(Component):
         Outputs water depth, discharge and shear stress values through time at
         every point in the input grid.
         """
-        # DH adds a loop to enable an imposed tstep while maintaining stability
-        local_elapsed_time = 0.0
         if dt is None:
-            dt = np.inf  # to allow the loop to begin
+            try:
+                duration = self.calc_time_step()
+            except NoWaterError as error:
+                raise ValueError(
+                    "dt not provided and unable to determine time step"
+                ) from error
+        else:
+            duration = dt
 
         if isinstance(self._mannings_n, str):
             mannings_at_link = self.grid.at_link[self._mannings_n]
@@ -500,13 +505,16 @@ class OverlandFlow(Component):
         core_nodes = self._grid.core_nodes
         active_links = self._grid.active_links
 
-        while local_elapsed_time < dt:
-            dt_local = self.calc_time_step()
-            # Can really get into trouble if nothing happens but we still run:
-            if not dt_local < np.inf:
+        elapsed = 0.0
+        while elapsed < duration:
+            remaining = duration - elapsed
+            try:
+                dt_local = min(self.calc_time_step(), remaining)
+            except NoWaterError:
+                elapsed = duration
                 break
-            if local_elapsed_time + dt_local > dt:
-                dt_local = dt - local_elapsed_time
+
+            elapsed += dt_local
 
             # Per Bates et al., 2010, this solution needs to find difference
             # between the highest water surface in the two cells and the
@@ -691,9 +699,7 @@ class OverlandFlow(Component):
             # artifically reduced due to boundary effects. This step removes
             # those errors.
 
-            if dt is np.inf:
-                break
-            local_elapsed_time += dt_local
+        return elapsed
 
     def run_one_step(self, dt=None):
         """Generate overland flow across a grid.
