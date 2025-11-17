@@ -1624,7 +1624,6 @@ class ExtendedGravelBedrockEroder(Component):
         dt : float (default 1.0e6)
             Maximum time step size
         """
-
         dhdt_by_class = self._dHdt_by_class
         dh_by_class = self._grid.at_node["grains__weight"] / (
             self._rho_sed * (1 - self._sediment_porosity)
