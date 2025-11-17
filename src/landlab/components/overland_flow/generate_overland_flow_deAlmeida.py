@@ -91,6 +91,9 @@ import scipy.constants
 
 from landlab import Component
 from landlab import FieldError
+from landlab.core._validate import require_between
+from landlab.core._validate import require_nonnegative
+from landlab.core._validate import require_positive
 
 from . import _links as links
 
@@ -282,17 +285,19 @@ class OverlandFlow(Component):
 
         # First we copy our grid
 
-        self._h_init = h_init
-        self._alpha = alpha
+        self._h_init = require_nonnegative(h_init)
+        self._alpha = require_positive(alpha)
 
         if isinstance(mannings_n, str):
             self._mannings_n = self._grid.at_link[mannings_n]
         else:
             self._mannings_n = mannings_n
 
-        self._g = g
-        self._theta = theta
-        self.rainfall_intensity = rainfall_intensity
+        self._g = require_positive(g)
+        self._theta = require_between(
+            theta, 0.0, 1.0, inclusive_min=True, inclusive_max=True
+        )
+        self.rainfall_intensity = require_nonnegative(rainfall_intensity)
         self._steep_slopes = steep_slopes
 
         # Now setting up fields at the links...
