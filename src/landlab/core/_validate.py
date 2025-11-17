@@ -1,8 +1,50 @@
 import numpy as np
+from numpy.typing import ArrayLike
 from numpy.typing import DTypeLike
 from numpy.typing import NDArray
 
 from landlab.core.errors import ValidationError
+
+
+def require_between(
+    value: ArrayLike,
+    a_min: float | None = None,
+    a_max: float | None = None,
+    *,
+    inclusive_min: bool = True,
+    inclusive_max: bool = True,
+) -> ArrayLike:
+    arr = np.asarray(value)
+
+    if a_min is not None:
+        cmp = np.less if inclusive_min else np.less_equal
+        op = ">=" if inclusive_min else ">"
+        if np.any(cmp(arr, a_min)):
+            raise ValidationError(f"value must be {op} {a_min}")
+
+    if a_max is not None:
+        cmp = np.greater if inclusive_max else np.greater_equal
+        op = "<=" if inclusive_max else "<"
+        if np.any(cmp(arr, a_max)):
+            raise ValidationError(f"value must be {op} {a_max}")
+
+    return value
+
+
+def require_positive(value: ArrayLike) -> ArrayLike:
+    return require_between(value, a_min=0.0, a_max=None, inclusive_min=False)
+
+
+def require_nonnegative(value: ArrayLike) -> ArrayLike:
+    return require_between(value, a_min=0.0, a_max=None, inclusive_min=True)
+
+
+def require_negative(value: ArrayLike) -> ArrayLike:
+    return require_between(value, a_min=None, a_max=0.0, inclusive_max=False)
+
+
+def require_nonpositive(value: ArrayLike) -> ArrayLike:
+    return require_between(value, a_min=None, a_max=0.0, inclusive_max=True)
 
 
 def validate_array(
