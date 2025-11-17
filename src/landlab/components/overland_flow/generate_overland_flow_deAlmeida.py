@@ -88,6 +88,7 @@ array([0. , 0. , 0. , 0. ,
 
 import numpy as np
 import scipy.constants
+from numpy.typing import NDArray
 
 from landlab import Component
 from landlab.components.overland_flow._calc import calc_grad_at_link
@@ -107,8 +108,14 @@ from landlab.components.overland_flow._links import vertical_south_link_neighbor
 from landlab.core._validate import require_between
 from landlab.core._validate import require_nonnegative
 from landlab.core._validate import require_positive
+from landlab.core.errors import Error
+from landlab.grid.linkstatus import LinkStatus
 
 _SEVEN_OVER_THREE = 7.0 / 3.0
+
+
+class NoWaterError(Error):
+    pass
 
 
 def _active_links_at_node(grid, *args):
@@ -359,10 +366,29 @@ class OverlandFlow(Component):
         Adaptive time stepper from Bates et al., 2010 and de Almeida et
         al., 2012
         """
+        try:
+            self._is_active_node
+        except AttributeError:
+            self._is_active_node: NDArray[np.bool_] = np.any(
+                self.grid.link_status_at_node == LinkStatus.ACTIVE, axis=1
+            )
+
+        h: NDArray = self.grid.at_node["surface_water__depth"][self._is_active_node]
+        if h.size == 0:
+            raise NoWaterError(
+                "Unable to determine time step. There are no active links."
+            )
+
+        max_water_depth: float = np.max(h)
+        if max_water_depth <= 0.0:
+            raise NoWaterError(
+                "Unable to determine time step. There is no water on the landscape."
+            )
+
         return (
             self._alpha
-            * self._grid.dx
-            / np.sqrt(self._g * np.amax(self._grid.at_node["surface_water__depth"]))
+            * min(self._grid.dx, self._grid.dy)
+            / np.sqrt(self._g * max_water_depth)
         )
 
     def set_up_neighbor_arrays(self):
