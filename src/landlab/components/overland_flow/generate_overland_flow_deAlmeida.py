@@ -548,6 +548,8 @@ class OverlandFlow(Component):
             wmax = self._grid.map_max_of_link_nodes_to_link(w)
             hflow = wmax[active_links] - zmax[active_links]
 
+            hflow = np.clip(hflow, self._h_init, None, out=hflow)
+
             # Insert this water depth into an array of water depths at the
             # links.
             h_at_link[active_links] = hflow
