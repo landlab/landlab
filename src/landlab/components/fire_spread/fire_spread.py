@@ -42,18 +42,48 @@ class FireSpread(Component):
     }"""
 
     _info = {
-        "fuel__model": {"dtype": int, "intent": "in", "optional": False,"mapping": "cell"},
-        "fuel__moisture": {"dtype": float, "intent": "in", "optional": False,"mapping": "cell"},
-        "wind__speed": {"dtype": float, "intent": "in", "optional": True, "mapping": "cell"},
-        "wind__direction": {"dtype": float, "intent": "in", "optional": True, "mapping": "cell"},
+        "fuel__model": {
+            "dtype": int,
+            "intent": "in",
+            "optional": False,
+            "mapping": "cell",
+        },
+        "fuel__moisture": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "mapping": "cell",
+        },
+        "wind__speed": {
+            "dtype": float,
+            "intent": "in",
+            "optional": True,
+            "mapping": "cell",
+        },
+        "wind__direction": {
+            "dtype": float,
+            "intent": "in",
+            "optional": True,
+            "mapping": "cell",
+        },
         "topographic__slope_steepness": {
             "dtype": float,
             "optional": True,
             "intent": "in",
             "mapping": "cell",
         },
-        "fire__arrival_time": {"dtype": float, "intent": "out","optional": True, "mapping": "cell"},
-        "fire__flame_length": {"dtype": float, "intent": "out","optional": True, "mapping": "cell"},
+        "fire__arrival_time": {
+            "dtype": float,
+            "intent": "out",
+            "optional": True,
+            "mapping": "cell",
+        },
+        "fire__flame_length": {
+            "dtype": float,
+            "intent": "out",
+            "optional": True,
+            "mapping": "cell",
+        },
         "fire__reaction_intensity": {
             "dtype": float,
             "intent": "out",

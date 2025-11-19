@@ -1,5 +1,6 @@
-from landlab.components.fire_spread import FireSpread
 from landlab import RasterModelGrid
+from landlab.components.fire_spread import FireSpread
+
 
 def test_grass_fire_propagates():
     grid = RasterModelGrid((5, 5), xy_spacing=30.0)
@@ -11,4 +12,4 @@ def test_grass_fire_propagates():
 
     fs.run_one_step(dt=60)
     assert grid.at_cell["fire__arrival_time"].min() == 0.0
-    assert grid.at_cell["fire__arrival_time"].max() > 0   # spread happened
+    assert grid.at_cell["fire__arrival_time"].max() > 0  # spread happened
