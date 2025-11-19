@@ -60,17 +60,13 @@ def test_deAlm_input_var_names(deAlm):
 
 
 def test_deAlm_output_var_names(deAlm):
-    assert deAlm.output_var_names == (
-        "surface_water__depth",
-        "surface_water__discharge",
-        "water_surface__gradient",
-    )
+    assert deAlm.output_var_names == ("surface_water__depth",)
 
 
 def test_deAlm_var_units(deAlm):
-    assert set(deAlm.input_var_names) | set(deAlm.output_var_names) == set(
-        dict(deAlm.units).keys()
-    )
+    assert set(deAlm.input_var_names) | set(deAlm.output_var_names) | set(
+        deAlm.optional_var_names
+    ) == set(dict(deAlm.units).keys())
 
     assert deAlm.var_units("surface_water__depth") == "m"
     assert deAlm.var_units("surface_water__discharge") == "m3/s"
