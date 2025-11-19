@@ -2,8 +2,82 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
+from landlab.core._validate import require_between
+from landlab.core._validate import require_negative
+from landlab.core._validate import require_nonnegative
+from landlab.core._validate import require_nonpositive
+from landlab.core._validate import require_positive
 from landlab.core._validate import validate_array
 from landlab.core.errors import ValidationError
+
+
+@pytest.mark.parametrize("value", (1.0, (-1, 1), np.asarray([-1, 1])))
+@pytest.mark.parametrize(
+    "kwds",
+    (
+        {"a_min": -2.0},
+        {"a_min": -1.0, "inclusive_min": True},
+        {"a_max": 2.0},
+        {"a_max": 1.0, "inclusive_max": True},
+        {"a_min": -2.0, "a_max": 2.0},
+        {"a_min": -1.0, "a_max": 1.0, "inclusive_min": True, "inclusive_max": True},
+    ),
+)
+def test_require_between_valid(value, kwds):
+    assert require_between(value, **kwds) is value
+
+
+@pytest.mark.parametrize("value", (1.0, (-1, 1), np.asarray([-1, 1])))
+@pytest.mark.parametrize(
+    "kwds",
+    (
+        {"a_min": 2.0},
+        {"a_min": 1.0, "inclusive_min": False},
+        {"a_max": 0.0},
+        {"a_max": 1.0, "inclusive_max": False},
+        {"a_min": -1.0, "a_max": 1.0, "inclusive_min": True, "inclusive_max": False},
+        {"a_min": 1.0, "a_max": 1.0, "inclusive_min": False, "inclusive_max": True},
+    ),
+)
+def test_require_require_is_invalid(value, kwds):
+    with pytest.raises(ValidationError, match="value must be"):
+        require_between(value, **kwds)
+
+
+@pytest.mark.parametrize("value,ok", ((-1.0, True), (0.0, False), (1.0, False)))
+def test_require_negative(value, ok):
+    if ok:
+        assert require_negative(value) is value
+    else:
+        with pytest.raises(ValidationError, match="value must be <"):
+            require_negative(value)
+
+
+@pytest.mark.parametrize("value,ok", ((1.0, True), (0.0, False), (-1.0, False)))
+def test_require_positive(value, ok):
+    if ok:
+        assert require_positive(value) is value
+    else:
+        with pytest.raises(ValidationError, match="value must be >"):
+            require_positive(value)
+
+
+@pytest.mark.parametrize("value,ok", ((-1.0, False), (0.0, True), (1.0, True)))
+def test_require_nonnegative(value, ok):
+    if ok:
+        assert require_nonnegative(value) is value
+    else:
+        with pytest.raises(ValidationError, match="value must be >="):
+            require_nonnegative(value)
+
+
+@pytest.mark.parametrize("value,ok", ((-1.0, True), (0.0, True), (1.0, False)))
+def test_require_nonpositive(value, ok):
+    if ok:
+        assert require_nonpositive(value) is value
+    else:
+        with pytest.raises(ValidationError, match="value must be <="):
+            require_nonpositive(value)
 
 
 @pytest.mark.parametrize("array", ([1.0, 2.0], [[1, 2]], [[1, 2], [3, 4]], []))

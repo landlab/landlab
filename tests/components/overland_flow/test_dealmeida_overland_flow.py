@@ -10,6 +10,7 @@ import pytest
 from landlab import RasterModelGrid
 from landlab.components.overland_flow import OverlandFlow
 from landlab.components.overland_flow._links import horizontal_link_ids
+from landlab.core.errors import ValidationError
 
 (_SHAPE, _SPACING, _ORIGIN) = ((32, 240), (25, 25), (0.0, 0.0))
 _ARGS = (_SHAPE, _SPACING, _ORIGIN)
@@ -26,6 +27,28 @@ def deAlm():
 
 def _left_edge_horizontal_ids(shape):
     return horizontal_link_ids(shape)[:, 0]
+
+
+@pytest.mark.parametrize(
+    "kwds",
+    (
+        {"h_init": -1.0},
+        {"alpha": -1.0},
+        {"alpha": 0.0},
+        {"g": 0.0},
+        {"g": -1.0},
+        {"theta": -0.1},
+        {"theta": 1.1},
+        {"rainfall_intensity": -1.0},
+    ),
+)
+def test_dealmeida_invalid_parameter(kwds):
+    grid = RasterModelGrid((4, 5))
+    grid.add_empty("surface_water__depth", at="node")
+    grid.add_empty("topographic__elevation", at="node")
+    grid.add_empty("surface_water__discharge", at="link")
+    with pytest.raises(ValidationError):
+        OverlandFlow(grid, **kwds)
 
 
 def test_deAlm_name(deAlm):
