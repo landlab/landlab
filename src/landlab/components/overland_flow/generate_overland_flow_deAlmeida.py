@@ -315,9 +315,10 @@ class OverlandFlow(Component):
         grid.at_link["surface_water__discharge"].fill(0.0)
 
         # For water depths calculated at links
-        grid.at_link["surface_water__depth"].fill(self._h_init)
         grid.at_node["surface_water__depth"] += self._h_init
         grid.at_link["water_surface__gradient"].fill(0.0)
+        self._h_links = grid.empty(at="link")
+        self._h_links.fill(self._h_init)
 
         # Start time of simulation is at 1.0 s
         self._elapsed_time = 1.0
@@ -466,7 +467,7 @@ class OverlandFlow(Component):
         h_at_node = self._grid.at_node["surface_water__depth"]
         z_at_node = self._grid.at_node["topographic__elevation"]
         q_at_link = self._grid.at_link["surface_water__discharge"]
-        h_at_link = self._grid.at_link["surface_water__depth"]
+        h_at_link = self._h_links
         water_surface_slope = self._grid.at_link["water_surface__gradient"]
 
         core_nodes = self._grid.core_nodes
