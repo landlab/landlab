@@ -153,8 +153,8 @@ CPPFLAGS = "-fopenmp"
 MACOSX_DEPLOYMENT_TARGET = "12.0"
 CC = "clang"
 CXX = "clang++"
-# CPPFLAGS = "-Xclang -fopenmp"
-# LDFLAGS = "-lomp"
+CPPFLAGS = "-Xclang -fopenmp"
+LDFLAGS = "-lomp"
 
 [tool.cython-lint]
 max-line-length = 88

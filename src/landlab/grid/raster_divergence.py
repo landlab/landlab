@@ -74,14 +74,14 @@ def calc_flux_div_at_node(grid, unit_flux, out=None):
     :meta landlab: info-node, gradient
     """
     if unit_flux.size != grid.number_of_links:
-        raise ValueError("Parameter unit_flux must be num links " "long")
+        raise ValueError(
+            f"unit_flux must be num links long (expected {grid.number_of_links},"
+            f" got {unit_flux.size})"
+        )
     if out is None:
-        out = grid.zeros(at="node")
+        out = grid.empty(at="node")
     elif out.size != grid.number_of_nodes:
         raise ValueError("output buffer length mismatch with number of nodes")
-
-    out.reshape(grid.shape)[:, (0, -1)] = 0.0
-    out.reshape(grid.shape)[(0, -1), :] = 0.0
 
     _calc_flux_div_at_node(grid.shape, (grid.dx, grid.dy), unit_flux, out)
 

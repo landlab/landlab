@@ -23,6 +23,10 @@ Mapping functions unique to raster grids
 
 import numpy as np
 
+from .ext.raster_mappers import (
+    map_max_of_link_nodes_to_link as _map_max_of_link_nodes_to_link,
+)
+
 
 def _node_out_link_ids(shape):
     """Links leaving each node.
@@ -144,6 +148,68 @@ def _number_of_links_per_node(shape):
     n_links_at_node[layout.corner_nodes] = 2
 
     return n_links_at_node.reshape(shape)
+
+
+def map_max_of_link_nodes_to_link(grid, value_at_node, out=None):
+    """Map the maximum of a link's nodes to the link.
+
+    map_max_of_link_nodes_to_link iterates across the grid and
+    identifies the node values at both the "head" and "tail" of a given link.
+    This function evaluates the value of ``var_name`` at both the "to" and
+    "from" node. The maximum value of the two node values is then mapped to
+    the link.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A landlab ModelGrid.
+    value_at_node : array or field name
+        Values defined at nodes.
+    out : ndarray, optional
+        Buffer to place mapped values into or `None` to create a new array.
+
+    Returns
+    -------
+    ndarray
+        Mapped values at links.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.grid.raster_mappers import map_max_of_link_nodes_to_link
+    >>> from landlab import RasterModelGrid
+
+    >>> grid = RasterModelGrid((3, 4))
+    >>> _ = grid.add_field(
+    ...     "z",
+    ...     [
+    ...         [0, 1, 2, 3],
+    ...         [7, 6, 5, 4],
+    ...         [8, 9, 10, 11],
+    ...     ],
+    ...     at="node",
+    ... )
+    >>> map_max_of_link_nodes_to_link(grid, "z")
+    array([ 1,  2,  3,  7,  6,  5,  4,  7,  6,  5,  8,  9, 10, 11,  9, 10, 11])
+
+    >>> values_at_links = grid.empty(at="link", dtype=grid.at_node["z"].dtype)
+    >>> rtn = map_max_of_link_nodes_to_link(grid, "z", out=values_at_links)
+    >>> values_at_links
+    array([ 1,  2,  3,  7,  6,  5,  4,  7,  6,  5,  8,  9, 10, 11,  9, 10, 11])
+    >>> rtn is values_at_links
+    True
+
+    :meta landlab: info-node, info-link, map
+    """
+    if isinstance(value_at_node, str):
+        value_at_node = grid.at_node[value_at_node]
+
+    if out is None:
+        out = grid.empty(at="link", dtype=value_at_node.dtype)
+
+    _map_max_of_link_nodes_to_link(out, value_at_node, grid.shape)
+
+    return out
 
 
 def map_sum_of_inlinks_to_node(grid, var_name, out=None):
