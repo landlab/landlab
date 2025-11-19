@@ -316,16 +316,8 @@ class OverlandFlow(Component):
         self._q.fill(0.0)
 
         # For water depths calculated at links
-        try:
-            self._h_links = grid.add_zeros(
-                "surface_water__depth",
-                at="link",
-                units=self._info["surface_water__depth"]["units"],
-            )
-        except FieldError:
-            self._h_links = grid.at_link["surface_water__depth"]
-            self._h_links.fill(0.0)
-        self._h_links += self._h_init
+        self._h_links = grid.empty(at="link")
+        self._h_links.fill(self._h_init)
 
         self._h = grid.at_node["surface_water__depth"]
         self._h += self._h_init
@@ -508,7 +500,6 @@ class OverlandFlow(Component):
             self._h = self._grid["node"]["surface_water__depth"]
             self._z = self._grid["node"]["topographic__elevation"]
             self._q = self._grid["link"]["surface_water__discharge"]
-            self._h_links = self._grid["link"]["surface_water__depth"]
 
             # Here we identify the core nodes and active links for later use.
             self._core_nodes = self._grid.core_nodes
