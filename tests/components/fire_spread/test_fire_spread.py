@@ -1,6 +1,6 @@
 import numpy as np
 
-from landlab.components import FireSpread
+from landlab.components.fire_spread import FireSpread
 
 
 def test_grass_fire_propagates(raster_grid_small):
