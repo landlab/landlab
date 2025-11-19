@@ -322,8 +322,6 @@ class OverlandFlow(Component):
         # Start time of simulation is at 1.0 s
         self._elapsed_time = 1.0
 
-        self._dhdt = grid.zeros()
-
         # When we instantiate the class we recognize that neighbors have not
         # been found. After the user either calls self.set_up_neighbor_array
         # or self.overland_flow this will be set to True. This is done so
@@ -617,14 +615,12 @@ class OverlandFlow(Component):
             # water depths on all core nodes by finding the difference between
             # inputs (rainfall) and the inputs/outputs (flux divergence of
             # discharge)
-            self._dhdt = self._rainfall_intensity - self._grid.calc_flux_div_at_node(
+            dhdt = self._rainfall_intensity - self._grid.calc_flux_div_at_node(
                 q_at_link
             )
 
             # Updating our water depths...
-            h_at_node[core_nodes] = (
-                h_at_node[core_nodes] + self._dhdt[core_nodes] * dt_local
-            )
+            h_at_node[core_nodes] = h_at_node[core_nodes] + dhdt[core_nodes] * dt_local
 
             # To prevent divide by zero errors, a minimum threshold water depth
             # must be maintained. To reduce mass imbalances, this is set to
