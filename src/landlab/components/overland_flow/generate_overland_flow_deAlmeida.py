@@ -248,7 +248,6 @@ class OverlandFlow(Component):
     def __init__(
         self,
         grid,
-        default_fixed_links=False,
         h_init=0.00001,
         alpha=0.7,
         mannings_n=0.03,
@@ -351,13 +350,6 @@ class OverlandFlow(Component):
         # reinitalize the neighbors and saves computation time.
         self._neighbor_flag = False
 
-        # When looking for neighbors, we automatically ignore inactive links
-        # by default. However, what about when we want to look at fixed links
-        # too? By default, we ignore these, but if they are important to your
-        # model and will be updated in your driver loop, they can be used by
-        # setting the flag in the initialization of  the class to 'True'
-        self._default_fixed_links = default_fixed_links
-
         # Assiging a class variable to the elevation field.
         self._z = self._grid.at_node["topographic__elevation"]
 
@@ -446,24 +438,6 @@ class OverlandFlow(Component):
         self._vertical_active_link_ids = links.vertical_active_link_ids(
             self._grid.shape, self._active_ids
         )
-
-        if self._default_fixed_links is True:
-            fixed_link_ids = links.fixed_link_ids(
-                self._grid.shape, self._grid.status_at_node
-            )
-            fixed_horizontal_links = links.horizontal_fixed_link_ids(
-                self._grid.shape, fixed_link_ids
-            )
-            fixed_vertical_links = links.vertical_fixed_link_ids(
-                self._grid.shape, fixed_link_ids
-            )
-            self._horizontal_active_link_ids = np.maximum(
-                self._horizontal_active_link_ids, fixed_horizontal_links
-            )
-            self._vertical_active_link_ids = np.maximum(
-                self._vertical_active_link_ids, fixed_vertical_links
-            )
-            self._active_neighbors = find_active_neighbors_for_fixed_links(self._grid)
 
         self._vert_bdy_ids = self._active_links_at_open_bdy[
             links.is_vertical_link(self._grid.shape, self._active_links_at_open_bdy)
@@ -589,11 +563,6 @@ class OverlandFlow(Component):
             self._water_surface_slope[self._active_links] = (
                 self._water_surface__gradient
             )
-            # If the user chooses to set boundary links to the neighbor value,
-            # we set the discharge array to have the boundary links set to
-            # their neighbor value
-            if self._default_fixed_links is True:
-                self._q[self._grid.fixed_links] = self._q[self._active_neighbors]
 
             # Now we can calculate discharge. To handle links with neighbors
             # that do not exist, we will do a fancy indexing trick. Non-
@@ -689,11 +658,6 @@ class OverlandFlow(Component):
             # of all links), we delete the extra 0.0 value from the end of the
             # array.
             self._q = np.delete(self._q, len(self._q) - 1)
-
-            # Updating the discharge array to have the boundary links set to
-            # their neighbor
-            if self._default_fixed_links is True:
-                self._q[self._grid.fixed_links] = self._q[self._active_neighbors]
 
             if self._steep_slopes is True:
                 # To prevent water from draining too fast for our time steps...
@@ -867,61 +831,3 @@ class OverlandFlow(Component):
         discharge_vals = discharge_vals.sum(axis=1)
 
         return discharge_vals
-
-
-def find_active_neighbors_for_fixed_links(grid):
-    """Find active link neighbors for every fixed link.
-
-    Specialized link ID function used to ID the active links that neighbor
-    fixed links in the vertical and horizontal directions.
-
-    If the user wants to assign fixed gradients or values to the fixed
-    links dynamically, this function identifies the nearest active_link
-    neighbor.
-
-    Each fixed link can either have 0 or 1 active neighbor. This function
-    finds if and where that active neighbor is and stores those IDs in
-    an array.
-
-    Parameters
-    ----------
-    grid : RasterModelGrid
-        A landlab grid.
-
-    Returns
-    -------
-    ndarray of int, shape `(*, )`
-        Flat array of links.
-
-
-    Examples
-    --------
-    >>> from landlab import NodeStatus, RasterModelGrid
-
-    >>> grid = RasterModelGrid((4, 5))
-    >>> grid.status_at_node[:5] = NodeStatus.FIXED_GRADIENT
-    >>> grid.status_at_node[::5] = NodeStatus.FIXED_GRADIENT
-    >>> grid.status_at_node.reshape(grid.shape)
-    array([[2, 2, 2, 2, 2],
-           [2, 0, 0, 0, 1],
-           [2, 0, 0, 0, 1],
-           [2, 1, 1, 1, 1]], dtype=uint8)
-
-    >>> grid.fixed_links
-    array([ 5,  6,  7,  9, 18])
-    >>> grid.active_links
-    array([10, 11, 12, 14, 15, 16, 19, 20, 21, 23, 24, 25])
-
-    >>> find_active_neighbors_for_fixed_links(grid)
-    array([14, 15, 16, 10, 19])
-
-    >>> rmg = RasterModelGrid((4, 7))
-
-    >>> rmg.at_node["topographic__elevation"] = rmg.zeros(at="node")
-    >>> rmg.at_link["topographic__slope"] = rmg.zeros(at="link")
-    >>> rmg.status_at_node[rmg.perimeter_nodes] = rmg.BC_NODE_IS_FIXED_GRADIENT
-    >>> find_active_neighbors_for_fixed_links(rmg)
-    array([20, 21, 22, 23, 24, 14, 17, 27, 30, 20, 21, 22, 23, 24])
-    """
-    neighbors = links.neighbors_at_link(grid.shape, grid.fixed_links).flat
-    return neighbors[np.isin(neighbors, grid.active_links)]
