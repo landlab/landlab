@@ -5,9 +5,14 @@ FireSpread – Rothermel fire propagation on Landlab RasterModelGrid
 from __future__ import annotations
 
 import numpy as np
-from landlab import Component, RasterModelGrid
+
+from landlab import Component
+from landlab import RasterModelGrid
+
 from .fuel_models import ANDERSON_13
-from .utils import byram_flame_length, rothermel_rate_of_spread, reaction_intensity
+from .utils import byram_flame_length
+from .utils import reaction_intensity
+from .utils import rothermel_rate_of_spread
 
 
 class FireSpread(Component):
@@ -23,6 +28,7 @@ class FireSpread(Component):
     >>> fs = FireSpread(grid, ignition_row=20, ignition_col=30)
     >>> for i in range(300):
     ...     fs.run_one_step(dt=60)
+    ...
     """
 
     _name = "FireSpread"
@@ -40,10 +46,18 @@ class FireSpread(Component):
         "fuel__moisture": {"dtype": float, "intent": "in", "mapping": "cell"},
         "wind__speed": {"dtype": float, "intent": "in", "mapping": "cell"},
         "wind__direction": {"dtype": float, "intent": "in", "mapping": "cell"},
-        "topographic__slope_steepness": {"dtype": float, "intent": "in", "mapping": "cell"},
+        "topographic__slope_steepness": {
+            "dtype": float,
+            "intent": "in",
+            "mapping": "cell",
+        },
         "fire__arrival_time": {"dtype": float, "intent": "out", "mapping": "cell"},
         "fire__flame_length": {"dtype": float, "intent": "out", "mapping": "cell"},
-        "fire__reaction_intensity": {"dtype": float, "intent": "out", "mapping": "cell"},
+        "fire__reaction_intensity": {
+            "dtype": float,
+            "intent": "out",
+            "mapping": "cell",
+        },
     }
 
     def __init__(
@@ -64,9 +78,13 @@ class FireSpread(Component):
         self._dx = grid.dx
 
         # Output fields
-        self.arrival = grid.add_field("fire__arrival_time", -9999.0, at="cell", dtype=float)
+        self.arrival = grid.add_field(
+            "fire__arrival_time", -9999.0, at="cell", dtype=float
+        )
         self.flame = grid.add_zeros("fire__flame_length", at="cell", dtype=float)
-        self.intensity = grid.add_zeros("fire__reaction_intensity", at="cell", dtype=float)
+        self.intensity = grid.add_zeros(
+            "fire__reaction_intensity", at="cell", dtype=float
+        )
 
         # Set ignition
         if ignition_cells:
@@ -92,13 +110,19 @@ class FireSpread(Component):
         # Compute ROS at all currently burning cells
         fuel = self.grid.at_cell["fuel__model"][burned].astype(int)
         Mf = self.grid.at_cell["fuel__moisture"][burned]
-        U = self.grid.at_cell.get("wind__speed", np.zeros_like(burned, dtype=float))[burned]
-        tan_phi = self.grid.at_cell.get("topographic__slope_steepness", np.zeros_like(burned))[burned]
+        U = self.grid.at_cell.get("wind__speed", np.zeros_like(burned, dtype=float))[
+            burned
+        ]
+        tan_phi = self.grid.at_cell.get(
+            "topographic__slope_steepness", np.zeros_like(burned)
+        )[burned]
 
         ros = np.zeros_like(Mf)
         for fm in np.unique(fuel):
             mask = fuel == fm
-            ros[mask] = rothermel_rate_of_spread(fm, Mf[mask], U[mask], tan_phi[mask], ANDERSON_13)
+            ros[mask] = rothermel_rate_of_spread(
+                fm, Mf[mask], U[mask], tan_phi[mask], ANDERSON_13
+            )
 
         # Candidate frontier cells
         frontier = set()
@@ -139,4 +163,4 @@ class FireSpread(Component):
 
     @property
     def burned_area_m2(self):
-        return np.sum(self.arrival >= 0) * self._dx ** 2
+        return np.sum(self.arrival >= 0) * self._dx**2
