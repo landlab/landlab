@@ -1,0 +1,2 @@
+Fixed the ``OverlandFlow`` component to properly accept Manning's roughness
+coefficient as a scalar, an array, or a string field name.
