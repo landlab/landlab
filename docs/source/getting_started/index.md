@@ -3,7 +3,7 @@
 # Getting Started
 
 If you have access to [EarthscapeHub][earthscape-hub] through class or CSDMS membership,
-you can run this tutorial on the [lab][lab-hub] and [jupyter][jupyter-hub]
+you can run this tutorial on the [explore][explore-hub] or [jupyter][jupyter-hub]
 instances (login required for each) using the *CSDMS* kernel.
 
 (10min)=
@@ -23,6 +23,6 @@ link to the [syllabus][tutorial-start].
 
 [earthscape-hub]: https://csdms.colorado.edu/wiki/JupyterHub
 [jupyter-hub]: https://jupyter.openearthscape.org/
-[lab-hub]: https://lab.openearthscape.org/
+[explore-hub]: https://explore.openearthscape.org/
 [tutorial-fault-scarp]: /tutorials/fault_scarp/landlab-fault-scarp.ipynb
 [tutorial-start]: /tutorials/index
