@@ -329,7 +329,6 @@ class OverlandFlow(Component):
         # Start time of simulation is at 1.0 s
         self._elapsed_time = 1.0
 
-        self._dt = None
         self._dhdt = grid.zeros()
 
         # When we instantiate the class we recognize that neighbors have not
@@ -346,18 +345,6 @@ class OverlandFlow(Component):
     def h(self):
         """The depth of water at each node."""
         return self._h
-
-    @property
-    def dt(self):
-        """dt: Component timestep."""
-        return self._dt
-
-    @dt.setter
-    def dt(self, dt):
-        if dt <= 0:
-            raise ValueError("timestep dt must be positive")
-
-        self._dt = dt
 
     @property
     def rainfall_intensity(self):
@@ -380,13 +367,11 @@ class OverlandFlow(Component):
         Adaptive time stepper from Bates et al., 2010 and de Almeida et
         al., 2012
         """
-        self._dt = (
+        return (
             self._alpha
             * self._grid.dx
             / np.sqrt(self._g * np.amax(self._grid.at_node["surface_water__depth"]))
         )
-
-        return self._dt
 
     def set_up_neighbor_arrays(self):
         """Create and initialize link neighbor arrays.
@@ -498,7 +483,6 @@ class OverlandFlow(Component):
                 break
             if local_elapsed_time + dt_local > dt:
                 dt_local = dt - local_elapsed_time
-            self._dt = dt_local
 
             # In case another component has added data to the fields, we just
             # reset our water depths, topographic elevations and water
@@ -552,12 +536,12 @@ class OverlandFlow(Component):
                 * (self._q[self._west_neighbors] + self._q[self._east_neighbors])
                 - self._g
                 * self._h_links[horiz]
-                * self._dt
+                * dt_local
                 * self._water_surface_slope[horiz]
             ) / (
                 1
                 + self._g
-                * self._dt
+                * dt_local
                 * mannings_at_link[horiz] ** 2.0
                 * abs(self._q[horiz])
                 / self._h_links[horiz] ** _SEVEN_OVER_THREE
@@ -571,12 +555,12 @@ class OverlandFlow(Component):
                 * (self._q[self._north_neighbors] + self._q[self._south_neighbors])
                 - self._g
                 * self._h_links[vert]
-                * self._dt
+                * dt_local
                 * self._water_surface_slope[vert]
             ) / (
                 1
                 + self._g
-                * self._dt
+                * dt_local
                 * mannings_at_link[vert] ** 2.0
                 * abs(self._q[vert])
                 / self._h_links[vert] ** _SEVEN_OVER_THREE
@@ -599,7 +583,7 @@ class OverlandFlow(Component):
                 )
 
                 # Looking at our calculated q and comparing it to Courant no.,
-                q_courant = self._q * self._dt / self._grid.dx
+                q_courant = self._q * dt_local / self._grid.dx
 
                 # Water depth split equally between four links..
                 water_div_4 = self._h_links / 4.0
@@ -647,12 +631,12 @@ class OverlandFlow(Component):
                 # Rules 3 and 4 reduce discharge by the Courant number.
                 self._q[self._if_statement_3] = (
                     (self._h_links[self._if_statement_3] * self._grid.dx) / 5.0
-                ) / self._dt
+                ) / dt_local
 
                 self._q[self._if_statement_4] = (
                     0.0
                     - (self._h_links[self._if_statement_4] * self._grid.dx / 5.0)
-                    / self._dt
+                    / dt_local
                 )
 
             # Once stability has been restored, we calculate the change in
@@ -665,7 +649,7 @@ class OverlandFlow(Component):
 
             # Updating our water depths...
             self._h[self._core_nodes] = (
-                self._h[self._core_nodes] + self._dhdt[self._core_nodes] * self._dt
+                self._h[self._core_nodes] + self._dhdt[self._core_nodes] * dt_local
             )
 
             # To prevent divide by zero errors, a minimum threshold water depth
@@ -704,7 +688,7 @@ class OverlandFlow(Component):
 
             if dt is np.inf:
                 break
-            local_elapsed_time += self._dt
+            local_elapsed_time += dt_local
 
     def run_one_step(self, dt=None):
         """Generate overland flow across a grid.
