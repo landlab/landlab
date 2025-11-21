@@ -80,6 +80,37 @@ def test_grid_shape(deAlm):
     assert deAlm.grid.number_of_node_columns == _SHAPE[1]
 
 
+@pytest.mark.parametrize("name", ("surface_water__depth", "water_surface__gradient"))
+def test_with_optional_at_link_field(name):
+    grid = RasterModelGrid((8, 32), xy_spacing=25.0)
+
+    z_at_node = grid.zeros(at="node")
+    h_at_node = -0.3 * grid.x_of_node
+
+    grid.at_node["surface_water__depth"] = z_at_node.copy()
+    grid.at_node["topographic__elevation"] = h_at_node.copy()
+    grid.set_closed_boundaries_at_grid_edges(True, True, True, True)
+
+    OverlandFlow(
+        grid, mannings_n=0.01, h_init=1e-9, rainfall_intensity=0.001, steep_slopes=True
+    ).run_one_step(900.0)
+    expected = grid.at_node["surface_water__depth"]
+
+    grid = RasterModelGrid((8, 32), xy_spacing=25.0)
+
+    grid.at_node["surface_water__depth"] = z_at_node.copy()
+    grid.at_node["topographic__elevation"] = h_at_node.copy()
+    grid.set_closed_boundaries_at_grid_edges(True, True, True, True)
+
+    grid.add_empty(name, at="link")
+    OverlandFlow(
+        grid, mannings_n=0.01, h_init=1e-9, rainfall_intensity=0.001, steep_slopes=True
+    ).run_one_step(900.0)
+    actual = grid.at_node["surface_water__depth"]
+
+    assert_almost_equal(actual, expected)
+
+
 def test_deAlm_analytical():
     grid = RasterModelGrid((32, 240), xy_spacing=25)
     grid.add_zeros("surface_water__depth", at="node")
