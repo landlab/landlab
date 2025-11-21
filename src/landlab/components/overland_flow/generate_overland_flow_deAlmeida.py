@@ -276,8 +276,9 @@ class OverlandFlow(Component):
         alpha : float, optional
             Time step coeffcient, described in Bates et al., 2010 and
             de Almeida et al., 2012.
-        mannings_n : float, optional
-            Manning's roughness coefficient.
+        mannings_n : array_like or str, optional
+            Manning's roughness coefficient. If a `str`, use the corresponding
+            *at-link* field of the provided grid.
         g : float, optional
             Acceleration due to gravity (m/s^2).
         theta : float, optional
@@ -300,9 +301,9 @@ class OverlandFlow(Component):
         self._alpha = require_positive(alpha)
 
         if isinstance(mannings_n, str):
-            self._mannings_n = self._grid.at_link[mannings_n]
-        else:
             self._mannings_n = mannings_n
+        else:
+            self._mannings_n = np.broadcast_to(mannings_n, grid.number_of_links)
 
         self._g = require_positive(g)
         self._theta = require_between(
@@ -485,6 +486,11 @@ class OverlandFlow(Component):
         if not self._neighbor_flag:
             self.set_up_neighbor_arrays()
 
+        if isinstance(self._mannings_n, str):
+            mannings_at_link = self.grid.at_link[self._mannings_n]
+        else:
+            mannings_at_link = self._mannings_n
+
         while local_elapsed_time < dt:
             dt_local = self.calc_time_step()
             # Can really get into trouble if nothing happens but we still run:
@@ -539,84 +545,42 @@ class OverlandFlow(Component):
             horiz = self._grid.horizontal_links
             vert = self._grid.vertical_links
             # Now we calculate discharge in the horizontal direction
-            try:
-                self._q[horiz] = (
-                    self._theta * self._q[horiz]
-                    + (1.0 - self._theta)
-                    / 2.0
-                    * (self._q[self._west_neighbors] + self._q[self._east_neighbors])
-                    - self._g
-                    * self._h_links[horiz]
-                    * self._dt
-                    * self._water_surface_slope[horiz]
-                ) / (
-                    1
-                    + self._g
-                    * self._dt
-                    * self._mannings_n**2.0
-                    * abs(self._q[horiz])
-                    / self._h_links[horiz] ** _SEVEN_OVER_THREE
-                )
+            self._q[horiz] = (
+                self._theta * self._q[horiz]
+                + (1.0 - self._theta)
+                / 2.0
+                * (self._q[self._west_neighbors] + self._q[self._east_neighbors])
+                - self._g
+                * self._h_links[horiz]
+                * self._dt
+                * self._water_surface_slope[horiz]
+            ) / (
+                1
+                + self._g
+                * self._dt
+                * mannings_at_link[horiz] ** 2.0
+                * abs(self._q[horiz])
+                / self._h_links[horiz] ** _SEVEN_OVER_THREE
+            )
 
-                # ... and in the vertical direction
-                self._q[vert] = (
-                    self._theta * self._q[vert]
-                    + (1 - self._theta)
-                    / 2.0
-                    * (self._q[self._north_neighbors] + self._q[self._south_neighbors])
-                    - self._g
-                    * self._h_links[vert]
-                    * self._dt
-                    * self._water_surface_slope[vert]
-                ) / (
-                    1
-                    + self._g
-                    * self._dt
-                    * self._mannings_n**2.0
-                    * abs(self._q[vert])
-                    / self._h_links[vert] ** _SEVEN_OVER_THREE
-                )
-
-            except ValueError:
-                self._mannings_n = self._grid["link"]["mannings_n"]
-                # if manning's n in a field
-                # calc discharge in horizontal
-                self._q[horiz] = (
-                    self._theta * self._q[horiz]
-                    + (1.0 - self._theta)
-                    / 2.0
-                    * (self._q[self._west_neighbors] + self._q[self._east_neighbors])
-                    - self._g
-                    * self._h_links[horiz]
-                    * self._dt
-                    * self._water_surface_slope[horiz]
-                ) / (
-                    1
-                    + self._g
-                    * self._dt
-                    * self._mannings_n[horiz] ** 2.0
-                    * abs(self._q[horiz])
-                    / self._h_links[horiz] ** _SEVEN_OVER_THREE
-                )
-
-                # ... and in the vertical direction
-                self._q[vert] = (
-                    self._theta * self._q[vert]
-                    + (1 - self._theta)
-                    / 2.0
-                    * (self._q[self._north_neighbors] + self._q[self._south_neighbors])
-                    - self._g
-                    * self._h_links[vert]
-                    * self._dt
-                    * self._water_surface_slope[vert]
-                ) / (
-                    1
-                    + self._g
-                    * self._dt
-                    * self._mannings_n[vert] ** 2.0
-                    * abs(self._q[vert])
-                    / self._h_links[vert] ** _SEVEN_OVER_THREE
-                )
+            # ... and in the vertical direction
+            self._q[vert] = (
+                self._theta * self._q[vert]
+                + (1 - self._theta)
+                / 2.0
+                * (self._q[self._north_neighbors] + self._q[self._south_neighbors])
+                - self._g
+                * self._h_links[vert]
+                * self._dt
+                * self._water_surface_slope[vert]
+            ) / (
+                1
+                + self._g
+                * self._dt
+                * mannings_at_link[vert] ** 2.0
+                * abs(self._q[vert])
+                / self._h_links[vert] ** _SEVEN_OVER_THREE
+            )
 
             # Now to return the array to its original length (length of number
             # of all links), we delete the extra 0.0 value from the end of the

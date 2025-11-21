@@ -6,6 +6,7 @@ last updated: 3/14/16
 
 import numpy as np
 import pytest
+from numpy.testing import assert_almost_equal
 
 from landlab import RasterModelGrid
 from landlab.components.overland_flow import OverlandFlow
@@ -220,3 +221,41 @@ def test_deAlm_rainfall_array():
     deAlm1.run_one_step(100)
     deAlm2.run_one_step(100)
     np.testing.assert_equal(deAlm1.h, deAlm2.h)
+
+
+@pytest.mark.parametrize("mannings_n", ("foo", 0.03))
+def test_mannings_n_as_a_field(mannings_n):
+    initial_elevation = [
+        [0.0, 0.0, 0.0, 0.0, 0.0],
+        [1.0, 1.0, 1.0, 1.0, 1.0],
+        [2.0, 2.0, 2.0, 2.0, 2.0],
+        [3.0, 3.0, 3.0, 3.0, 3.0],
+    ]
+    initial_water_depth = [
+        [0.0, 0.0, 0.0, 0.0, 0.0],
+        [0.0, 0.0, 0.0, 0.0, 0.0],
+        [0.0, 0.0, 0.0, 0.0, 0.0],
+        [0.1, 0.1, 0.1, 0.1, 0.1],
+    ]
+
+    grid = RasterModelGrid((4, 5))
+    grid.at_node["topographic__elevation"] = initial_elevation
+    grid.at_node["surface_water__depth"] = initial_water_depth
+
+    expected = OverlandFlow(grid, mannings_n=0.03, steep_slopes=True)
+    expected.run_one_step()
+
+    grid = RasterModelGrid((4, 5))
+    grid.at_node["topographic__elevation"] = initial_elevation
+    grid.at_node["surface_water__depth"] = initial_water_depth
+
+    if isinstance(mannings_n, str):
+        grid.add_empty(mannings_n, at="link").fill(0.03)
+    else:
+        mannings_n = grid.empty(at="link")
+        mannings_n.fill(0.03)
+
+    actual = OverlandFlow(grid, mannings_n=mannings_n, steep_slopes=True)
+    actual.run_one_step()
+
+    assert_almost_equal(actual.h, expected.h)
