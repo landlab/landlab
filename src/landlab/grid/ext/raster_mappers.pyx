@@ -53,3 +53,5 @@ def map_max_of_link_nodes_to_link(
             out[link] = max(value_at_node[node], value_at_node[node + 1])
 
             node = node + 1
+
+    return (<object>out).base
