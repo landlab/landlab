@@ -90,7 +90,6 @@ import numpy as np
 import scipy.constants
 
 from landlab import Component
-from landlab import FieldError
 from landlab.components.overland_flow._links import active_link_ids
 from landlab.components.overland_flow._links import horizontal_active_link_ids
 from landlab.components.overland_flow._links import horizontal_east_link_neighbor
@@ -231,7 +230,7 @@ class OverlandFlow(Component):
         "surface_water__discharge": {
             "dtype": float,
             "intent": "out",
-            "optional": False,
+            "optional": True,
             "units": "m3/s",
             "mapping": "link",
             "doc": "Volumetric discharge of surface water",
@@ -247,7 +246,7 @@ class OverlandFlow(Component):
         "water_surface__gradient": {
             "dtype": float,
             "intent": "out",
-            "optional": False,
+            "optional": True,
             "units": "-",
             "mapping": "link",
             "doc": "Downstream gradient of the water surface.",
@@ -289,9 +288,13 @@ class OverlandFlow(Component):
             Modify the algorithm to handle steeper slopes at the expense of
             speed. If model runs become unstable, consider setting to True.
         """
-        super().__init__(grid)
+        for var in ("surface_water__discharge", "water_surface__gradient"):
+            at = self._info[var]["mapping"]
+            units = self._info[var]["units"]
+            if not grid.has_field(var, at=at):
+                grid.add_empty(var, at=at, units=units)
 
-        # First we copy our grid
+        super().__init__(grid)
 
         self._h_init = require_nonnegative(h_init)
         self._alpha = require_positive(alpha)
@@ -309,42 +312,18 @@ class OverlandFlow(Component):
         self._steep_slopes = steep_slopes
 
         # Now setting up fields at the links...
-        # For water discharge
-        try:
-            self._q = grid.add_zeros(
-                "surface_water__discharge",
-                at="link",
-                units=self._info["surface_water__discharge"]["units"],
-            )
-
-        except FieldError:
-            # Field was already set; still, fill it with zeros
-            self._q = grid.at_link["surface_water__discharge"]
-            self._q.fill(0.0)
+        self._q = grid.at_link["surface_water__discharge"]
+        self._q.fill(0.0)
 
         # For water depths calculated at links
-        try:
-            self._h_links = grid.add_zeros(
-                "surface_water__depth",
-                at="link",
-                units=self._info["surface_water__depth"]["units"],
-            )
-        except FieldError:
-            self._h_links = grid.at_link["surface_water__depth"]
-            self._h_links.fill(0.0)
-        self._h_links += self._h_init
+        self._h_links = grid.empty(at="link")
+        self._h_links.fill(self._h_init)
 
         self._h = grid.at_node["surface_water__depth"]
         self._h += self._h_init
 
-        # For water surface slopes at links
-        try:
-            self._water_surface_slope = grid.add_zeros(
-                "water_surface__gradient", at="link"
-            )
-        except FieldError:
-            self._water_surface_slope = grid.at_link["water_surface__gradient"]
-            self._water_surface_slope.fill(0.0)
+        self._water_surface_slope = grid.at_link["water_surface__gradient"]
+        self._water_surface_slope.fill(0.0)
 
         # Start time of simulation is at 1.0 s
         self._elapsed_time = 1.0
@@ -521,7 +500,6 @@ class OverlandFlow(Component):
             self._h = self._grid["node"]["surface_water__depth"]
             self._z = self._grid["node"]["topographic__elevation"]
             self._q = self._grid["link"]["surface_water__discharge"]
-            self._h_links = self._grid["link"]["surface_water__depth"]
 
             # Here we identify the core nodes and active links for later use.
             self._core_nodes = self._grid.core_nodes
