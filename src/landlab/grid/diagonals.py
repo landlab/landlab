@@ -224,7 +224,7 @@ class DiagonalsMixIn:
     @cache_result_in_object()
     @make_return_array_immutable
     def d8_adjacent_nodes_at_node(self):
-        return np.vstack(
+        return np.hstack(
             (
                 super().adjacent_nodes_at_node,
                 self.diagonal_adjacent_nodes_at_node,
