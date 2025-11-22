@@ -12,10 +12,10 @@ def reference(vals, parallels, status, where, theta):
         l, r = parallels[link]
 
         total, n_neighbors = 0.0, 0
-        if l != -1 and status[l] != -4:
+        if l != -1 and status[l] != 4:
             n_neighbors += 1
             total += vals[l]
-        if r != -1 and status[r] != -4:
+        if r != -1 and status[r] != 4:
             n_neighbors += 1
             total += vals[r]
 
