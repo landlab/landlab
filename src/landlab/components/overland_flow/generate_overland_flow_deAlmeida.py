@@ -387,15 +387,11 @@ class OverlandFlow(Component):
 
         h: NDArray = self.grid.at_node["surface_water__depth"][self._is_active_node]
         if h.size == 0:
-            raise NoWaterError(
-                "Unable to determine time step. There are no active links."
-            )
+            raise NoWaterError("no active links, unable to determine time step")
 
         max_water_depth: float = np.max(h)
         if max_water_depth <= 0.0:
-            raise NoWaterError(
-                "Unable to determine time step. There is no water on the landscape."
-            )
+            raise NoWaterError("no water on landscape, unable to determine time step")
 
         return (
             self._alpha
@@ -510,7 +506,8 @@ class OverlandFlow(Component):
                 duration = self.calc_time_step()
             except NoWaterError as error:
                 raise ValueError(
-                    "dt not provided and unable to determine time step"
+                    "no water on landscape and dt not provided,"
+                    " unable to determine time step"
                 ) from error
         else:
             duration = dt
