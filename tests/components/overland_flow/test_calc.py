@@ -65,3 +65,54 @@ def test_weighted_mean(values_dtype, where_dtype, theta):
     )
 
     assert_array_equal(actual, expected)
+
+
+@pytest.mark.parametrize("theta", (0.0, 0.25, 0.5, 0.75, 1.0))
+def test_weighted_mean_missing_neighbors(theta):
+    grid = RasterModelGrid((3, 4))
+
+    values_at_link = np.asarray(
+        [
+            *[0, 9, 3],
+            *[3, 5, 9, 11],
+            *[0, 7, 3],
+            *[3, 5, 9, 11],
+            *[0, 3.14, 3],
+        ],
+        dtype=float,
+    )
+    status_at_link = [
+        *[4, 0, 4],
+        *[0, 0, 0, 0],
+        *[4, 0, 4],
+        *[0, 0, 0, 0],
+        *[4, 0, 4],
+    ]
+    where = [
+        *[0, 1, 0],
+        *[0, 0, 0, 0],
+        *[0, 1, 0],
+        *[0, 0, 0, 0],
+        *[0, 1, 0],
+    ]
+    where = np.flatnonzero(where)
+
+    actual = values_at_link.copy()
+    calc_weighted_mean_of_parallel_links(
+        values_at_link,
+        grid.parallel_links_at_link.astype(int),
+        status_at_link=np.asarray(status_at_link, dtype=np.uint8),
+        where=where,
+        theta=theta,
+        out=actual,
+    )
+    expected = weighted_mean_reference(
+        values_at_link,
+        grid.parallel_links_at_link,
+        status_at_link,
+        where,
+        theta,
+    )
+
+    assert_array_equal(actual[where], [9, 7, 3.14])
+    assert_array_equal(actual, expected)
