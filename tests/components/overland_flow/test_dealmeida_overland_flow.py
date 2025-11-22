@@ -105,6 +105,13 @@ def test_calc_time_step_no_water():
 
     assert overland_flow.run_one_step(1.0) == 1.0
 
+    grid.status_at_node[:] = NodeStatus.CLOSED
+    grid.at_node["surface_water__depth"][:] = 1.0
+
+    overland_flow._update_active_nodes(clear_cache=True)
+    with pytest.raises(NoWaterError, match="no active links"):
+        overland_flow.calc_time_step()
+
 
 def test_deAlm_name(deAlm):
     assert deAlm.name == "OverlandFlow"
