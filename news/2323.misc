@@ -1,0 +1,3 @@
+Refactored the ``calc_time_step`` method in the ``OverlandFlow`` to
+improve error handling and adaptive time-stepping behavior where only
+active links are considered.
