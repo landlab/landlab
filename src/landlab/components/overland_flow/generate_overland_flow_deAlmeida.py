@@ -713,7 +713,7 @@ class OverlandFlow(Component):
         Outputs water depth, discharge and shear stress values through time at
         every point in the input grid.
         """
-        self.overland_flow(dt=dt)
+        return self.overland_flow(dt=dt)
 
     def discharge_mapper(self, input_discharge, convert_to_volume=False):
         """Maps discharge value from links onto nodes.
