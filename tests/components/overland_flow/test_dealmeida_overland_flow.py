@@ -97,10 +97,10 @@ def test_calc_time_step_no_water():
     grid.add_zeros("topographic__elevation", at="node")
 
     overland_flow = OverlandFlow(grid, h_init=0.0)
-    with pytest.raises(NoWaterError):
+    with pytest.raises(NoWaterError, match="no water on landscape"):
         overland_flow.calc_time_step()
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="no water on landscape and dt not provided"):
         overland_flow.run_one_step(dt=None)
 
     assert overland_flow.run_one_step(1.0) == 1.0
