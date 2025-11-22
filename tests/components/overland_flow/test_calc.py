@@ -46,14 +46,15 @@ def test_kernel(values_dtype, where_dtype, theta):
     n_links = len(values_at_link)
 
     actual = np.empty_like(values_at_link)
-    calc_weighted_mean_of_parallel_links(
+    rtn = calc_weighted_mean_of_parallel_links(
         values_at_link,
         grid.parallel_links_at_link.astype(where_dtype),
-        np.zeros(n_links, dtype=np.uint8),
-        np.arange(n_links, dtype=where_dtype),
-        theta,
-        actual,
+        status_at_link=np.zeros(n_links, dtype=np.uint8),
+        where=np.arange(n_links, dtype=where_dtype),
+        theta=theta,
+        out=actual,
     )
+    assert rtn is actual
 
     expected = reference(
         values_at_link,
