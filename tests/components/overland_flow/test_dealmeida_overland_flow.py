@@ -209,7 +209,12 @@ def test_deAlm_analytical_imposed_dt_long():
             "surface_water__discharge"
         ][left_inactive_ids + 1]
         dt = 100.0
-        assert deAlm.run_one_step(dt) == dt
+        elapsed = deAlm.run_one_step(dt)
+
+        assert elapsed == dt
+        assert not np.any(np.isnan(grid.at_node["surface_water__depth"]))
+        assert np.all(grid.at_node["surface_water__depth"] >= 0.0)
+
         h_boundary = ((7.0 / 3.0) * (0.01**2) * (0.4**3) * time) ** (3.0 / 7.0)
         grid.at_node["surface_water__depth"][grid.nodes[1:-1, 1]] = h_boundary
         time += dt
