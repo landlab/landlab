@@ -7,6 +7,7 @@ last updated: 3/14/16
 import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal
+from numpy.testing import assert_equal
 
 from landlab import RasterModelGrid
 from landlab.components.overland_flow import OverlandFlow
@@ -15,6 +16,7 @@ from landlab.components.overland_flow.generate_overland_flow_deAlmeida import (
     NoWaterError,
 )
 from landlab.core.errors import ValidationError
+from landlab.grid.nodestatus import NodeStatus
 
 (_SHAPE, _SPACING, _ORIGIN) = ((32, 240), (25, 25), (0.0, 0.0))
 _ARGS = (_SHAPE, _SPACING, _ORIGIN)
@@ -53,6 +55,40 @@ def test_dealmeida_invalid_parameter(kwds):
     grid.add_empty("surface_water__discharge", at="link")
     with pytest.raises(ValidationError):
         OverlandFlow(grid, **kwds)
+
+
+def test_update_active_nodes_cached():
+    grid = RasterModelGrid((4, 5))
+    grid.add_zeros("surface_water__depth", at="node")
+    grid.add_zeros("topographic__elevation", at="node")
+
+    overland_flow = OverlandFlow(grid, h_init=0.0)
+
+    active_nodes = overland_flow._update_active_nodes()
+    assert_equal(
+        active_nodes,
+        [
+            *[0, 1, 1, 1, 0],
+            *[1, 1, 1, 1, 1],
+            *[1, 1, 1, 1, 1],
+            *[0, 1, 1, 1, 0],
+        ],
+    )
+    assert overland_flow._update_active_nodes() is active_nodes
+
+
+def test_update_active_nodes_clear_cache():
+    grid = RasterModelGrid((4, 5))
+    grid.add_zeros("surface_water__depth", at="node")
+    grid.add_zeros("topographic__elevation", at="node")
+    grid.status_at_node[:] = NodeStatus.CORE
+
+    overland_flow = OverlandFlow(grid, h_init=0.0)
+
+    old_values = overland_flow._update_active_nodes()
+    new_values = overland_flow._update_active_nodes(clear_cache=True)
+    assert new_values is not old_values
+    assert np.all(new_values == old_values)
 
 
 def test_calc_time_step_no_water():
