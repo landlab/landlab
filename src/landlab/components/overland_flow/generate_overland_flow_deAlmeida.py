@@ -90,6 +90,7 @@ import numpy as np
 import scipy.constants
 
 from landlab import Component
+from landlab.components.overland_flow._calc import calc_grad_at_link
 from landlab.components.overland_flow._links import active_link_ids
 from landlab.components.overland_flow._links import horizontal_active_link_ids
 from landlab.components.overland_flow._links import horizontal_east_link_neighbor
@@ -495,10 +496,13 @@ class OverlandFlow(Component):
 
             # Now we calculate the slope of the water surface elevation at
             # active links
-            # And insert these values into an array of all links
-            water_surface_slope[active_links] = self._grid.calc_grad_at_link(w)[
-                active_links
-            ]
+            water_surface_slope = calc_grad_at_link(
+                w,
+                length_of_link=self.grid.length_of_link,
+                nodes_at_link=self.grid.nodes_at_link,
+                where=active_links,
+                out=water_surface_slope,
+            )
 
             # Now we can calculate discharge. To handle links with neighbors
             # that do not exist, we will do a fancy indexing trick. Non-
