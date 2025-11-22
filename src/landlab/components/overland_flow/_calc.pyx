@@ -15,6 +15,7 @@ ctypedef fused id_t:
 def calc_weighted_mean_of_parallel_links(
     const cython.floating[::1] value_at_link,
     const id_t[:, ::1] parallel_links_at_link,
+    *,
     const uint8_t[::1] status_at_link,
     const id_t[::1] where,
     const double theta,
