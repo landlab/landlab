@@ -364,7 +364,19 @@ class OverlandFlow(Component):
         """Calculate time step.
 
         Adaptive time stepper from Bates et al., 2010 and de Almeida et
-        al., 2012
+        al., 2012.
+
+        Returns
+        -------
+        time_step : float
+            A stable time step for the current landscape.
+
+        Raises
+        ------
+        NoWaterError
+            If there is no water on active nodes (i.e., the maximum water depth is
+            zero), this exception is raised to indicate that a time step cannot be
+            determined.
         """
         try:
             self._is_active_node
@@ -480,6 +492,18 @@ class OverlandFlow(Component):
 
         Outputs water depth, discharge and shear stress values through time at
         every point in the input grid.
+
+        Parameters
+        ----------
+        dt : float, optional
+            The duration over which to simulate overland flow. If not provided,
+            the duration will be chosen to be the maximum time step that
+            ensures stability.
+
+        Returns
+        -------
+        elapsed : float
+            The elapsed time that was simulated.
         """
         if dt is None:
             try:
@@ -712,6 +736,18 @@ class OverlandFlow(Component):
 
         Outputs water depth, discharge and shear stress values through time at
         every point in the input grid.
+
+        Parameters
+        ----------
+        dt : float, optional
+            The duration over which to simulate overland flow. If not provided,
+            the duration will be chosen to be the maximum time step that
+            ensures stability.
+
+        Returns
+        -------
+        elapsed : float
+            The elapsed time that was simulated.
         """
         return self.overland_flow(dt=dt)
 
