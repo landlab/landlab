@@ -378,14 +378,9 @@ class OverlandFlow(Component):
             zero), this exception is raised to indicate that a time step cannot be
             determined.
         """
-        try:
-            self._is_active_node
-        except AttributeError:
-            self._is_active_node: NDArray[np.bool_] = np.any(
-                self.grid.link_status_at_node == LinkStatus.ACTIVE, axis=1
-            )
+        active_nodes = self._update_active_nodes()
 
-        h: NDArray = self.grid.at_node["surface_water__depth"][self._is_active_node]
+        h: NDArray = self.grid.at_node["surface_water__depth"][active_nodes]
         if h.size == 0:
             raise NoWaterError("no active links, unable to determine time step")
 
@@ -398,6 +393,30 @@ class OverlandFlow(Component):
             * min(self._grid.dx, self._grid.dy)
             / np.sqrt(self._g * max_water_depth)
         )
+
+    def _update_active_nodes(self, *, clear_cache: bool = False) -> NDArray[np.bool_]:
+        """Compute and optionally re-compute the active-node mask.
+
+        Parameters
+        ----------
+        clear_cache : bool, optional
+            If ``True`` clear any cached value and recompute the active
+            node mask.
+
+        Returns
+        -------
+        active_nodes : ndarray of bool, size (n_nodes,)
+            The active nodes.
+        """
+        if clear_cache:
+            self._cached_is_active_node = None
+
+        if getattr(self, "_cached_is_active_node", None) is None:
+            self._cached_is_active_node: NDArray[np.bool_] = np.any(
+                self.grid.link_status_at_node == LinkStatus.ACTIVE, axis=1
+            )
+
+        return self._cached_is_active_node
 
     def set_up_neighbor_arrays(self):
         """Create and initialize link neighbor arrays.
