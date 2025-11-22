@@ -6,7 +6,7 @@ from landlab import RasterModelGrid
 from landlab.components.overland_flow._calc import calc_weighted_mean_of_parallel_links
 
 
-def reference(vals, parallels, status, where, theta):
+def weighted_mean_reference(vals, parallels, status, where, theta):
     out = np.array(vals)
     for link in where:
         l, r = parallels[link]
@@ -30,7 +30,7 @@ def reference(vals, parallels, status, where, theta):
 @pytest.mark.parametrize("values_dtype", (np.float32, np.float64))
 @pytest.mark.parametrize("where_dtype", (np.int32, np.int64))
 @pytest.mark.parametrize("theta", (0.0, 0.25, 0.5, 0.75, 1.0))
-def test_kernel(values_dtype, where_dtype, theta):
+def test_weighted_mean(values_dtype, where_dtype, theta):
     grid = RasterModelGrid((3, 4))
 
     values_at_link = np.asarray(
@@ -56,7 +56,7 @@ def test_kernel(values_dtype, where_dtype, theta):
     )
     assert rtn is actual
 
-    expected = reference(
+    expected = weighted_mean_reference(
         values_at_link,
         grid.parallel_links_at_link,
         np.zeros(n_links),
