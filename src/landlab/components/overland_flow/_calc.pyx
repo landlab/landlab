@@ -28,6 +28,39 @@ def adjust_unstable_discharge(
     const id_t [::1] where,
     cython.floating [::1] out,
 ):
+    """Clamp discharge to maintain stability under a shallow-water CFL constraint.
+
+    Limit the magnitude of discharge such that it does not exceed a scaled
+    Courant–type stability threshold. The maximum allowable discharge is
+    determined as::
+
+        q_max = factor * (h / 4) * (dx / dt)
+
+    where ``dx`` is the grid spacing, ``dt`` is the timestep, ``h`` is water depth at
+    the link, and ``factor`` is a safety coefficient (currently set to ``0.8``). The
+    value of ``q_at_link`` is clamped to ``[-q_max, +q_max]`` while preserving its sign.
+
+    Parameters
+    ----------
+    q_at_link : ndarray of float, shape (n_links,)
+        Water discharge at each link.
+    h_at_link : ndarray of float, shape (n_links,)
+        Water depth at each link.
+    dx : float
+        Grid spacing (must be > 0).
+    dt : double
+        Timestep (must be > 0).
+    where : ndarray of int
+        Indices of links for which discharge should be adjusted.
+    out : ndarray of float, shape (n_links,)
+        Output array into which adjusted discharge values are written. May be the
+        same memory as ``q_at_link`` for in-place updates.
+
+    Returns
+    -------
+    ndarray of float
+        The adjusted discharge array.
+    """
     cdef Py_ssize_t n_links = where.shape[0]
     cdef Py_ssize_t i
     cdef id_t link
