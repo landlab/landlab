@@ -1,0 +1,2 @@
+Refactored discharge stability adjustments in the overland flow component
+into a new *cython* function, `adjust_unstable_discharge`.
