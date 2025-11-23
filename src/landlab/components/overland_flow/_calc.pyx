@@ -86,6 +86,38 @@ def adjust_supercritical_discharge(
     const id_t [::1] where,
     cython.floating [::1] out,
 ):
+    """Reduce discharge at selected links to enforce supercritical-flow limits.
+
+    Clamp discharge values to satisfy the stability condition based on
+    the specified Froude number. For each link, discharge is limited to
+
+        abs(q) <= froude * h * sqrt(g * h)
+
+    which corresponds to maintaining a Froude number that does not exceed the
+    specified threshold.
+
+    Parameters
+    ----------
+    q_at_link : cython.floating[::1]
+        Discharge at each link.
+    h_at_link : cython.floating[::1]
+        Water depth at each link.
+    g : double
+        Gravitational acceleration (must be positive).
+    froude : double
+        Maximum allowed Froude number (must be non-negative). Values of
+        discharge that would imply a higher Froude number are reduced.
+    where : cython integral array
+        Array of link indices at which discharge should be adjusted.
+    out : cython.floating[::1]
+        Output array to receive adjusted values. `out` may be the same
+        array as `q_at_link`, in which case changes are made in-place.
+
+    Returns
+    -------
+    ndarray of float
+        The modified discharge values.
+    """
     cdef long n_links = len(where)
     cdef long i
     cdef long link
