@@ -1,0 +1,2 @@
+Corrected field specifications in ``OverlandFlow`` by making `surface_water__discharge`
+and `water_surface__gradient` optional fields.
