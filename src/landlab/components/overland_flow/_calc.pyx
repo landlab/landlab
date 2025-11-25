@@ -74,6 +74,31 @@ def zero_out_dry_links(
     const id_t [::1] where,
     cython.floating [::1] out,
 ):
+    """Zero values for links with non-positive depth.
+
+    Sets ``out[link] = 0.0`` for each link where the corresponding
+    entry in ``h_at_link`` is less than or equal to zero, using the
+    indices provided in ``where``. Links with positive depth are
+    left unchanged.
+
+    Parameters
+    ----------
+    h_at_link : array_like of float, shape (n_links,)
+        Water depth at each link.
+    where : array_like of int
+        Indices of links to operate on. Usually a subset of links,
+        such as those active in the current routing step.
+    out : ndarray of float, shape (n_links,)
+        Output array into which results are written. Must be
+        pre-initialized, entries at dry links are overwritten;
+        all other entries are left unchanged.
+
+    Returns
+    -------
+    out : ndarray of float
+        The updated ``out`` array (same object as input), with values
+        set to zero at dry links.
+    """
     cdef Py_ssize_t n_links = where.shape[0]
     cdef Py_ssize_t link
     cdef Py_ssize_t i
