@@ -1,0 +1,2 @@
+Added new *cython* function, ``zero_out_dry_links``, that zeros-out an
+array based on non-positive flow depths.
