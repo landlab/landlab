@@ -136,13 +136,13 @@ class FireSpread(Component):
 
         north = np.full_like(cell_grid, -1)
         south = np.full_like(cell_grid, -1)
-        west  = np.full_like(cell_grid, -1)
-        east  = np.full_like(cell_grid, -1)
+        west = np.full_like(cell_grid, -1)
+        east = np.full_like(cell_grid, -1)
 
         north[:-1, :] = cell_grid[1:, :]
-        south[1:,  :] = cell_grid[:-1, :]
-        west[:, :-1]  = cell_grid[:, 1:]
-        east[:, 1:]   = cell_grid[:, :-1]
+        south[1:, :] = cell_grid[:-1, :]
+        west[:, :-1] = cell_grid[:, 1:]
+        east[:, 1:] = cell_grid[:, :-1]
 
         self._neighbors = np.stack(
             [north.ravel(), south.ravel(), west.ravel(), east.ravel()]
@@ -155,9 +155,11 @@ class FireSpread(Component):
 
         # Input fields (with defaults if missing)
         fuel = grid.at_cell["fuel__model"].astype(int)
-        Mf   = grid.at_cell["fuel__moisture"]
-        U    = grid.at_cell.get("wind__speed", np.zeros(grid.number_of_cells))
-        tanφ = grid.at_cell.get("topographic__slope_steepness", np.zeros(grid.number_of_cells))
+        Mf = grid.at_cell["fuel__moisture"]
+        U = grid.at_cell.get("wind__speed", np.zeros(grid.number_of_cells))
+        tanφ = grid.at_cell.get(
+            "topographic__slope_steepness", np.zeros(grid.number_of_cells)
+        )
 
         # Rate of spread for every cell
         ros = np.zeros(grid.number_of_cells)
@@ -172,7 +174,7 @@ class FireSpread(Component):
 
         updated = False
         for cell in candidates:
-            if arrival[cell] >= 0:          # already burned
+            if arrival[cell] >= 0:  # already burned
                 continue
 
             # burning neighbours of this cell
@@ -191,9 +193,9 @@ class FireSpread(Component):
                 # fire behaviour for the newly ignited cell
                 p = ANDERSON_13[fuel[cell]]
                 Ir = reaction_intensity(
-                    p["w0"] * 20.83,          # tons/acre → kg/m²
+                    p["w0"] * 20.83,  # tons/acre → kg/m²
                     p["sigma"],
-                    p["h"] * 2326,            # BTU/lb → kJ/kg
+                    p["h"] * 2326,  # BTU/lb → kJ/kg
                     Mf[cell],
                     None,
                 )
@@ -210,4 +212,4 @@ class FireSpread(Component):
 
     @property
     def burned_area_m2(self):
-        return np.count_nonzero(self.arrival >= 0) * self._dx ** 2
+        return np.count_nonzero(self.arrival >= 0) * self._dx**2
