@@ -1,64 +1,69 @@
-"""
-FireSpread – Rothermel fire propagation on Landlab RasterModelGrid
-"""
+# landlab/components/fire_spread/fire_spread.py
 
 from __future__ import annotations
 
 import numpy as np
-
-from landlab import Component
-from landlab import RasterModelGrid
+from landlab import Component, RasterModelGrid
 
 from .fuel_models import ANDERSON_13
-from .utils import byram_flame_length
-from .utils import reaction_intensity
-from .utils import rothermel_rate_of_spread
+from .utils import byram_flame_length, reaction_intensity, rothermel_rate_of_spread
 
 
 class FireSpread(Component):
-    """
-    Rothermel (1972) surface fire spread using level-set fast marching.
-
-    Examples
-    --------
-    >>> from landlab import RasterModelGrid
-    >>> grid = RasterModelGrid((40, 60), xy_spacing=30.0)
-    >>> grid.add_zeros("fuel__model", at="cell", dtype=int)[:] = 1
-    >>> grid.add_zeros("fuel__moisture", at="cell")[:] = 0.08
-    >>> fs = FireSpread(grid, ignition_row=20, ignition_col=30)
-    >>> for i in range(300):
-    ...     fs.run_one_step(dt=60)
-    ...
-    """
+    """Rothermel (1972) surface fire spread on a RasterModelGrid."""
 
     _name = "FireSpread"
-    _unit_agnostic = False
     _time_units = "s"
-    _cite_as = """@techreport{rothermel1972mathematical,
-      author = {Rothermel, Richard C},
-      title = {A mathematical model for predicting fire spread in wildland fuels},
-      institution = {USDA Forest Service},
-      year = {1972}
-    }"""
 
     _info = {
-        "fuel__model": {"dtype": int, "intent": "in", "optional": False,"mapping": "cell"},
-        "fuel__moisture": {"dtype": float, "intent": "in", "optional": False,"mapping": "cell"},
-        "wind__speed": {"dtype": float, "intent": "in", "optional": True, "mapping": "cell"},
-        "wind__direction": {"dtype": float, "intent": "in", "optional": True, "mapping": "cell"},
+        "fuel__model": {
+            "dtype": int,
+            "intent": "in",
+            "optional": False,
+            "mapping": "cell",
+            "doc": "Fuel model number (Anderson 13)",
+        },
+        "fuel__moisture": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "mapping": "cell",
+            "doc": "Dead fuel moisture fraction",
+        },
+        "wind__speed": {
+            "dtype": float,
+            "intent": "in",
+            "optional": True,
+            "mapping": "cell",
+            "doc": "Mid-flame wind speed (m/s)",
+        },
         "topographic__slope_steepness": {
             "dtype": float,
-            "optional": True,
             "intent": "in",
+            "optional": True,
             "mapping": "cell",
+            "doc": "tan(slope angle)",
         },
-        "fire__arrival_time": {"dtype": float, "intent": "out","optional": True, "mapping": "cell"},
-        "fire__flame_length": {"dtype": float, "intent": "out","optional": True, "mapping": "cell"},
+        "fire__arrival_time": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "mapping": "cell",
+            "doc": "Time fire arrives at cell (s)",
+        },
+        "fire__flame_length": {
+            "dtype": float,
+            "intent": "out",
+            "optional": True,
+            "mapping": "cell",
+            "doc": "Byram flame length (m)",
+        },
         "fire__reaction_intensity": {
             "dtype": float,
             "intent": "out",
-            "mapping": "cell",
             "optional": True,
+            "mapping": "cell",
+            "doc": "Reaction intensity (kW/m²)",
         },
     }
 
@@ -69,95 +74,113 @@ class FireSpread(Component):
         ignition_col: int | None = None,
         ignition_cells: list[int] | None = None,
         ignition_time: float = 0.0,
-        **kwds,
     ):
+        super().__init__(grid)
+
         if not isinstance(grid, RasterModelGrid):
             raise TypeError("FireSpread requires a RasterModelGrid")
 
-        super().__init__(grid, **kwds)
-
-        self._time = ignition_time
         self._dx = grid.dx
+        self._time = ignition_time
+
+        # current simulation time
 
         # Output fields
         self.arrival = grid.add_field(
-            "fire__arrival_time", -9999.0, at="cell", dtype=float
+            "fire__arrival_time",
+            -9999.0 * np.ones(grid.number_of_cells),
+            at="cell",
+            dtype=float,
         )
-        self.flame = grid.add_zeros("fire__flame_length", at="cell", dtype=float)
-        self.intensity = grid.add_zeros(
-            "fire__reaction_intensity", at="cell", dtype=float
-        )
+        self.flame = grid.add_zeros("fire__flame_length", at="cell")
+        self.intensity = grid.add_zeros("fire__reaction_intensity", at="cell")
 
-        # Set ignition
-        if ignition_cells:
-            self.arrival[np.array(ignition_cells)] = ignition_time
+        # === Set ignition ===
+        if ignition_cells is not None:
+            self.arrival[np.asarray(ignition_cells)] = ignition_time
         elif ignition_row is not None and ignition_col is not None:
-            cell = grid.grid_coords_to_node_id(ignition_row, ignition_col, "cell")
-            self.arrival[cell] = ignition_time
+            ny, nx = grid.shape
+            node_id = ignition_row * nx + ignition_col
+            cell_id = grid.cell_at_node[node_id]
+            if cell_id == -1:
+                raise ValueError("Ignition node is on the boundary (no cell there)")
+            self.arrival[cell_id] = ignition_time
         else:
             raise ValueError("Specify ignition_row/col or ignition_cells")
 
-        # Neighbor offsets for 4-connectivity
+        # Pre-compute 4-connected cell neighbours
         ny, nx = grid.shape
-        self._offsets = np.array([[-1, 0], [1, 0], [0, -1], [0, 1]])
+        cell_grid = np.arange(grid.number_of_cells).reshape(ny - 2, nx - 2)
+
+        north = np.full_like(cell_grid, -1)
+        south = np.full_like(cell_grid, -1)
+        west  = np.full_like(cell_grid, -1)
+        east  = np.full_like(cell_grid, -1)
+
+        north[:-1, :] = cell_grid[1:, :]
+        south[1:,  :] = cell_grid[:-1, :]
+        west[:, :-1]  = cell_grid[:, 1:]
+        east[:, 1:]   = cell_grid[:, :-1]
+
+        self._neighbors = np.stack(
+            [north.ravel(), south.ravel(), west.ravel(), east.ravel()]
+        )
 
     def run_one_step(self, dt: float = 60.0):
-        """Advance fire by dt seconds."""
+        """Advance fire front by dt seconds."""
+        grid = self.grid
         arrival = self.arrival
-        burned = arrival >= 0
 
-        if not np.any(burned):
-            return
+        # Input fields (with defaults if missing)
+        fuel = grid.at_cell["fuel__model"].astype(int)
+        Mf   = grid.at_cell["fuel__moisture"]
+        U    = grid.at_cell.get("wind__speed", np.zeros(grid.number_of_cells))
+        tanφ = grid.at_cell.get("topographic__slope_steepness", np.zeros(grid.number_of_cells))
 
-        # Compute ROS at all currently burning cells
-        fuel = self.grid.at_cell["fuel__model"][burned].astype(int)
-        Mf = self.grid.at_cell["fuel__moisture"][burned]
-        U = self.grid.at_cell.get("wind__speed", np.zeros_like(burned, dtype=float))[
-            burned
-        ]
-        tan_phi = self.grid.at_cell.get(
-            "topographic__slope_steepness", np.zeros_like(burned)
-        )[burned]
-
-        ros = np.zeros_like(Mf)
+        # Rate of spread for every cell
+        ros = np.zeros(grid.number_of_cells)
         for fm in np.unique(fuel):
-            mask = fuel == fm
-            ros[mask] = rothermel_rate_of_spread(
-                fm, Mf[mask], U[mask], tan_phi[mask], ANDERSON_13
-            )
+            m = fuel == fm
+            ros[m] = rothermel_rate_of_spread(fm, Mf[m], U[m], tanφ[m], ANDERSON_13)
 
-        # Candidate frontier cells
-        frontier = set()
-        for dy, dx in self._offsets:
-            ny, nx = self.grid.shape
-            idx = np.where(burned)[0]
-            rows = idx // nx + dy
-            cols = idx % nx + dx
-            valid = (rows >= 0) & (rows < ny) & (cols >= 0) & (cols < nx)
-            frontier.update(rows[valid] * nx + cols[valid])
+        # Find candidate cells (have at least one burning neighbour)
+        burning = arrival >= 0
+        candidates = np.unique(self._neighbors[:, burning])
+        candidates = candidates[candidates != -1]
 
-        for cell in frontier:
-            if arrival[cell] >= 0:
-                continue  # already burned
-
-            # Find fastest neighbor
-            nbrs = self.grid.neighbors_at_cell[cell]
-            valid = (nbrs != -1) & (arrival[nbrs] >= 0)
-            if not np.any(valid):
+        updated = False
+        for cell in candidates:
+            if arrival[cell] >= 0:          # already burned
                 continue
 
-            nbr_times = arrival[nbrs[valid]]
-            nbr_ros = ros[nbrs[valid] - np.where(burned)[0][0]]  # rough mapping
-            best_idx = np.argmin(nbr_times)
-            t_arrive = nbr_times[best_idx] + self._dx / nbr_ros[best_idx]
+            # burning neighbours of this cell
+            nbrs = self._neighbors[:, cell]
+            burning_nbrs = nbrs[(nbrs != -1) & burning[nbrs]]
 
-            if arrival[cell] < 0 or t_arrive < arrival[cell]:
-                arrival[cell] = t_arrive
-                Ir = reaction_intensity(fuel[0], Mf[0], None, ANDERSON_13)  # simplified
-                self.flame[cell] = byram_flame_length(Ir)
+            if len(burning_nbrs) == 0:
+                continue
+
+            travel = self._dx / np.maximum(ros[burning_nbrs], 1e-12)
+            new_time = (arrival[burning_nbrs] + travel).min()
+
+            if arrival[cell] < 0 or new_time < arrival[cell]:
+                arrival[cell] = new_time
+
+                # fire behaviour for the newly ignited cell
+                p = ANDERSON_13[fuel[cell]]
+                Ir = reaction_intensity(
+                    p["w0"] * 20.83,          # tons/acre → kg/m²
+                    p["sigma"],
+                    p["h"] * 2326,            # BTU/lb → kJ/kg
+                    Mf[cell],
+                    None,
+                )
                 self.intensity[cell] = Ir
+                self.flame[cell] = byram_flame_length(Ir)
+                updated = True
 
-        self._time += dt
+        if updated:
+            self._time += dt
 
     @property
     def current_time(self):
@@ -165,4 +188,4 @@ class FireSpread(Component):
 
     @property
     def burned_area_m2(self):
-        return np.sum(self.arrival >= 0) * self._dx**2
+        return np.count_nonzero(self.arrival >= 0) * self._dx ** 2
