@@ -382,8 +382,20 @@ class TestRemoveSmallTribs:
             }
         )
 
+        rmg_nodes_to_nmg_links_mapper_e = np.array(
+            [
+                [27, 0, 31.6227766, 3, 2300, 2900],
+                [25, 0, 26.33648662, 10, 2300, 2300],
+                [31, 0, 5.25463555, 23, 2300, 1600],
+            ]
+        )
+
         rmg_nodes_to_nmg_links_mapper = gt._remove_small_tribs(
             rmg_nodes_to_nmg_links_mapper, nmg_link_to_rmg_coincident_nodes_mapper
         )  # cn_to_nmg_link_mapper)
-        # in this case, remove_small_tribs doesn't change the mapper
-        check_vals(rmg_nodes_to_nmg_links_mapper, rmg_nodes_to_nmg_links_mapper.values)
+        # in this case, remove_small_tribs doesn't remove node 24 from the mapper
+        # and the test fails.
+        # This result is expected and the test is included to highlight that there
+        # are situations where the remove_small_tribs function (as presently coded)
+        # may not work as expected
+        check_vals(rmg_nodes_to_nmg_links_mapper, rmg_nodes_to_nmg_links_mapper_e)
