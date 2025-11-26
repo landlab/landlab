@@ -91,6 +91,7 @@ import scipy.constants
 
 from landlab import Component
 from landlab.components.overland_flow._calc import calc_grad_at_link
+from landlab.components.overland_flow._calc import zero_out_dry_links
 from landlab.components.overland_flow._links import active_link_ids
 from landlab.components.overland_flow._links import horizontal_active_link_ids
 from landlab.components.overland_flow._links import horizontal_east_link_neighbor
@@ -503,6 +504,8 @@ class OverlandFlow(Component):
                 where=active_links,
                 out=water_surface_slope,
             )
+
+            q_at_link = zero_out_dry_links(h_at_link, where=active_links, out=q_at_link)
 
             # Now we can calculate discharge. To handle links with neighbors
             # that do not exist, we will do a fancy indexing trick. Non-

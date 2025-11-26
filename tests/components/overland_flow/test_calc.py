@@ -1,9 +1,11 @@
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose
+from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
 from landlab.components.overland_flow._calc import calc_grad_at_link
+from landlab.components.overland_flow._calc import zero_out_dry_links
 
 
 @pytest.mark.parametrize("dx", (1.0, 2.0, -1.0))
@@ -107,3 +109,94 @@ def test_calc_grad_with_mask(here, float_dtype, id_dtype):
     assert np.all(~here) or np.allclose(actual[here], expected[here])
 
     assert ret is actual
+
+
+@pytest.mark.parametrize(
+    "h, where, initial_out, expected",
+    [
+        (
+            [0.1, 0.0, -0.3, 0.2],
+            [0, 1, 2, 3],
+            [5.0, 4.0, 3.0, 2.0],
+            [5.0, 0.0, 0.0, 2.0],
+        ),
+        (
+            [0.1, 0.0, -0.3, 0.2],
+            [1, 2],
+            [5.0, 4.0, 3.0, 2.0],
+            [5.0, 0.0, 0.0, 2.0],
+        ),
+        (
+            [0.1, 0.5, 0.2, 0.3],
+            [0, 2],
+            [1.0, 2.0, 3.0, 4.0],
+            [1.0, 2.0, 3.0, 4.0],
+        ),
+        (
+            [0.0, -1.0, 0.0],
+            [0, 1, 2],
+            [1.0, 2.0, 3.0],
+            [0.0, 0.0, 0.0],
+        ),
+    ],
+)
+def test_zero_out_dry_links(h, where, initial_out, expected):
+    actual = np.array(initial_out)
+
+    rtn = zero_out_dry_links(
+        np.asarray(h, dtype=float), where=np.asarray(where, dtype=int), out=actual
+    )
+
+    assert rtn is actual
+    assert_array_equal(actual, expected)
+
+
+def test_zero_out_dry_links_does_not_touch_indices_not_in_where():
+    h = [0.0, -1.0, 0.5, -0.1]
+    where = [0, 3]
+
+    actual = np.full_like(h, -999)
+    expected = [0.0, -999, -999, 0.0]
+
+    rtn = zero_out_dry_links(
+        np.asarray(h, dtype=float),
+        where=np.asarray(where, dtype=int),
+        out=actual,
+    )
+
+    assert rtn is actual
+    assert_array_equal(actual, expected)
+
+
+def test_zero_out_dry_links_nowhere():
+    h = [0.0, -1.0, 0.5]
+    where = []
+
+    actual = np.full_like(h, -999)
+    expected = actual.copy()
+
+    rtn = zero_out_dry_links(
+        np.asarray(h, dtype=float),
+        where=np.asarray(where, dtype=int),
+        out=actual,
+    )
+
+    assert rtn is actual
+    assert_array_equal(actual, expected)
+
+
+@pytest.mark.parametrize("dtype", [np.float32, np.float64])
+def test_zero_out_dry_links_dtype(dtype):
+    h = [0.0, 1.0]
+    where = [0, 1]
+
+    actual = np.asarray([5.0, 6.0], dtype=dtype)
+    expected = [0.0, 6.0]
+    rtn = zero_out_dry_links(
+        np.asarray(h, dtype=dtype),
+        where=np.asarray(where, dtype=int),
+        out=actual,
+    )
+
+    assert rtn.dtype == dtype
+    assert_array_equal(actual, expected)
