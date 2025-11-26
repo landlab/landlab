@@ -1,14 +1,17 @@
 from landlab import RasterModelGrid
+
 <<<<<<< HEAD
 import numpy as np
+
 =======
 from landlab.components.fire_spread import FireSpread
 
 >>>>>>> 302f96ae87f3189411f0a971673f53a00efccd95
 
 def test_grass_fire_propagates():
-    from landlab import RasterModelGrid
     import numpy as np
+
+    from landlab import RasterModelGrid
     from landlab.components.fire_spread.fire_spread import FireSpread
 
     grid = RasterModelGrid((5, 5), xy_spacing=30.0)
