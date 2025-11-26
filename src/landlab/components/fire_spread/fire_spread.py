@@ -3,10 +3,14 @@
 from __future__ import annotations
 
 import numpy as np
-from landlab import Component, RasterModelGrid
+
+from landlab import Component
+from landlab import RasterModelGrid
 
 from .fuel_models import ANDERSON_13
-from .utils import byram_flame_length, reaction_intensity, rothermel_rate_of_spread
+from .utils import byram_flame_length
+from .utils import reaction_intensity
+from .utils import rothermel_rate_of_spread
 
 
 class FireSpread(Component):
