@@ -54,7 +54,6 @@ def rothermel_rate_of_spread(fuel_model, Mf, U, tan_phi, fuel_params):
     phi_s = slope_factor(tan_phi)
 
     # Propagating flux ratio ξ
-    beta = w0 / (depth * 192.0 + 0.2595 * sigma)  # packing ratio
     beta_op = 3.348 * sigma ** (-0.8189)
     xi = np.exp((0.792 + 0.681 * np.sqrt(sigma)) * (beta_op + 0.1)) / (
         192.0 + 0.2595 * sigma
