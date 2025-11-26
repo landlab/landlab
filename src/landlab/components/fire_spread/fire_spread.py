@@ -21,21 +21,36 @@ class FireSpread(Component):
             "intent": "in",
             "optional": False,
             "mapping": "cell",
+<<<<<<< HEAD
             "doc": "Fuel model number (Anderson 13)",
+=======
+>>>>>>> 302f96ae87f3189411f0a971673f53a00efccd95
         },
         "fuel__moisture": {
             "dtype": float,
             "intent": "in",
             "optional": False,
             "mapping": "cell",
+<<<<<<< HEAD
             "doc": "Dead fuel moisture fraction",
+=======
+>>>>>>> 302f96ae87f3189411f0a971673f53a00efccd95
         },
         "wind__speed": {
             "dtype": float,
             "intent": "in",
             "optional": True,
             "mapping": "cell",
+<<<<<<< HEAD
             "doc": "Mid-flame wind speed (m/s)",
+=======
+        },
+        "wind__direction": {
+            "dtype": float,
+            "intent": "in",
+            "optional": True,
+            "mapping": "cell",
+>>>>>>> 302f96ae87f3189411f0a971673f53a00efccd95
         },
         "topographic__slope_steepness": {
             "dtype": float,
@@ -58,6 +73,21 @@ class FireSpread(Component):
             "mapping": "cell",
             "doc": "Byram flame length (m)",
         },
+<<<<<<< HEAD
+=======
+        "fire__arrival_time": {
+            "dtype": float,
+            "intent": "out",
+            "optional": True,
+            "mapping": "cell",
+        },
+        "fire__flame_length": {
+            "dtype": float,
+            "intent": "out",
+            "optional": True,
+            "mapping": "cell",
+        },
+>>>>>>> 302f96ae87f3189411f0a971673f53a00efccd95
         "fire__reaction_intensity": {
             "dtype": float,
             "intent": "out",

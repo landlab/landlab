@@ -1,29 +1,7 @@
 import numpy as np
 
-from ...core.utils import as_id_array
-from ...graph.structured_quad.structured_quad import StructuredQuadGraphTopology
-from . import _neighbors_at_link
-
-
-def neighbors_at_link(shape, links):
-    """Get neighbor links.
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from landlab.components.overland_flow._links import neighbors_at_link
-
-    >>> neighbors_at_link((3, 2), np.arange(7))
-    array([[-1,  3, -1, -1],
-           [ 2,  4, -1, -1], [-1,  5,  1, -1],
-           [-1,  6, -1,  0],
-           [ 5,  7, -1,  1], [-1, -1,  4,  2],
-           [-1, -1, -1,  3]])
-    """
-    links = np.asarray(links, dtype=int)
-    out = np.full((links.size, 4), -1, dtype=int)
-    _neighbors_at_link.neighbors_at_link(links, shape, out)
-    return out
+from landlab.core.utils import as_id_array
+from landlab.graph.structured_quad.structured_quad import StructuredQuadGraphTopology
 
 
 def vertical_link_ids(shape):
