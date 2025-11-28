@@ -58,6 +58,8 @@ array([[0., 0., 0., 0.],
 """
 
 import numpy as np
+from numpy.typing import ArrayLike
+from numpy.typing import NDArray
 
 from landlab import Component
 from landlab.components.flexure._ext.flexure2d import subside_loads as _subside_loads
@@ -283,8 +285,6 @@ class Flexure(Component):
 
         new_load = load.copy()
 
-        deflection.fill(0.0)
-
         if self.method == "airy":
             deflection[:] = new_load / self.gamma_mantle
         else:
@@ -321,7 +321,12 @@ class Flexure(Component):
 
         return out
 
-    def subside_loads(self, loads, row_col_of_load=None, out=None):
+    def subside_loads(
+        self,
+        loads: ArrayLike,
+        row_col_of_load: tuple[ArrayLike, ArrayLike] | None = None,
+        out: NDArray[np.floating] | None = None,
+    ) -> NDArray:
         """Subside surface due to multiple loads.
 
         Parameters
@@ -329,13 +334,13 @@ class Flexure(Component):
         loads : ndarray of float
             Loads applied to grid node. ``loads`` can be either an array
             of size ``n_nodes``, in which case the load values are applied
-            at their corresponding nodes, or an array of arbitray length,
+            at their corresponding nodes, or an array of arbitrary length,
             in which case loads are applied at locations supplied through
             the ``row_col_of_load`` keyword.
         row_col_of_load: tuple of ndarray of int, optional
             If provided, the row and column indices where loads are applied.
             The first element of the tuple is an array of rows while the
-            seconds element is an array of columns.
+            second element is an array of columns.
         out : ndarray of float, optional
             Buffer to place resulting deflection values. If not provided,
             deflections will be placed into a newly-allocated array.
@@ -347,31 +352,62 @@ class Flexure(Component):
         """
         loads = np.asarray(loads)
         if out is None:
-            out = self.grid.zeros(at="node")
+            out = self.grid.empty(at="node")
+        elif out.size != self.grid.number_of_nodes:
+            raise ValueError(
+                f"'out' array has incorrect size ({out.size}), expecting"
+                f" number_of_nodes ({self.grid.number_of_nodes})"
+            )
         dz = out.reshape(self.grid.shape)
+        dz.fill(0.0)
 
         if row_col_of_load is None:
-            loads, row_col_of_load = self._handle_no_row_col(loads)
-        row_of_load, col_of_load = row_col_of_load
+            if loads.size != self.grid.number_of_nodes:
+                raise ValueError(
+                    f"'loads' array has incorrect size ({loads.size}), expecting"
+                    f" number_of_nodes ({self.grid.number_of_nodes})"
+                )
+            loads, row_col_of_load = _find_nonzero_loads(loads.reshape(self.grid.shape))
+
+        rows = _validate_range(row_col_of_load[0], low=0, high=self.grid.shape[0])
+        cols = _validate_range(row_col_of_load[1], low=0, high=self.grid.shape[1])
+
+        if rows.size != cols.size:
+            raise ValueError("'rows' and 'cols' must have the same length.")
 
         _subside_loads(
             dz,
             self._r.reshape(self.grid.shape),
             loads * self.grid.dx * self.grid.dy,
-            np.asarray(row_of_load),
-            np.asarray(col_of_load),
-            self.alpha,
-            self.gamma_mantle,
+            rows,
+            cols,
+            float(self.alpha),
+            float(self.gamma_mantle),
         )
 
         return out
 
-    def _handle_no_row_col(self, loads, tol=1e-6):
-        """Handle the case where the row_col_of_load keyword is not provided."""
-        loads = loads.reshape(self.grid.shape)
-        row_col_of_load = np.unravel_index(
-            np.flatnonzero(np.abs(loads) > tol), self.grid.shape
-        )
-        loads = loads[row_col_of_load]
 
-        return loads, row_col_of_load
+def _find_nonzero_loads(
+    loads: ArrayLike, tol: float = 1e-6
+) -> tuple[NDArray, tuple[NDArray, NDArray]]:
+    """Find the rows and columns where there is a load."""
+    loads = np.asarray(loads)
+    if loads.ndim != 2:
+        raise ValueError(f"'loads' must be 2D (got {loads.shape})")
+
+    is_a_load = np.abs(loads) > tol
+    rows, cols = np.nonzero(is_a_load)
+
+    return loads[rows, cols], (rows, cols)
+
+
+def _validate_range(
+    array: ArrayLike, low: int | None = None, high: int | None = None
+) -> NDArray:
+    array = np.asarray(array).ravel()
+    if low is not None and np.any(array < low):
+        raise ValueError(f"array has values below the lower limit of {low}")
+    if high is not None and np.any(array >= high):
+        raise ValueError(f"array has values above the upper limit of {high}")
+    return array
