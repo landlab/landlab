@@ -1,9 +1,58 @@
+from collections.abc import Iterable
+from typing import Any
+
 import numpy as np
 from numpy.typing import ArrayLike
 from numpy.typing import DTypeLike
 from numpy.typing import NDArray
 
 from landlab.core.errors import ValidationError
+
+
+def require_one_of(value: Any, *, allowed: Iterable[Any]) -> Any:
+    """Validate that ``value`` is one of ``allowed``.
+
+    Parameters
+    ----------
+    value : any
+        A scalar value to validate.
+    allowed : iterable of any
+        Allowed values.
+
+    Returns
+    -------
+    any
+        The original value.
+
+    Raises
+    ------
+    ValidationError
+        If the value is not in ``allowed``.
+
+    Examples
+    --------
+    >>> require_one_of("foo", allowed=("foo", "bar"))
+    'foo'
+    >>> require_one_of("baz", allowed=("foo", "bar"))
+    Traceback (most recent call last):
+    ...
+    landlab.core.errors.ValidationError: invalid value: 'baz' is not one of 'bar', 'foo'
+    >>> require_one_of("Foo", allowed=("foo", "bar"))
+    Traceback (most recent call last):
+    ...
+    landlab.core.errors.ValidationError: invalid value: 'Foo' is not one of 'bar', 'foo'
+    """
+    try:
+        collection_of_allowed = set(allowed)
+        in_collection = value in collection_of_allowed
+    except TypeError:
+        collection_of_allowed = list(allowed)
+        in_collection = value in collection_of_allowed
+
+    if not in_collection:
+        allowed_str = ", ".join(sorted(repr(x) for x in collection_of_allowed))
+        raise ValidationError(f"invalid value: {value!r} is not one of {allowed_str}")
+    return value
 
 
 def require_between(
