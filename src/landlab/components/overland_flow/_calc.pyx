@@ -4,6 +4,8 @@ from libc.stdint cimport int32_t
 from libc.stdint cimport int64_t
 from libc.stdint cimport uint8_t
 
+from landlab.grid.linkstatus import LinkStatus
+
 ctypedef fused id_t:
     int32_t
     int64_t
@@ -98,8 +100,8 @@ def calc_weighted_mean_of_parallel_links(
         IDs of the two parallel links (left, right) associated with each link.
         A value of ``-1`` indicates that no parallel link exists.
     status_at_link : ndarray of uint8
-        Link status codes. A value of ``4`` indicates an inactive link that
-        should not contribute to the weighted mean.
+        Link status codes. A value of ``LinkStatus.INACTIVE`` indicates an
+        inactive link that should not contribute to the weighted mean.
     where : ndarray of int
         Indices of links for which to update ``out``. Each link in ``where``
         is processed exactly once. Must not contain duplicates.
@@ -125,7 +127,7 @@ def calc_weighted_mean_of_parallel_links(
     cdef long n_neighbors
     cdef double total
     cdef double ONE_MINUS_THETA = (1.0 - theta)
-    cdef int LINK_IS_INACTIVE = 4
+    cdef int LINK_IS_INACTIVE = LinkStatus.INACTIVE
     cdef int LINK_IS_MISSING = -1
 
     for i in prange(n_links, nogil=True, schedule="static"):
