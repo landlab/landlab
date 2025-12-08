@@ -21,7 +21,7 @@ class FireSpread(Component):
 
     _info = {
         "fuel__model": {
-            "dtype": int,
+            "dtype": float,
             "intent": "in",
             "optional": False,
             "mapping": "cell",
