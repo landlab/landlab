@@ -93,6 +93,7 @@ from numpy.typing import NDArray
 from landlab import Component
 from landlab.components.overland_flow._calc import adjust_supercritical_discharge
 from landlab.components.overland_flow._calc import calc_bates_flow_height
+from landlab.components.overland_flow._calc import calc_discharge_at_links
 from landlab.components.overland_flow._calc import calc_grad_at_link
 from landlab.components.overland_flow._calc import calc_weighted_mean_of_parallel_links
 from landlab.components.overland_flow._calc import zero_out_dry_links
@@ -583,14 +584,6 @@ class OverlandFlow(Component):
 
             q_at_link = zero_out_dry_links(h_at_link, where=active_links, out=q_at_link)
 
-            # Now we can calculate discharge. To handle links with neighbors
-            # that do not exist, we will do a fancy indexing trick. Non-
-            # existent links or inactive links have an index of '-1', which in
-            # Python, looks to the end of a list or array. To accommodate these
-            # '-1' indices, we will simply insert an value of 0.0 discharge (in
-            # units of L^2/T) to the end of the discharge array.
-            q_at_link = np.append(q_at_link, [0])
-
             q_mean_at_link.fill(0.0)
             q_mean_at_link = calc_weighted_mean_of_parallel_links(
                 q_at_link,
@@ -600,38 +593,18 @@ class OverlandFlow(Component):
                 where=self._grid.active_links,
                 out=q_mean_at_link,
             )
-            horiz = self._grid.horizontal_links
-            vert = self._grid.vertical_links
-            # Now we calculate discharge in the horizontal direction
-            q_at_link[horiz] = (
-                q_mean_at_link[horiz]
-                - self._g * h_at_link[horiz] * dt_local * water_surface_slope[horiz]
-            ) / (
-                1
-                + self._g
-                * dt_local
-                * mannings_at_link[horiz] ** 2.0
-                * abs(q_at_link[horiz])
-                / h_at_link[horiz] ** _SEVEN_OVER_THREE
-            )
 
-            # ... and in the vertical direction
-            q_at_link[vert] = (
-                q_mean_at_link[vert]
-                - self._g * h_at_link[vert] * dt_local * water_surface_slope[vert]
-            ) / (
-                1
-                + self._g
-                * dt_local
-                * mannings_at_link[vert] ** 2.0
-                * abs(q_at_link[vert])
-                / h_at_link[vert] ** _SEVEN_OVER_THREE
+            q_at_link = calc_discharge_at_links(
+                q_at_link,
+                q_mean_at_link,
+                h_at_link,
+                water_surface_slope,
+                mannings_at_link,
+                g=self._g,
+                dt=dt_local,
+                where=self._grid.active_links,
+                out=q_at_link,
             )
-
-            # Now to return the array to its original length (length of number
-            # of all links), we delete the extra 0.0 value from the end of the
-            # array.
-            q_at_link = np.delete(q_at_link, len(q_at_link) - 1)
 
             if self._steep_slopes is True:
                 # To prevent water from draining too fast for our time steps...
