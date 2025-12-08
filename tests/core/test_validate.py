@@ -6,9 +6,53 @@ from landlab.core._validate import require_between
 from landlab.core._validate import require_negative
 from landlab.core._validate import require_nonnegative
 from landlab.core._validate import require_nonpositive
+from landlab.core._validate import require_one_of
 from landlab.core._validate import require_positive
 from landlab.core._validate import validate_array
 from landlab.core.errors import ValidationError
+
+
+@pytest.mark.parametrize(
+    "value, allowed",
+    (
+        (0, (0, 1)),
+        (1, ("0", 1)),
+        ("foo", ("foo", "bar", "baz")),
+        ("", ("", 0, True)),
+        ("b", "foobar"),
+        (0, ([1], [2], 0)),
+        ([1], ([1], [2])),
+    ),
+)
+@pytest.mark.parametrize("allowed_type", (list, tuple, set))
+def test_require_one_of_ok(value, allowed, allowed_type):
+    try:
+        allowed_type(allowed)
+    except TypeError:
+        pytest.skip("allowed contains unhashable items")
+    assert require_one_of(value, allowed=allowed_type(allowed)) == value
+
+
+@pytest.mark.parametrize(
+    "value, allowed",
+    (
+        (-1, (0, 1)),
+        (0, ("0", 1)),
+        ("fu", ("foo", "bar", "baz")),
+        (1, ()),
+        ("bar", "foobar"),
+        (0, ([0],)),
+        ([0], (0, 1)),
+    ),
+)
+@pytest.mark.parametrize("allowed_type", (list, tuple, set))
+def test_require_one_of_not_ok(value, allowed, allowed_type):
+    try:
+        allowed_type(allowed)
+    except TypeError:
+        pytest.skip("allowed contains unhashable items")
+    with pytest.raises(ValidationError, match="invalid value"):
+        require_one_of(value, allowed=allowed_type(allowed))
 
 
 @pytest.mark.parametrize("value", (1.0, (-1, 1), np.asarray([-1, 1])))

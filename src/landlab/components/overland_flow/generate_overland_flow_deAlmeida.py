@@ -91,6 +91,7 @@ import scipy.constants
 
 from landlab import Component
 from landlab.components.overland_flow._calc import calc_grad_at_link
+from landlab.components.overland_flow._calc import calc_weighted_mean_of_parallel_links
 from landlab.components.overland_flow._calc import zero_out_dry_links
 from landlab.components.overland_flow._links import active_link_ids
 from landlab.components.overland_flow._links import horizontal_active_link_ids
@@ -459,9 +460,6 @@ class OverlandFlow(Component):
         if dt is None:
             dt = np.inf  # to allow the loop to begin
 
-        if not self._neighbor_flag:
-            self.set_up_neighbor_arrays()
-
         if isinstance(self._mannings_n, str):
             mannings_at_link = self.grid.at_link[self._mannings_n]
         else:
@@ -471,6 +469,7 @@ class OverlandFlow(Component):
         q_at_link = self._grid.at_link["surface_water__discharge"]
         h_at_link = self._h_links
         water_surface_slope = self._grid.at_link["water_surface__gradient"]
+        q_mean_at_link = self.grid.empty(at="link")
 
         core_nodes = self._grid.core_nodes
         active_links = self._grid.active_links
@@ -515,14 +514,20 @@ class OverlandFlow(Component):
             # units of L^2/T) to the end of the discharge array.
             q_at_link = np.append(q_at_link, [0])
 
+            q_mean_at_link.fill(0.0)
+            q_mean_at_link = calc_weighted_mean_of_parallel_links(
+                q_at_link,
+                parallel_links_at_link=self.grid.parallel_links_at_link,
+                status_at_link=self.grid.status_at_link,
+                theta=self._theta,
+                where=self._grid.active_links,
+                out=q_mean_at_link,
+            )
             horiz = self._grid.horizontal_links
             vert = self._grid.vertical_links
             # Now we calculate discharge in the horizontal direction
             q_at_link[horiz] = (
-                self._theta * q_at_link[horiz]
-                + (1.0 - self._theta)
-                / 2.0
-                * (q_at_link[self._west_neighbors] + q_at_link[self._east_neighbors])
+                q_mean_at_link[horiz]
                 - self._g * h_at_link[horiz] * dt_local * water_surface_slope[horiz]
             ) / (
                 1
@@ -535,10 +540,7 @@ class OverlandFlow(Component):
 
             # ... and in the vertical direction
             q_at_link[vert] = (
-                self._theta * q_at_link[vert]
-                + (1 - self._theta)
-                / 2.0
-                * (q_at_link[self._north_neighbors] + q_at_link[self._south_neighbors])
+                q_mean_at_link[vert]
                 - self._g * h_at_link[vert] * dt_local * water_surface_slope[vert]
             ) / (
                 1
