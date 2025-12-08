@@ -316,7 +316,10 @@ class OverlandFlow(Component):
         if isinstance(mannings_n, str):
             self._mannings_n = mannings_n
         else:
-            self._mannings_n = np.broadcast_to(mannings_n, grid.number_of_links)
+            self._mannings_n = np.require(
+                np.broadcast_to(mannings_n, grid.number_of_links),
+                requirements=("C_CONTIGUOUS",),
+            )
 
         self._g = require_positive(g)
         self._theta = require_between(
