@@ -7,11 +7,16 @@ last updated: 3/14/16
 import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal
+from numpy.testing import assert_equal
 
 from landlab import RasterModelGrid
 from landlab.components.overland_flow import OverlandFlow
 from landlab.components.overland_flow._links import horizontal_link_ids
+from landlab.components.overland_flow.generate_overland_flow_deAlmeida import (
+    NoWaterError,
+)
 from landlab.core.errors import ValidationError
+from landlab.grid.nodestatus import NodeStatus
 
 (_SHAPE, _SPACING, _ORIGIN) = ((32, 240), (25, 25), (0.0, 0.0))
 _ARGS = (_SHAPE, _SPACING, _ORIGIN)
@@ -50,6 +55,62 @@ def test_dealmeida_invalid_parameter(kwds):
     grid.add_empty("surface_water__discharge", at="link")
     with pytest.raises(ValidationError):
         OverlandFlow(grid, **kwds)
+
+
+def test_update_active_nodes_cached():
+    grid = RasterModelGrid((4, 5))
+    grid.add_zeros("surface_water__depth", at="node")
+    grid.add_zeros("topographic__elevation", at="node")
+
+    overland_flow = OverlandFlow(grid, h_init=0.0)
+
+    active_nodes = overland_flow._update_active_nodes()
+    assert_equal(
+        active_nodes,
+        [
+            *[0, 1, 1, 1, 0],
+            *[1, 1, 1, 1, 1],
+            *[1, 1, 1, 1, 1],
+            *[0, 1, 1, 1, 0],
+        ],
+    )
+    assert overland_flow._update_active_nodes() is active_nodes
+
+
+def test_update_active_nodes_clear_cache():
+    grid = RasterModelGrid((4, 5))
+    grid.add_zeros("surface_water__depth", at="node")
+    grid.add_zeros("topographic__elevation", at="node")
+    grid.status_at_node[:] = NodeStatus.CORE
+
+    overland_flow = OverlandFlow(grid, h_init=0.0)
+
+    old_values = overland_flow._update_active_nodes()
+    new_values = overland_flow._update_active_nodes(clear_cache=True)
+    assert new_values is not old_values
+    assert np.all(new_values == old_values)
+
+
+def test_calc_time_step_no_water():
+    grid = RasterModelGrid((4, 5))
+    grid.add_zeros("surface_water__depth", at="node")
+    grid.add_zeros("topographic__elevation", at="node")
+
+    overland_flow = OverlandFlow(grid, h_init=0.0)
+    with pytest.raises(NoWaterError, match="no water on landscape"):
+        overland_flow.calc_time_step()
+
+    with pytest.raises(ValueError, match="no water on landscape and dt not provided"):
+        overland_flow.run_one_step(dt=None)
+
+    assert overland_flow.run_one_step(1.0) == 1.0
+
+    grid.status_at_node[:] = NodeStatus.CLOSED
+    grid.at_node["surface_water__depth"][:] = 1.0
+
+    overland_flow._update_active_nodes(clear_cache=True)
+    with pytest.raises(NoWaterError, match="no active links"):
+        overland_flow.calc_time_step()
 
 
 def test_deAlm_name(deAlm):
@@ -125,7 +186,7 @@ def test_deAlm_analytical():
             "surface_water__discharge"
         ][left_inactive_ids + 1]
         dt = deAlm.calc_time_step()
-        deAlm.overland_flow(dt)
+        assert deAlm.overland_flow(dt) == dt
         h_boundary = ((7.0 / 3.0) * (0.01**2) * (0.4**3) * time) ** (3.0 / 7.0)
         grid.at_node["surface_water__depth"][grid.nodes[1:-1, 1]] = h_boundary
         time += dt
@@ -158,7 +219,7 @@ def test_deAlm_analytical_imposed_dt_short():
             "surface_water__discharge"
         ][left_inactive_ids + 1]
         dt = 10.0
-        deAlm.overland_flow(dt)
+        assert deAlm.overland_flow(dt) == dt
         h_boundary = ((7.0 / 3.0) * (0.01**2) * (0.4**3) * time) ** (3.0 / 7.0)
         grid.at_node["surface_water__depth"][grid.nodes[1:-1, 1]] = h_boundary
         time += dt
@@ -191,7 +252,12 @@ def test_deAlm_analytical_imposed_dt_long():
             "surface_water__discharge"
         ][left_inactive_ids + 1]
         dt = 100.0
-        deAlm.run_one_step(dt)
+        elapsed = deAlm.run_one_step(dt)
+
+        assert elapsed == dt
+        assert not np.any(np.isnan(grid.at_node["surface_water__depth"]))
+        assert np.all(grid.at_node["surface_water__depth"] >= 0.0)
+
         h_boundary = ((7.0 / 3.0) * (0.01**2) * (0.4**3) * time) ** (3.0 / 7.0)
         grid.at_node["surface_water__depth"][grid.nodes[1:-1, 1]] = h_boundary
         time += dt
@@ -221,7 +287,7 @@ def test_mass_balance(slope):
     overland_flow = OverlandFlow(
         grid, mannings_n=0.01, h_init=1e-9, rainfall_intensity=0.001, steep_slopes=True
     )
-    overland_flow.run_one_step(900.0)
+    assert overland_flow.run_one_step(900.0) == 900.0
 
     expected = (900.0 * 0.001 + 1e-9) * len(grid.core_nodes)
     actual = grid.at_node["surface_water__depth"][grid.core_nodes].sum()
@@ -249,8 +315,8 @@ def test_deAlm_rainfall_array():
     r2 = 1e-6 * np.ones(100)
     deAlm2 = OverlandFlow(mg2, mannings_n=0.01, h_init=0.001, rainfall_intensity=r2)
 
-    deAlm1.run_one_step(100)
-    deAlm2.run_one_step(100)
+    assert deAlm1.run_one_step(100) == 100
+    assert deAlm2.run_one_step(100) == 100
     np.testing.assert_equal(deAlm1.h, deAlm2.h)
 
 
