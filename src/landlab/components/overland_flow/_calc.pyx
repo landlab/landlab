@@ -1,5 +1,9 @@
 cimport cython
 from cython.parallel cimport prange
+from libc.math cimport copysign
+from libc.math cimport fabs
+from libc.math cimport fmin
+from libc.math cimport sqrt
 from libc.stdint cimport int32_t
 from libc.stdint cimport int64_t
 from libc.stdint cimport uint8_t
@@ -66,6 +70,67 @@ def calc_bates_flow_height(
             h_at_node[tail] + z_at_node[tail],
             h_at_node[head] + z_at_node[head],
         ) - max(z_at_node[tail], z_at_node[head])
+
+    return (<object>out).base
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.nonecheck(False)
+def adjust_supercritical_discharge(
+    cython.floating [::1] q_at_link,
+    const cython.floating [::1] h_at_link,
+    *,
+    const double g,
+    const double froude,
+    const id_t [::1] where,
+    cython.floating [::1] out,
+):
+    """Reduce discharge at selected links to enforce supercritical-flow limits.
+
+    Clamp discharge values to satisfy the stability condition based on
+    the specified Froude number. For each link, discharge is limited to
+
+        abs(q) <= froude * h * sqrt(g * h)
+
+    which corresponds to maintaining a Froude number that does not exceed the
+    specified threshold.
+
+    Parameters
+    ----------
+    q_at_link : cython.floating[::1]
+        Discharge at each link.
+    h_at_link : cython.floating[::1]
+        Water depth at each link.
+    g : double
+        Gravitational acceleration (must be positive).
+    froude : double
+        Maximum allowed Froude number (must be non-negative). Values of
+        discharge that would imply a higher Froude number are reduced.
+    where : cython integral array
+        Array of link indices at which discharge should be adjusted.
+    out : cython.floating[::1]
+        Output array to receive adjusted values. `out` may be the same
+        array as `q_at_link`, in which case changes are made in-place.
+
+    Returns
+    -------
+    ndarray of float
+        The modified discharge values.
+    """
+    cdef long n_links = len(where)
+    cdef long i
+    cdef long link
+    cdef double factor = froude * sqrt(g)
+    cdef double q
+    cdef double h
+
+    for i in prange(n_links, nogil=True, schedule="static"):
+        link = where[i]
+        q = q_at_link[link]
+        h = h_at_link[link]
+
+        out[link] = copysign(fmin(fabs(q), factor * h * sqrt(h)), q)
 
     return (<object>out).base
 
