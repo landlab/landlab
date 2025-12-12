@@ -1,0 +1,2 @@
+Fixed a failing test for spacing_from_drainage_area related to a new
+version of *hypothesis*.

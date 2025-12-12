@@ -6,9 +6,9 @@ Plotting functions
 
 .. autosummary::
 
-    ~landlab.plot.imshow.imshow_grid
-    ~landlab.plot.imshow.imshow_grid_at_cell
-    ~landlab.plot.imshow.imshow_grid_at_node
+    ~imshow_grid
+    ~imshow_grid_at_cell
+    ~imshow_grid_at_node
 """
 from warnings import warn
 
@@ -529,7 +529,7 @@ def imshow_grid(grid, values, **kwds):
         )
 
     if isinstance(values, str):
-        values = grid.field_values(values_at, values)
+        values = grid.field_values(values, at=values_at)
 
     if values_at == "node":
         imshow_grid_at_node(grid, values, **kwds)

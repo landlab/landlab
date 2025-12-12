@@ -1,0 +1,3 @@
+Refactored the `set_up_neighbor_arrays` method in the `OverlandFlow` component
+to eliminate unnecessary class attributes that were only used locally within
+that method.

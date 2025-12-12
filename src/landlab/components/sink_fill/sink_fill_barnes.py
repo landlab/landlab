@@ -142,7 +142,7 @@ class SinkFillerBarnes(LakeMapperBarnes):
         self._supplied_surface = return_array_at_node(grid, surface).copy()
         # create the only new output field:
         self._sed_fill_depth = self._grid.add_zeros(
-            "node", "sediment_fill__depth", clobber=True
+            "sediment_fill__depth", at="node", clobber=True
         )
 
     def run_one_step(self):

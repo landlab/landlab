@@ -1,0 +1,2 @@
+Removed large SRTM data files from the tutorials, reducing the
+repository size by approximately 75MB.

@@ -366,8 +366,8 @@ class SpatialPrecipitationDistribution(Component):
         self._maxy = self._grid.node_y[open_nodes].max()
         self._widthx = self._maxx - self._minx
         self._widthy = self._maxy - self._miny
-        self._running_total_rainfall_this_year = self._grid.zeros("node")
-        self._running_total_rainfall_this_season = self._grid.zeros("node")
+        self._running_total_rainfall_this_year = self._grid.zeros(at="node")
+        self._running_total_rainfall_this_season = self._grid.zeros(at="node")
 
         self._open_area = self._grid.cell_area_at_node[open_nodes].sum()
         self._scaling_to_WG = self._open_area / 275710702.0
@@ -1023,7 +1023,7 @@ class SpatialPrecipitationDistribution(Component):
         # ^this property tracks the number of storms in the run that received
         # zero intensity (and thus didn't really exist)
         self._opennodes = self._grid.status_at_node != self._grid.BC_NODE_IS_CLOSED
-        self._total_rainfall_last_season = self._grid.zeros("node")
+        self._total_rainfall_last_season = self._grid.zeros(at="node")
 
         # safety check for init conds:
         if yield_storms:

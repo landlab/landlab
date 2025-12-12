@@ -1,0 +1,37 @@
+name: "Build a binary distribution"
+inputs:
+  cibw-only:
+    required: true
+  upload-name:
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Python 3.12
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.12
+
+    - name: Print build identifiers
+      shell: bash -l {0}
+      run: |
+        python -m pip install cibuildwheel
+        python -m cibuildwheel --only ${{ inputs.cibw-only }} --print-build-identifiers
+
+    - name: Install openmp
+      if: runner.os == 'macOS'
+      shell: bash -l {0}
+      run: |
+        curl -O https://mac.r-project.org/openmp/openmp-13.0.0-darwin21-Release.tar.gz
+        sudo tar fvxz openmp-13.0.0-darwin21-Release.tar.gz -C /
+
+    - name: Build wheels
+      uses: pypa/cibuildwheel@v3.2.1
+      with:
+        only: ${{ inputs.cibw-only }}
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.upload-name }}
+        path: ${{ github.workspace }}/wheelhouse/*.whl
+        overwrite: true

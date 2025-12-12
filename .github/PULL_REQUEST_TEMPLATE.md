@@ -1,48 +1,52 @@
-<!-- Hello! Thanks for submitting a PR. To help make things go a bit more
-     smoothly we would appreciate that you go through this template.
+# Pull Request Guidelines
+
+Thank you for contributing! Please follow these guidelines to help keep our
+codebase clean, consistent, and maintainable.
+
+## What Makes a Good Pull Request
+
+- **Small and focused**: Address one issue or feature per pull request. Avoid
+  bundling multiple unrelated changes.
+- **Clear purpose**: The pull request should explain *why* a change is needed,
+  not just *what* was changed.
+- **Draft first**: Open your pull request in **draft mode** so others can
+  follow progress and provide early feedback.
+- **Readable history**: Prefer a clean commit history. Consider squashing
+  or rebasing before final review.
+- **Well-tested and documented**: All code changes should be accompanied
+  by appropriate tests and updated documentation.
+
+---
+
+## Pull Request Checklist
+
+Please confirm the following before marking the pull request as "Ready for Review"
+(if any of the following items aren't relevant for your contribution please still
+tick them so we know you've gone through the checklist):
+
+- [ ] The PR is opened in **draft mode**
+- [ ] The PR addresses a single feature, fix, or issue
+- [ ] Code has been linted and is free of style issues (`nox -s lint`)
+- [ ] All tests pass locally (`pytest`, or `nox -s test`)
+- [ ] Documentation builds without errors (`nox -s docs-build`)
+- [ ] A [**news fragment**](https://landlab.csdms.io/development/contribution/#news-entries)
+      describing the change has been added
+- [ ] Relevant docstrings, examples, or changelog entries have been updated
+- [ ] Related issues or discussions are linked in the description (e.g., `Closes #1973`)
+
+---
+
+## Description
+
+<!--
+Provide a short summary of the change. Why is it needed? What does it do?
 -->
 
-### Description
+---
 
-<!-- Good things to put here include: reasoning for the change (please link
-     any relevant issues!), any noteworthy (or hacky) choices to be aware of,
-     or what the problem resolved here looked like ... we won't mind a ranty
-     story :)
--->
+## Related Issues
 
-### Checklist - did you ...
-
-<!-- If any of the following items aren't relevant for your contribution
-     please still tick them so we know you've gone through the checklist.
-
-    Tests are required for bugfixes and new features. Documentation changes
-    are necessary for formatting and most enhancement changes.
-
-    Ensure proper code formatting with black. You can do this by running
-    black from landlab's top-level folder.
-
-    Ensure landlab is lint-free by running flake8 at landlab's top-level
-    folder.
-
-    If you like, you can automate these tasks by installing pre-commit hooks.
-    This is done by running `pre-commit install` at landlab's top-level
-    folder.
--->
-
-- [ ] Add a [news fragment](https://landlab.readthedocs.io/en/master/development/contribution/index.html#news-entries) file entry if necessary?
-- [ ] Add / update tests if necessary?
-- [ ] Add new / update outdated documentation?
-- [ ] All tests have passed?
-- [ ] Formatted code with black?
-- [ ] Removed lint reported by flake8?
-- [ ] Sucessful documentation built? (if documentation added or modified)
-
-<!-- Thanks for your time and effort. If you have any feedback in regards
-     to your experience contributing here, please let us know!
-
-     Helpful links:
-
-      Developer guide: https://landlab.readthedocs.io/en/master/development
-      Ask a question or submit an issue: https://github.com/landlab/landlab/issues
-      Landlab Slack channel: https://landlab.slack.com
+<!--
+List any related issues, discussions, or pull requests.
+Use keywords like "Closes #1973" to automatically close issues when merged.
 -->

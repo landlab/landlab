@@ -48,9 +48,9 @@ class DepthDependentTaylorDiffuser(Component):
     >>> from landlab.components import ExponentialWeatherer
     >>> from landlab.components import DepthDependentTaylorDiffuser
     >>> mg = RasterModelGrid((5, 5))
-    >>> soilTh = mg.add_zeros("node", "soil__depth")
-    >>> z = mg.add_zeros("node", "topographic__elevation")
-    >>> BRz = mg.add_zeros("node", "bedrock__elevation")
+    >>> soilTh = mg.add_zeros("soil__depth", at="node")
+    >>> z = mg.add_zeros("topographic__elevation", at="node")
+    >>> BRz = mg.add_zeros("bedrock__elevation", at="node")
     >>> expweath = ExponentialWeatherer(mg)
     >>> DDdiff = DepthDependentTaylorDiffuser(mg)
     >>> expweath.calc_soil_prod_rate()
@@ -67,9 +67,9 @@ class DepthDependentTaylorDiffuser(Component):
     Now a more complicated example with a slope.
 
     >>> mg = RasterModelGrid((3, 5))
-    >>> soilTh = mg.add_zeros("node", "soil__depth")
-    >>> z = mg.add_zeros("node", "topographic__elevation")
-    >>> BRz = mg.add_zeros("node", "bedrock__elevation")
+    >>> soilTh = mg.add_zeros("soil__depth", at="node")
+    >>> z = mg.add_zeros("topographic__elevation", at="node")
+    >>> BRz = mg.add_zeros("bedrock__elevation", at="node")
     >>> z += mg.node_x.copy()
     >>> BRz += mg.node_x / 2.0
     >>> soilTh[:] = z - BRz
@@ -142,9 +142,9 @@ class DepthDependentTaylorDiffuser(Component):
     Next, lets do an example with dynamic timestepping.
 
     >>> mg = RasterModelGrid((3, 5))
-    >>> soilTh = mg.add_zeros("node", "soil__depth")
-    >>> z = mg.add_zeros("node", "topographic__elevation")
-    >>> BRz = mg.add_zeros("node", "bedrock__elevation")
+    >>> soilTh = mg.add_zeros("soil__depth", at="node")
+    >>> z = mg.add_zeros("topographic__elevation", at="node")
+    >>> BRz = mg.add_zeros("bedrock__elevation", at="node")
 
     We'll use a steep slope and very little soil.
 
@@ -171,9 +171,9 @@ class DepthDependentTaylorDiffuser(Component):
     Now, we'll re-build the grid and do the same example with dynamic timesteps.
 
     >>> mg = RasterModelGrid((3, 5))
-    >>> soilTh = mg.add_zeros("node", "soil__depth")
-    >>> z = mg.add_zeros("node", "topographic__elevation")
-    >>> BRz = mg.add_zeros("node", "bedrock__elevation")
+    >>> soilTh = mg.add_zeros("soil__depth", at="node")
+    >>> z = mg.add_zeros("topographic__elevation", at="node")
+    >>> BRz = mg.add_zeros("bedrock__elevation", at="node")
     >>> z += mg.node_x.copy() ** 2
     >>> BRz = z.copy() - 1.0
     >>> soilTh[:] = z - BRz
@@ -187,9 +187,9 @@ class DepthDependentTaylorDiffuser(Component):
     Now, we'll test that changing the transport decay depth behaves as expected.
 
     >>> mg = RasterModelGrid((3, 5))
-    >>> soilTh = mg.add_zeros("node", "soil__depth")
-    >>> z = mg.add_zeros("node", "topographic__elevation")
-    >>> BRz = mg.add_zeros("node", "bedrock__elevation")
+    >>> soilTh = mg.add_zeros("soil__depth", at="node")
+    >>> z = mg.add_zeros("topographic__elevation", at="node")
+    >>> BRz = mg.add_zeros("bedrock__elevation", at="node")
     >>> z += mg.node_x.copy() ** 0.5
     >>> BRz = z.copy() - 1.0
     >>> soilTh[:] = z - BRz
@@ -416,9 +416,9 @@ class DepthDependentTaylorDiffuser(Component):
                     )
                     raise RuntimeError(message)
             # Calculate De Max
-            De_max = self._K * (courant_slope_term)
+            de_max = self._K * self._soil_transport_decay_depth * courant_slope_term
             # Calculate longest stable timestep
-            self._dt_max = self._courant_factor * (self._shortest_link**2) / De_max
+            self._dt_max = self._courant_factor * self._shortest_link**2 / de_max
 
             # Test for the Courant condition and print warning if user intended
             # for it to be printed.

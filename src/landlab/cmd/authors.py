@@ -22,6 +22,7 @@ class AuthorsConfig(UserDict):
         "ignore": (),
         "author_format": "{name}",
         "credits_file": ".credits.toml",
+        "start_string": ".. credits-roll start-author-list",
     }
 
     def __init__(self, *args, **kwds):

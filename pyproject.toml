@@ -1,5 +1,5 @@
 [build-system]
-requires = ["cython~=3.0.0b3", "numpy", "setuptools", "wheel"]
+requires = ["cython", "numpy>=2.0,<3", "setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -28,13 +28,13 @@ classifiers = [
   "Operating System :: OS Independent",
   "Programming Language :: Cython",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: Implementation :: CPython",
   "Topic :: Scientific/Engineering :: Physics",
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
   "bmipy",
   "importlib-resources; python_version < '3.12'",
@@ -56,17 +56,16 @@ text = "MIT"
 
 [project.urls]
 homepage = "https://github.com/landlab"
-documentation = "https://landlab.readthedocs.io"
+documentation = "https://landlab.csdms.io"
 repository = "https://github.com/landlab"
-changelog = "https://github.com/landlab/landlab/blob/develop/CHANGES.rst"
+changelog = "https://github.com/landlab/landlab/blob/develop/CHANGES.md"
 
 [project.optional-dependencies]
 dev = ["nox"]
 testing = [
-  "coveralls",
+  "coverage",
   "hypothesis",
   "pytest",
-  "pytest-cov",
   "pytest-datadir",
   "pytest-xdist",
 ]
@@ -95,8 +94,11 @@ landlab = [
 where = ["src"]
 
 [tool.setuptools.dynamic]
-readme = {file = ["README.rst", "AUTHORS.rst"]}
 version = {attr = "landlab._version.__version__"}
+
+[tool.setuptools.dynamic.readme]
+file = ["README.md", "AUTHORS.md"]
+content-type = "text/markdown"
 
 [tool.pytest.ini_options]
 minversion = "6.0"
@@ -123,6 +125,7 @@ doctest_optionflags = [
 ]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "richdem: marks tests that use richdem (deselect with '-m \"not richdem\"')",
     "notebook: marks tests as notebook (deselect with '-m \"not notebook\"')"
 ]
 
@@ -135,29 +138,23 @@ profile = "black"
 ignore = [".nox", "build"]
 
 [tool.cibuildwheel]
-build = "cp310-* cp311-* cp312-*"
+build = "cp311-* cp312-* cp313-*"
 skip = "*-musllinux_* *-win32*"
 archs = "x86_64,aarch64,arm64,AMD64,x86"
-test-command = "python -c \"import landlab; print(landlab.__version__)\""
+test-command = [
+	"python -c \"import landlab; print(landlab.__version__)\"",
+	"python -c \"from landlab import RasterModelGrid; print(RasterModelGrid((3, 3)))\"",
+]
 
-[tool.cibuildwheel.macos]
-before-all = "brew install libomp"
-# before-all = "brew install llvm libomp"
+[tool.cibuildwheel.linux.environment]
+CPPFLAGS = "-fopenmp"
 
 [tool.cibuildwheel.macos.environment]
-LANDLAB_WITHOUT_OPENMP = "1"
-LDFLAGS = "-Wl,-rpath,/opt/homebrew/opt/libomp/lib -L/opt/homebrew/opt/libomp/lib -L/opt/homebrew/opt/llvm/lib/c++ -Wl,-rpath,/opt/homebrew/opt/llvm/lib/c++ -lomp"
-CPPFLAGS = "-Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include"
-CFLAGS = "-Wno-implicit-function-declaration -I/opt/homebrew/opt/libomp/include"
-CXXFLAGS = "-I/opt/homebrew/opt/libomp/include"
-# PATH = "/opt/homebrew/opt/llvm/bin:$PATH"
-
-[[tool.cibuildwheel.overrides]]
-select = "*x86_64*"
-environment = {"LANDLAB_WITHOUT_OPENMP"="1"}
-
-[tool.cibuildwheel.windows.environment]
-LANDLAB_WITHOUT_OPENMP = "1"
+MACOSX_DEPLOYMENT_TARGET = "12.0"
+CC = "clang"
+CXX = "clang++"
+# CPPFLAGS = "-Xclang -fopenmp"
+# LDFLAGS = "-lomp"
 
 [tool.cython-lint]
 max-line-length = 88
@@ -170,19 +167,27 @@ platforms = ["osx-arm64", "linux-64", "osx-64", "win-64"]
 [tool.towncrier]
 directory = "news"
 name = "landlab"
-filename = "CHANGES.rst"
+filename = "CHANGES.md"
 create_add_extension = false
 single_file = true
-underlines = "-`^"
-issue_format = "`#{issue} <https://github.com/landlab/landlab/issues/{issue}>`_"
-title_format = "{version} ({project_date})"
+underlines = [
+    "",
+    "",
+    "",
+]
+start_string = """
+<!-- towncrier release notes start -->
+"""
+template = "news/changelog_template.jinja"
+issue_format = "[#{issue}](https://github.com/landlab/landlab/issues/{issue})"
+title_format = "## {version} ({project_date})"
 type = [
-  {name="New Components", directory="component", showcontent=true},
-  {name="New Tutorial Notebooks", directory="notebook", showcontent=true},
-  {name="New Features", directory="feature", showcontent=true},
-  {name="Bug Fixes", directory="bugfix", showcontent=true},
-  {name="Documentation Enhancements", directory="docs", showcontent=true},
-  {name="Other Changes and Additions", directory="misc", showcontent=true},
+  {name="✨ New Components", directory="component", showcontent=true},
+  {name="📚 New Tutorial Notebooks", directory="notebook", showcontent=true},
+  {name="🍰 New Features", directory="feature", showcontent=true},
+  {name="🛠️ Bug Fixes", directory="bugfix", showcontent=true},
+  {name="📖 Documentation Enhancements", directory="docs", showcontent=true},
+  {name="🔩 Other Changes and Additions", directory="misc", showcontent=true},
 ]
 
 [tool.landlab.credits]
@@ -193,5 +198,6 @@ exclude = '''
   .*\[bot\]  # ignore all bots
 )
 '''
-authors_file = "AUTHORS.rst"
-author_format = "* `{name} <https://github.com/{github}>`_"
+authors_file = "AUTHORS.md"
+author_format = "- [{name}](https://github.com/{github})"
+start_string = "<!-- credits-roll start-author-list -->"

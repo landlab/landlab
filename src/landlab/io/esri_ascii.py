@@ -6,12 +6,12 @@ ESRI ASCII functions
 
 .. autosummary::
 
-    ~landlab.io.esri_ascii.dump
-    ~landlab.io.esri_ascii.lazy_load
-    ~landlab.io.esri_ascii.lazy_loads
-    ~landlab.io.esri_ascii.load
-    ~landlab.io.esri_ascii.loads
-    ~landlab.io.esri_ascii.parse
+    ~dump
+    ~lazy_load
+    ~lazy_loads
+    ~load
+    ~loads
+    ~parse
 """
 from __future__ import annotations
 
@@ -48,25 +48,28 @@ def dump(
     stream: TextIO | None = None,
     at: Literal["node", "patch", "corner", "cell"] = "node",
     name: str | None = None,
+    nodata_value: int | float = -9999,
 ) -> str | None:
     """Dump a grid field to ESRII ASCII format.
 
     Parameters
     ----------
-    grid :
+    grid : ModelGrid
         A Landlab grid.
-    stream :
+    stream : file-like, optional
         A ``file_like`` object to write to. If ``None``, return
         a string containing the serialized grid.
-    at :
+    at : str, optional
         Where the field to be written is located on the grid.
-    name :
+    name : str, optional
         The name of the field to be written. If ``None``, only the header
         information will be written.
+    nodata_value : float or int, optional
+        The value to indicate there is no-data at this point.
 
     Returns
     -------
-    :
+    str or None
         The grid field in ESRI ASCII format or ``None`` if a ``file_like``
         object was provided.
 
@@ -84,13 +87,13 @@ def dump(
     YLLCENTER 0.0
     NODATA_VALUE -9999
 
-    >>> print(esri_ascii.dump(grid, at="cell"))
+    >>> print(esri_ascii.dump(grid, at="cell", nodata_value=0))
     NROWS 1
     NCOLS 2
     CELLSIZE 2.0
     XLLCENTER 2.0
     YLLCENTER 2.0
-    NODATA_VALUE -9999
+    NODATA_VALUE 0
     """
     grid = _validate_grid(grid)
 
@@ -108,6 +111,7 @@ def dump(
         xllcenter=grid.xy_of_lower_left[0] - grid.dx * shift,
         yllcenter=grid.xy_of_lower_left[1] - grid.dx * shift,
         cellsize=grid.dx,
+        nodata_value=nodata_value,
     )
     lines = [str(header)]
 
@@ -578,18 +582,24 @@ def _get_lower_left_shift(at="node", ref="center"):
         The unit shift between the lower left of an ESRI ASCII field
         and a ``RasterModelGrid``.
     """
-    if at == "node" or (at == "patch" and ref == "corner"):
-        return 0.0
-    elif (
-        at == "corner"
-        or (at == "patch" and ref == "center")
-        or (at == "cell" and ref == "corner")
-    ):
-        return -0.5
-    elif at == "cell" and ref == "center":
-        return -1.0
+    if ref not in ("center", "corner"):
+        raise ValueError(
+            f"Unrecognized reference location ({ref!r} not one of 'center', 'corner')"
+        )
 
-    raise RuntimeError(f"unreachable code ({at!r}, {ref!r}")
+    if at == "node":
+        return 0.0 if ref == "center" else 0.5
+    if at == "patch":
+        return -0.5 if ref == "center" else 0.0
+    if at == "corner":
+        return -0.5 if ref == "center" else 0.0
+    if at == "cell":
+        return -1.0 if ref == "center" else -0.5
+
+    raise ValueError(
+        f"Unrecognized grid location ({at!r} not one of"
+        " 'cell', 'corner', 'node', 'patch')"
+    )
 
 
 class _Header:

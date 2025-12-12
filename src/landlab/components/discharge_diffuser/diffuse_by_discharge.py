@@ -134,10 +134,10 @@ class DischargeDiffuser(Component):
         ni = grid.number_of_node_rows
         nj = grid.number_of_node_columns
 
-        self._K = grid.zeros("node", dtype=float)
-        self._Knew = grid.zeros("node", dtype=float)
-        self._prevK = grid.zeros("node", dtype=float)
-        self._znew = grid.zeros("node", dtype=float)
+        self._K = grid.zeros(at="node", dtype=float)
+        self._Knew = grid.zeros(at="node", dtype=float)
+        self._prevK = grid.zeros(at="node", dtype=float)
+        self._znew = grid.zeros(at="node", dtype=float)
         # discharge across north, south, west, and east face of control volume
         self._Qn = np.zeros((ni, nj), dtype="float")
         self._Qs = np.zeros((ni, nj), dtype="float")

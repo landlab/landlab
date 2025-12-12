@@ -15,11 +15,11 @@ published February 2020 by the Journal of Open Source Software.
 
 ## Documentation and installation
 
-Landlab documentation is hosted on this [ReadTheDocs page](https://landlab.readthedocs.io/en/release),
+Landlab documentation is hosted on [csdms.io](https://landlab.csdms.io/),
 including instructions to install Landlab. SpeciesEvolver is installed with
 Landlab.
 
-SpeciesEvolver documentation is located [here](https://landlab.readthedocs.io/en/release/reference/components/species_evolution.html).
+SpeciesEvolver documentation is located [here](https://landlab.csdms.io/generated/api/landlab.components.species_evolution.html).
 
 ## SpeciesEvolver tutorial
 
@@ -28,7 +28,7 @@ through the following links:
 - [Launch the tutorial](https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/tutorials/species_evolution/Introduction_to_SpeciesEvolver.ipynb)
 as interactive notebook in your browser, with no need to install software,
 launched using Binder.
-- [A static version of the same tutorial](https://nbviewer.jupyter.org/github/landlab/landlab/blob/master/notebooks/tutorials/species_evolution/Introduction_to_SpeciesEvolver.ipynb)
+- [A static version of the same tutorial](https://landlab.csdms.io/tutorials/species_evolution/Introduction_to_SpeciesEvolver.html)
 - All Landlab tutorials can be launched from [this directory](https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/welcome.ipynb) using Binder.
 
 ## Get or give help

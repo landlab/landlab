@@ -5,6 +5,7 @@ Created on Fri Mar  3 10:39:32 2017
 @author: gtucker
 """
 import pytest
+from numpy.testing import assert_equal
 
 from landlab import RasterModelGrid
 from landlab.components import DepthDependentDiffuser
@@ -27,3 +28,27 @@ def test_raise_kwargs_error():
 
     with pytest.raises(TypeError):
         DDdiff.soilflux(2.0, bad_var=1)
+
+
+def test_handle_creep_coefficient():
+    mg = RasterModelGrid((3, 3))
+    mg.add_zeros("soil__depth", at="node")
+    mg.add_zeros("topographic__elevation", at="node")
+    mg.add_zeros("bedrock__elevation", at="node")
+    mg.add_zeros("soil_production__rate", at="node")
+
+    # linear_diffusivity is deprecated, but should still assign
+    # the correct value
+    dd = DepthDependentDiffuser(mg, linear_diffusivity=0.03)
+    assert_equal(dd._K, 0.03)
+
+    # if soil_transport_velocity and linear_diffusivity are both
+    # given, the latter should be ignored
+    dd = DepthDependentDiffuser(
+        mg, soil_transport_velocity=0.02, linear_diffusivity=0.03
+    )
+    assert_equal(dd._K, 0.02)
+
+    # if neither are given, the default should be used
+    dd = DepthDependentDiffuser(mg)
+    assert_equal(dd._K, 1.0)

@@ -10,13 +10,14 @@ src/landlab/components/flow_accum/cfuncs.pyx
 src/landlab/components/flow_director/cfuncs.pyx
 src/landlab/components/flow_router/ext/single_flow/priority_routing/_test_breach_c.pyx
 src/landlab/components/flow_router/ext/single_flow/priority_routing/breach.pyx
-src/landlab/components/overland_flow/_neighbors_at_link.pyx
+src/landlab/components/overland_flow/_calc.pyx
 src/landlab/components/priority_flood_flow_router/cfuncs.pyx
 src/landlab/components/space/ext/calc_qs.pyx
 src/landlab/components/space/ext/calc_sequential_ero_depo.pyx
 src/landlab/components/stream_power/cfuncs.pyx
 src/landlab/components/threshold_eroder/cfuncs.pyx
 src/landlab/data_record/_aggregators.pyx
+src/landlab/graph/_links_at_node.pyx
 src/landlab/graph/hex/ext/hex.pyx
 src/landlab/graph/hex/ext/perimeternodes.pyx
 src/landlab/graph/matrix/ext/at_patch.pyx
@@ -40,6 +41,7 @@ src/landlab/graph/voronoi/ext/delaunay.pyx
 src/landlab/graph/voronoi/ext/voronoi.pyx
 src/landlab/grid/ext/raster_divergence.pyx
 src/landlab/grid/ext/raster_gradient.pyx
+src/landlab/grid/ext/raster_mappers.pyx
 src/landlab/layers/ext/eventlayers.pyx
 src/landlab/utils/_matrix.pyx
 src/landlab/utils/ext/jaggedarray.pyx

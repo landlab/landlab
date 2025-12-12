@@ -120,6 +120,24 @@ cellsize {cellsize}
         esri_ascii.loads(contents.format(**header))
 
 
+@pytest.mark.parametrize("nodata_value", (0, 1, -999))
+def test_dump_with_nodata_value(nodata_value):
+    grid = RasterModelGrid((4, 3), xy_spacing=10.0, xy_of_lower_left=(1.0, 2.0))
+    actual = esri_ascii.dump(grid, nodata_value=nodata_value)
+
+    assert (
+        actual
+        == f"""\
+NROWS 4
+NCOLS 3
+CELLSIZE 10.0
+XLLCENTER 1.0
+YLLCENTER 2.0
+NODATA_VALUE {nodata_value}
+"""
+    )
+
+
 def test_dump_to_string_no_data():
     grid = RasterModelGrid((4, 3), xy_spacing=10.0, xy_of_lower_left=(1.0, 2.0))
     actual = esri_ascii.dump(grid)
@@ -272,11 +290,11 @@ cellsize 10.
 @pytest.mark.parametrize(
     "at,lower_left",
     (
-        ("node", "xllcorner 1.0\nyllcorner 2.0"),
+        ("node", "xllcorner -4.0\nyllcorner -3.0"),
         ("node", "xllcenter 1.0\nyllcenter 2.0"),
         ("patch", "xllcorner 1.0\nyllcorner 2.0"),
         ("patch", "xllcenter 6.0\nyllcenter 7.0"),
-        ("corner", "xllcorner 6.0\nyllcorner 7.0"),
+        ("corner", "xllcorner 1.0\nyllcorner 2.0"),
         ("corner", "xllcenter 6.0\nyllcenter 7.0"),
         ("cell", "xllcorner 6.0\nyllcorner 7.0"),
         ("cell", "xllcenter 11.0\nyllcenter 12.0"),
@@ -290,6 +308,35 @@ cellsize 10.0
 """
     grid = esri_ascii.loads(contents + lower_left, at=at)
     assert grid.xy_of_lower_left == (1.0, 2.0)
+
+
+@pytest.mark.parametrize("ref", ("center", "corner"))
+@pytest.mark.parametrize("at", ("node", "patch", "corner", "cell"))
+def test_file_round_trip(ref, at):
+    cellsize = 4.0
+    grid = esri_ascii.loads(
+        f"""\
+NROWS 3
+NCOLS 4
+CELLSIZE {cellsize}
+XLL{ref.upper()} 5.0
+YLL{ref.upper()} -4.0
+NODATA_VALUE -9999
+""",
+        at=at,
+    )
+    assert grid.number_of_elements(at) == 12
+    actual = esri_ascii.dump(grid, at=at)
+
+    expected = f"""\
+NROWS 3
+NCOLS 4
+CELLSIZE {cellsize}
+XLLCENTER {5.0 if ref == "center" else 5.0 + cellsize / 2.0}
+YLLCENTER {-4.0 if ref == "center" else -4.0 + cellsize / 2.0}
+NODATA_VALUE -9999
+"""
+    assert actual == expected
 
 
 @pytest.mark.parametrize("at", ("node", "patch", "corner", "cell"))
@@ -313,3 +360,13 @@ def test_dump_unequal_spacing():
 
     with pytest.raises(esri_ascii.EsriAsciiError):
         esri_ascii.dump(grid)
+
+
+def test_reference_shift_with_bad_args():
+    with pytest.raises(ValueError) as exc_info:
+        esri_ascii._get_lower_left_shift(at="foo", ref="center")
+    assert str(exc_info.value).startswith("Unrecognized grid location")
+
+    with pytest.raises(ValueError) as exc_info:
+        esri_ascii._get_lower_left_shift(at="node", ref="foo")
+    assert str(exc_info.value).startswith("Unrecognized reference")

@@ -430,7 +430,7 @@ class CellLabCTSModel:
             last_type = this_type
 
         # Create priority queue for events and next_update array for links
-        self.next_update = self.grid.add_zeros("link", "next_update_time")
+        self.next_update = self.grid.add_zeros("next_update_time", at="link")
         self.priority_queue = PriorityQueue()
         self.next_trn_id = -np.ones(self.grid.number_of_links, dtype=int)
 

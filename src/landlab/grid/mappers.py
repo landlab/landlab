@@ -6,25 +6,25 @@ Grid mapping functions
 
 .. autosummary::
 
-    ~landlab.grid.mappers.map_link_head_node_to_link
-    ~landlab.grid.mappers.map_link_tail_node_to_link
-    ~landlab.grid.mappers.map_min_of_link_nodes_to_link
-    ~landlab.grid.mappers.map_max_of_link_nodes_to_link
-    ~landlab.grid.mappers.map_mean_of_link_nodes_to_link
-    ~landlab.grid.mappers.map_value_at_min_node_to_link
-    ~landlab.grid.mappers.map_value_at_max_node_to_link
-    ~landlab.grid.mappers.map_node_to_cell
-    ~landlab.grid.mappers.map_min_of_node_links_to_node
-    ~landlab.grid.mappers.map_max_of_node_links_to_node
-    ~landlab.grid.mappers.map_upwind_node_link_max_to_node
-    ~landlab.grid.mappers.map_downwind_node_link_max_to_node
-    ~landlab.grid.mappers.map_upwind_node_link_mean_to_node
-    ~landlab.grid.mappers.map_downwind_node_link_mean_to_node
-    ~landlab.grid.mappers.map_value_at_upwind_node_link_max_to_node
-    ~landlab.grid.mappers.map_value_at_downwind_node_link_max_to_node
-    ~landlab.grid.mappers.map_link_vector_components_to_node
-    ~landlab.grid.mappers.map_node_to_link_linear_upwind
-    ~landlab.grid.mappers.map_node_to_link_lax_wendroff
+    ~map_link_head_node_to_link
+    ~map_link_tail_node_to_link
+    ~map_min_of_link_nodes_to_link
+    ~map_max_of_link_nodes_to_link
+    ~map_mean_of_link_nodes_to_link
+    ~map_value_at_min_node_to_link
+    ~map_value_at_max_node_to_link
+    ~map_node_to_cell
+    ~map_min_of_node_links_to_node
+    ~map_max_of_node_links_to_node
+    ~map_upwind_node_link_max_to_node
+    ~map_downwind_node_link_max_to_node
+    ~map_upwind_node_link_mean_to_node
+    ~map_downwind_node_link_mean_to_node
+    ~map_value_at_upwind_node_link_max_to_node
+    ~map_value_at_downwind_node_link_max_to_node
+    ~map_link_vector_components_to_node
+    ~map_node_to_link_linear_upwind
+    ~map_node_to_link_lax_wendroff
 
 Each link has a *tail* and *head* node. The *tail* nodes are located at the
 start of a link, while the head nodes are located at end of a link.

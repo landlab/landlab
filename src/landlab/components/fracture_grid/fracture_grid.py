@@ -297,7 +297,7 @@ class FractureGridGenerator(Component):
             raise TypeError("grid must be RasterModelGrid or HexModelGrid")
 
         if "fracture_at_node" not in grid.at_node:
-            grid.add_zeros("node", "fracture_at_node", dtype=np.int8)
+            grid.add_zeros("fracture_at_node", at="node", dtype=np.int8)
 
         np.random.seed(seed)
 

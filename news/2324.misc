@@ -1,0 +1,3 @@
+Removed the `_dt` internal attribute from the `OverlandFlow` component to
+simplify the time-stepping logic. This change also removed the getter and
+setter for the `dt` property.

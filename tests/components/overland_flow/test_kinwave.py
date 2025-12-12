@@ -4,8 +4,22 @@ Unit tests for landlab.components.overland_flow.KinwaveOverlandFlowModel
 last updated: 3/14/16
 """
 
+import pytest
+
+from landlab import RasterModelGrid
+from landlab.components.overland_flow import KinwaveOverlandFlowModel
+
 (_SHAPE, _SPACING, _ORIGIN) = ((10, 10), (25, 25), (0.0, 0.0))
 _ARGS = (_SHAPE, _SPACING, _ORIGIN)
+
+
+@pytest.fixture
+def kin_wave_of():
+    grid = RasterModelGrid((10, 10), xy_spacing=0.5)
+    grid.add_zeros("topographic__elevation", at="node", dtype=float)
+    grid.add_zeros("topographic__gradient", at="link")
+
+    return KinwaveOverlandFlowModel(grid)
 
 
 def test_KinWaveOF_name(kin_wave_of):

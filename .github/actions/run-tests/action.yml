@@ -1,0 +1,32 @@
+name: "Run tests"
+inputs:
+  python-version:
+    required: true
+  nox-session:
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v4
+    - name: Python ${{ inputs.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - uses: actions/download-artifact@v4
+      name: Download build artifacts
+      with:
+        pattern: "build-*"
+        merge-multiple: true
+        path: ${{ github.workspace }}/dist
+
+    - name: Test
+      shell: bash -l {0}
+      run: |
+        pip install nox
+        nox --verbose -s ${{ inputs.nox-session }} \
+            --force-pythons=${{ inputs.python-version }} \
+            -- dist/
+
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v5

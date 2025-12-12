@@ -1,0 +1,54 @@
+name: Quick test
+
+on:
+  - push
+  - pull_request
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    # Run on external PRs, but not on internal PRs, to avoid duplicate runs
+    if: |
+      github.event_name == 'push' ||
+      github.event.pull_request.head.repo.full_name != github.repository
+
+    runs-on: "macos-14"
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/build-bdist/
+        with:
+          cibw-only: "cp313-macosx_arm64"
+          upload-name: build-wheels-cp313-macosx_arm64
+
+  run-tests:
+    needs: build
+    runs-on: "macos-14"
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/run-tests/
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          HYPOTHESIS_PROFILE: "ci"
+          MPLBACKEND: "Agg"
+          PYTEST_ADDOPTS: "-m 'not richdem'"
+        with:
+          python-version: "3.13"
+          nox-session: "test"
+
+  run-notebooks:
+    needs: build
+    runs-on: "macos-14"
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/run-notebooks/
+        env:
+          OPENTOPOGRAPHY_API_KEY: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          MPLBACKEND: "module://matplotlib_inline.backend_inline"
+          PYTEST_ADDOPTS: "--overwrite -m 'not richdem'"
+        with:
+          python-version: "3.13"
+          nox-session: "test-notebooks"
