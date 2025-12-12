@@ -1,0 +1,2 @@
+Refactored the building of the ``links_at_node`` matrix to go from O(n**2) to O(n)
+complexity.
