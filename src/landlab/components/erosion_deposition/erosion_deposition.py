@@ -367,10 +367,11 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
                 omega, self.sp_crit, out=np.zeros_like(omega), where=self.sp_crit != 0
             )
 
-            self._erosion_term = omega - self.sp_crit * (1.0 - np.exp(-omega_over_sp_crit))
+            self._erosion_term = omega - self.sp_crit * (
+                1.0 - np.exp(-omega_over_sp_crit)
+            )
         else:
             self._erosion_term = omega - self.sp_crit
-
 
     def _calc_qs_in_and_depo_rate(self):
         self._calc_hydrology()
