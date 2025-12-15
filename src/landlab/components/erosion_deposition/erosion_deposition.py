@@ -262,6 +262,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         F_f=0.0,
         discharge_field="surface_water__discharge",
         solver="basic",
+        smooth_threshold=True,
         dt_min=DEFAULT_MINIMUM_TIME_STEP,
     ):
         """Initialize the ErosionDeposition model.
@@ -297,6 +298,10 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             2. "adaptive": adaptive time-step solver that estimates a
                stable step size based on the shortest time to "flattening"
                among all upstream-downstream node pairs.
+        smooth_threshold : bool, optional
+            When True, smooths stream power threshold by subtracting self.sp_crit
+            * (1.0 - np.exp(-omega_over_sp_crit)) for the erosion calculation.
+            When False, it subtracts a constant threshold, sp_crit.
         """
         if solver not in {"basic", "adaptive"}:
             raise ValueError(f"unknown solver ({solver} not one of 'basic', 'adaptive'")
@@ -334,6 +339,9 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             self.run_one_step = self.run_with_adaptive_time_step_solver
             self._time_to_flat = np.zeros(grid.number_of_nodes)
 
+        # set threshold smoother
+        self.smooth_threshold = smooth_threshold
+
     @property
     def K(self):
         """Erodibility of substrate (units depend on m_sp)."""
@@ -352,12 +360,18 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
 
     def _calc_erosion_rates(self):
         """Calculate erosion rates."""
-        omega = self.K * self._Q_to_the_m * np.power(self._slope, self._n_sp)
-        omega_over_sp_crit = np.divide(
-            omega, self.sp_crit, out=np.zeros_like(omega), where=self.sp_crit != 0
-        )
 
-        self._erosion_term = omega - self.sp_crit * (1.0 - np.exp(-omega_over_sp_crit))
+        omega = self.K * self._Q_to_the_m * np.power(self._slope, self._n_sp)
+        if self.smooth_threshold:
+            omega_over_sp_crit = np.divide(
+                omega, self.sp_crit, out=np.zeros_like(omega), where=self.sp_crit != 0
+            )
+
+            self._erosion_term = omega - self.sp_crit * (
+                1.0 - np.exp(-omega_over_sp_crit)
+            )
+        else:
+            self._erosion_term = omega - self.sp_crit
 
     def _calc_qs_in_and_depo_rate(self):
         self._calc_hydrology()
