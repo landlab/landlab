@@ -228,9 +228,9 @@ class SharedStreamPower(ErosionDeposition):
                stable step size based on the shortest time to "flattening"
                among all upstream-downstream node pairs.
         smooth_threshold : bool, optional
-            When True, smooths stream power threshold by applying self.sp_crit
-            * (1.0 - np.exp(-omega_over_sp_crit)). When False, uses constant
-            threshold, sp_crit.
+            When True, the erosion term is calculated as
+            ``omega - self.sp_crit * (1.0 - np.exp(-omega_over_sp_crit))``.
+            When False, it is calculated as ``omega - self.sp_crit``.
         """
         self._discharge_field = discharge_field
         self._runoff_rate = runoff_rate
