@@ -1,0 +1,2 @@
+Added the *cython* function, ``calc_discharge_at_links``, to the overland flow
+component to speed up discharge calculations.
