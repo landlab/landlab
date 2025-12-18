@@ -201,12 +201,13 @@ def calc_discharge_at_links(
     cdef double h
     cdef double g_times_dt = g * dt
     cdef double seven_thirds = 7.0 / 3.0
+    cdef double h_min = 1e-6
 
     for i in prange(n_links, nogil=True, schedule="static"):
         link = where[i]
         h = h_at_link[link]
 
-        if h > 0.0:
+        if h > h_min:
             mannings = mannings_at_link[link]
             h_to_seven_thirds = pow(h, seven_thirds)
 
@@ -219,8 +220,9 @@ def calc_discharge_at_links(
                 + g_times_dt * mannings * mannings * fabs(q_at_link[link])
                 / h_to_seven_thirds
             )
-
             out[link] = numerator / denominator
+        elif h > 0.0:
+            out[link] = 0.0
 
     return (<object>out).base
 
