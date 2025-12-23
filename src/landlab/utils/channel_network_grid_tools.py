@@ -1,9 +1,11 @@
+import warnings
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy.spatial.distance import cdist
-import matplotlib.pyplot as plt
+
 from landlab.components.flow_director.flow_director_steepest import FlowDirectorSteepest
-import warnings
 
 
 def _dist_func(x0, x1, y0, y1):
