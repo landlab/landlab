@@ -221,6 +221,18 @@ class TestMapNmg1LinksToNmg2Links:
         v_e = np.array([[1], [0], [0], [1], [2], [2], [2]])
         check_vals(v, v_e)
 
+    def test_map_nmg1_links_to_nmg2_links_5(self, nmgrid_c, nmgrid_f):
+        """map coarse grid to fine grid, but set number_of_points low to purposely
+        cause function to fail test. When only a few points are used to estimate
+        the mean distance between links, numerous links appear to be the same
+        distance from each other"""
+        link_mapper = gt.map_nmg1_links_to_nmg2_links(
+            nmgrid_f, nmgrid_c, number_of_points=3
+        )
+        v = pd.DataFrame.from_dict(link_mapper, orient="index").values
+        v_e = np.array([[0], [0], [0], [1], [2], [2], [1]])
+        check_vals(v, v_e)
+
 
 class TestCreateDfOfLinkPoints:
 
