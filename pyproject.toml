@@ -117,7 +117,6 @@ addopts = """
   --ignore-glob=*/lithology_and_litholayers.ipynb
   --ignore-glob=*/nst_scaling_profiling.ipynb
   --ignore-glob=*/test_networkcreator_otherDEMs.ipynb
-  --ignore-glob=*/run_network_generator_OpenTopoDEM.ipynb
 """
 doctest_optionflags = [
   "NORMALIZE_WHITESPACE",
