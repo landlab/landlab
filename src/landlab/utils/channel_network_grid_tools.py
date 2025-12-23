@@ -1,8 +1,9 @@
 import numpy as np
 import pandas as pd
 from scipy.spatial.distance import cdist
-
+import matplotlib.pyplot as plt
 from landlab.components.flow_director.flow_director_steepest import FlowDirectorSteepest
+import warnings
 
 
 def _dist_func(x0, x1, y0, y1):
@@ -73,6 +74,39 @@ def get_link_nodes(nmgrid):
     ).astype(int, copy=False)
 
 
+def plot_nmgrids(nmgrid_1, nmgrid_2):
+    """show the links and link ids of two network model grids in one plot"""
+
+    def plot_nmgrid(nmgrid, line_color, alpha, fontsize, label):
+        xnode = nmgrid.x_of_node
+        xlink = nmgrid.midpoint_of_link[:, 0]
+        ynode = nmgrid.y_of_node
+        ylink = nmgrid.midpoint_of_link[:, 1]
+        for link, val in enumerate(nmgrid.nodes_at_link):
+            xv = xnode[val]
+            yv = ynode[val]
+            if link == 0:
+                plt.plot(xv, yv, color=line_color, alpha=alpha, label=label)
+            else:
+                plt.plot(xv, yv, color=line_color, alpha=alpha, label="_nolegend_")
+            plt.text(
+                xlink[link],
+                ylink[link],
+                str(link),
+                size=fontsize,
+                color=line_color,
+                alpha=alpha,
+            )
+
+    plt.figure(figsize=(5, 5))
+    plot_nmgrid(nmgrid_1, line_color="red", alpha=1, fontsize=12, label="nmgrid_1")
+    plot_nmgrid(nmgrid_2, line_color="green", alpha=0.37, fontsize=20, label="nmgrid_2")
+    plt.xlabel("x")
+    plt.ylabel("y")
+    plt.legend()
+    plt.show()
+
+
 def create_df_of_link_points(nmgrid, link_nodes, number_of_points):
     """convert the network model grid to a point representation, with each link
     of the grid represented by a series of number_of_points points. Each point
@@ -115,13 +149,14 @@ def create_df_of_link_points(nmgrid, link_nodes, number_of_points):
     return pd.DataFrame(data=zip(link_, X_, Y_), columns=["linkID", "X", "Y"])
 
 
-def map_nmg1_links_to_nmg2_links(nmgrid_1, nmgrid_2, number_of_points=11):
+def map_nmg1_links_to_nmg2_links(
+    nmgrid_1, nmgrid_2, number_of_points=11, plot_grids=False
+):
     """given two slightly different network model grids of the same channel network,
-    map links from one network model grid (nmgrid_1) to the closest links of the
-    other network model grid (nmgrid_2). If two or more links of nmgrid_2 are equally
-    close to a link of nmgrid_1, the link with the largest drainage area is mapped
-    to the nmgrid_1 link.
-
+    map each link from one network model grid (nmgrid_1) to the closest (based on
+    the mean distance between links) link of the other network model grid (nmgrid_2).
+    If two or more links of nmgrid_2 are equally close to a link of nmgrid_1, the
+    link with the largest drainage area is mapped to the nmgrid_1 link
 
     Parameters
     ----------
@@ -139,7 +174,15 @@ def map_nmg1_links_to_nmg2_links(nmgrid_1, nmgrid_2, number_of_points=11):
     link_mapper : dict
         Keys are the id of all links in nmgrid_1. Values are the link IDs of nmgrid_2
         that are mapped to each nmgrid_1 link.
+
+
+    WARNING: In some situations this function may not map as expected. Set plot_grids
+    to True and inspect results
     """
+
+    warnings.warn(
+        "In some situations this function may not map as expected. Set plot_grids to True and inspect results"
+    )
 
     def distance_between_links(row, XY):
         return _dist_func(
@@ -193,5 +236,8 @@ def map_nmg1_links_to_nmg2_links(nmgrid_1, nmgrid_2, number_of_points=11):
             DAs_ = nmgrid_2.at_link["drainage_area"][links_with_same_count]
             linkID_2 = links_with_same_count[DAs_ == DAs_.max()][0]  # to remove bracket
         link_mapper[linkID_1] = linkID_2
+
+    if plot_grids:
+        plot_nmgrids(nmgrid_1, nmgrid_2)
 
     return link_mapper
