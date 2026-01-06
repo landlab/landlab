@@ -801,7 +801,6 @@ class ExtendedGravelBedrockEroder(Component):
     def _setup_length_of_flow_link(self):
         """Set up a float or array containing length of the flow link from
         each node, which is needed for the abrasion rate calculations.
-
         Note: if raster, assumes grid.dx == grid.dy
 
         """
