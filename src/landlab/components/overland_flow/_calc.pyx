@@ -1,5 +1,6 @@
 cimport cython
 from cython.parallel cimport prange
+from libc.math cimport cbrt
 from libc.math cimport copysign
 from libc.math cimport fabs
 from libc.math cimport fmin
@@ -131,6 +132,103 @@ def adjust_supercritical_discharge(
         h = h_at_link[link]
 
         out[link] = copysign(fmin(fabs(q), factor * h * sqrt(h)), q)
+
+    return (<object>out).base
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.nonecheck(False)
+def calc_discharge_at_links(
+    const cython.floating [::1] q_at_link,
+    const cython.floating [::1] q_mean_at_link,
+    const cython.floating [::1] h_at_link,
+    const cython.floating [::1] water_slope_at_link,
+    const cython.floating [::1] mannings_at_link,
+    *,
+    const double g,
+    const double dt,
+    const id_t [::1] where,
+    cython.floating [::1] out,
+):
+    """Calculate discharge values at links.
+
+    For each link index in ``where``, the discharge is computed using::
+
+        q_new = (
+            q_mean - g * dt * h * slope
+        ) / (
+            1 + g * dt * mannings**2 * abs(q) / h**(7 / 3)
+        )
+
+    Note that this formula is only applied when ``h > 0.0``. For negative or zero
+    flow depths, the ``out`` array is unmodified. This is Equation 23 [1]_.
+
+    Parameters
+    ----------
+    q_at_link : cython.floating[::1]
+        Current discharge values at links.
+    q_mean_at_link : cython.floating[::1]
+        Averaged discharge values.
+    h_at_link : cython.floating[::1]
+        Water depth at each link.
+    water_slope_at_link : cython.floating[::1]
+        Local water surface slope at each link.
+    mannings_at_link : cython.floating[::1]
+        Manning roughness coefficient.
+    g : double
+        Gravitational acceleration.
+    dt : double
+        Model timestep.
+    where : cython integral array
+        Indices of links to update.
+    out : cython.floating[::1]
+        Output array where results are written. Can be the same array as
+        ``q_at_link`` for in-place modification.
+
+    Returns
+    -------
+    ndarray
+        Array of updated discharge values.
+
+    References
+    ----------
+    .. [1] De Almeida, Gustavo AM, et al. "Improving the stability
+       of a simple formulation of the shallow water equations for 2‐D
+       flood modeling." Water Resources Research 48.5 (2012).
+       https://doi.org/10.1029/2011WR011570
+    """
+    cdef Py_ssize_t n_links = where.shape[0]
+    cdef Py_ssize_t link
+    cdef Py_ssize_t i
+    cdef double h_to_seven_thirds
+    cdef double numerator
+    cdef double denominator
+    cdef double mannings
+    cdef double h
+    cdef double g_times_dt = g * dt
+    cdef double h_min = 1e-6
+
+    for i in prange(n_links, nogil=True, schedule="static"):
+        link = where[i]
+        h = h_at_link[link]
+
+        if h > h_min:
+            mannings = mannings_at_link[link]
+            h_to_seven_thirds = h * h * cbrt(h)
+
+            numerator = (
+                q_mean_at_link[link] - g_times_dt * h * water_slope_at_link[link]
+            )
+
+            denominator = (
+                1.0
+                + g_times_dt * mannings * mannings * fabs(q_at_link[link])
+                / h_to_seven_thirds
+            )
+            out[link] = numerator / denominator
+        elif h > 0.0:
+            out[link] = 0.0
 
     return (<object>out).base
 
