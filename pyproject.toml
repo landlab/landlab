@@ -9,6 +9,8 @@ authors = [
   {email = "mcflugen@gmail.com"},
   {name = "The landlab team"}
 ]
+license = "MIT"
+license-files = ["LICENSE.md"]
 maintainers = [
   {email = "mcflugen@gmail.com"},
   {name = "The landlab team"}
@@ -50,9 +52,6 @@ dependencies = [
   "xarray >= 0.16",
 ]
 dynamic = ["readme", "version"]
-
-[project.license]
-text = "MIT"
 
 [project.urls]
 homepage = "https://github.com/landlab"
