@@ -9,6 +9,8 @@ authors = [
   {email = "mcflugen@gmail.com"},
   {name = "The landlab team"}
 ]
+license = "MIT"
+license-files = ["LICENSE.md"]
 maintainers = [
   {email = "mcflugen@gmail.com"},
   {name = "The landlab team"}
@@ -24,7 +26,6 @@ keywords = [
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Science/Research",
-  "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
   "Programming Language :: Cython",
   "Programming Language :: Python :: 3",
@@ -51,9 +52,6 @@ dependencies = [
   "xarray >= 0.16",
 ]
 dynamic = ["readme", "version"]
-
-[project.license]
-text = "MIT"
 
 [project.urls]
 homepage = "https://github.com/landlab"
