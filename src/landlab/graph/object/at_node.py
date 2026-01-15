@@ -22,7 +22,7 @@ def get_links_at_node(graph, sort=False):
     tuple of ndarray
         Tuple of *links_at_node* and *link_dirs_at_node*.
     """
-    from landlab.graph.object.ext.at_node import get_links_at_node
+    from landlab.graph._links_at_node import _get_links_at_node
 
     node_count = np.bincount(graph.nodes_at_link.flat)
     number_of_nodes = graph.number_of_nodes
@@ -32,7 +32,7 @@ def get_links_at_node(graph, sort=False):
     link_dirs_at_node = np.full((number_of_nodes, max_node_count), 0, dtype=np.int8)
     links_at_node = np.full((number_of_nodes, max_node_count), -1, dtype=int)
 
-    get_links_at_node(graph.nodes_at_link, links_at_node, link_dirs_at_node)
+    _get_links_at_node(graph.nodes_at_link, links_at_node, link_dirs_at_node)
 
     if sort:
         sort_links_at_node_by_angle(

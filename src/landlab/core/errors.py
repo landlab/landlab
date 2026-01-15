@@ -32,3 +32,9 @@ class ParameterValueError(Error):
 
     def __str__(self):
         return f"{self._key}: {self._val} is not of type {self._type}"
+
+
+class ValidationError(Error):
+    """Error to indicate that a validation has failed."""
+
+    pass

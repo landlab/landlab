@@ -7,10 +7,19 @@ last updated: 3/14/16
 import numpy as np
 import pytest
 
+from landlab import RasterModelGrid
 from landlab.components.overland_flow import OverlandFlowBates
 
 (_SHAPE, _SPACING, _ORIGIN) = ((32, 240), (25, 25), (0.0, 0.0))
 _ARGS = (_SHAPE, _SPACING, _ORIGIN)
+
+
+@pytest.fixture
+def bates():
+    grid = RasterModelGrid((32, 240), xy_spacing=25)
+    grid.add_zeros("surface_water__depth", at="node")
+    grid.add_zeros("topographic__elevation", at="node")
+    return OverlandFlowBates(grid, mannings_n=0.01, h_init=0.001)
 
 
 def test_Bates_name(bates):

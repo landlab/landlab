@@ -10,6 +10,10 @@ Baran, Z. J., & Cardenas, B. T. (2025). **Modeling Lake Bonneville paleoshorelin
 
 Litwin, D. G., Malatesta, L. C., & Sklar, L. S. (2025). **Hillslope diffusion and channel steepness in landscape evolution models.** *Earth Surface Dynamics,* 13(2), 277-293.
 
+Monsalve, A. D., Anderson, S. R., Gasparini, N. M., and Yager, E. M. (2025) **RiverBedDynamics v1.0: a Landlab component for computing two-dimensional sediment transport and river bed evolution,** *Geosci. Model Dev.,* 18, 3427–3451, [https://doi.org/10.5194/gmd-18-3427-2025](https://doi.org/10.5194/gmd-18-3427-2025).
+
+Monsalve A., Bernal, S., and Link, O., (2025). **RiverFlowDynamics v1.0: A Landlab component for computing two-dimensional river flow dynamics.** *Journal of Open Source Software,* 10(110), 7823, [https://doi.org/10.21105/joss.07823](https://doi.org/10.21105/joss.07823).
+
 Pierce, E., Overeem, I., & Jouvet, G. (2024). **Modeling sediment fluxes from debris‐rich basal ice layers.** *Journal of Geophysical Research: Earth Surface,* 129(10), e2024JF007665.
 
 Rosier, I., Van Orshoven, J., Somers, B., & Diels, J. (2025). **Dealing with sub-pixel landscape elements in distributed rainfall-runoff modelling in agricultural catchments.** *International Soil and Water Conservation Research.*
@@ -17,6 +21,8 @@ Rosier, I., Van Orshoven, J., Somers, B., & Diels, J. (2025). **Dealing with sub
 Shmilovitz, Y., Rossi, M. W., & Tucker, G. E. (2025). **Multi‐century erosion and landscape evolution of ephemeral catchments in response to sub‐daily rainfall distribution changes.** *Geophysical Research Letters,* 52(5), e2024GL113179.
 
 Steckel, A. V., Tucker, G. E., Rossi, M., & Hynek, B. (2025). **Landscape evolution models of incision on Mars: Implications for the ancient climate.** *Journal of Geophysical Research: Planets,* 130(4), e2024JE008637.
+
+Thompson Jobe, J. A., & Reitman, N. G. (2025). **Timescales of surface faulting preservation in low-strain intraplate regions from landscape evolution modeling and the geomorphic and historical record.** *Journal of Geophysical Research: Solid Earth,* 130, e2024JB029966, [https://doi.org/10.1029/2024JB029966](https://doi.org/10.1029/2024JB029966).
 
 Wolpert, J. A., & Schoenbohm, L. M. (2025). **Channel steepness biases and nonsteady erosion in landscapes evolving under cyclical climate.** *Geophysical Research Letters,* 52(8), e2024GL112229.
 
@@ -34,7 +40,7 @@ Chen, H., Wang, X., Lu, H., & Van Balen, R. (2024). **The impacts of climate cha
 
 Chrapkiewicz, K., Lipp, A. G., Barron, L. P., Barnes, R., & Roberts, G. G. (2024). **Apportioning sources of chemicals of emerging concern along an urban river with inverse modelling.** *Science of The Total Environment,* 933, 172827.
 
-Gan, T., Tucker, G. E., Hutton, E. W., Piper, M. D., Overeem, I., Kettner, A. J., Campforts, B., Moriarty, J.M., Undzis, B., Pierce, E. and McCready, L., (2024). **CSDMS Data Components: data–model integration tools for Earth surface processes modeling**. *Geoscientific Model Development,* 17(5), 2165-2185, [DOI](https://doi.org/10.5194/gmd-17-2165-2024).
+Gan, T., Tucker, G. E., Hutton, E. W., Piper, M. D., Overeem, I., Kettner, A. J., Campforts, B., Moriarty, J.M., Undzis, B., Pierce, E. and McCready, L., (2024). **CSDMS Data Components: data–model integration tools for Earth surface processes modeling**. *Geoscientific Model Development,* 17(5), 2165-2185, [https://doi.org/10.5194/gmd-17-2165-2024](https://doi.org/10.5194/gmd-17-2165-2024).
 
 Gasparini, N. M., Forte, A. M., & Barnhart, K. R. (2024). **Numerically simulated time to steady state is not a reliable measure of landscape response time.** *Earth Surface Dynamics,* 12(6), 1227-1242.
 

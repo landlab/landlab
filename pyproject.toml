@@ -9,6 +9,8 @@ authors = [
   {email = "mcflugen@gmail.com"},
   {name = "The landlab team"}
 ]
+license = "MIT"
+license-files = ["LICENSE.md"]
 maintainers = [
   {email = "mcflugen@gmail.com"},
   {name = "The landlab team"}
@@ -24,13 +26,13 @@ keywords = [
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Science/Research",
-  "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
   "Programming Language :: Cython",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Programming Language :: Python :: Implementation :: CPython",
   "Topic :: Scientific/Engineering :: Physics",
 ]
@@ -50,9 +52,6 @@ dependencies = [
   "xarray >= 0.16",
 ]
 dynamic = ["readme", "version"]
-
-[project.license]
-text = "MIT"
 
 [project.urls]
 homepage = "https://github.com/landlab"
@@ -117,7 +116,6 @@ addopts = """
   --ignore-glob=*/lithology_and_litholayers.ipynb
   --ignore-glob=*/nst_scaling_profiling.ipynb
   --ignore-glob=*/test_networkcreator_otherDEMs.ipynb
-  --ignore-glob=*/run_network_generator_OpenTopoDEM.ipynb
 """
 doctest_optionflags = [
   "NORMALIZE_WHITESPACE",
@@ -138,7 +136,7 @@ profile = "black"
 ignore = [".nox", "build"]
 
 [tool.cibuildwheel]
-build = "cp311-* cp312-* cp313-*"
+build = "cp311-* cp312-* cp313-* cp314-*"
 skip = "*-musllinux_* *-win32*"
 archs = "x86_64,aarch64,arm64,AMD64,x86"
 test-command = [
