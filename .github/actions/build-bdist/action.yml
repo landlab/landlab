@@ -7,10 +7,10 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Python 3.12
+    - name: Python 3.14
       uses: actions/setup-python@v5
       with:
-        python-version: 3.12
+        python-version: 3.14
 
     - name: Print build identifiers
       shell: bash -l {0}
