@@ -1,0 +1,2 @@
+Fixed several bugs in the Flexure component's unit tests where tests were
+using the wrong output arrays.
