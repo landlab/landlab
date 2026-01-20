@@ -9,4 +9,5 @@ pyyaml
 rich-click
 scipy
 statsmodels
+sympy
 xarray >= 0.16
