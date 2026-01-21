@@ -556,7 +556,7 @@ class ExtendedGravelBedrockEroder(Component):
         fractions_from_plucking=1.0,
         rho_sed=2650,
         rho_water=1000,
-        fixed_width_flag=1,
+        use_fixed_width=True,
         fixed_width_coeff=0.002,
         fixed_width_expt=0.5,
         mannings_n=0.05,
@@ -609,7 +609,7 @@ class ExtendedGravelBedrockEroder(Component):
         self._shear_stress_coef = _calc_shear_stress_coef(
             rho_w=rho_water, mannings_n=mannings_n
         )
-        self._fixed_width_flag = fixed_width_flag
+        self._use_fixed_width = use_fixed_width
         self._calc_gravity_coefficient_star()
         self._tau_star_c_median = tau_star_c_median
         self._alpha = alpha
@@ -1675,9 +1675,10 @@ class ExtendedGravelBedrockEroder(Component):
         >>> round(eroder._channel_width[grid.core_nodes[0]])
         6
         """
-
+        # NOTE: COULD ASSIGN EITHER OF THE WIDTH FNS ON INIT,
+        # SO DON'T NEED BRANCH HERE OR REPEATED ASSIGNMENT
         discharge = self._grid.at_node["surface_water__discharge"][self._grid.core_nodes]
-        if self._fixed_width_flag:
+        if self._use_fixed_width:
             coeff = self._fixed_width_coeff
             expt = self._fixed_width_expt
             _calc_chan_width_fixed_width(
