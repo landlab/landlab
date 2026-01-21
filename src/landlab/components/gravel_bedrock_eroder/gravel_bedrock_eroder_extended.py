@@ -319,9 +319,6 @@ class ExtendedGravelBedrockEroder(Component):
         Abrasion coefficient for bedrock
     coarse_fractions_from_plucking : float or (n_core_nodes,) array of float (default 1.0)
         Fraction(s) of plucked material that becomes part of gravel sediment load
-    rock_abrasion_index : int (default 0)
-        If multiple classes, specifies which contains the abrasion
-        coefficient for bedrock
     --The following are necessary only if using the empirical width calculation--
     tau_star_crit : float (default 0.045)
         Dimensionless critical shear stress;
@@ -557,7 +554,6 @@ class ExtendedGravelBedrockEroder(Component):
         abrasion_coefficients=0.0,
         bedrock_abrasion_coefficient=0.01,
         fractions_from_plucking=1.0,
-        rock_abrasion_index=0,
         rho_sed=2650,
         rho_water=1000,
         fixed_width_flag=1,
@@ -603,7 +599,6 @@ class ExtendedGravelBedrockEroder(Component):
         self._sediment_porosity = sediment_porosity
         self._porosity_factor = 1.0 / (1.0 - self._sediment_porosity)
         self._depth_decay_scale = depth_decay_scale
-        self._rock_abrasion_index = rock_abrasion_index
         self._rho_sed = rho_sed
         self._rho_water = rho_water
         self._SG = np.divide(self._rho_sed - self._rho_water, self._rho_water)
