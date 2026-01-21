@@ -564,7 +564,7 @@ class ExtendedGravelBedrockEroder(Component):
         alpha=0.68,
         tau_c_bedrock=10,
         d_min = 0.1,
-        plucking_by_tools_flag=1
+        plucking_by_tools_flag=True
     ):
 
         super().__init__(grid)
@@ -1290,7 +1290,6 @@ class ExtendedGravelBedrockEroder(Component):
                 self._excess_stress_dims,
                 self._pluck_rate,
             )
-
 
     def _get_classes_fractions(self):
 
