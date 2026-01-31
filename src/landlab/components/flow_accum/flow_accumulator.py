@@ -26,8 +26,6 @@ from landlab.utils.return_array import return_array_at_node
 
 from ..depression_finder.floodstatus import FloodStatus
 
-_UNFLOODED = FloodStatus._UNFLOODED
-
 
 class FlowAccumulator(Component):
     """Component to accumulate flow and calculate drainage area.
@@ -122,6 +120,8 @@ class FlowAccumulator(Component):
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowAccumulator
+    >>> from landlab.grid.raster_funcs import neighbor_to_arrow
+
     >>> mg = RasterModelGrid((3, 3))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> _ = mg.add_field(
@@ -193,6 +193,12 @@ class FlowAccumulator(Component):
     ...     mg, "topographic__elevation", flow_director=FlowDirectorSteepest
     ... )
     >>> fa.run_one_step()
+    >>> neighbor_to_arrow(mg.at_node["flow__receiver_node"].reshape(mg.shape))
+    array([['○', '○', '○', '○'],
+           ['○', '↑', '↑', '○'],
+           ['○', '→', '↑', '○'],
+           ['○', '→', '↑', '○'],
+           ['○', '○', '○', '○']], dtype='<U1')
     >>> mg.at_node["flow__receiver_node"].reshape(mg.shape)
     array([[ 0,  1,  2,  3],
            [ 4,  1,  2,  7],
@@ -1117,7 +1123,9 @@ class FlowAccumulator(Component):
     def flooded_nodes_present(self):
         # flooded node status may not exist if no depression finder was used.
         if "flood_status_code" in self._grid.at_node:
-            return np.all(self._grid.at_node["flood_status_code"] == _UNFLOODED)
+            return np.all(
+                self._grid.at_node["flood_status_code"] == FloodStatus.UNFLOODED
+            )
         else:
             return False
 

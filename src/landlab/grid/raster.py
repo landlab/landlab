@@ -2010,7 +2010,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         if remove_disconnected:
             self.set_open_nodes_disconnected_from_watershed_to_closed(
                 node_data=node_data,
-                outlet_id=as_id_array(np.array([outlet_loc])),
+                outlet_id=outlet_loc,
                 nodata_value=nodata_value,
                 adjacency_method=adjacency_method,
             )
@@ -2107,26 +2107,16 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         if outlet_id is None:
             # verify that there is one and only one node with the status
             # BC_NODE_IS_FIXED_VALUE.
-            possible_outlets = np.where(self.status_at_node == NodeStatus.FIXED_VALUE)[
-                0
-            ]
+            outlet_id = np.where(self.status_at_node == NodeStatus.FIXED_VALUE)[0]
+            n_outlets = len(outlet_id)
 
-            if len(possible_outlets) > 1:
+            if n_outlets != 1:
                 raise ValueError(
-                    "Model grid must only have one node with node status of "
-                    f"BC_NODE_IS_FIXED_VALUE. This grid has {len(possible_outlets)}."
-                )
-            if len(possible_outlets) < 1:
-                raise ValueError(
-                    "Model grid must only have one node with node status of "
-                    "BC_NODE_IS_FIXED_VALUE. This grid has none"
+                    f"Incorrect number outlets ({n_outlets}). Grid must have one,"
+                    " and only one, node with node status of BC_NODE_IS_FIXED_VALUE."
                 )
 
-            outlet_id = possible_outlets
-
-        elif outlet_id.size != 1 or (isinstance(outlet_id, np.ndarray) is False):
-            # check that the value given by outlet_id is an integer
-            raise ValueError("outlet_id must be a length 1 numpy array")
+            outlet_id = outlet_id[0]
         else:
             # check that the node status at the node given by outlet_id is not
             # BC_NODE_IS_CLOSED
@@ -2135,15 +2125,14 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
                     "The node given by outlet_id must not have the status: BC_NODE_IS_CLOSED"
                 )
 
-        # now test that the method given is either 'D8' or 'D4'
-        if adjacency_method != "D8":
-            assert (
-                adjacency_method == "D4"
-            ), "Method must be either 'D8'(default) or 'D4'"
+        if adjacency_method not in {"D4", "D8"}:
+            raise ValueError(
+                f"Method must be one of 'D4' or 'D8' (got {adjacency_method!r})"
+            )
 
         # begin main code portion.
         # initialize list of core nodes and new nodes
-        connected_nodes = list(outlet_id)
+        connected_nodes = [outlet_id]
         newNodes = connected_nodes
 
         # keep track of the number of nodes added in the previous itteration.

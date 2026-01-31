@@ -428,7 +428,7 @@ def neighbor_to_arrow(
 
     Returns
     -------
-    ndarray of str
+    ndarray
         Array for directions represented by arrows that point to
         neighbor elements.
 
