@@ -721,7 +721,8 @@ def sort_spokes_at_hub(spokes_at_hub, xy_of_hub, xy_of_spokes, inplace=False):
     dx = np.subtract(xy_of_spokes[:, 0][spokes_at_hub], xy_of_hub[:, 0, None])
     dy = np.subtract(xy_of_spokes[:, 1][spokes_at_hub], xy_of_hub[:, 1, None])
 
-    angle_of_spoke_at_hub = np.arctan2(dy, dx, where=spokes_at_hub != -1)
+    angle_of_spoke_at_hub = np.full_like(spokes_at_hub, np.nan, dtype=float)
+    np.arctan2(dy, dx, where=spokes_at_hub != -1, out=angle_of_spoke_at_hub)
     angle_of_spoke_at_hub[angle_of_spoke_at_hub < 0.0] += np.pi * 2.0
 
     sort_id_array(spokes_at_hub, angle_of_spoke_at_hub, out)
