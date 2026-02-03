@@ -1,12 +1,12 @@
 bmipy==2.0.1
 importlib-resources==6.5.2; python_version < '3.12'
-matplotlib==3.10.7
-netcdf4==1.7.2
+matplotlib==3.10.8
+netcdf4==1.7.4
 pandas==2.3.3
 numpy==2.4.2
-pyshp==3.0.2.post1
+pyshp==3.0.3
 pyyaml==6.0.3
-rich-click==1.8.9
-scipy==1.16.2
-statsmodels==0.14.5
+rich-click==1.9.7
+scipy==1.17.0
+statsmodels==0.14.6
 xarray==2025.1.2
