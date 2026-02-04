@@ -366,24 +366,31 @@ class ConcentrationTrackerForDiffusion(Component):
         # Calculate other components of mass balance equation
         is_soil = self._soil__depth > 0.0
 
-        old_depth_over_new = np.divide(
-            self._soil__depth_old, self._soil__depth, where=is_soil
+        old_depth_over_new = np.zeros_like(self._soil__depth)
+        np.divide(
+            self._soil__depth_old,
+            self._soil__depth,
+            where=is_soil,
+            out=old_depth_over_new,
         )
-        old_depth_over_new[~is_soil] = 0.0
 
-        dt_over_depth = np.divide(dt, self._soil__depth, where=is_soil)
-        dt_over_depth[~is_soil] = 0.0
+        dt_over_depth = np.zeros_like(self._soil__depth)
+        np.divide(dt, self._soil__depth, where=is_soil, out=dt_over_depth)
 
         conc_local = conc_old * old_depth_over_new
-        conc_from_weathering = np.divide(
-            self._conc_w * self._soil_prod_rate * dt, self._soil__depth, where=is_soil
+
+        conc_from_weathering = np.zeros_like(self._soil__depth)
+        np.divide(
+            self._conc_w * self._soil_prod_rate * dt,
+            self._soil__depth,
+            where=is_soil,
+            out=conc_from_weathering,
         )
 
         # Calculate concentration
         self._concentration[:] = (
             conc_local + conc_from_weathering + dt_over_depth * (-dqconc_dx)
         )
-
         self._concentration[~is_soil] = 0.0
 
     def start_tracking(self):

@@ -1,0 +1,2 @@
+Fixed the *numpy* "where without out" warnings in the spoke sorter and
+the concentration tracker.
