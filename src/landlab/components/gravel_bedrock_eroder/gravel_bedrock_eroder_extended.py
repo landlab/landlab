@@ -492,6 +492,14 @@ class ExtendedGravelBedrockEroder(Component):
             "mapping": "node",
             "doc": "Node array containing downstream-to-upstream ordered list of node IDs",
         },
+        "grains__weight": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "kg",
+            "mapping": "node",
+            "doc": "",
+        },
         "sediment__rate_of_change": {
             "dtype": float,
             "intent": "out",
@@ -531,14 +539,6 @@ class ExtendedGravelBedrockEroder(Component):
             "units": "-",
             "mapping": "node",
             "doc": "The steepest *downhill* slope",
-        },
-        "grains__weight": {
-            "dtype": float,
-            "intent": "in",
-            "optional": False,
-            "units": "kg",
-            "mapping": "node",
-            "doc": "",
         },
     }
 
