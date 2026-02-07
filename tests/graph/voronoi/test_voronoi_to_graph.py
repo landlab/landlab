@@ -254,3 +254,28 @@ def test_big_graph(n_nodes):
     xy_of_node = np.random.rand(2 * n_nodes).reshape((-1, 2))
     graph = VoronoiDelaunayToGraph(xy_of_node)
     assert graph.number_of_nodes == n_nodes
+
+
+def test_remove_extra_links_with_valid_perimeter_links_info():
+    """Test extra links are removed with perimeter links."""
+
+    xy_of_node = np.array([[0, 0], [2, 0], [1, 1], [1.5, 1.5], [0, 2], [2, 2]])
+    perimeter_links = [[0, 1], [1, 2], [2, 3], [3, 5], [4, 5], [0, 4]]
+
+    graph1 = VoronoiDelaunayToGraph(xy_of_node)
+    assert graph1.number_of_links == 11
+
+    graph2 = VoronoiDelaunayToGraph(xy_of_node, perimeter_links=perimeter_links)
+    assert graph2.number_of_links == 9
+
+
+def test_invalid_perimeter_links_with_warning():
+    """Test a UserWarning is emitted for invalid perimeter links."""
+
+    xy_of_node = np.array([[0, 0], [2, 0], [1, 1], [1.5, 1.5], [0, 2], [2, 2]])
+    perimeter_links = [[0, 1], [0, 2], [1, 2], [2, 3], [3, 5], [4, 5], [0, 4]]
+
+    with pytest.warns(UserWarning, match="Invalid perimeter_links"):
+        graph = VoronoiDelaunayToGraph(xy_of_node, perimeter_links=perimeter_links)
+
+    assert graph.number_of_links == 10
