@@ -1,7 +1,9 @@
 import re
+import warnings
 
 import numpy as np
 import xarray as xr
+from matplotlib.path import Path
 from scipy.spatial import Delaunay
 from scipy.spatial import Voronoi
 
@@ -266,8 +268,109 @@ class VoronoiDelaunayToGraph(VoronoiDelaunay):
             is_perimeter_link = self.is_perimeter_face()
         return is_perimeter_link
 
+    def is_extra_link(self):
+        is_extra_link = np.zeros(self.nodes_at_link.shape[0], dtype=bool)
+
+        if self._perimeter_links is not None:
+            idx, non_perimeter_links = (
+                self._find_non_perimeter_links_between_perimeter_nodes()
+            )
+            outside_links_mask = self._get_outside_links_mask(non_perimeter_links)
+            idx_outside_links = idx[outside_links_mask]
+            is_extra_link[idx_outside_links] = True
+
+        return is_extra_link
+
+    def _find_non_perimeter_links_between_perimeter_nodes(self):
+        # get perimeter nodes ID
+        perimeter_nodes = np.unique(self._perimeter_links.ravel())
+
+        # sort nodes at links
+        links_pair = np.sort(self.nodes_at_link, axis=1)
+        perim_pair = np.sort(self._perimeter_links, axis=1)
+
+        # links with tail and head nodes on perimeter nodes
+        both_ends_on_perim_node = np.isin(links_pair[:, 0], perimeter_nodes) & np.isin(
+            links_pair[:, 1], perimeter_nodes
+        )
+
+        # identify non perimeter links
+        dtype = np.dtype([("a", links_pair.dtype), ("b", links_pair.dtype)])
+        links_view = links_pair.view(dtype).reshape(-1)
+        perim_view = perim_pair.view(dtype).reshape(-1)
+
+        is_perimeter = np.isin(links_view, perim_view)
+        mask = both_ends_on_perim_node & (~is_perimeter)
+        idx = np.where(mask)[0]
+
+        return idx, links_pair[idx]
+
+    def _get_outside_links_mask(self, non_perimeter_links, eps=1e-12):
+        # get adjacency links for perimeter nodes
+        edges = np.asarray(self._perimeter_links, dtype=int)
+        adj = {}
+        for a, b in edges:
+            adj.setdefault(a, []).append(b)
+            adj.setdefault(b, []).append(a)
+
+        # check perimeter nodes has only two neighbor links
+        degrees = {int(n): len(neighbors) for n, neighbors in adj.items()}
+        bad_nodes = {n: d for n, d in degrees.items() if d != 2}
+
+        if bad_nodes:
+            warnings.warn(
+                "Invalid perimeter_links:\n"
+                "Perimeter links must form one closed boundary loop.\n"
+                "Each boundary node must have exactly two boundary neighbors.\n"
+                f"Invalid nodes (node -> neighbor count): {bad_nodes}\n"
+                "Links outside the boundary defined by perimeter_links "
+                "may not be fully removed.",
+                UserWarning,
+                stacklevel=2,
+            )
+
+            return np.zeros(len(non_perimeter_links), dtype=bool)
+
+        # order perimeter nodes as a single closed ring
+        start = next(iter(adj))
+        ring = [start]
+        prev, cur = -1, start
+        while True:
+            n1, n2 = adj[cur]
+            nxt = n1 if n1 != prev else n2
+            if nxt == start:
+                break
+            ring.append(nxt)
+            prev, cur = cur, nxt
+
+        # check if midpoints of links are within the ring
+        polygon = Path(np.column_stack([self.x_of_node[ring], self.y_of_node[ring]]))
+        non_perimeter_links = np.asarray(non_perimeter_links, dtype=int)
+
+        mid_points = np.column_stack(
+            [
+                0.5
+                * (
+                    self.x_of_node[non_perimeter_links[:, 0]]
+                    + self.x_of_node[non_perimeter_links[:, 1]]
+                ),
+                0.5
+                * (
+                    self.y_of_node[non_perimeter_links[:, 0]]
+                    + self.y_of_node[non_perimeter_links[:, 1]]
+                ),
+            ]
+        )
+
+        inside = polygon.contains_points(mid_points, radius=eps)
+
+        return ~inside
+
     def unbound_corners(self):
-        faces_to_drop = np.where(self.is_perimeter_face() & ~self.is_perimeter_link())
+        faces_to_drop = np.where(
+            (self.is_perimeter_face() & ~self.is_perimeter_link())
+            | (self.is_extra_link())
+        )
 
         unbound_corners = self.corners_at_face[faces_to_drop].reshape((-1,))
 
@@ -289,6 +392,7 @@ class VoronoiDelaunayToGraph(VoronoiDelaunay):
 
         # Remove bad links
         is_a_link = np.any(self._mesh["corners_at_face"].data != -1, axis=1)
+        is_a_link[np.where(self.is_extra_link())] = False
         self.drop_element(np.where(~is_a_link)[0], at="link")
 
         # Remove the bad patches
