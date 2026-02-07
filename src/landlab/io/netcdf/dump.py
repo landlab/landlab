@@ -121,10 +121,13 @@ def to_netcdf(
                 [that_dataset, this_dataset], dim="time", data_vars="minimal"
             )
 
-            if np.isnan(this_dataset["time"][-1]):
-                this_dataset["time"].values[-1] = this_dataset["time"][-2] + 1.0
+            t = this_dataset["time"].to_numpy().copy()
+            if np.isnan(t[-1]):
+                t[-1] = t[-2] + 1.0
+            this_dataset = this_dataset.assign_coords(time=("time", t))
 
-    this_dataset.to_netcdf(path, format=format, mode="w", unlimited_dims=("time",))
+    unlimited_dims = ("time",) if time is not None else None
+    this_dataset.to_netcdf(path, format=format, mode="w", unlimited_dims=unlimited_dims)
 
 
 def _add_time_dimension_to_dataset(dataset, time=0.0):
