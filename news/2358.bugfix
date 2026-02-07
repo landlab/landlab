@@ -1,0 +1,2 @@
+Fixed an issue that caused errors when writing grids to netcdf using
+newer versions of *xarray*.
