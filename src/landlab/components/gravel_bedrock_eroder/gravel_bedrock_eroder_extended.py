@@ -1,7 +1,8 @@
 # !/usr/bin/env python3
 """
-The Extended gravel bedrock eroder (EGBE)
-model the evolution of a gravel-sized alluvium layer and the underlying bedrock in a network of rivers.
+The Extended gravel bedrock eroder (EGBE).
+A landlab component that model the evolution of a gravel-sized alluvium layer
+and the underlying bedrock in a network of rivers.
 @author: gtucker
 """
 import sys
@@ -12,7 +13,6 @@ from landlab import HexModelGrid
 from landlab.grid.diagonals import DiagonalsMixIn
 from cfuncs import _calc_sediment_influx
 from cfuncs import _calc_sediment_rate_of_change
-# from cfuncs import _estimate_max_time_step_size_ext
 from cfuncs import _calc_sed_abrs_rate
 from cfuncs import _calc_bedrock_abrs_rate
 from cfuncs import _get_classes_fractions
@@ -35,7 +35,7 @@ _THREE_BY_TWO = 3.0 / 2.0
 
 
 def _calc_chan_width_fixed_width(coeff, expt, discharge, core_nodes, out=None):
-    """Calculate channel width using empirical formula.
+    """Calculate channel width according to water discharge using empirical formula
 
     b = coeff * Q**expt
 
@@ -864,7 +864,7 @@ class ExtendedGravelBedrockEroder(Component):
         >>> elev = grid.add_zeros("topographic__elevation", at="node")
         >>> sed_depth = 1000
         >>> porosity=0.5
-        >>> sed_weight = sed_depth * xy_spacing * xy_spacing * 2650 * (1-porosity)
+        >>> sed_weight = sed_depth * 2650 * (1-porosity)
         >>> grains_weight =[sed_weight, sed_weight, sed_weight]
         >>> grain_sizes = [0.001, 0.01, 0.05]
         >>> sg = SoilGrading(grid,
@@ -897,7 +897,7 @@ class ExtendedGravelBedrockEroder(Component):
         >>> elev = grid.add_zeros("topographic__elevation", at="node")
         >>> sed_depth = 1000
         >>> porosity=0.5
-        >>> sed_weight = sed_depth * xy_spacing * xy_spacing * 2650 * (1-porosity)
+        >>> sed_weight = sed_depth * 2650 * (1-porosity)
         >>> grains_weight =[sed_weight, sed_weight, sed_weight]
         >>> grain_sizes = [0.001, 0.01, 0.05]
         >>> sg = SoilGrading(grid,
@@ -946,7 +946,7 @@ class ExtendedGravelBedrockEroder(Component):
         >>> elev = grid.add_zeros("topographic__elevation", at="node")
         >>> sed_depth = 1000
         >>> porosity=0.5
-        >>> sed_weight = sed_depth * xy_spacing * xy_spacing * 2650 * (1-porosity)
+        >>> sed_weight = sed_depth * 2650 * (1-porosity)
         >>> grains_weight =[sed_weight]
         >>> grain_sizes = [0.001]
         >>> sg = SoilGrading(grid,
@@ -989,7 +989,7 @@ class ExtendedGravelBedrockEroder(Component):
             tau_c[:,0] = self._tau_star_c_median * (self._SG * self._rho_water) * _EARTH_GRAV * fractions_sizes
 
     def _calc_excess_stress_dims(self):
-        """Calculate excess_stress dims
+        """Calculate non-normalized excess_stress
 
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import FlowAccumulator
@@ -999,7 +999,7 @@ class ExtendedGravelBedrockEroder(Component):
         >>> elev = grid.add_zeros("topographic__elevation", at="node")
         >>> sed_depth = 1000
         >>> porosity=0.5
-        >>> sed_weight = sed_depth * xy_spacing * xy_spacing * 2650 * (1-porosity)
+        >>> sed_weight = sed_depth  * 2650 * (1-porosity)
         >>> grains_weight =[sed_weight]
         >>> grain_sizes = [0.001]
         >>> sg = SoilGrading(grid,
@@ -1025,7 +1025,7 @@ class ExtendedGravelBedrockEroder(Component):
 
 
     def _update_slopes(self):
-        """Update self._slope.
+        """Update topographic slope at node.
         Result is stored in field ``topographic__steepest_slope``.
         
         
@@ -1182,6 +1182,7 @@ class ExtendedGravelBedrockEroder(Component):
 
     def _calc_tau_star(self):
         """Calculate tau star at node
+
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import FlowAccumulator
         >>> from landlab.components.soil_grading import SoilGrading
@@ -1229,14 +1230,35 @@ class ExtendedGravelBedrockEroder(Component):
     def calc_transport_rate(self):
         """Calculate and return bed-load transport rate.
 
-        Calculation uses Wickert-Schildgen approach, and provides
-        volume per time rate. Transport rate is modulated by available
-        sediment, using the exponential function ``(1 - exp(-H / Hs))``,
-        so that transport rate approaches zero as sediment thickness
-        approaches zero. Rate is a volume per time. The result is
-        stored in the ``bedload_sediment__volume_outflux`` field.
+        Transport rate is modulated by available sediment above an immobile alluvial thickness.
+        Transport rate is also ajusted according to the alluvial thickness using the exponential function
+         ``(1 - exp(-H / Hs))``, so that transport rate approaches zero as sediment thickness
+        approaches zero. Rate is a volume per time. 
 
         Examples
+
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import FlowAccumulator
+        >>> from landlab.components.soil_grading import SoilGrading
+        >>> xy_spacing = 100
+        >>> grid = RasterModelGrid((3, 4), xy_spacing=xy_spacing)
+        >>> elev = grid.add_zeros("topographic__elevation", at="node")
+        >>> sed_depth = 10
+        >>> porosity = 0.5
+        >>> sed_weight = sed_depth * 2650 * (1 - porosity)
+        >>> grains_weight = [sed_weight, sed_weight, sed_weight]
+        >>> grain_sizes = [0.001, 0.01, 0.05]
+        >>> sg = SoilGrading(grid,meansizes = grain_sizes,
+        ...              grains_weight = grains_weight,
+        ...              phi = porosity)
+        >>> fa = FlowAccumulator(grid)
+        >>> fa.run_one_step()
+        >>> eroder = ExtendedGravelBedrockEroder(grid, abrasion_coefficients=[1])
+        >>> eroder._tau[grid.core_nodes[0]] = 10
+        >>> eroder.calc_transport_rate()
+        >>> print(np.round(eroder._sediment_outflux[grid.core_nodes[0]],1))
+        29.8
+
         """
 
         self._calc_width()
@@ -1268,7 +1290,31 @@ class ExtendedGravelBedrockEroder(Component):
             self._sediment_outflux[:] = self._sed_outfluxes[:, 0]
 
     def _calc_qs(self, excess_stress, out=None):
+        
+        """Calculation and return unit sediment flux.
 
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import FlowAccumulator
+        >>> from landlab.components.soil_grading import SoilGrading
+        >>> xy_spacing = 100
+        >>> grid = RasterModelGrid((3, 4), xy_spacing=xy_spacing)
+        >>> elev = grid.add_zeros("topographic__elevation", at="node")
+        >>> sed_depth = 10
+        >>> porosity = 0.5
+        >>> sed_weight = sed_depth * 2650 * (1 - porosity)
+        >>> grains_weight = [sed_weight, sed_weight, sed_weight]
+        >>> grain_sizes = [0.001]
+        >>> sg = SoilGrading(grid,meansizes = grain_sizes,
+        ...              grains_weight = grains_weight,
+        ...              phi = porosity)
+        >>> fa = FlowAccumulator(grid)
+        >>> fa.run_one_step()
+        >>> eroder = ExtendedGravelBedrockEroder(grid, abrasion_coefficients=[1])
+        >>> eroder._tau[grid.core_nodes[0]] = 10
+        >>> eroder._excess_stress[:]=1
+        >>> print(np.round(eroder._calc_qs(excess_stress=eroder._excess_stress)[grid.core_nodes[1]],1))
+        [159.4]
+        """
         if out is None:
             out = np.empty_like(self._grid.at_node["grains_classes__size"])
 
@@ -1294,7 +1340,33 @@ class ExtendedGravelBedrockEroder(Component):
         return out
 
     def _calc_weight_threshold_to_deliv(self, d_min):
-        """Calc minimal weight threshold to deliver"""
+        """Calc minimal weight per unit area of sediment to deliver
+        based on a given minimal thickness (d_min)
+        
+        Examples
+        -----
+
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import FlowAccumulator
+        >>> from landlab.components.soil_grading import SoilGrading
+        >>> xy_spacing = 100
+        >>> grid = RasterModelGrid((3, 4), xy_spacing=xy_spacing)
+        >>> elev = grid.add_zeros("topographic__elevation", at="node")
+        >>> sed_depth = 10
+        >>> porosity = 0.5
+        >>> sed_weight = sed_depth * 2650 * (1 - porosity)
+        >>> grains_weight = [sed_weight, sed_weight, sed_weight]
+        >>> grain_sizes = [0.001]
+        >>> sg = SoilGrading(grid,meansizes = grain_sizes,
+        ...              grains_weight = grains_weight,
+        ...              phi = porosity)
+        >>> fa = FlowAccumulator(grid)
+        >>> fa.run_one_step()
+        >>> eroder = ExtendedGravelBedrockEroder(grid, abrasion_coefficients=[1])
+        >>> eroder._calc_weight_threshold_to_deliv(d_min=1)
+        >>> eroder._weight_threshold_to_deliv
+        1722.5
+        """
 
         self._weight_threshold_to_deliv = (
             d_min * self._rho_sed * (1 - self._sediment_porosity)
@@ -1306,7 +1378,7 @@ class ExtendedGravelBedrockEroder(Component):
         The rate is a volume per area per time [L/T], equivalent to the
         rate of lowering of the bedrock surface relative to the underlying
         material as a result of plucking. Result is stored in the field
-        ``bedrock__plucking_rate``.
+        ``pluck_rate``.
 
         Examples
         --------
@@ -1375,6 +1447,30 @@ class ExtendedGravelBedrockEroder(Component):
             )
 
     def _get_classes_fractions(self):
+        """Get the fraction of each grains class based on mass
+        
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import FlowAccumulator
+        >>> from landlab.components.soil_grading import SoilGrading
+        >>> xy_spacing = 100
+        >>> grid = RasterModelGrid((3, 4), xy_spacing=xy_spacing)
+        >>> elev = grid.add_zeros("topographic__elevation", at="node")
+        >>> sed_depth = 10
+        >>> porosity = 0.5
+        >>> sed_weight = sed_depth * 2650 * (1 - porosity)
+        >>> grains_weight = [sed_weight, sed_weight*2, sed_weight*3]
+        >>> grain_sizes = [0.001,0.002,0.003]
+        >>> sg = SoilGrading(grid,meansizes = grain_sizes,
+        ...              grains_weight = grains_weight,
+        ...              phi = porosity)
+        >>> fa = FlowAccumulator(grid)
+        >>> fa.run_one_step()
+        >>> eroder = ExtendedGravelBedrockEroder(grid, abrasion_coefficients=[1])
+        >>> np.round(eroder._get_classes_fractions()[grid.core_nodes[0],:],1)
+        array([0.2, 0.3, 0.5])
+        """
 
         out = np.zeros((self._grid.number_of_nodes, self._n_classes))
         classes_fractions = _get_classes_fractions(
@@ -1388,11 +1484,37 @@ class ExtendedGravelBedrockEroder(Component):
 
     def calc_sediment_influx(self):
         """
-        Update the volume influx at each node for each sediment class.
+        Update the volume of sediment influx at each node for each sediment class.
 
         Results are stored:
-        (1) Total flux in the field ``bedload_sediment__volume_influx``
+        (1) Total flux in the field ``sediment_influx``
         (2) Per size class in the _sed_influxes array
+
+        Examples
+        ------
+
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import FlowAccumulator
+        >>> from landlab.components.soil_grading import SoilGrading
+        >>> xy_spacing = 100
+        >>> grid = RasterModelGrid((3, 4), xy_spacing=xy_spacing)
+        >>> elev = grid.add_zeros("topographic__elevation", at="node")
+        >>> sed_depth = 10
+        >>> porosity = 0.5
+        >>> sed_weight = sed_depth * 2650 * (1 - porosity)
+        >>> grains_weight = [sed_weight]
+        >>> grain_sizes = [0.001]
+        >>> sg = SoilGrading(grid,meansizes = grain_sizes,
+        ...              grains_weight = grains_weight,
+        ...              phi = porosity)
+        >>> fa = FlowAccumulator(grid)
+        >>> fa.run_one_step()
+        >>> eroder = ExtendedGravelBedrockEroder(grid, abrasion_coefficients=[1])
+        >>> eroder._sediment_outflux[:]=10
+        >>> eroder._sed_outfluxes[:]=10
+        >>> eroder.calc_sediment_influx()
+        >>> eroder._sed_influxes[1]
+        array([10.])
         """
         _calc_sediment_influx(
             self._n_classes,
@@ -1637,6 +1759,53 @@ class ExtendedGravelBedrockEroder(Component):
     def _update_rock_sed_and_elev(self, dt):
         """Update rock elevation, sediment thickness, and elevation
         using current rates of change extrapolated forward by time dt.
+        
+        
+        Examples
+        ------
+        
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import FlowAccumulator
+        >>> from landlab.components.soil_grading import SoilGrading
+        >>> xy_spacing = 100
+        >>> grid = RasterModelGrid((3, 4), xy_spacing=xy_spacing)
+        >>> elev = grid.add_zeros("topographic__elevation", at="node")
+        >>> sed_depth = 10
+        >>> porosity = 0.5
+        >>> sed_weight = sed_depth * 2650 * (1 - porosity)
+        >>> grains_weight = [sed_weight, sed_weight]
+        >>> grain_sizes = [0.001, 0.002]
+        >>> sg = SoilGrading(grid,meansizes = grain_sizes,
+        ...     grains_weight = grains_weight,
+        ...     phi = porosity)
+        >>> fa = FlowAccumulator(grid)
+        >>> fa.run_one_step()
+        >>> eroder = ExtendedGravelBedrockEroder(grid, sediment_porosity=porosity)
+        >>> eroder._dHdt_by_class[grid.core_nodes[0],0]=-0.5
+        >>> eroder._dHdt_by_class[grid.core_nodes[0],1]=-0.5
+        >>> eroder._update_rock_sed_and_elev(dt=1)
+        >>> print(grid.at_node['soil__depth'][grid.core_nodes[0]])
+        19.0
+        
+        >>> grid = RasterModelGrid((3, 4), xy_spacing=xy_spacing)
+        >>> elev = grid.add_zeros("topographic__elevation", at="node")
+        >>> bed_elev = grid.add_zeros("bedrock__elevation", at="node")
+        >>> bed_elev[:]=100
+        >>> sed_depth = 0
+        >>> porosity = 0.5
+        >>> sed_weight = sed_depth * 2650 * (1 - porosity)
+        >>> grains_weight = [sed_weight, sed_weight]
+        >>> grain_sizes = [0.001, 0.002]
+        >>> sg = SoilGrading(grid,meansizes = grain_sizes,
+        ...     grains_weight = grains_weight,
+        ...     phi = porosity)
+        >>> fa = FlowAccumulator(grid)
+        >>> fa.run_one_step()
+        >>> eroder = ExtendedGravelBedrockEroder(grid, sediment_porosity=porosity)
+        >>> eroder._rock_lowering_rate[grid.core_nodes[0]]=1
+        >>> eroder._update_rock_sed_and_elev(dt=1)
+        >>> print(grid.at_node['topographic__elevation'][grid.core_nodes[0]])
+        99.0
         """
         weights_at_node = self._grid.at_node["grains__weight"]
 
@@ -1671,18 +1840,25 @@ class ExtendedGravelBedrockEroder(Component):
             + self._sed[self.grid.core_nodes]
         )
 
-    def _calc_sed_transport_coeff(self):
-        tr_coeff = (
-            self._sediment_transport_rate_coeff
-        )  # From Wong and Parker 2006 (they call it phi).
-        epsilon = self._epsilon
-        tau_star_c = self._tau_star_c
-        kQs = self._kQs
-        SG = self._SG
-        kQs[:] = np.divide(
-            0.17 * tr_coeff * epsilon ** (3 / 2),
-            SG * (1 + epsilon) ** (5 / 3) * tau_star_c ** (1 / 6),
-        )
+    # def _calc_sed_transport_coeff(self):
+    #     """Calculate sediment transport coeffcient
+    #
+    #
+    #     Examples
+    #     ------
+    #     """
+    #
+    #     tr_coeff = (
+    #         self._sediment_transport_rate_coeff
+    #     )  # From Wong and Parker 2006 (they call it phi).
+    #     epsilon = self._epsilon
+    #     tau_star_c = self._tau_star_c
+    #     kQs = self._kQs
+    #     SG = self._SG
+    #     kQs[:] = np.divide(
+    #         0.17 * tr_coeff * epsilon ** (3 / 2),
+    #         SG * (1 + epsilon) ** (5 / 3) * tau_star_c ** (1 / 6),
+    #     )
 
     def _estimate_max_time_step_size(self, upper_limit_dt=1.0e6):
         """
@@ -1699,6 +1875,54 @@ class ExtendedGravelBedrockEroder(Component):
         ----------
         dt : float (default 1.0e6)
             Maximum time step size
+
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import FlowAccumulator
+        >>> from landlab.components.soil_grading import SoilGrading
+        >>> xy_spacing = 100
+        >>> grid = RasterModelGrid((3, 4), xy_spacing=xy_spacing)
+        >>> elev = grid.add_zeros("topographic__elevation", at="node")
+        >>> bed_elev = grid.add_zeros("bedrock__elevation", at="node")
+        >>> bed_elev[:]=100
+        >>> bed_elev[grid.core_nodes]+=10
+        >>> sed_depth = 0
+        >>> porosity = 0.5
+        >>> sed_weight = sed_depth * 2650 * (1 - porosity)
+        >>> grains_weight = [sed_weight]
+        >>> grain_sizes = [0.001]
+        >>> sg = SoilGrading(grid,meansizes = grain_sizes,
+        ...     grains_weight = grains_weight,
+        ...     phi = porosity)
+        >>> fa = FlowAccumulator(grid)
+        >>> fa.run_one_step()
+        >>> eroder = ExtendedGravelBedrockEroder(grid, sediment_porosity=porosity)
+        >>> eroder._rock_lowering_rate[grid.core_nodes[0]]=1
+        >>> print(eroder._estimate_max_time_step_size())
+        5.0
+
+
+
+        >>> grid = RasterModelGrid((3, 4), xy_spacing=xy_spacing)
+        >>> elev = grid.add_zeros("topographic__elevation", at="node")
+        >>> bed_elev = grid.add_zeros("bedrock__elevation", at="node")
+        >>> bed_elev[:]=100
+        >>> bed_elev[grid.core_nodes[0]]+=10
+        >>> bed_elev[grid.core_nodes[1]]+=20
+
+        >>> sed_depth=0.5
+        >>> porosity = 0.5
+        >>> sed_weight = sed_depth * 2650 * (1 - porosity)
+        >>> grains_weight = [sed_weight]
+        >>> grain_sizes = [0.001]
+        >>> sg = SoilGrading(grid,meansizes = grain_sizes,
+        ...     grains_weight = grains_weight,
+        ...     phi = porosity)
+        >>> fa = FlowAccumulator(grid)
+        >>> fa.run_one_step()
+        >>> eroder = ExtendedGravelBedrockEroder(grid, sediment_porosity=porosity)
+        >>> eroder._dHdt_by_class[grid.core_nodes[1]] = -1
+        >>> print(eroder._estimate_max_time_step_size())
+        0.25
         """
         dhdt_by_class = self._dHdt_by_class
         dh_by_class = self._grid.at_node["grains__weight"] / (
@@ -1733,7 +1957,7 @@ class ExtendedGravelBedrockEroder(Component):
         return min_dt
 
     def _calc_width(self):
-        """Calculate width
+        """Calculate channel width
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import FlowAccumulator
         >>> from landlab.components.soil_grading import SoilGrading
