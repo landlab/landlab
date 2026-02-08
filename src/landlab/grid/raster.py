@@ -342,9 +342,8 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
             },
             attrs={"grid_type": "uniform_rectilinear"},
         )
-        return dataset.update(
-            super().as_dataset(include=include, exclude=exclude, time=time)
-        )
+        dataset.update(super().as_dataset(include=include, exclude=exclude, time=time))
+        return dataset
 
     @property
     def xy_of_lower_left(self):
