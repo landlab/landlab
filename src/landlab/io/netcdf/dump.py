@@ -7,11 +7,11 @@ import xarray as xr
 def to_netcdf(
     grid, path, include="*", exclude=None, time=None, format="NETCDF4", mode="w"
 ):
-    """Write landlab a grid to a netcdf file.
+    """Write a landlab grid to a NetCDF file.
 
     Write the data and grid information for *grid* to *path* as NetCDF.
-    If the *append* keyword argument in True, append the data to an existing
-    file, if it exists. Otherwise, clobber an existing files.
+    The *mode* determines if data is appended ("a") or the whole file is
+    overwritten ("w) with the new data.
 
     Parameters
     ----------
@@ -29,10 +29,12 @@ def to_netcdf(
     exclude : str or iterable of str, optional
         Like the *include* keyword but, instead, fields matching these
         patterns will be excluded from the output file.
+    time : float, optional
+        Specify the time of the output to be stored.
     format : {'NETCDF3_CLASSIC', 'NETCDF3_64BIT', 'NETCDF4_CLASSIC', 'NETCDF4'}
-        Format of output netcdf file.
+        Format of output NetCDF file.
     attrs : dict
-        Attributes to add to netcdf file.
+        Attributes to add to NetCDF file.
     mode : {"w", "a"}, optional
         Write ("w") or append ("a") mode. If mode="w", any existing file at
         this location will be overwritten. If mode="a", existing variables
@@ -54,13 +56,13 @@ def to_netcdf(
     >>> rmg.at_node["topographic__elevation"] = np.arange(12.0)
     >>> rmg.at_node["uplift_rate"] = 2.0 * np.arange(12.0)
 
-    Create a temporary directory to write the netcdf file into.
+    Create a temporary directory to write the NetCDF file into.
 
     >>> import tempfile, os
     >>> temp_dir = tempfile.mkdtemp()
     >>> os.chdir(temp_dir)
 
-    Write the grid to a netcdf3 file but only include the *uplift_rate*
+    Write the grid to a NetCDF3 file but only include the *uplift_rate*
     data in the file.
 
     >>> to_netcdf(rmg, "test.nc", format="NETCDF3_64BIT", include="at_node:uplift_rate")
