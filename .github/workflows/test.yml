@@ -28,7 +28,7 @@ jobs:
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Build sdist
         run: pipx run build --sdist
@@ -63,7 +63,7 @@ jobs:
           - { os: windows-2022, cibw-only: cp314-win_amd64 }
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/build-bdist/
         env:
           CIBW_ENVIRONMENT: >-
@@ -86,7 +86,7 @@ jobs:
         pytest-marker: ["slow", "not slow"]
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/run-tests/
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
@@ -109,7 +109,7 @@ jobs:
         pytest-marker: ["slow", "not slow"]
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/run-notebooks/
         env:
           OPENTOPOGRAPHY_API_KEY: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
@@ -129,7 +129,7 @@ jobs:
         shell: bash -l {0}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Use Python 3.12
         uses: actions/setup-python@v6
         with:
@@ -152,7 +152,7 @@ jobs:
         shell: bash -l {0}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Use Python 3.14
         uses: actions/setup-python@v6
         with:
