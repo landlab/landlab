@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 """Calculate flux divergence on a raster grid."""
+
 import numpy as np
 
 from landlab.grid.ext.raster_divergence import _calc_flux_div_at_node

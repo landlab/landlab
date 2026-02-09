@@ -28,7 +28,7 @@ def test_subside_point_load():
 
     x = np.arange(0, 10000, 1000.0)
     y = np.arange(0, 5000, 1000.0)
-    (x, y) = np.meshgrid(x, y)
+    x, y = np.meshgrid(x, y)
     x.shape = (x.size,)
     y.shape = (y.size,)
 
@@ -80,7 +80,7 @@ def test_point_load_2d_is_symetric():
     n = 11
     n_mid = (n - 1) // 2
 
-    (x, y) = np.meshgrid(np.arange(0.0, n), np.arange(0.0, n))
+    x, y = np.meshgrid(np.arange(0.0, n), np.arange(0.0, n))
 
     dz = subside_point_load(
         load,

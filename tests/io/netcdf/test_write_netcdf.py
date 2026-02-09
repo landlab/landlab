@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 """Unit tests for landlab.io.netcdf module."""
+
 import os
 
 import netCDF4 as nc
@@ -213,7 +214,7 @@ def test_netcdf_write_names_keyword_as_none(tmpdir):
 
 def test_2d_unit_spacing():
     """Test write_netcdf with a 2D grid with unit spacing."""
-    (x, y) = np.meshgrid(np.arange(5.0), np.arange(4.0))
+    x, y = np.meshgrid(np.arange(5.0), np.arange(4.0))
 
     spacing = _get_raster_spacing((y, x))
     assert spacing == 1.0
@@ -221,7 +222,7 @@ def test_2d_unit_spacing():
 
 def test_2d_non_unit_spacing():
     """Test _get_raster_spacing with a 2D grid with non-unit spacing."""
-    (x, y) = np.meshgrid(np.arange(5.0) * 2, np.arange(4.0) * 2)
+    x, y = np.meshgrid(np.arange(5.0) * 2, np.arange(4.0) * 2)
 
     spacing = _get_raster_spacing((y, x))
     assert spacing == 2.0
@@ -229,7 +230,7 @@ def test_2d_non_unit_spacing():
 
 def test_2d_uneven_spacing_axis_0():
     """Test _get_raster_spacing with a 2D grid with uneven spacing in y."""
-    (x, y) = np.meshgrid(np.logspace(0.0, 2.0, num=5), np.arange(4.0))
+    x, y = np.meshgrid(np.logspace(0.0, 2.0, num=5), np.arange(4.0))
 
     with pytest.raises(NotRasterGridError):
         _get_raster_spacing((y, x))
@@ -237,7 +238,7 @@ def test_2d_uneven_spacing_axis_0():
 
 def test_2d_uneven_spacing_axis_1():
     """Test _get_raster_spacing with a 2D grid with uneven spacing in x."""
-    (x, y) = np.meshgrid(np.arange(4.0), np.logspace(0.0, 2.0, num=5))
+    x, y = np.meshgrid(np.arange(4.0), np.logspace(0.0, 2.0, num=5))
 
     with pytest.raises(NotRasterGridError):
         _get_raster_spacing((y, x))
@@ -245,7 +246,7 @@ def test_2d_uneven_spacing_axis_1():
 
 def test_2d_switched_coords():
     """Test _get_raster_spacing with a 2D grid when the spacing is switched."""
-    (x, y) = np.meshgrid(np.arange(5.0), np.arange(4.0))
+    x, y = np.meshgrid(np.arange(5.0), np.arange(4.0))
 
     spacing = _get_raster_spacing((x, y))
     assert spacing == 0.0

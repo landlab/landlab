@@ -16,7 +16,7 @@ def test_no_dups():
     counts = count_repeated_values(x)
     assert len(counts) == 1
 
-    (vals, inds) = counts[0]
+    vals, inds = counts[0]
     assert list(vals) == [10, 20, 30]
     assert list(inds) == [0, 1, 2]
 
@@ -26,10 +26,10 @@ def test_with_dups():
     counts = count_repeated_values(x)
     assert len(counts) == 2
 
-    (vals, inds) = counts[0]
+    vals, inds = counts[0]
     assert list(vals) == [10, 20, 30]
     assert list(inds) == [0, 1, 2]
 
-    (vals, inds) = counts[1]
+    vals, inds = counts[1]
     assert list(vals) == [20]
     assert list(inds) == [3]

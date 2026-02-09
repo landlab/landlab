@@ -4,7 +4,6 @@
 @author: margauxmouchene
 """
 
-
 import numpy as np
 
 from landlab import Component
