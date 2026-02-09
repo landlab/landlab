@@ -53,7 +53,7 @@ def test_lateral_erosion_and_node():
     )
     latero = LateralEroder(mg, latero_mech="UC", Kv=0.1, Kl_ratio=1.5)
     fa.accumulate_flow()
-    (mg, dzlat) = latero.run_one_step(dt=1.0)
+    mg, dzlat = latero.run_one_step(dt=1.0)
 
     vlname = mg["node"]["volume__lateral_erosion"]
     # predicted volume of lateral eorsion
@@ -155,7 +155,7 @@ def test_matches_detlim_solution():
     for _ in range(2000):
         fa.run_one_step()  # flow accumulator
         # erode the landscape with lateral erosion
-        (mg, dzlat) = latero.run_one_step(dt)
+        mg, dzlat = latero.run_one_step(dt)
         mg.at_node["topographic__elevation"][mg.core_nodes] += U * dt
 
     num_slope = mg.at_node["topographic__steepest_slope"][mg.core_nodes]
@@ -215,7 +215,7 @@ def test_ss_sed_flux():
 
     for _ in range(2000):
         fa.run_one_step()  # flow accumulator
-        (mg, dzlat) = latero.run_one_step(dt)
+        mg, dzlat = latero.run_one_step(dt)
         mg.at_node["topographic__elevation"][mg.core_nodes] += (
             U * dt
         )  # uplift the landscape
@@ -294,7 +294,7 @@ def test_variable_bedrock_K():
     for _ in range(2000):
         fa.run_one_step()  # flow accumulator
         # erode the landscape with lateral erosion
-        (mg, dzlat) = latero.run_one_step(dt)
+        mg, dzlat = latero.run_one_step(dt)
         mg.at_node["topographic__elevation"][mg.core_nodes] += U * dt
 
     num_slope = mg.at_node["topographic__steepest_slope"][mg.core_nodes]
@@ -358,7 +358,7 @@ def test_latero_steady_inlet():
     for _ in range(2000):
         fa.run_one_step()  # flow accumulator
         # erode the landscape with lateral erosion
-        (mg, dzlat) = latero.run_one_step(dt)
+        mg, dzlat = latero.run_one_step(dt)
         # uplift the landscape
         mg.at_node["topographic__elevation"][mg.core_nodes] += U * dt
 

@@ -8,6 +8,7 @@ OBJ functions
 
     ~write_obj
 """
+
 import os
 import pathlib
 

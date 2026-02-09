@@ -8,6 +8,7 @@ Works on both a regular or irregular grid.
 GT Nov 2013
 Modified Feb 2014
 """
+
 import numpy as np
 
 from landlab.core.utils import as_id_array

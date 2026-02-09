@@ -8,6 +8,7 @@ Write netcdf
 
     ~write_netcdf
 """
+
 import pathlib
 
 import numpy as np

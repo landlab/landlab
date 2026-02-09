@@ -56,7 +56,7 @@ def test_track_source():
     hsd_ids = np.full(grid.number_of_nodes, 1, dtype=int)
     hsd_ids[2:5] = 0
     hsd_ids[7:10] = 0
-    (hsd_upstr, flow_accum) = track_source(grid, hsd_ids)
+    hsd_upstr, flow_accum = track_source(grid, hsd_ids)
     assert hsd_upstr[8] == [1, 0, 0]
     assert hsd_upstr[14] == [1, 1, 1, 1, 0, 0, 1]
     assert flow_accum[14] == 7
@@ -80,8 +80,8 @@ def test_find_unique_upstream_hsd_ids_and_fractions():
     hsd_ids = np.full(grid.number_of_nodes, 1, dtype=int)
     hsd_ids[2:5] = 0
     hsd_ids[7:10] = 0
-    (hsd_upstr, flow_accum) = track_source(grid, hsd_ids)
-    (uniq_ids, coeff) = find_unique_upstream_hsd_ids_and_fractions(hsd_upstr)
+    hsd_upstr, flow_accum = track_source(grid, hsd_ids)
+    uniq_ids, coeff = find_unique_upstream_hsd_ids_and_fractions(hsd_upstr)
     np.testing.assert_almost_equal(
         np.sort(np.array(coeff[8])), np.array([0.33333333, 0.66666667])
     )

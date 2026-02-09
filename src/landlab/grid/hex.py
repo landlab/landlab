@@ -2,6 +2,7 @@
 """Python implementation of HexModelGrid, a grid class used to create and
 manage structured Voronoi-Delaunay grids for 2D numerical models.
 """
+
 import numpy
 import xarray as xr
 
@@ -233,7 +234,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         """
         assert self.orientation[0] == "v", "grid orientation must be vertical"
         try:
-            (nr, nc) = self._shape
+            nr, nc = self._shape
         except AttributeError as exc:
             raise AttributeError(
                 "Only rectangular Hex grids have defined rows and columns."

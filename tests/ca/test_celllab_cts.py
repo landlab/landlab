@@ -95,7 +95,7 @@ def test_raster_cts():
     # Manipulate the data in the event queue for testing:
 
     # pop the scheduled event off the queue
-    (event_time, index, event_link) = ca.priority_queue.pop()
+    event_time, index, event_link = ca.priority_queue.pop()
     assert ca.priority_queue._queue == [], "event queue should now be empty but is not"
 
     # engineer an event
@@ -128,7 +128,7 @@ def test_raster_cts():
     pd[5] = 50
     ca = RasterCTS(mg, ns_dict, xn_list, nsg, prop_data=pd, prop_reset_value=0, seed=1)
     prior_first_event_time = event_time
-    (event_time, index, event_link) = ca.priority_queue.pop()
+    event_time, index, event_link = ca.priority_queue.pop()
     assert event_time != prior_first_event_time, "event times should differ"
 
 
@@ -201,32 +201,32 @@ def test_priority_queue():
     pq.push(3, 3.3)
 
     # pop a bunch of events
-    (priority, index, item) = pq.pop()
+    priority, index, item = pq.pop()
     assert priority == 0.11, "incorrect priority in PQ test"
     assert index == 2, "incorrect index in PQ test"
     assert item == 0, "incorrect item in PQ test"
 
-    (priority, index, item) = pq.pop()
+    priority, index, item = pq.pop()
     assert priority == 1.1, "incorrect priority in PQ test"
     assert index == 4, "incorrect index in PQ test"
     assert item == 1, "incorrect item in PQ test"
 
-    (priority, index, item) = pq.pop()
+    priority, index, item = pq.pop()
     assert priority == 2.2, "incorrect priority in PQ test"
     assert index == 0, "incorrect index in PQ test"
     assert item == 2, "incorrect item in PQ test"
 
-    (priority, index, item) = pq.pop()
+    priority, index, item = pq.pop()
     assert priority == 3.3, "incorrect priority in PQ test"
     assert index == 5, "incorrect index in PQ test"
     assert item == 3, "incorrect item in PQ test"
 
-    (priority, index, item) = pq.pop()
+    priority, index, item = pq.pop()
     assert priority == 4.4, "incorrect priority in PQ test"
     assert index == 3, "incorrect index in PQ test"
     assert item == 4, "incorrect item in PQ test"
 
-    (priority, index, item) = pq.pop()
+    priority, index, item = pq.pop()
     assert priority == 5.5, "incorrect priority in PQ test"
     assert index == 1, "incorrect index in PQ test"
     assert item == 5, "incorrect item in PQ test"

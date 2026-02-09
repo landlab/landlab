@@ -4,6 +4,7 @@ Created on Fri Mar  3 10:39:32 2017
 
 @author: KRB
 """
+
 import pytest
 
 from landlab import RasterModelGrid

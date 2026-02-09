@@ -2,6 +2,7 @@
 """Python implementation of ModelGrid, a base class used to create and manage
 grids for 2D numerical models.
 """
+
 import contextlib
 import fnmatch
 from functools import cached_property
@@ -2182,7 +2183,7 @@ class ModelGrid(
         """
         if slp is not None and asp is not None:
             if unit == "degrees":
-                (alt, az, slp, asp) = (
+                alt, az, slp, asp = (
                     np.radians(alt),
                     np.radians(az),
                     np.radians(slp),
@@ -2194,14 +2195,14 @@ class ModelGrid(
                         "Assuming your solar properties are in degrees, "
                         "but your slopes and aspects are in radians..."
                     )
-                    (alt, az) = (np.radians(alt), np.radians(az))
+                    alt, az = (np.radians(alt), np.radians(az))
                     # ...because it would be super easy to specify radians,
                     # but leave the default params alone...
             else:
                 raise TypeError("unit must be 'degrees' or 'radians'")
         elif slp is None and asp is None:
             if unit == "degrees":
-                (alt, az) = (np.radians(alt), np.radians(az))
+                alt, az = (np.radians(alt), np.radians(az))
             elif unit == "radians":
                 pass
             else:

@@ -1,5 +1,6 @@
 # ! /usr/env/python
 """trickle_down_profiler.py component to create channel profiles."""
+
 from collections import OrderedDict
 
 import matplotlib as mpl

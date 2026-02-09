@@ -411,7 +411,7 @@ def calc_slope_at_node(
     slope_mag = np.mean(slopes_at_node_masked, axis=1).data
 
     if return_components or method == "Horn":
-        (x_slope_patches, y_slope_patches) = grid.calc_grad_at_patch(
+        x_slope_patches, y_slope_patches = grid.calc_grad_at_patch(
             elevs=elevs,
             unit_normal=nhat,
             ignore_closed_nodes=ignore_closed_nodes,
