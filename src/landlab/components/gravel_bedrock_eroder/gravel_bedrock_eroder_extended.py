@@ -537,6 +537,8 @@ class ExtendedGravelBedrockEroder(Component):
         },
     }
 
+    TRANSPORT_COEFFICIENT = 3.97 # dimensionless factor for Meyer-Peter Mueller / Wong-Parker transport law
+
     def __init__(
         self,
         grid,
@@ -1320,7 +1322,7 @@ class ExtendedGravelBedrockEroder(Component):
 
         if self._n_classes > 1:
             out[:] = (
-                3.97
+                self.TRANSPORT_COEFFICIENT
                 * self._SG ** (0.5)
                 * self._intermittency_factor
                 * self._g_star ** (0.5)
@@ -1329,7 +1331,7 @@ class ExtendedGravelBedrockEroder(Component):
             )
         else:
             out[:] = (
-                3.97
+                self.TRANSPORT_COEFFICIENT
                 * self._SG ** (0.5)
                 * self._intermittency_factor
                 * self._g_star ** (0.5)
