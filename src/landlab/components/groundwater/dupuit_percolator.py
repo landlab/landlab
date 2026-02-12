@@ -49,8 +49,8 @@ def get_link_hydraulic_conductivity(grid, K):
 
     Parameters
     ----------
-    K: (2x2) array of floats (m/s)
-        The hydraulic conductivity tensor:
+    K: ndarray of float
+        The hydraulic conductivity [m/s] tensor:
         [[Kxx, Kxy],[Kyx,Kyy]]
     """
 
@@ -308,7 +308,7 @@ class GroundwaterDupuitPercolator(Component):
         ----------
         grid: ModelGrid
             Landlab ModelGrid object
-        hydraulic_conductivity: float, field name, array of float or function.
+        hydraulic_conductivity: float, str, ndarray of float or callable.
             the aquifer saturated hydraulic conductivity, m/s.
             If function is given, it should take a landlab ModelGrid and return
             an array of floats at link. This may be used if the lateral hydraulic
@@ -316,10 +316,10 @@ class GroundwaterDupuitPercolator(Component):
             conductivity needs to be modified based upon on the position of the
             water table. See component tests for example.
             Default = 0.001 m/s
-        porosity: float, field name or array of float
+        porosity: float, str or ndarray of float
             the drainable porosity of the aquifer [-]
             Default = 0.2
-        recharge_rate: float, field name, or array of float
+        recharge_rate: float, str, or ndarray of float
             Rate of recharge, m/s
             Default = 1.0e-8 m/s
         regularization_f: float

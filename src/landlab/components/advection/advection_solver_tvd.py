@@ -176,7 +176,7 @@ class AdvectionSolverTVD(Component):
     ----------
     grid : RasterModelGrid or HexModelGrid
         A Landlab grid object.
-    fields_to_advect : field name or list or (n_nodes,) array (default None)
+    fields_to_advect : field name or list or (n_nodes,) ndarray (default None)
         A node field of scalar values that will be advected, or list of fields.
         If not given, the component creates a generic field, initialized to zeros,
         called advected__quantity. If list >1 element given, advection will be
@@ -301,7 +301,7 @@ class AdvectionSolverTVD(Component):
 
         Parameters
         ----------
-        scalar : (n_nodes, ) array
+        scalar : (n_nodes, ) ndarray
             Scalar at-node field of values to be advected.
         dt : float
             Time-step duration. Needed to calculate the Courant number.

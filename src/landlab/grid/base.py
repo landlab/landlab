@@ -728,7 +728,7 @@ class ModelGrid(
 
         Returns
         -------
-        (n_nodes, max_links_per_node) ndarray of int
+        ``(n_nodes, max_links_per_node)`` ndarray of int
             Link directions relative to the nodes of a grid. The shape of the
             matrix will be number of nodes by the maximum number of links per
             node. A zero indicates no link at this position.
@@ -1119,7 +1119,7 @@ class ModelGrid(
 
         Returns
         -------
-        array of int
+        ndarray of int
             Links with the given tail and head node statuses.
 
         Examples
@@ -1590,7 +1590,7 @@ class ModelGrid(
 
         Parameters
         ----------
-        values : str or array
+        values : str or ndarray
             Name of variable field defined at links, or array of values at
             links.
         out : ndarray, optional
@@ -1673,7 +1673,7 @@ class ModelGrid(
 
         Parameters
         ----------
-        values : str or array
+        values : str or ndarray
             Name of variable field defined at links, or array of values at
             links.
         out : ndarray, optional
@@ -1752,7 +1752,7 @@ class ModelGrid(
 
         Parameters
         ----------
-        values : str or array
+        values : str or ndarray
             Name of variable field defined at links, or array of values at
             links.
         bad_index : int
@@ -1837,7 +1837,7 @@ class ModelGrid(
 
         Parameters
         ----------
-        values : str or array
+        values : str or ndarray
             Name of variable field defined at links, or array of values at
             links.
         bad_index : int

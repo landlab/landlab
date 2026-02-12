@@ -282,9 +282,9 @@ class SpaceLargeScaleEroder(Component):
         ----------
         grid : ModelGrid
             Landlab ModelGrid object
-        K_sed : float, array of float, or str, optional
+        K_sed : float, ndarray of float, or str, optional
             Erodibility for sediment (units vary) as either a number or a field name.
-        K_br : float, array of float, or str, optional
+        K_br : float, ndarray of float, or str, optional
             Erodibility for bedrock (units vary) as either a number or a field name.
         F_f : float, optional
             Fraction of permanently suspendable fines in bedrock [-].
@@ -300,11 +300,11 @@ class SpaceLargeScaleEroder(Component):
             Drainage area exponent (units vary).
         n_sp : float, optional
             Slope exponent (units vary).
-        sp_crit_sed : float, array of float, or str, optional
+        sp_crit_sed : float, ndarray of float, or str, optional
             Critical stream power to erode sediment [E/(TL^2)].
-        sp_crit_br : float, array of float, or str, optional
+        sp_crit_br : float, ndarray of float, or str, optional
             Critical stream power to erode rock [E/(TL^2)]
-        discharge_field : float, array of float, or str, optional
+        discharge_field : float, ndarray of float, or str, optional
             Discharge [L^2/T]. The default is to use the grid field
             'surface_water__discharge', which is simply drainage area
             multiplied by the default rainfall rate (1 m/yr). To use custom
