@@ -150,7 +150,7 @@ class LinearDiffuser(Component):
         ----------
         grid : ModelGrid
             A grid.
-        linear_diffusivity : float, array, or field name (m**2/time)
+        linear_diffusivity : float, ndarray, or str (m**2/time)
             The diffusivity. If an array or field name, these must be the
             diffusivities on either nodes or links - the component will
             distinguish which based on array length. Values on nodes will be
@@ -397,7 +397,7 @@ class LinearDiffuser(Component):
 
         Parameters
         ----------
-        dt : float (time)
+        dt : float
             The imposed timestep.
         """
         gradient = self._grid.at_link["topographic__gradient"]

@@ -164,7 +164,7 @@ def map_max_of_link_nodes_to_link(
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    value_at_node : array or str
+    value_at_node : ndarray or str
         Values defined at nodes. Can be either an array of values or the
         name of an *at-node* field.
     out : ndarray, optional
@@ -230,7 +230,7 @@ def map_sum_of_inlinks_to_node(grid, var_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : array or field name
+    var_name : ndarray or str
         Values defined at links.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
@@ -283,7 +283,7 @@ def map_mean_of_inlinks_to_node(grid, var_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : array or field name
+    var_name : ndarray or str
         Values defined at links.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
@@ -337,7 +337,7 @@ def map_max_of_inlinks_to_node(grid, var_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : array or field name
+    var_name : ndarray or str
         Values defined at links.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
@@ -392,7 +392,7 @@ def map_min_of_inlinks_to_node(grid, var_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : array or field name
+    var_name : ndarray or str
         Values defined at links.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
@@ -446,7 +446,7 @@ def map_sum_of_outlinks_to_node(grid, var_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : array or field name
+    var_name : ndarray or str
         Values defined at links.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
@@ -500,7 +500,7 @@ def map_mean_of_outlinks_to_node(grid, var_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : array or field name
+    var_name : ndarray or str
         Values defined at links.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
@@ -554,7 +554,7 @@ def map_max_of_outlinks_to_node(grid, var_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : array or field name
+    var_name : ndarray or str
         Values defined at links.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
@@ -608,7 +608,7 @@ def map_min_of_outlinks_to_node(grid, var_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : array or field name
+    var_name : ndarray or str
         Values defined at links.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
@@ -661,7 +661,7 @@ def map_mean_of_links_to_node(grid, var_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : array or field name
+    var_name : ndarray or str
         Values defined at links.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
@@ -728,7 +728,7 @@ def map_mean_of_horizontal_links_to_node(grid, var_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : array or field name
+    var_name : ndarray or str
         Values defined at links.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
@@ -784,7 +784,7 @@ def map_mean_of_horizontal_active_links_to_node(grid, var_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : array or field name
+    var_name : ndarray or str
         Values defined at links.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
@@ -845,7 +845,7 @@ def map_mean_of_vertical_links_to_node(grid, var_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : array or field name
+    var_name : ndarray or str
         Values defined at links.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
@@ -901,7 +901,7 @@ def map_mean_of_vertical_active_links_to_node(grid, var_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : array or field name
+    var_name : ndarray or str
         Values defined at links.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.

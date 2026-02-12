@@ -58,7 +58,7 @@ def sort_links_at_node_by_angle(
 
     Returns
     -------
-    tuple of (links_at_node, link_dirs_at_node)
+    tuple of ``(links_at_node, link_dirs_at_node)``
         The sorted arrays. If `inplace` is `True`, these are the input
         arrays.
 

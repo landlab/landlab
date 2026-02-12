@@ -138,7 +138,7 @@ class HeightAboveDrainageCalculator(Component):
         ----------
         grid : ModelGrid
             Landlab ModelGrid object
-        channel_mask : field name, array of uint8
+        channel_mask : str, ndarray of uint8
             Logical map of nodes where drainage is present
         """
         super().__init__(grid)

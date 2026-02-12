@@ -27,7 +27,7 @@ def calc_grad_at_link(grid, node_values, out=None):
     ----------
     grid : ModelGrid
         A ModelGrid.
-    node_values : ndarray or field name (x number of nodes)
+    node_values : ndarray or str
         Values at grid nodes.
     out : ndarray, optional (x number of links)
         Buffer to hold the result.
@@ -79,7 +79,7 @@ def calc_diff_at_link(grid, node_values, out=None):
     ----------
     grid : ModelGrid
         A ModelGrid.
-    node_values : ndarray or field name
+    node_values : ndarray or str
         Values at grid nodes.
     out : ndarray, optional
         Buffer to hold the result.
@@ -123,7 +123,7 @@ def calc_unit_normal_at_patch(grid, elevs="topographic__elevation"):
 
     Returns
     -------
-    nhat : num-patches x length-3 array
+    nhat : ndarray
         The unit normal vector <a, b, c> to each patch.
 
     Examples
@@ -190,12 +190,12 @@ def calc_slope_at_patch(
         Field name or array of node values.
     ignore_closed_nodes : bool
         If True, do not incorporate values at closed nodes into the calc.
-    unit_normal : array with shape (num_patches, 3) (optional)
+    unit_normal : ndarray, optional
         The unit normal vector to each patch, if already known.
 
     Returns
     -------
-    slopes_at_patch : n_patches-long array
+    slopes_at_patch : ndarray
         The slope (positive gradient magnitude) of each patch.
 
     Examples
@@ -250,14 +250,14 @@ def calc_grad_at_patch(
         Field name or array of node values.
     ignore_closed_nodes : bool
         If True, do not incorporate values at closed nodes into the calc.
-    unit_normal : array with shape (num_patches, 3) (optional)
+    unit_normal : ndarray, optional
         The unit normal vector to each patch, if already known.
-    slope_magnitude : array with size num_patches (optional)
+    slope_magnitude : ndarray, optional
         The slope of each patch, if already known.
 
     Returns
     -------
-    gradient_tuple : (x_component_at_patch, y_component_at_patch)
+    tuple : ``(x_component_at_patch, y_component_at_patch)``
         Len-2 tuple of arrays giving components of gradient in the x and y
         directions, in the units of *units*.
 
@@ -341,7 +341,7 @@ def calc_slope_at_node(
 
     Returns
     -------
-    float array or length-2 tuple of float arrays
+    float ndarray or tuple of ndarray
         If return_components, returns (array_of_magnitude,
         (array_of_slope_x_radians, array_of_slope_y_radians)).
         If not return_components, returns an array of slope magnitudes.
@@ -466,10 +466,10 @@ def calc_aspect_at_node(
     ----------
     grid : ModelGrid
         A ModelGrid.
-    slope_component_tuple : (slope_x_array, slope_y_array) (optional)
+    slope_component_tuple : tuple of ndarray, optional
         Tuple of components of slope in the x and y directions, defined
         on nodes, if already known. If not, provide *elevs*.
-    elevs : str or array (optional)
+    elevs : str or ndarray, optional
         Node field name or node array of elevations.
         If *slope_component_tuple* is not provided, must be set, but unused
         otherwise.

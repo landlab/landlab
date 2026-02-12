@@ -390,7 +390,7 @@ class PrecipitationDistribution(Component):
 
         Returns
         -------
-        array
+        ndarray
             containing several sub-arrays of events [start, finish, intensity]
         """
 

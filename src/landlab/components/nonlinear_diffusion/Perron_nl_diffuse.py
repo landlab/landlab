@@ -94,7 +94,7 @@ class PerronNLDiffuse(Component):
         ----------
         grid : RasterModelGrid
             A Landlab raster grid
-        nonlinear_diffusivity : float, array or field name
+        nonlinear_diffusivity : float, ndarray or str
             The nonlinear diffusivity
         S_crit : float (radians)
             The critical hillslope angle
@@ -1435,7 +1435,7 @@ class PerronNLDiffuse(Component):
 
         Parameters
         ----------
-        dt : float (time)
+        dt : float
             The imposed timestep.
         """
         if self._bc_set_code != self._grid.bc_set_code:
