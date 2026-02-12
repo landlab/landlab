@@ -204,7 +204,7 @@ class DepressionFinderAndRouter(Component):
             If grid is a raster type, controls whether lake connectivity can
             occur on diagonals ('D8', default), or only orthogonally ('D4').
             Has no effect if grid is not a raster.
-        pits : array or str or None, optional
+        pits : ndarray or str, optional
             If a field name, the boolean field containing True where pits.
             If an array, either a boolean array of nodes of the pits, or an
             array of pit node IDs. It does not matter whether or not open
@@ -616,12 +616,10 @@ class DepressionFinderAndRouter(Component):
         ----------
         the_node : int
             The node to test.
-        nodes_this_depression : array_like of int
-            Nodes that form a pit.
 
         Returns
         -------
-        boolean
+        bool
             ``True`` if the node can drain. Otherwise, ``False``.
         """
         nbrs = self._node_nbrs[the_node]
@@ -665,12 +663,10 @@ class DepressionFinderAndRouter(Component):
         ----------
         the_node : int
             The node to test.
-        nodes_this_depression : array_like of int
-            Nodes that form a pit.
 
         Returns
         -------
-        boolean
+        bool
             ``True`` if the node is a valid outlet. Otherwise, ``False``.
         """
         if self._grid.status_at_node[the_node] == self._grid.BC_NODE_IS_FIXED_VALUE:

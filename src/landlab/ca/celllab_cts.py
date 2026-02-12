@@ -69,25 +69,25 @@ by the tuples of (tail-node state, head-node state, orientation) as follows::
 
 Main data structures
 --------------------
-node_state : 1d array of int (x number of nodes in grid)
+node_state : ndarray of int
     Node-based grid of node-state codes. This is the grid of cell (sic) states.
 
-link_state_dict : dictionary
+link_state_dict : dict
     Keys are 3-element tuples that represent the cell-state pairs and
     orientation code for each possible link type; values are the corresponding
     link-state codes. Allows you to look up the link-state code corresponding
     to a particular pair of adjacent nodes with a particular orientation.
 
-node_pair : list (x number of possible link states)
+node_pair : list
     List of 3-element tuples representing all the various link states. Allows
     you to look up the node states and orientation corresponding to a
     particular link-state ID.
 
-priority_queue : PriorityQueue object containing event records
+priority_queue : PriorityQueue
     Queue containing all future transition events, sorted by time of occurrence
     (from soonest to latest).
 
-next_update : 1d array (x number of links)
+next_update : ndarray
     Time (in the future) at which the link will undergo its next transition.
     You might notice that the update time for every scheduled transition is
     also stored with each event in the event queue. Why store it twice?
@@ -97,21 +97,21 @@ next_update : 1d array (x number of links)
     valid is to compare its time with the corresponding transition time in the
     *next_update* array. If they are different, the event is discarded.
 
-link_orientation : 1d array of int8 (x number of links)
+link_orientation : ndarray of int8
     Orientation code for each link.
 
-link_state : 1d array of int (x number of links)
+link_state : ndarray of int
     State code for each link.
 
-n_trn : 1d array of int (x number of possible link states)
+n_trn : ndarray of int
     Number of transitions ("trn" stands for "transition") from a given link
     state.
 
-trn_to : 1d array of ints (x # transitions)
+trn_to : ndarray of int
     Stores the link-state code(s) to which a particular transition ID can
     transition.
 
-trn_rate : 1d array of floats (# transitions)
+trn_rate : ndarray of float
     Rate associated with each link-state transition.
 
 
@@ -314,9 +314,9 @@ class CellLabCTSModel:
         these codes
     transition_list : list of Transition objects
         List of all possible transitions in the model
-    initial_node_states : array of ints (x number of nodes in grid)
+    initial_node_states : ndarray of int
         Starting values for node-state grid
-    prop_data : array (x number of nodes in grid), optional
+    prop_data : ndarray, optional
         Array of properties associated with each node/cell
     prop_reset_value : number or object, optional
         Default or initial value for a node/cell property (e.g., 0.0).
@@ -344,9 +344,9 @@ class CellLabCTSModel:
             these codes
         transition_list : list of Transition objects
             List of all possible transitions in the model
-        initial_node_states : array of ints (x number of nodes in grid)
+        initial_node_states : ndarray of int
             Starting values for node-state grid
-        prop_data : array (x number of nodes in grid), optional
+        prop_data : ndarray, optional
             Array of properties associated with each node/cell
         prop_reset_value : number or object, optional
             Default or initial value for a node/cell property (e.g., 0.0).
@@ -758,11 +758,11 @@ class CellLabCTSModel:
         ----------
         run_to : float
             Time to run to, starting from self.current_time
-        node_state_grid : 1D array of ints (x number of nodes) (optional)
+        node_state_grid : ndarray of int, optional
             Node states (if given, replaces model's current node state grid)
-        plot_each_transition : bool (optional)
+        plot_each_transition : bool, optional
             Option to display the grid after each transition
-        plotter : CAPlotter object (optional)
+        plotter : CAPlotter, optional
             Needed if caller wants to plot after every transition
 
         Examples

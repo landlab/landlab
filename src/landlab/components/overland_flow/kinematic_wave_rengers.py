@@ -221,8 +221,8 @@ class KinematicWaveRengers(Component):
 
         Parameters
         ----------
-        rain_intensity : float or array (m/s)
-            The rainfall intensity across the grid (water input rate at each
+        rain_intensity : float or ndarray
+            The rainfall intensity [m/s] across the grid (water input rate at each
             node).
         update_topography : bool
             Set to true if the topography of the grid evolves during the run.

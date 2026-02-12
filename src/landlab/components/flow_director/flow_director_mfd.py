@@ -360,10 +360,10 @@ class FlowDirectorMFD(_FlowDirectorToMany):
         ----------
         grid : ModelGrid
             A grid.
-        surface : field name at node or array of length node, optional
+        surface : str or ndarray, optional
             The surface to direct flow across, default is field at node:
             topographic__elevation.
-        partition_method: string, optional
+        partition_method: str, optional
             Method for partitioning flow. Options include 'slope' (default) and
             'square_root_of_slope'.
         """

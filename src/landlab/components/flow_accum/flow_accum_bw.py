@@ -304,11 +304,12 @@ def find_drainage_area_and_discharge_lossy(
         Receiver node IDs for each node
     link_to_receiver : ndarray of int
         Link to receiver node IDs for each node
-    loss_function : Python function(Qw, nodeID, linkID, grid)
+    loss_function : callable
         Function dictating how to modify the discharge as it leaves each node.
+        Must have the signature ``loss_function(Qw, nodeID, linkID, grid) -> float``.
         nodeID is the current node; linkID is the downstream link, grid is a
         ModelGrid. Returns a float.
-    grid : Landlab ModelGrid (or None)
+    grid : ModelGrid, optional
         A grid to enable spatially variable parameters to be used in the loss
         function. If no spatially resolved parameters are needed, this can be
         a dummy variable, e.g., None.

@@ -188,9 +188,9 @@ class StreamPowerEroder(Component):
         ----------
         grid : ModelGrid
             A grid.
-        K_sp : float, array, or field name
+        K_sp : float, ndarray, or str
             K in the stream power equation (units vary with other parameters).
-        threshold_sp : positive float, array, or field name, optional
+        threshold_sp : float, ndarray, or str, optional
             The threshold stream power, below which no erosion occurs. This
             threshold is assumed to be in "stream power" units, i.e., if
             sp_type is 'Shear_stress', the value should be tau**a.
@@ -220,14 +220,14 @@ class StreamPowerEroder(Component):
         c_sp : float, optional
             The power on area to get discharge; the "basin hydology" term. Only
             used if sp_type is not 'set_mn'.
-        channel_width_field : None, float, array, or field name, optional
+        channel_width_field : float, ndarray, or str, optional
             If not None, component will look for node-centered data describing
             channel width or if an array, will take the array as the channel
             widths. It will use the widths to implement incision ~ stream power
             per unit width. If sp_type is 'set_mn', follows the equation given
             above. If sp_type in ('Unit', 'Shear_stress'), the width value will
             be implemented directly. W has no effect if sp_type is 'Total'.
-        discharge_field : float, field name, or array, optional
+        discharge_field : float, str, or ndarray, optional
             Discharge [L^2/T]. The default is to use the grid field
             'drainage_area'. To use custom spatially/temporally varying
             rainfall, use 'water__unit_flux_in' to specify water input to the
