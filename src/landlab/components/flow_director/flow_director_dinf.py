@@ -272,7 +272,7 @@ class FlowDirectorDINF(_FlowDirectorToMany):
         ----------
         grid : ModelGrid
             A grid.
-        surface : field name at node or array of length node, optional
+        surface : str or ndarray, optional
             The surface to direct flow across, default is field at node:
             topographic__elevation.
         partition_method: string, optional

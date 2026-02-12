@@ -94,7 +94,7 @@ class SinkFillerBarnes(LakeMapperBarnes):
         ----------
         grid : ModelGrid
             A grid.
-        surface : field name at node or array of length node
+        surface : str or ndarray of length node
             The surface to fill.
         method : {'Steepest', 'D8'}
             Whether or not to recognise diagonals as valid flow paths, if a raster.

@@ -152,7 +152,7 @@ class DimensionlessDischarge(Component):
 
         Parameters
         ----------
-        soil_density : float, field name, or array, optional
+        soil_density : float, str, or ndarray, optional
             density of soil (kg/m^3) (defaults to 1330)
         water_density : float, optional
             density of water (kg/m^3) (defaults to 997.9)
@@ -165,7 +165,7 @@ class DimensionlessDischarge(Component):
             et al. 2019). (defaults to 0.85)
         gravity : float, optional
             (defaults to scipy's standard acceleration of gravity)
-        channel_bottom_sediment_grain__d50_diameter : float, field_name, or array
+        channel_bottom_sediment_grain__d50_diameter : float, str, or ndarray
             defaults to the field name
             "channel_bottom_sediment_grain__d50_diameter"
         """

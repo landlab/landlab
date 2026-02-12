@@ -32,16 +32,16 @@ def _fill_one_node_to_flat(fill_surface, all_neighbors, pitq, openq, closedq, du
 
     Parameters
     ----------
-    fill_surface : 1-D array of length nnodes
+    fill_surface : ndarray
         The surface to fill in LL node order. Modified in place.
-    all_neighbors : (nnodes, max_nneighbours) array
+    all_neighbors : ndarray
         Adjacent nodes at each node.
     pitq : heap queue (i.e., a structured list)
         Current nodes known to be in a lake, if already identified.
     openq : StablePriorityQueue object
         Ordered queue of nodes remaining to be checked out by the algorithm
         that are known not to be in a lake.
-    closedq : 1-D boolean array of length nnodes
+    closedq : ndarray of bool
         Nodes already or not to be explored by the algorithm.
     dummy : any Python object
         Necessary for direct comparison with _fill_one_node_to_slant.
@@ -271,7 +271,7 @@ class LakeMapperBarnes(Component):
         ----------
         grid : ModelGrid
             A grid.
-        surface : field name at node or array of length node
+        surface : str or ndarray
             The surface to direct flow across.
         method : {'Steepest', 'D8'}
             Whether or not to recognise diagonals as valid flow paths, if a raster.
@@ -472,16 +472,16 @@ class LakeMapperBarnes(Component):
 
         Parameters
         ----------
-        fill_surface : 1-D array of length nnodes
+        fill_surface : ndarray
             The surface to fill in LL node order. Modified in place.
-        all_neighbors : (nnodes, max_nneighbours) array
+        all_neighbors : ndarray
             Adjacent nodes at each node.
         pitq : heap queue (i.e., a structured list)
             Current nodes known to be in a lake, if already identified.
         openq : StablePriorityQueue object
             Ordered queue of nodes remaining to be checked out by the algorithm
             that are known not to be in a lake.
-        closedq : 1-D boolean array of length nnodes
+        closedq : ndarray of bool
             Nodes already or not to be explored by the algorithm.
         ignore_overfill : bool
             If False, method will raise a ValueError if adding an increment
@@ -656,16 +656,16 @@ class LakeMapperBarnes(Component):
 
         Parameters
         ----------
-        fill_surface : 1-D array
+        fill_surface : ndarray
             The surface to fill in LL node order. Modified in place.
-        all_neighbors : (nnodes, max_nneighbours) array
+        all_neighbors : ndarray
             Adjacent nodes at each node.
         pitq : heap queue (i.e., a structured list)
             Current nodes known to be in a lake, if already identified.
         openq : StablePriorityQueue object
             Ordered queue of nodes remaining to be checked out by the algorithm
             that are known not to be in a lake.
-        closedq : 1-D boolean array of length nnodes
+        closedq : ndarray of bool
             Nodes already or not to be explored by the algorithm.
 
         Returns
@@ -760,16 +760,16 @@ class LakeMapperBarnes(Component):
 
         Parameters
         ----------
-        fill_surface : 1-D array of length nnodes
+        fill_surface : ndarray
             The surface to fill in LL node order. Modified in place.
-        all_neighbors : (nnodes, max_nneighbours) array
+        all_neighbors : ndarray
             Adjacent nodes at each node.
         pitq : heap queue (i.e., a structured list)
             Current nodes known to be in a lake, if already identified.
         openq : StablePriorityQueue object
             Ordered queue of nodes remaining to be checked out by the algorithm
             that are known not to be in a lake.
-        closedq : 1-D boolean array of length nnodes
+        closedq : ndarray of bool
             Nodes already or not to be explored by the algorithm.
         ignore_overfill : bool
             If False, method will raise a ValueError if adding an increment

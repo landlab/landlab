@@ -26,7 +26,7 @@ class NetworkModelGrid(NetworkGraph, GraphFields):
     ----------
     yx_of_node : tuple of ndarray
         Node y and x coordinates.
-    links : array of tuple of int
+    links : ndarray of tuple of int
         Nodes at link tail and head.
     xy_of_reference : tuple, optional
         Coordinate value in projected space of (0., 0.)

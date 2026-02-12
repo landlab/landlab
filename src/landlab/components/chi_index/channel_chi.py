@@ -292,11 +292,11 @@ class ChiFinder(Component):
 
         Parameters
         ----------
-        valid_upstr_order : array of ints
+        valid_upstr_order : ndarray of int
             nodes in the channel network in upstream order.
-        chi_integrand : array of floats
+        chi_integrand : ndarray of float
             The value (A0/A)**concavity, in upstream order.
-        chi_array : array of floats
+        chi_array : ndarray of float
             Array in which to store chi.
         mean_dx : float
             The mean node spacing in the network.
@@ -350,11 +350,11 @@ class ChiFinder(Component):
 
         Parameters
         ----------
-        valid_upstr_order : array of ints
+        valid_upstr_order : ndarray of int
             nodes in the channel network in upstream order.
-        chi_integrand_at_nodes : array of floats
+        chi_integrand_at_nodes : ndarray of float
             The value (A0/A)**concavity, in *node* order.
-        chi_array : array of floats
+        chi_array : ndarray of float
             Array in which to store chi.
 
         Examples
@@ -450,7 +450,7 @@ class ChiFinder(Component):
 
         Parameters
         ----------
-        ch_nodes : array of ints
+        ch_nodes : ndarray of int
             The nodes within the defined channel network.
 
         Returns
@@ -506,14 +506,14 @@ class ChiFinder(Component):
 
         Parameters
         ----------
-        ch_nodes : array of ints or None
+        ch_nodes : ndarray of int, optional
             Nodes at which to consider chi and elevation values. If None,
             will use all nodes in grid with area greater than the component
             min_drainage_area.
 
         Returns
         -------
-        coeffs : array(gradient, intercept)
+        coeffs : ndarray
             A len-2 array containing the m then z0, where z = z0 + m * chi.
 
         Examples
@@ -611,7 +611,7 @@ class ChiFinder(Component):
         Parameters
         ----------
 
-        channel_heads : int, list or array of ints, or None
+        channel_heads : int, list or ndarray of int, optional
             Node IDs of channel heads to from which plot downstream.
         label_axes : bool
             If True, labels the axes as "Chi" and "Elevation (m)".

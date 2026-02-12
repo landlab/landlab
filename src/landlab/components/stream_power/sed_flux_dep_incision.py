@@ -264,9 +264,9 @@ class SedDepEroder(Component):
             Typical density of loose sediment on the bed.
         fluid_density : float (Kg m**-3)
             Density of the fluid.
-        runoff_rate : float, array or field name (m/s)
+        runoff_rate : float, ndarray or str
             The rate of excess overland flow production at each node (i.e.,
-            rainfall rate less infiltration).
+            rainfall rate less infiltration) [m/s].
         pseudoimplicit_repeats : int
             Number of loops to perform with the pseudoimplicit iterator,
             seeking a stable solution. Convergence is typically rapid.
@@ -341,8 +341,8 @@ class SedDepEroder(Component):
             None, implies that *set_threshold_from_Dchar* is True, and this
             parameter will get set from the Dchar value and critical Shields
             number.
-        Dchar :None, float, array, or field name (m)
-            The characteristic grain size on the bed, that controls the
+        Dchar : float, ndarray, or str
+            The characteristic grain size on the bed [m], that controls the
             relationship between critical Shields number and critical shear
             stress. If None, implies that *set_Dchar_from_threshold* is True,
             and this parameter will get set from the threshold_shear_stress
@@ -359,8 +359,8 @@ class SedDepEroder(Component):
         slope_sensitive_threshold : bool
             If True, the threshold_Shields will be set according to
             0.15 * S ** 0.25, per Lamb et al., 2008 & Hobley et al., 2011.
-        flooded_depths : array or field name (m)
-            Depths of flooding at each node, zero where no lake. Note that the
+        flooded_depths : ndarray or str
+            Depths of flooding [m] at each node, zero where no lake. Note that the
             component will dynamically update this array as it fills nodes
             with sediment (...but does NOT update any other related lake
             fields).
@@ -1089,7 +1089,7 @@ class SedDepEroder(Component):
 
         Returns
         -------
-        Dchar : float or array
+        Dchar : float or narray
 
         Examples
         --------
