@@ -8,6 +8,8 @@ Alvis, A. D., Luce, C. H., Istanbulluoglu, E., Knuth, F., Wittkopf, L., Shean, D
 
 Baran, Z. J., & Cardenas, B. T. (2025). **Modeling Lake Bonneville paleoshoreline erosion at Mars‐like rates and durations: Implications for the preservation of erosional Martian shorelines and viability as evidence for a Martian ocean.** *Journal of Geophysical Research: Planets,* 130(4), e2024JE008851.
 
+Keck, J., Istanbulluoglu, E., Strauch, R., Cristea, N. (2025). **Could climate change decrease landslide hazard in snow-dominated mountainous regions? Insights from a distributed hydrology-shallow landslide model of the North Cascades, USA.** *Water Resources Research,* 61, e2025WR040071, [https://doi.org/10.1029/2025WR040071](https://doi.org/10.1029/2025WR040071).
+
 Litwin, D. G., Malatesta, L. C., & Sklar, L. S. (2025). **Hillslope diffusion and channel steepness in landscape evolution models.** *Earth Surface Dynamics,* 13(2), 277-293.
 
 Monsalve, A. D., Anderson, S. R., Gasparini, N. M., and Yager, E. M. (2025) **RiverBedDynamics v1.0: a Landlab component for computing two-dimensional sediment transport and river bed evolution,** *Geosci. Model Dev.,* 18, 3427–3451, [https://doi.org/10.5194/gmd-18-3427-2025](https://doi.org/10.5194/gmd-18-3427-2025).
