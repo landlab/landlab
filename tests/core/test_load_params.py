@@ -1,6 +1,8 @@
 from io import StringIO
-from landlab.core import load_params
+
 import pytest
+
+from landlab.core import load_params
 
 YAML_PARAMS_STR = """
 x: 1e7
