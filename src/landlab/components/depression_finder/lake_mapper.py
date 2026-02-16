@@ -534,7 +534,7 @@ class DepressionFinderAndRouter(Component):
                [42, 43, 44, 45, 46, 47, 48]])
         """
 
-        (links, nbrs, diag_nbrs) = self._links_and_nbrs_at_node(outlet_node)
+        links, nbrs, diag_nbrs = self._links_and_nbrs_at_node(outlet_node)
 
         # Sweep through them, identifying the neighbor with the greatest slope.
         # We are probably duplicating some gradient calculations, but this only
@@ -1057,7 +1057,7 @@ class DepressionFinderAndRouter(Component):
             # Get unresolved "regular" neighbors of the current nodes
             for cn in nodes_being_processed:
                 # Get active and unresolved neighbors of cn
-                (nbrs, lnks) = self._find_unresolved_neighbors_new(
+                nbrs, lnks = self._find_unresolved_neighbors_new(
                     self._grid.adjacent_nodes_at_node[cn],
                     self._grid.links_at_node[cn],
                     self._receivers,
@@ -1081,7 +1081,7 @@ class DepressionFinderAndRouter(Component):
             if self._D8:
                 # Get unresolved "regular" neighbors of the current nodes
                 for cn in nodes_being_processed:
-                    (nbrs, diags) = self._find_unresolved_neighbors_new(
+                    nbrs, diags = self._find_unresolved_neighbors_new(
                         self._grid.diagonal_adjacent_nodes_at_node[cn],
                         self._grid.d8s_at_node[cn, 4:],
                         self._receivers,

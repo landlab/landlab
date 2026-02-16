@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 """unit tests for landlab.io.obj module"""
+
 import pathlib
 
 import pytest

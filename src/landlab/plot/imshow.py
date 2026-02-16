@@ -10,6 +10,7 @@ Plotting functions
     ~imshow_grid_at_cell
     ~imshow_grid_at_node
 """
+
 from warnings import warn
 
 import numpy as np
@@ -307,14 +308,14 @@ def _imshow_grid_values(
         )
 
         kwds = {"cmap": cmap}
-        (kwds["vmin"], kwds["vmax"]) = (values.min(), values.max())
+        kwds["vmin"], kwds["vmax"] = (values.min(), values.max())
         if (limits is None) and ((vmin is None) and (vmax is None)):
             if symmetric_cbar:
-                (var_min, var_max) = (values.min(), values.max())
+                var_min, var_max = (values.min(), values.max())
                 limit = max(abs(var_min), abs(var_max))
-                (kwds["vmin"], kwds["vmax"]) = (-limit, limit)
+                kwds["vmin"], kwds["vmax"] = (-limit, limit)
         elif limits is not None:
-            (kwds["vmin"], kwds["vmax"]) = (limits[0], limits[1])
+            kwds["vmin"], kwds["vmax"] = (limits[0], limits[1])
         else:
             if vmin is not None:
                 kwds["vmin"] = vmin
@@ -338,7 +339,7 @@ def _imshow_grid_values(
         values = values.reshape(-1)
 
         if limits is not None:
-            (vmin, vmax) = (limits[0], limits[1])
+            vmin, vmax = (limits[0], limits[1])
         else:
             if vmin is None:
                 vmin = values.min()

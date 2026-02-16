@@ -242,7 +242,7 @@ def test_xy_of_node_spacing(hex_layout):
 @pytest.mark.parametrize("n_cols", (2, 3))
 @pytest.mark.parametrize("n_rows", (1, 2, 3))
 def test_xy_of_node_lower_left(hex_layout, n_rows, n_cols):
-    (x_of_node, y_of_node) = hex_layout.xy_of_node((n_rows, n_cols))
+    x_of_node, y_of_node = hex_layout.xy_of_node((n_rows, n_cols))
 
     assert np.min(x_of_node) == approx(0.0)
     assert np.min(y_of_node) == approx(0.0)

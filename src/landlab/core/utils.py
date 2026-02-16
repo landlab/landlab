@@ -18,6 +18,7 @@ Landlab utilities
     ~anticlockwise_argsort_points
     ~get_categories_from_grid_methods
 """
+
 import errno
 import importlib
 import inspect
@@ -336,7 +337,7 @@ def add_module_functions_to_class(cls, module, pattern=None, exclude=None):
 
     *Note* if both pattern and exclude are provided both conditions must be met.
     """
-    (module, _) = os.path.splitext(os.path.basename(module))
+    module, _ = os.path.splitext(os.path.basename(module))
 
     mod = importlib.import_module("." + module, package="landlab.grid")
 

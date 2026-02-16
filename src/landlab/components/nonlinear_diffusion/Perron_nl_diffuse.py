@@ -403,10 +403,8 @@ class PerronNLDiffuse(Component):
                 - self._grid["node"][self._values_to_diffuse]
             ) / self._internal_repeats
             if self._internal_repeats > 10000:
-                raise ValueError(
-                    """Uplift rate is too high; solution is not
-                                 stable!!"""
-                )
+                raise ValueError("""Uplift rate is too high; solution is not
+                                 stable!!""")
         else:
             self._internal_repeats = 1
             self._delta_t = timestep_in
@@ -700,10 +698,8 @@ class PerronNLDiffuse(Component):
                     ]
                 )
             else:
-                raise NameError(
-                    """Sorry! This module cannot yet handle fixed
-                    gradient or looped BCs..."""
-                )
+                raise NameError("""Sorry! This module cannot yet handle fixed
+                    gradient or looped BCs...""")
             # Todo: handle these BCs properly, once the grid itself works with
             # them.
             # Can follow old routines; see self.set_bc_cell() commented out
@@ -949,10 +945,8 @@ class PerronNLDiffuse(Component):
                 * nine_node_map[_interior_corners[3], :][corners_antimasks[3, 4]]
             )
         else:
-            raise NameError(
-                """Something is very wrong with your boundary
-                            conditions...!"""
-            )
+            raise NameError("""Something is very wrong with your boundary
+                            conditions...!""")
 
         if self._top_flag == 1:
             # goes to RHS only
@@ -1056,10 +1050,8 @@ class PerronNLDiffuse(Component):
         elif self._top_flag == 3:
             pass  # dealt with above
         else:
-            raise NameError(
-                """Something is very wrong with your boundary
-                            conditions...!"""
-            )
+            raise NameError("""Something is very wrong with your boundary
+                            conditions...!""")
 
         if self._left_flag == 1:
             # goes to RHS only
@@ -1222,10 +1214,8 @@ class PerronNLDiffuse(Component):
                 ].flatten()
             )
         else:
-            raise NameError(
-                """Something is very wrong with your boundary
-                            conditions...!"""
-            )
+            raise NameError("""Something is very wrong with your boundary
+                            conditions...!""")
 
         if self._right_flag == 1:
             # goes to RHS only
@@ -1318,10 +1308,8 @@ class PerronNLDiffuse(Component):
         elif self._top_flag == 3:
             pass  # dealt with above
         else:
-            raise NameError(
-                """Something is very wrong with your boundary
-                            conditions...!"""
-            )
+            raise NameError("""Something is very wrong with your boundary
+                            conditions...!""")
 
         # new approach using COO sparse matrix requires we build the matrix
         # only now...
@@ -1381,10 +1369,8 @@ class PerronNLDiffuse(Component):
         ncols = self._ncols
         interior_ID = (ID // ncols - 1) * (ncols - 2) + (ID % ncols) - 1
         if np.any(interior_ID < 0) or np.any(interior_ID >= self._ninteriornodes):
-            raise NameError(
-                """One of the supplied nodes was outside the
-                            interior grid!"""
-            )
+            raise NameError("""One of the supplied nodes was outside the
+                            interior grid!""")
         else:
             return interior_ID.astype(int)
 
@@ -1398,10 +1384,8 @@ class PerronNLDiffuse(Component):
         ncols = self._ncols
         core_ID = (ID // ncols - 2) * (ncols - 4) + (ID % ncols) - 2
         if np.any(core_ID < 0) or np.any(core_ID >= self._ncorenodes):
-            raise NameError(
-                """One of the supplied nodes was outside the
-                            core grid!"""
-            )
+            raise NameError("""One of the supplied nodes was outside the
+                            core grid!""")
         else:
             return core_ID.astype(int)
 
@@ -1415,10 +1399,8 @@ class PerronNLDiffuse(Component):
         IGW = self._interior_grid_width
         core_ID = (ID // IGW - 1) * (self._ncols - 4) + (ID % IGW) - 1
         if np.any(core_ID < 0) or np.any(core_ID >= self._ncorenodes):
-            raise NameError(
-                """One of the supplied nodes was outside the
-                            core grid!"""
-            )
+            raise NameError("""One of the supplied nodes was outside the
+                            core grid!""")
         else:
             return core_ID.astype(int)
 

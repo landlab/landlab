@@ -4,6 +4,7 @@ Created on Thu Jul 27 14:23:25 2017
 
 @author: gtucker
 """
+
 import pytest
 from numpy.testing import assert_array_almost_equal
 

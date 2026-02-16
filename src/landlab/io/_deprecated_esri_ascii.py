@@ -366,7 +366,7 @@ def write_esri_ascii(
     if len(names) == 1:
         paths = [path]
     elif len(names) > 1:
-        (base, ext) = os.path.splitext(path)
+        base, ext = os.path.splitext(path)
         paths = [base + "_" + name + ext for name in names]
     else:
         raise ValueError("no node fields to write")
@@ -540,7 +540,7 @@ def _parse_header_key_value(line: str) -> tuple[str, str] | None:
     if match is None:
         raise BadHeaderLineError(line)
 
-    (key, value) = (match.group("key").lower(), match.group("value"))
+    key, value = (match.group("key").lower(), match.group("value"))
 
     if key in _VALID_HEADER_KEYS:
         return (key, value)

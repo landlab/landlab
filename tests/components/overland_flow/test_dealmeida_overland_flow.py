@@ -18,7 +18,7 @@ from landlab.components.overland_flow.generate_overland_flow_deAlmeida import (
 from landlab.core.errors import ValidationError
 from landlab.grid.nodestatus import NodeStatus
 
-(_SHAPE, _SPACING, _ORIGIN) = ((32, 240), (25, 25), (0.0, 0.0))
+_SHAPE, _SPACING, _ORIGIN = ((32, 240), (25, 25), (0.0, 0.0))
 _ARGS = (_SHAPE, _SPACING, _ORIGIN)
 
 

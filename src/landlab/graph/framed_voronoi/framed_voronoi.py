@@ -403,7 +403,7 @@ class FramedVoronoiGraph(DelaunayGraph):
         #########################################
         self._perimeter_nodes = layout.perimeter_nodes(self._shape)
 
-        (right, top, left, bottom) = layout.nodes_at_edge(self._shape)
+        right, top, left, bottom = layout.nodes_at_edge(self._shape)
         self._nodes_at_right_edge = np.sort(np.append(right, top[0]))
         self._nodes_at_top_edge = np.sort(np.append(top, left[0]))
         self._nodes_at_left_edge = np.sort(np.append(left, bottom[0]))
