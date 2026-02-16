@@ -23,6 +23,7 @@ PYTHONPATH to allow .mp4 compilation (try a google search for the warning
 raised by this method for some hints). These (known) issues are apparently
 likely to resolve themselves in a future release of matplotlib.
 """
+
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import numpy as np

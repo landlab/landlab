@@ -43,7 +43,7 @@ def link_is_active(status_at_link_ends):
     ndarray, boolean :
         Boolean array that indicates if a link is active.
     """
-    (status_at_link_start, status_at_link_end) = _split_link_ends(status_at_link_ends)
+    status_at_link_start, status_at_link_end = _split_link_ends(status_at_link_ends)
 
     return (
         (status_at_link_start == NodeStatus.CORE)

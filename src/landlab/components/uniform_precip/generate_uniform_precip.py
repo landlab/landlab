@@ -626,11 +626,11 @@ class PrecipitationDistribution(Component):
         while not tobreak:
             # we always start with a storm, so:
             try:
-                (storm_dur, storm_int) = next(othergen)
+                storm_dur, storm_int = next(othergen)
             except StopIteration:
                 break  # stop dead. We terminated at a good place
             try:
-                (interstorm_dur, _) = next(othergen)
+                interstorm_dur, _ = next(othergen)
             except StopIteration:
                 tobreak = True
                 interstorm_dur = 0.0

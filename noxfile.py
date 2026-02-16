@@ -280,13 +280,11 @@ def docs_build_notebook_index(session: nox.Session) -> None:
         ]
 
         content = (
-            [
-                f"""\
+            [f"""\
 ({gallery}-gallery)=
 
 # {gallery.title()} Gallery
-"""
-            ]
+"""]
             + [
                 format_nbgallery(section, str(docs_dir), level=2)
                 for section in sorted(sections)

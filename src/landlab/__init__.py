@@ -9,6 +9,7 @@
 :URL: https://landlab.csdms.io/
 :License: MIT
 """
+
 from landlab._registry import registry
 from landlab._version import __version__
 from landlab.core.errors import MissingKeyError

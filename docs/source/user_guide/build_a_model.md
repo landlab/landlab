@@ -385,9 +385,7 @@ while accumulated_time < 1000.0:
     # ...do the thing for one timestep dt
     accumulated_time += dt
 if last_accumulated_time_remainder < accumulated_time % 100.0:  # output every 100.
-    plot(
-        mg.node_vector_to_raster(z)[mg.number_of_node_rows // 2, :]
-    )  # a cross section
+    plot(mg.node_vector_to_raster(z)[mg.number_of_node_rows // 2, :])  # a cross section
     last_accumulated_time_remainder = accumulated_time % 100.0
 show()
 ```

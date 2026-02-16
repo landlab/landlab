@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 """A class used to create and manage network models in 2D."""
+
 import contextlib
 
 import numpy as np

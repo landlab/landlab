@@ -47,7 +47,7 @@ repos:
   hooks:
   - id: blackdoc
     description: "Black for doctests"
-    additional_dependencies: ["black==25.1.0"]
+    additional_dependencies: ["black==26.1.0"]
   - id: blackdoc-autoupdate-black
 
 

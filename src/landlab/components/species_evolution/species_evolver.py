@@ -11,6 +11,7 @@ SpeciesEvolver. The simulated life evolves following customizable processes.
 
 Component written by Nathan Lyons beginning August 2017.
 """
+
 from collections import OrderedDict
 
 import numpy as np
