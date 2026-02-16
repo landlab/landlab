@@ -1,3 +1,4 @@
+import argparse
 import difflib
 import glob
 import json
@@ -40,14 +41,19 @@ def build(session: nox.Session) -> str:
 
 @nox.session(python=PYTHON_VERSION)
 def install(session: nox.Session) -> None:
-    arg = session.posargs[0] if session.posargs else build(session)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("target", nargs="?")
+
+    install_args, _ = parser.parse_known_args(session.posargs)
+
+    target = install_args.target or build(session)
 
     session.install("-r", PATH["requirements"] / "required.txt")
 
-    if os.path.isdir(arg):
-        session.install("landlab", f"--find-links={arg}", "--no-deps", "--no-index")
-    elif os.path.isfile(arg):
-        session.install(arg, "--no-deps")
+    if os.path.isdir(target):
+        session.install("landlab", f"--find-links={target}", "--no-deps", "--no-index")
+    elif os.path.isfile(target):
+        session.install(target, "--no-deps")
     else:
         session.error("first argument must be either a wheel or a wheelhouse folder")
 
@@ -142,7 +148,11 @@ def test_cli(session: nox.Session) -> None:
 @nox.session
 def lint(session: nox.Session) -> None:
     """Look for lint."""
-    skip_hooks = [] if "--no-skip" in session.posargs else ["check-manifest", "pyroma"]
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--no-skip", action="store_true")
+    lint_args, _ = parser.parse_known_args(session.posargs)
+
+    skip_hooks = [] if lint_args.no_skip else ["check-manifest", "pyroma"]
 
     if session.virtualenv.venv_backend != "none":
         session.install("pre-commit")
@@ -366,7 +376,11 @@ def check_package_versions(session, files=("required.txt",)):
 @nox.session
 def locks(session: nox.Session) -> None:
     """Create lock files."""
-    folders = session.posargs or [".", "docs", "notebooks"]
+    parser = argparse.ArgumentParser()
+    parser.add_argument("folder", nargs="*")
+    args, _ = parser.parse_known_args(session.posargs)
+
+    folders = args.folder or [".", "docs", "notebooks"]
 
     session.install("pip-tools")
 
@@ -535,7 +549,12 @@ def list_ci_matrix(session):
 
 
 def _get_wheels(session):
-    platforms = session.posargs or ["linux", "macos", "windows"]
+    parser = argparse.ArgumentParser()
+    parser.add_argument("platform", nargs="*")
+
+    args, _ = parser.parse_known_args(session.posargs)
+
+    platforms = args.platform or ["linux", "macos", "windows"]
     session.install("cibuildwheel")
 
     wheels = []
