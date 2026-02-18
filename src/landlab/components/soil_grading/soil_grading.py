@@ -205,22 +205,29 @@ class SoilGrading(Component):
         # Note: Landlabs' init_out_field procedure will not work
         # for the 'grains__weight' and 'grains_classes__size' fields
         # because the shape of these fields is: n_nodes x n_grain_sizes.
-        grid.add_zeros("median_size__weight", at="node")
-        grid.at_node["grains_classes__size"] = np.ones(
-            (grid.number_of_nodes, self._n_sizes)
-        )
-        self._grid.at_node["grains__weight"] = np.zeros((grid.number_of_nodes, self._n_sizes))
-        grid.at_node["bed_grains__proportions"] = np.ones(
-            (grid.number_of_nodes, self._n_sizes)
-        )
+        if not grid.has_field("median_size__weight", at="node"):
+            print("creating MSW")
+            grid.add_zeros("median_size__weight", at="node")
+        if not grid.has_field("grains_classes__size", at="node"):
+            print("creating GCS")
+            grid.at_node["grains_classes__size"] = np.ones(
+                (grid.number_of_nodes, self._n_sizes)
+            )
+        if not grid.has_field("bed_grains__proportions", at="node"):
+            print("creating BGP")
+            grid.at_node["bed_grains__proportions"] = np.ones(
+                (grid.number_of_nodes, self._n_sizes)
+            )
 
         # Create fields for soil depth, topographic elevation and bedrock elevation
-        if grid.has_field("soil__depth"):
-            warnings.warn(
-                "Soil depth is rewrite due to inconsistent with grains__weight",
-                stacklevel=2,
-            )
-        grid.add_zeros("soil__depth", at="node", clobber=True)
+        if not grid.has_field("soil__depth"):
+#MOVETHIS            warnings.warn(
+#                "Soil depth is rewrite due to inconsistent with grains__weight",
+#                stacklevel=2,
+#            )
+            print("creating SD")
+            grid.add_zeros("soil__depth", at="node", clobber=True)
+    
         if "topographic__elevation" not in grid.at_node:
             grid.add_zeros("topographic__elevation", at="node", clobber=True)
 
@@ -230,25 +237,33 @@ class SoilGrading(Component):
         # Update the weight in each size class.
         # In case grains_weight not provided, the weights will be spread around
         # the initial_median_size assuming normal distribution
-        if grains_weight is None:
-            if initial_median_size is None:
-                self._initial_median_size = self._meansizes[
-                    self._grid.core_nodes[0], int(self._n_sizes / 2)
-                ]
-            else:
-                self._get_initial_median_size(initial_median_size=initial_median_size)
-            if std is None:
-                std = self._initial_median_size * self._CV
-            self._std = std
-            self._initial_total_soil_weight = initial_total_soil_weight
-            self.generate_weight_distribution()
-        else:
-            self._grains_weight = self._create_2D_array_for_input_var(
-                grains_weight, "grains__weight"
+        if not grid.has_field("grains__weight", at="node"):
+            self._grid.at_node["grains__weight"] = np.zeros(
+                (grid.number_of_nodes, self._n_sizes)
             )
+            if grains_weight is None:
+                if initial_median_size is None:
+                    self._initial_median_size = self._meansizes[
+                        self._grid.core_nodes[0], int(self._n_sizes / 2)
+                    ]
+                else:
+                    self._get_initial_median_size(initial_median_size=initial_median_size)
+                if std is None:
+                    std = self._initial_median_size * self._CV
+                self._std = std
+                self._initial_total_soil_weight = initial_total_soil_weight
+                self.generate_weight_distribution()
+            else:
+                self._grains_weight = self._create_2D_array_for_input_var(
+                    grains_weight, "grains__weight"
+                )
 
             # Update mass
             self._update_mass(self._grains_weight)
+        else:
+            print("SG was given a preexisting GW")
+
+        # TODO: do we need to update soil, topo, or bedrock if grains__weight is provided as a field?
 
         # Update bed grains proportions
         self.update_bed_grains_proportions()
