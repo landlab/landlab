@@ -720,6 +720,16 @@ class SoilGrading(Component):
         """Update the sediment mass according to information on elevation change from an external source.
         By default, this procedure is built to work with the output fields from the BedrockLandslider component
         describing elevation change from landslides.
+
+        Parameters
+        ----------
+        erosion: array (float)
+            Erosion (dz) at node
+        deposition : array (float)
+            Deposition (dz) at node
+        proportions : array (float)
+            Proportional weight of each grain class in the bed layer
+
         """
 
         # Make sure the inputs format is valid
