@@ -261,10 +261,20 @@ class SoilGrading(Component):
 
 
         else:
-            self._grains_weight = self._create_2D_array_for_input_var(
-                grains_weight, "grains__weight"
-            )
-    
+            if isinstance(grains_weight, str):
+                # Try to capture grains weight from an existing field
+                try:
+                    self._grains_weight =  np.copy(grid.at_node[grains_weight])
+                except KeyError:
+                    print(f'the field {grains_weight} is not found')
+
+            else:
+                self._grains_weight = self._create_2D_array_for_input_var(
+                    grains_weight, "grains__weight"
+                )
+
+
+
         # Update mass
         self._update_mass(self._grains_weight)
         
