@@ -742,7 +742,8 @@ class SoilGrading(Component):
 
         # Just a pointer
         grains_weight = self._grid.at_node['grains__weight']
-
+        if np.ndim(grains_weight)==1:
+            grains_weight = grains_weight[:,np.newaxis]
 
         # Get the total eroded/desposited mass in kg/m2
         erosion_mass = (erosion * self._soil_density *
@@ -755,12 +756,11 @@ class SoilGrading(Component):
 
         # Store the mass of eroded bedrock.
         # The mass of soil will be removed later.
-        bedrock_out_mass_per_class = np.zeros_like(grains_weight)
-        bedrock_out_mass_per_class[:,:] = proportions[:,:] * erosion_mass
+        bedrock_out_mass_per_class = np.sum(proportions[:,:] * erosion_mass,0)
 
         # Store the mass of eroded soil.
         # Here the mass will be added later.
-        soil_out_mass_per_class = np.zeros_like(grains_weight)
+        soil_out_mass_per_class = np.zeros_like(bedrock_out_mass_per_class)
 
 
         # Operate only over nodes with action
@@ -788,15 +788,14 @@ class SoilGrading(Component):
 
             # Update and partitioning the removed mass across despoisted grain classes
             # Remove the soil mass from the bedrock vector and add it to the soil vector
-            bedrock_out_mass_per_class[non_zero_erosion_indices,:] -= soil_erosion_mass_per_class
-            soil_out_mass_per_class[non_zero_erosion_indices,:] += soil_erosion_mass_per_class
+            bedrock_out_mass_per_class -= np.sum(soil_erosion_mass_per_class,0)
+            soil_out_mass_per_class += np.sum(soil_erosion_mass_per_class,0)
 
 
 
         # Now we will collect all the removed mass and assume
         # it mixed fully before deposition.
-        tot_out_mass_per_class = np.sum((bedrock_out_mass_per_class+
-                                         soil_out_mass_per_class),0)
+        tot_out_mass_per_class = bedrock_out_mass_per_class+soil_out_mass_per_class
 
         # Get the fraction of each sediment class for deposition
         tot_deposition_mass=np.sum(tot_out_mass_per_class)
@@ -848,5 +847,7 @@ class SoilGrading(Component):
 
         elif np.shape(proportions) != np.shape(self._grid.at_node['bed_grains__proportions']):
             raise ValueError(f"Proportions input dimensions should match number of nodes x number of classes")
-
+        
+        if np.ndim(proportions)==1:
+            proportions = proportions[:,np.newaxis]
         return erosion, deposition, proportions
