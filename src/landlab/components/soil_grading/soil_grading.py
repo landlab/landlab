@@ -755,12 +755,12 @@ class SoilGrading(Component):
 
         # Store the mass of eroded bedrock.
         # The mass of soil will be removed later.
-        bedrock_deposition_mass_per_class = np.zeros_like(grains_weight)
-        bedrock_deposition_mass_per_class[:,:] = proportions[:,:] * erosion_mass
+        bedrock_out_mass_per_class = np.zeros_like(grains_weight)
+        bedrock_out_mass_per_class[:,:] = proportions[:,:] * erosion_mass
 
         # Store the mass of eroded soil.
         # Here the mass will be added later.
-        soil_deposition_mass_per_class = np.zeros_like(grains_weight)
+        soil_out_mass_per_class = np.zeros_like(grains_weight)
 
 
         # Operate only over nodes with action
@@ -788,21 +788,21 @@ class SoilGrading(Component):
 
             # Update and partitioning the removed mass across despoisted grain classes
             # Remove the soil mass from the bedrock vector and add it to the soil vector
-            bedrock_deposition_mass_per_class[non_zero_erosion_indices,:] -= soil_erosion_mass_per_class
-            soil_deposition_mass_per_class[non_zero_erosion_indices,:] += soil_erosion_mass_per_class
+            bedrock_out_mass_per_class[non_zero_erosion_indices,:] -= soil_erosion_mass_per_class
+            soil_out_mass_per_class[non_zero_erosion_indices,:] += soil_erosion_mass_per_class
 
 
 
         # Now we will collect all the removed mass and assume
         # it mixed fully before deposition.
-        tot_deposition_mass_per_class = np.sum((bedrock_deposition_mass_per_class+
-                                         soil_deposition_mass_per_class),0)
+        tot_out_mass_per_class = np.sum((bedrock_out_mass_per_class+
+                                         soil_out_mass_per_class),0)
 
         # Get the fraction of each sediment class for deposition
-        tot_deposition_mass=np.sum(tot_deposition_mass_per_class)
-        depoistion_ratios_per_class = np.divide(tot_deposition_mass_per_class,
+        tot_deposition_mass=np.sum(tot_out_mass_per_class)
+        depoistion_ratios_per_class = np.divide(tot_out_mass_per_class,
                                                 tot_deposition_mass,
-                                                where=tot_deposition_mass_per_class!=0)
+                                                where=tot_out_mass_per_class!=0)
 
         # Partitioning the deposited mass based on the dz input
         if np.any(non_zero_deposition_indices):
