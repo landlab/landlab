@@ -810,12 +810,6 @@ class SoilGrading(Component):
                     deposition_mass[non_zero_deposition_indices] * depoistion_ratios_per_class)
 
         
-        self._update_mass()
-
-
-
-
-
     def _test_input_outsource_dz(self, var):
 
         """Verify inputs dimensions.
