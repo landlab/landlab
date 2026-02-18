@@ -710,4 +710,144 @@ class SoilGrading(Component):
             raise ValueError(f"meansizes format is invalid")
 
 
+    def update_mass_based_on_outsource_dz(self,
+                                erosion='landslide__erosion',
+                                deposition='landslide__deposition',
+                                proportions='bed_grains__proportions',
+                                ):
+
+
+        """Update the sediment mass according to information on elevation change from an external source.
+        By default, this procedure is built to work with the output fields from the BedrockLandslider component
+        describing elevation change from landslides.
+
+        Parameters
+        ----------
+        erosion: array (float)
+            Erosion (dz) at node
+        deposition : array (float)
+            Deposition (dz) at node
+        proportions : array (float)
+            Proportional weight of each grain class in the bed layer
+
+        """
+
+        # Make sure the inputs format is valid
+        (erosion,
+        deposition,
+        proportions) = self._check_outsource_inputs(erosion,
+                                                     deposition,
+                                                     proportions)
+
+
+        # Just a pointer
+        grains_weight = self._grid.at_node['grains__weight']
+        if np.ndim(grains_weight)==1:
+            grains_weight = grains_weight[:,np.newaxis]
+
+        # Get the total eroded/desposited mass in kg/m2
+        erosion_mass = (erosion * self._soil_density *
+                                        (1 - self._phi))
+        deposition_mass = (deposition * self._soil_density * (1 - self._phi))
+
+        erosion_mass = erosion_mass[:,np.newaxis]
+        deposition_mass = deposition_mass[:,np.newaxis]
+
+
+        # Store the mass of eroded bedrock.
+        # The mass of soil will be removed later.
+        bedrock_out_mass_per_class = np.sum(proportions[:,:] * erosion_mass,0)
+
+        # Store the mass of eroded soil.
+        # Here the mass will be added later.
+        soil_out_mass_per_class = np.zeros_like(bedrock_out_mass_per_class)
+
+
+        # Operate only over nodes with action
+        non_zero_erosion_indices = np.where(erosion > 0)[0]
+        non_zero_deposition_indices = np.where(deposition > 0)[0]
+
+        if np.any(non_zero_erosion_indices):
+
+            # Get the fraction of each grain class at node.
+            a = np.sum(grains_weight[non_zero_erosion_indices, :], axis=1)[:,np.newaxis]
+            b = grains_weight[non_zero_erosion_indices, :]
+            grains_fractions = np.divide(b, a, where= a!= 0)
+
+            # Partitioning the eroded soil mass across grain classes
+            soil_erosion_mass = erosion_mass[non_zero_erosion_indices,:]
+            soil_erosion_mass_per_class = grains_fractions * soil_erosion_mass
+
+            # Avoid negative mass
+            soil_erosion_mass_per_class = np.min((grains_weight[non_zero_erosion_indices],
+                                        soil_erosion_mass_per_class),axis=0)
+
+
+            # Update grains_weight field according to removed soil
+            grains_weight[non_zero_erosion_indices, :] -= soil_erosion_mass_per_class
+
+            # Update and partitioning the removed mass across despoisted grain classes
+            # Remove the soil mass from the bedrock vector and add it to the soil vector
+            bedrock_out_mass_per_class -= np.sum(soil_erosion_mass_per_class,0)
+            soil_out_mass_per_class += np.sum(soil_erosion_mass_per_class,0)
+
+
+
+        # Now we will collect all the removed mass and assume
+        # it mixed fully before deposition.
+        tot_out_mass_per_class = bedrock_out_mass_per_class+soil_out_mass_per_class
+
+        # Get the fraction of each sediment class for deposition
+        tot_deposition_mass=np.sum(tot_out_mass_per_class)
+        depoistion_ratios_per_class = np.divide(tot_out_mass_per_class,
+                                                tot_deposition_mass,
+                                                where=tot_out_mass_per_class!=0)
+
+        # Partitioning the deposited mass based on the dz input
+        if np.any(non_zero_deposition_indices):
+            grains_weight[non_zero_deposition_indices, :] +=(
+                    deposition_mass[non_zero_deposition_indices] * depoistion_ratios_per_class)
+
         
+    def _test_input_outsource_dz(self, var):
+
+        """Verify inputs dimensions.
+        """
+
+
+        if isinstance(var, str):
+            try:
+                var = self._grid.at_node[var]
+            except:
+                raise ValueError(f"{var} field not exists")
+
+        elif np.shape(var) != np.shape(self._grid.nodes.flatten()):
+            raise ValueError(f"Input dimension should match the number of nodes")
+        return var
+
+    def _check_outsource_inputs(self,
+                                erosion,
+                                deposition,
+                                proportions,
+                                ):
+
+
+        """Verify outsource inputs format and dimensions. 
+        An error will be raised if an unexpected format is given
+        """
+
+        erosion = self._test_input_outsource_dz(erosion)
+        deposition = self._test_input_outsource_dz(deposition)
+        
+        if isinstance(proportions, str):
+            try:
+                proportions = self._grid.at_node[proportions]
+            except:
+                raise ValueError(f"{var} field not exists")
+
+        elif np.shape(proportions) != np.shape(self._grid.at_node['bed_grains__proportions']):
+            raise ValueError(f"Proportions input dimensions should match number of nodes x number of classes")
+        
+        if np.ndim(proportions)==1:
+            proportions = proportions[:,np.newaxis]
+        return erosion, deposition, proportions

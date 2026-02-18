@@ -142,6 +142,16 @@ def _calc_shear_stress_coef(rho_w, mannings_n, g=_EARTH_GRAV):
 
     so rho*g*n^(3/5) is the prefactor.
 
+    Parameters
+    ----------
+    rho_w : float
+        fluid density
+    mannings_n : float
+        Manning's roughness coefficient
+    g : float
+        Gravity coefficient
+
+
     Examples
     --------
     >>> int(np.round(_calc_shear_stress_coef(1000, 0.05)*1000))
@@ -1295,6 +1305,15 @@ class ExtendedGravelBedrockEroder(Component):
         
         """Calculation and return unit sediment flux.
 
+        Parameters
+        ----------
+        excess_stress : array (float)
+            Excess stress at node
+        out : array (float)
+            Array to store outputs
+
+        Examples
+        ----------
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import FlowAccumulator
         >>> from landlab.components.soil_grading import SoilGrading
@@ -1344,10 +1363,15 @@ class ExtendedGravelBedrockEroder(Component):
     def _calc_weight_threshold_to_deliv(self, d_min):
         """Calc minimal weight per unit area of sediment to deliver
         based on a given minimal thickness (d_min)
-        
+
+
+        Parameters
+        ----------
+        d_min : float
+            Immobile alluvial thickness
+
         Examples
         -----
-
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import FlowAccumulator
         >>> from landlab.components.soil_grading import SoilGrading
@@ -1762,10 +1786,13 @@ class ExtendedGravelBedrockEroder(Component):
         """Update rock elevation, sediment thickness, and elevation
         using current rates of change extrapolated forward by time dt.
         
-        
+        Parameters
+        ----------
+        dt : float
+            time step
+
         Examples
         ------
-        
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import FlowAccumulator
         >>> from landlab.components.soil_grading import SoilGrading
@@ -1875,9 +1902,12 @@ class ExtendedGravelBedrockEroder(Component):
 
         Parameters
         ----------
-        dt : float (default 1.0e6)
+        upper_limit_dt : float (default 1.0e6)
             Maximum time step size
 
+
+        Examples
+        ------
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import FlowAccumulator
         >>> from landlab.components.soil_grading import SoilGrading
@@ -2038,6 +2068,6 @@ if __name__ == "__main__":
     current_dir = os.path.dirname(os.path.abspath(__file__))
     if current_dir not in sys.path:
         sys.path.insert(0, current_dir)
-    print(current_dir)
+
     # 2. Run the tests manually
     doctest.testmod()
