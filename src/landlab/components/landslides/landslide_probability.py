@@ -493,7 +493,7 @@ class LandslideProbability(Component):
         node specific parameters, creating distributions of these parameters,
         and calculating the index by sampling these distributions 'n' times.
 
-        The index is calculated from the 'infinite slope stability 
+        The index is calculated from the 'infinite slope stability
         factor-of-safety equation' in the format of Pack RT, Tarboton DG,
         and Goodwin CN (1998),The SINMAP approach to terrain stability mapping.
 
