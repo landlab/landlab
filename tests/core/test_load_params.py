@@ -89,7 +89,7 @@ def test_file_found_but_not_a_dict(tmpdir):
             fp.write(YAML_PARAMS_LIST_STR)
         with pytest.raises(
             ValueError,
-            match="File found but parsing did not produce a dict-like object. Ensure that your file uses 'key: value' syntax",
+            match="File found but parsing produced a list instead of a dictionary. Ensure that your file uses 'key: value' syntax",
         ):
             load_params("./params_list.txt")
 
