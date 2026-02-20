@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 """Write structured grids to NetCDF files.
 
-Write netcdf
+Write NetCDF
 ++++++++++++
 
 .. autosummary::
@@ -19,9 +19,9 @@ from landlab.io.netcdf._constants import _NP_TO_NC_TYPE
 
 
 def _set_netcdf_attributes(root, attrs):
-    """Set attributes of a netcdf file.
+    """Set attributes of a NetCDF file.
 
-    Set attributes of the netCDF Database object, *root*. Attributes are
+    Set attributes of the NetCDF Database object, *root*. Attributes are
     given as key/value pairs from *attrs*.
 
     Parameters
@@ -567,7 +567,7 @@ def write_netcdf(
     time=None,
     raster=False,
 ):
-    """Write landlab fields to netcdf.
+    """Write landlab fields to NetCDF.
 
     Write the data and grid information for *grid* to *path* as NetCDF.
     If the *append* keyword argument in True, append the data to an existing
@@ -582,14 +582,16 @@ def write_netcdf(
     append : boolean, optional
         Append data to an existing file, otherwise clobber the file.
     format : {'NETCDF3_CLASSIC', 'NETCDF3_64BIT', 'NETCDF4_CLASSIC', 'NETCDF4'}
-        Format of output netcdf file.
+        Format of output NetCDF file.
     attrs : dict
-        Attributes to add to netcdf file.
+        Attributes to add to NetCDF file.
     names : iterable of str, optional
-        Names of the fields to include in the netcdf file. If not provided,
+        Names of the fields to include in the NetCDF file. If not provided,
         write all fields.
     at : {'node', 'cell'}, optional
         The location where values are defined.
+    time : float, optional
+        Specify the time of the output to be stored.
     raster : bool, optional
         Indicate whether spatial dimensions are written as full value arrays
         (default) or just as coordinate dimensions.
@@ -607,13 +609,13 @@ def write_netcdf(
     >>> rmg.at_node["topographic__elevation"] = np.arange(12.0)
     >>> rmg.at_node["uplift_rate"] = 2.0 * np.arange(12.0)
 
-    Create a temporary directory to write the netcdf file into.
+    Create a temporary directory to write the NetCDF file into.
 
     >>> import tempfile, os
     >>> temp_dir = tempfile.mkdtemp()
     >>> os.chdir(temp_dir)
 
-    Write the grid to a netcdf3 file but only include the *uplift_rate*
+    Write the grid to a NetCDF3 file but only include the *uplift_rate*
     data in the file.
 
     >>> write_netcdf("test.nc", rmg, format="NETCDF3_64BIT", names="uplift_rate")
@@ -725,7 +727,7 @@ def write_raster_netcdf(
     names=None,
     at=None,
 ):
-    """Write Raster Model Grid landlab fields to netcdf.
+    """Write Raster Model Grid landlab fields to NetCDF.
 
     Write the data and grid information for *fields* to *path* as NetCDF.
 
@@ -735,7 +737,7 @@ def write_raster_netcdf(
     Rather that writing x and y of node locations at all (nr x nc) locations,
     it writes a 1D array each for x and y.
 
-    A more modern version of this might write x and y location as a netcdf
+    A more modern version of this might write x and y location as a NetCDF
     coordinate. However, the original version of this function wrote x and y
     as data variables rather than coordinates.
 
@@ -754,11 +756,11 @@ def write_raster_netcdf(
     time : float, optional
         Add a time to the time variable.
     format : {'NETCDF4'}
-        Format of output netcdf file.
+        Format of output NetCDF file.
     attrs : dict
-        Attributes to add to netcdf file.
+        Attributes to add to NetCDF file.
     names : iterable of str, optional
-        Names of the fields to include in the netcdf file. If not provided,
+        Names of the fields to include in the NetCDF file. If not provided,
         write all fields.
     at : {'node'}, optional
         The location where values are defined. Presently only implemented for
@@ -779,13 +781,13 @@ def write_raster_netcdf(
     >>> rmg.at_node["topographic__elevation"] = np.arange(12.0)
     >>> rmg.at_node["uplift_rate"] = 2.0 * np.arange(12.0)
 
-    Create a temporary directory to write the netcdf file into.
+    Create a temporary directory to write the NetCDF file into.
 
     >>> import tempfile, os
     >>> temp_dir = tempfile.mkdtemp()
     >>> os.chdir(temp_dir)
 
-    Write the grid to a netcdf4 file but only include the *uplift_rate*
+    Write the grid to a NetCDF4 file but only include the *uplift_rate*
     data in the file.
 
     >>> write_raster_netcdf(
