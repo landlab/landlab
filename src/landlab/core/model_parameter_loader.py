@@ -34,21 +34,24 @@ def load_file_contents(file_like):
     str
         The contents of the file.
     """
-    try:
-        contents = file_like.read()
-    except AttributeError:  # was a str
-        root, ext = os.path.splitext(file_like)
-        if os.path.isfile(file_like):
-            with open(file_like) as fp:
-                contents = fp.read()
-        # if file was not found but string looks like a file path string (includes an extension)
-        # throw a FileNotFoundError.
-        elif ext:
-            raise FileNotFoundError(f"The parameter file '{file_like}' was not found")
-        else:  # otherwise treat string as raw YAML
-            contents = file_like
-
-    return contents
+    if hasattr(file_like, "read"):
+        return file_like.read()
+    else:
+        if isinstance(file_like, str):
+            try:
+                with open(file_like) as fp:
+                    return fp.read()
+            except (FileNotFoundError, OSError):
+                _, ext = os.path.splitext(file_like)
+                if ext:
+                    raise FileNotFoundError(
+                        f"The parameter file '{file_like}' was not found"
+                    )
+                return file_like
+        else:
+            raise TypeError(
+                f"'{file_like}' must be either a file-like object, a path to a file or a string"
+            )
 
 
 def load_params(file_like):
@@ -84,21 +87,18 @@ def load_params(file_like):
         params = yaml.load(contents, Loader=_loader)
     except yaml.YAMLError as exc:
         raise ValueError(f"Error parsing YAML content: {exc}") from exc
-
     if params is None:
         if os.path.isfile(file_like):
             raise ValueError("File found but is empty")
         else:
             raise ValueError("The parameter file is empty")
-
     if not isinstance(params, dict):
         if os.path.isfile(file_like):
             raise ValueError(
-                "File found but parsing did not produce a dict-like object. Ensure that your file uses 'key: value' syntax"
+                f"File found but parsing produced a {type(params).__name__} instead of a dictionary. Ensure that your file uses 'key: value' syntax"
             )
         else:
             raise ValueError(
                 f"The YAML content was parsed successfully but produced a {type(params).__name__} instead of a dictionary. Ensure that your file uses 'key: value' syntax"
             )
-
     return params
