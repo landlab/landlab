@@ -51,14 +51,14 @@ def test_number_of_nodes_vertical_hex():
 
 
 @given(shape=lists(integers(min_value=3, max_value=1024), min_size=2, max_size=2))
-def test_number_of_nodes_symetric_rect(shape):
+def test_number_of_nodes_symmetric_rect(shape):
     assert VerticalRectTriGraph.number_of_nodes(
         shape
     ) == HorizontalRectTriGraph.number_of_nodes(shape[::-1])
 
 
 @given(shape=lists(integers(min_value=3, max_value=1024), min_size=2, max_size=2))
-def test_number_of_nodes_symetric_hex(shape):
+def test_number_of_nodes_symmetric_hex(shape):
     assert VerticalHexTriGraph.number_of_nodes(
         shape
     ) == HorizontalHexTriGraph.number_of_nodes(shape[::-1])

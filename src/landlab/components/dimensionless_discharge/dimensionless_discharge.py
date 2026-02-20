@@ -29,14 +29,14 @@ class DimensionlessDischarge(Component):
      segment, :math:`q` is flux in a stream segment,  :math:`\rho_s`
      is soil density, :math:`\rho` is water density, :math:`g` is the
      gravitational constant, and :math:`D_50` is the average sediment
-     partical size in the stream segment area.
+     particle size in the stream segment area.
 
      Constants C and N are coefficients used in the slope-dependent
      equation
 
      .. math::
 
-        q*_{thresold} = \frac{C}{(tan(\theta))^N}
+        q*_{threshold} = \frac{C}{(tan(\theta))^N}
 
      to determine whether the dimensionless discharge calculated
      exceeds thresholds for a sediment-laden (Upper Limit) or

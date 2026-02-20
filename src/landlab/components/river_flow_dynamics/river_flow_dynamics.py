@@ -532,7 +532,7 @@ class RiverFlowDynamics(Component):
             links_at_same_cols, np.array([-np.ones_like(current_link)]).T, axis=1
         )
 
-        # Extracing the adjacent links to current link (E,N,W,S)
+        # Extracting the adjacent links to current link (E,N,W,S)
         adjacent_links_at_link = np.zeros((current_link.shape[0], 4))
 
         # Rows (E,W)
@@ -1485,7 +1485,7 @@ class RiverFlowDynamics(Component):
         tempB2 = tempB1[tempCalc1 == tempCalc2]
 
         # It gives me the node indices to extract
-        # folowing the face direction
+        # following the face direction
         tempB1 = np.where(tempB2 == 0, 2, tempB2)
         tempB1 = np.where(tempB2 == 1, 3, tempB1)
         tempB1 = np.where(tempB2 == 2, 0, tempB1)
@@ -1577,7 +1577,7 @@ class RiverFlowDynamics(Component):
         tempB2 = tempB1[tempCalc1 == tempCalc2]
 
         # It gives me the link indices to extract
-        # folowing the face direction
+        # following the face direction
         tempB1 = np.where(tempB2 == 0, 2, tempB2)
         tempB1 = np.where(tempB2 == 1, 3, tempB1)
         # tempB1 is where the target link is located
@@ -1598,7 +1598,7 @@ class RiverFlowDynamics(Component):
         tempB2 = tempB1[(tempCalc1 == tempCalc2)]
 
         # It gives me the link indices to extract
-        # folowing the face direction
+        # following the face direction
         tempB1 = np.where(tempB2 == 0, 2, tempB2)
         tempB1 = np.where(tempB2 == 1, 3, tempB1)
         # tempB1 is where the target link is located

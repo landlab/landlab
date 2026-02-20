@@ -157,7 +157,7 @@ def load(
     Returns
     -------
     :
-        A newly-created ``RasterModelGrid`` with, optionaly, the data added
+        A newly-created ``RasterModelGrid`` with, optionally, the data added
         as a field (if `name` was provided).
     """
     return loads(stream.read(), at=at, name=name, out=out)
@@ -188,7 +188,7 @@ def loads(
     Returns
     -------
     RasterModelGrid
-        A newly-created ``RasterModelGrid`` with, optionaly, the data added
+        A newly-created ``RasterModelGrid`` with, optionally, the data added
         as a field (if `name` was provided).
 
     Examples

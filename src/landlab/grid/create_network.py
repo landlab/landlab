@@ -341,7 +341,7 @@ def _reduce_nodes(distance_along_segment, spacing=1.0):
 
 
 def calc_distance_to_point(point, points):
-    """Find the euclidian distance between one point and a set of points."""
+    """Find the euclidean distance between one point and a set of points."""
     return np.sqrt(np.sum((point - points) ** 2, axis=1))
 
 

@@ -25,10 +25,10 @@ def locate_parcel_xy(grid, parcels, parcel_time_index, parcel_number):
             parcels.dataset.element_id[parcel_number, parcel_time_index].values
         )
 
-        # DANGER DANGER: This code assumes the verticies of links are ordered
+        # DANGER DANGER: This code assumes the vertices of links are ordered
         # from upstream to downstream. This should be the case for delineated
         # river networks, so this line should not be necessary. A quick
-        # work-around is the following, but ideally verticies should be flipped in GIS.
+        # work-around is the following, but ideally vertices should be flipped in GIS.
         # parcel_loc = 0.9999 - parcel_loc
 
         # get the X, Y vertices of the squiggly line for that link (loaded by
@@ -62,7 +62,7 @@ def locate_parcel_xy(grid, parcels, parcel_time_index, parcel_number):
             [[0], np.cumsum(np.sqrt(np.diff(link_x) ** 2 + np.diff(link_y) ** 2))]
         )
 
-        # cumulative relative distance between squiggly-line link verticies [0 to 1]
+        # cumulative relative distance between squiggly-line link vertices [0 to 1]
         # divide cumulative distance by max distance to get vector of distances between
         # 0 and 1
         link_rel_dist = link_dist / np.max(link_dist)

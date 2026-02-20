@@ -551,7 +551,7 @@ def wrap_as_bmi(cls):
 
         def get_grid_z(self, grid, z):
             raise NotImplementedError("get_grid_z")
-            # Only should be implemented for presently non-existant 3D grids.
+            # Only should be implemented for presently non-existent 3D grids.
 
         def get_value_at_indices(self, name, dest, inds):
             at = self._info[name]["mapping"]

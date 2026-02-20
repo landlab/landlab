@@ -189,7 +189,7 @@ class DischargeDiffuser(Component):
         dt_stab = dt
 
         # elevation at current and new time
-        # Note a horizonal surface is the initial condition
+        # Note a horizontal surface is the initial condition
         eta = z.reshape((ni, nj))
         K = self._K.reshape((ni, nj))
         Knew = self._Knew.reshape((ni, nj))
@@ -261,7 +261,7 @@ class DischargeDiffuser(Component):
         for NSEW in (awz, aez, asz, anz):
             NSEW[flats] = 1
         # NOTE when we do not have a zero elevation condition the
-        # coefficients a*z are the upwind coefficents
+        # coefficients a*z are the upwind coefficients
 
         # Solve upwind equations for nodal K
         # this involves iteration to a stable solution

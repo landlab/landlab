@@ -36,7 +36,7 @@ class ZoneTaxon(Taxon):
     ``_evaluate_extinction``. The evaluate dispersal method is intended to
     modify dispersal conducted in the first stage and it has no effect unless
     it is expanded or overridden to have an effect. Processes other than those
-    listed above can be called by expanding or overridding the ``_evolve``
+    listed above can be called by expanding or overriding the ``_evolve``
     method.
 
     The taxon is allopatric when it is associated with/exists within multiple
@@ -350,7 +350,7 @@ class ZoneTaxon(Taxon):
         """Determine if extinction occurs.
 
         Extinction occurs if no zone/member populations exist. Other conditions
-        of extinction can be included by expanding or overridding this method.
+        of extinction can be included by expanding or overriding this method.
 
         Parameters
         ----------

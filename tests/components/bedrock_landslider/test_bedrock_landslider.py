@@ -243,7 +243,7 @@ def test_boundary_nodes():
     for _ in range(5):
         fd.run_one_step()
         hy.run_one_step(dt=1)
-    # Final topo at boundary nodes should be inital topo
+    # Final topo at boundary nodes should be initial topo
     err_msg = "No landslide erosion allowed at boundary nodes"
 
     testing.assert_almost_equal(

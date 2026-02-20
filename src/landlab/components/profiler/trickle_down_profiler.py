@@ -167,7 +167,7 @@ class TrickleDownProfiler(_BaseProfiler):
     elevation order may seem upside-down. In addition, in this example,
     elevation is only provided along the profiles. The third line of code below
     sets all nodes with a value of zero to closed, such that these nodes are
-    igored.
+    ignored.
     >>> z = np.array(
     ...     [
     ...         [0, 0, 0, 0, 0, 0, 0, 0, 1, 0],

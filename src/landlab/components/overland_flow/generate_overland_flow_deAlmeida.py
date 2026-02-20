@@ -285,7 +285,7 @@ class OverlandFlow(Component):
         grid : RasterModelGrid
             A landlab grid.
         h_init : float, optional
-            Thicknes of initial thin layer of water to prevent divide by zero
+            Thickness of initial thin layer of water to prevent divide by zero
             errors (m).
         alpha : float, optional
             Time step coeffcient, described in Bates et al., 2010 and
@@ -344,7 +344,7 @@ class OverlandFlow(Component):
         # been found. After the user either calls self.set_up_neighbor_array
         # or self.overland_flow this will be set to True. This is done so
         # that every iteration of self.overland_flow does NOT need to
-        # reinitalize the neighbors and saves computation time.
+        # reinitialize the neighbors and saves computation time.
         self._neighbor_flag = False
 
     @property
@@ -688,7 +688,7 @@ class OverlandFlow(Component):
             #     self._active_links_at_open_bdy]
             # Update nodes near boundary locations - nodes adjacent to
             # boundaries may have discharge and water surface slopes
-            # artifically reduced due to boundary effects. This step removes
+            # artificially reduced due to boundary effects. This step removes
             # those errors.
 
         return elapsed

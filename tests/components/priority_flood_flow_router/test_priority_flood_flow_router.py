@@ -248,7 +248,7 @@ def test_accumulated_area_closes():
 
 def test_specifying_routing_method_wrong():
     # %%
-    """Test specifying incorrect method for routing compatability"""
+    """Test specifying incorrect method for routing compatibility"""
     mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
 
@@ -277,7 +277,7 @@ def test_D8_metric():
     fa2 = PriorityFloodFlowRouter(mg2, flow_metric="D8", suppress_out=True)
     fa2.run_one_step()
     pf_r = mg2.at_node["flow__receiver_node"]
-    reciever = np.array(
+    receiver = np.array(
         [
             [0, 1, 2, 3],
             [4, 1, 2, 7],
@@ -286,7 +286,7 @@ def test_D8_metric():
             [16, 17, 18, 19],
         ]
     )
-    assert_array_equal(reciever.flatten(), pf_r)
+    assert_array_equal(receiver.flatten(), pf_r)
 
     # Compare with default Landlab flow accumulator
     mg1 = RasterModelGrid((5, 4), xy_spacing=(1, 1))
@@ -335,7 +335,7 @@ def test_various_surface_values():
     )
     fa2.run_one_step()
     pf_r = mg2.at_node["flow__receiver_node"]
-    reciever = np.array(
+    receiver = np.array(
         [
             [0, 1, 2, 3],
             [4, 1, 2, 7],
@@ -344,14 +344,14 @@ def test_various_surface_values():
             [16, 17, 18, 19],
         ]
     )
-    assert_array_equal(reciever.flatten(), pf_r)
+    assert_array_equal(receiver.flatten(), pf_r)
 
     fa3 = PriorityFloodFlowRouter(
         mg2, flow_metric="D8", suppress_out=True, surface=topography
     )
     fa3.run_one_step()
     pf_r = mg2.at_node["flow__receiver_node"]
-    assert_array_equal(reciever.flatten(), pf_r)
+    assert_array_equal(receiver.flatten(), pf_r)
 
     topo_fd = fa3.surface_values
     assert_array_equal(topo_fd, np.reshape(topography, 4 * 5))
@@ -776,7 +776,7 @@ def test_cython_functions():
 
     _D8_FlowAcc(da, dis, stack_flip, receivers)
 
-    # We know how much water will accumualte given the calculated flow dir (see before)
+    # We know how much water will accumulate given the calculated flow dir (see before)
     known_FA = np.array(
         [0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0]
     )
@@ -870,7 +870,7 @@ def test_cython_functions():
 
     _D8_FlowAcc(da, dis, stack_flip, receivers)
 
-    # We know how much water will accumualte given the calculated flow dir (see before)
+    # We know how much water will accumulate given the calculated flow dir (see before)
     known_FA = np.array(
         [4.0, 0.0, 0.0, 0.0, 0.0, 4.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     )

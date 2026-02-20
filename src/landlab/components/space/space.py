@@ -25,7 +25,7 @@ class Space(_GeneralizedErosionDeposition):
     erosion, and landscape evolution, Geosci. Model Dev., 10, 4577-4604,
     `https://doi.org/10.5194/gmd-10-4577-2017 <https://www.geosci-model-dev.net/10/4577/2017/>`_, 2017.
 
-    Unlike other some other fluvial erosion componets in Landlab, in this
+    Unlike other some other fluvial erosion components in Landlab, in this
     component (and :py:class:`~landlab.components.ErosionDeposition`) no
     erosion occurs in depressions or in areas with adverse slopes. There is no
     ability to pass a keyword argument ``erode_flooded_nodes``.
@@ -390,7 +390,7 @@ class Space(_GeneralizedErosionDeposition):
 
     def _calc_erosion_rates(self):
         """Calculate erosion rates."""
-        # if sp_crits are zero, then this colapses to correct all the time.
+        # if sp_crits are zero, then this collapses to correct all the time.
         if self._n_sp == 1.0:
             S_to_the_n = self._slope
         else:
@@ -686,7 +686,7 @@ class Space(_GeneralizedErosionDeposition):
             if not first_iteration:
                 # update the link slopes
                 self._update_flow_link_slopes()
-                # update where nodes are flooded. This shouuldn't happen because
+                # update where nodes are flooded. This shouldn't happen because
                 # of the dynamic timestepper, but just in case, we update here.
                 is_flooded_core_node[self._slope < 0] = True
             else:
