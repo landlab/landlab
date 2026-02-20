@@ -221,7 +221,7 @@ def find_true_vector_from_link_vector_pair(L1, L2, b1x, b1y, b2x, b2y):
     The following example represents the active links in a 7-node hexagonal
     grid, with just one core node. The 'true' vector has a magnitude of 5 units
     and an orientation of 30 degrees, pointing up and to the right (i.e., the
-    postive-x and postive-y quadrant), so that its vector components are 4 (x)
+    positive-x and positive-y quadrant), so that its vector components are 4 (x)
     and 3 (y) (in other words, it is a 3-4-5 triangle). The values assigned to
     L below are the projection of that true vector onto the six link
     vectors. The algorithm should recover the correct vector component
@@ -2533,7 +2533,7 @@ class ModelGrid(
         Parameters
         ----------
         coord : tuple of float
-            Coodinates of point as (x, y).
+            Coordinates of point as (x, y).
         get_az: {None, 'angles', 'displacements'}, optional
             Optionally calculate azimuths as either angles or displacements.
             The calculated values will be returned along with the distances

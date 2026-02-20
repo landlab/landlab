@@ -154,7 +154,7 @@ class FieldDataset(dict):
     This is a light wrapping of xarray.Dataset. The main differences
     are that a `FieldDataset` can be created with a size but not
     allocate any memory for data arrays until an array is actually
-    needed. The setitem method is also overriden so that when arrays
+    needed. The setitem method is also overridden so that when arrays
     are added they are stored reshaped in the landlab style. That
     is, shaped as `(n_elements, values_per_element)`.
 
@@ -812,7 +812,7 @@ class GraphFields:
         Parameters
         ----------
         field: str or array
-            Name of the field withing *group*.
+            Name of the field within *group*.
         at: str, optional
             Name of the group.
 
@@ -903,7 +903,7 @@ class GraphFields:
         Parameters
         ----------
         field: str
-            Name of the field withing *group*.
+            Name of the field within *group*.
         at: str, optional
             Name of the group.
 

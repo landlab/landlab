@@ -335,7 +335,7 @@ class SteepnessFinder(Component):
         return ch_dists
 
     def interpolate_slopes_with_step(self, ch_nodes, ch_dists, interp_pt_elevs):
-        """Maps slopes to nodes, interpolating withing defined vertical
+        """Maps slopes to nodes, interpolating within defined vertical
         intervals.
 
         This follows Geomorphtools' discretization methods. It is essentially a

@@ -82,9 +82,9 @@ class LateralEroder(Component):
     >>> fa.run_one_step()
     >>> mg, dzlat = latero.run_one_step(dt)
 
-    Evolve the landscape until the first occurence of lateral erosion. Save arrays
+    Evolve the landscape until the first occurrence of lateral erosion. Save arrays
     volume of lateral erosion and topographic elevation before and after the first
-    occurence of lateral erosion
+    occurrence of lateral erosion
 
     >>> while min(dzlat) == 0.0:
     ...     oldlatvol = mg.at_node["volume__lateral_erosion"].copy()
@@ -291,7 +291,7 @@ class LateralEroder(Component):
 
         assert isinstance(
             grid, RasterModelGrid
-        ), "LateralEroder requires a sqare raster grid."
+        ), "LateralEroder requires a square raster grid."
 
         if "flow__receiver_node" in grid.at_node and grid.at_node[
             "flow__receiver_node"
@@ -441,7 +441,7 @@ class LateralEroder(Component):
         # if inlet flag is not on, proceed as normal.
         else:
             da = grid.at_node["drainage_area"]
-        # flow__upstream_node_order is node array contianing downstream to
+        # flow__upstream_node_order is node array containing downstream to
         # upstream order list of node ids
         s = grid.at_node["flow__upstream_node_order"]
         max_slopes = grid.at_node["topographic__steepest_slope"]
@@ -479,7 +479,7 @@ class LateralEroder(Component):
                     # if the elevation of the lateral node is higher than primary node,
                     # calculate a new potential lateral erosion (L/T), which is negative
                     petlat = -Kl[i] * da[i] * max_slopes[i] * inv_rad_curv
-                    # the calculated potential lateral erosion is mutiplied by
+                    # the calculated potential lateral erosion is multiplied by
                     # the length of the node and the bank height, then added
                     # to an array, vol_lat_dt, for volume eroded laterally
                     # *per timestep* at each node. This vol_lat_dt is reset to zero for
@@ -606,7 +606,7 @@ class LateralEroder(Component):
                         # primary node, calculate a new potential lateral
                         # erosion (L/T), which is negative
                         petlat = -Kl[i] * da[i] * max_slopes[i] * inv_rad_curv
-                        # the calculated potential lateral erosion is mutiplied
+                        # the calculated potential lateral erosion is multiplied
                         # by the length of the node and the bank height, then
                         # added to an array, vol_lat_dt, for volume eroded
                         # laterally  *per timestep* at each node. This vol_lat_dt
@@ -628,7 +628,7 @@ class LateralEroder(Component):
             # upstream node, there is a possibility of flow direction reversal,
             # or at least a flattening of the landscape.
             # Limit dt so that this flattening or reversal doesn't happen.
-            # How close you allow these two points to get to eachother is
+            # How close you allow these two points to get to each other is
             # determined by the cfl timestep condition, hard coded to equal 0.3
             # dtn is an arbitrarily large number to begin with, but will be
             # adapted as we step through the nodes
@@ -707,7 +707,7 @@ class LateralEroder(Component):
                 if inlet_on:
                     # if inlet on, reset drainage area and qsin to reflect inlet conditions
                     # this is the drainage area needed for code below with an inlet
-                    # set by spatially varible runoff.
+                    # set by spatially variable runoff.
                     da = q / grid.dx**2
                     qs_in[inlet_node] = qsinlet
                 else:

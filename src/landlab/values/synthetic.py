@@ -11,7 +11,7 @@ All functions support adding values to only portions of the grid, based on the
 
 For example, if one wanted to construct an initial topographic elevation
 represented by a tetrahedron and add normally distributed noise only to core
-nodes, this could be acomplished as follows:
+nodes, this could be accomplished as follows:
 
 Examples
 --------
@@ -270,7 +270,7 @@ def plane(
         format (x, y, z). Default is (0., 0., 0.)
     normal : tuple, optional
         A tuple defining the normal to the plane in the format
-        (dx, dy, dz). Must not be verticaly oriented. Default
+        (dx, dy, dz). Must not be vertically oriented. Default
         is a horizontal plane (0., 0., 1.).
 
     Returns

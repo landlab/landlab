@@ -381,7 +381,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
             # too, and therefore need our cutoff below this. Even-numbered
             # columns in the next-from-top row will end up at y = NR - 1/2,
             # which is within the grid. So our cutoff must be between NR - 1/2
-            # and NR. Hence the choise of NR - 1/4 as the effective "top" of
+            # and NR. Hence the choice of NR - 1/4 as the effective "top" of
             # the grid.
             top_grid_edge = self.nr - 0.25
 

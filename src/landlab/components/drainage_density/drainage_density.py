@@ -23,15 +23,15 @@ class DrainageDensity(Component):
     below for how to make such an array.
 
     The ``channel__mask`` array will be assigned to an at-node field with the
-    name ``channel__mask``. If the channel__mask was originaly created from a
+    name ``channel__mask``. If the channel__mask was originally created from a
     passed array, a user can update this array to change the mask.
 
-    If the ``channel__mask`` is created using an area coefficent,
+    If the ``channel__mask`` is created using an area coefficient,
     slope coefficient, area exponent, slope exponent, and channelization
     threshold, the location of the mask will be re-update when
     calculate_drainage_density is called.
 
-    If an area coefficient, :math:`C_A`, a slope coefficent, :math:`C_S`, an
+    If an area coefficient, :math:`C_A`, a slope coefficient, :math:`C_S`, an
     area exponent, :math:`m_r`, a slope exponent, :math:`n_r`, and
     channelization threshold :math:`T_C` are provided, nodes that meet the
     criteria

@@ -503,7 +503,7 @@ class NetworkSedimentTransporter(Component):
                 * self._grid.at_link["flow_depth"]
             )
 
-            # calcuate taustar
+            # calculate taustar
             taustar = np.zeros_like(tau)
             np.divide(
                 tau,
@@ -953,10 +953,10 @@ class NetworkSedimentTransporter(Component):
            the new time
         2. If parcels are on the network then:
 
-           a. Active parcels are identified based on entrainment critera.
+           a. Active parcels are identified based on entrainment criteria.
            b. Effective bed slope is calculated based on inactive parcel volumes.
            c. Transport rate is calculated.
-           d. Active parcels are moved based on the tranport rate.
+           d. Active parcels are moved based on the transport rate.
 
         Parameters
         ----------

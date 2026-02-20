@@ -14,7 +14,7 @@ from landlab.utils.flow__distance import calculate_flow__distance
 
 
 def test_no_flow_receivers():
-    """Test that correct error is raised when no flow recievers are
+    """Test that correct error is raised when no flow receivers are
     on the grid."""
 
     # instantiate a model grid, do not run flow accumulation on it

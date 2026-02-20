@@ -35,7 +35,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
        receiver, or grid.BAD_INDEX if no link:
        *'flow__link_to_receiver_node'*
     -  Boolean node array of all local lows: *'flow__sink_flag'*
-    -  Link array identifing if flow goes with (1) or against (-1) the link
+    -  Link array identifying if flow goes with (1) or against (-1) the link
        direction: *'flow__link_direction'*
 
     The primary method of this class is :func:`run_one_step`.
@@ -404,7 +404,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
             baselevel_nodes=baselevel_nodes,
         )
 
-        # Save the four ouputs of this component.
+        # Save the four outputs of this component.
         self._grid["node"]["flow__receiver_node"][:] = receiver
         self._grid["node"]["topographic__steepest_slope"][:] = steepest_slope
         self._grid["node"]["flow__link_to_receiver_node"][:] = recvr_link

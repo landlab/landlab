@@ -150,7 +150,7 @@ def get_core_node_matrix(grid, value_at_node, coef_at_link=None):
     value_at_node : ndarray
         Values defined at nodes used to construct the right-hand side vector.
     coef_at_link : ndarray, optional
-        Coefficents at links used to construct the matrix. If not provided,
+        Coefficients at links used to construct the matrix. If not provided,
         use 1.0.
 
     Examples

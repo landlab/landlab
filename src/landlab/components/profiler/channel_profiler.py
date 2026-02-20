@@ -169,7 +169,7 @@ class ChannelProfiler(_BaseProfiler):
             }
         }
 
-    Three channel segments are idendified if ``main_channel_only=False``.
+    Three channel segments are identified if ``main_channel_only=False``.
     ::
 
         X X X X X X X X X X     X X X X X X X X X X     X X X X X X X X X X
@@ -290,7 +290,7 @@ class ChannelProfiler(_BaseProfiler):
     elevation order may seem upside-down. In addition, in this example,
     elevation is only provided along the profiles. The third line of code below
     sets all nodes with a value of zero to closed, such that these nodes are
-    igored.
+    ignored.
 
     >>> z = np.array(
     ...     [
@@ -686,11 +686,11 @@ class ChannelProfiler(_BaseProfiler):
         channel_segment = []
         channel_upstream = True
 
-        # add the reciever of j to the channel segment if it is not j.
+        # add the receiver of j to the channel segment if it is not j.
         # but only do this when j is not the watershed outlet.
-        recieving_node = self._flow_receiver[j]
-        if (recieving_node != j) and (j not in self._outlet_nodes):
-            channel_segment.append(recieving_node)
+        receiving_node = self._flow_receiver[j]
+        if (receiving_node != j) and (j not in self._outlet_nodes):
+            channel_segment.append(receiving_node)
 
         while channel_upstream:
             # add the new node to the channel segment

@@ -593,7 +593,7 @@ def calc_unit_normals_at_cell_subtriangles(grid, elevs="topographic__elevation")
     :meta landlab: info-cell, gradient
     """
 
-    # identify the grid neigbors at each location
+    # identify the grid neighbors at each location
     node_at_cell = grid.node_at_cell
     # calculate unit normals at all nodes.
     (
@@ -696,7 +696,7 @@ def _calc_subtriangle_unit_normals_at_node(grid, elevs="topographic__elevation")
 
     # There are thus 8 vectors, IP, IQ, IR, IS, IT, IU, IV, IW
 
-    # initialized difference matricies for cross product
+    # initialized difference matrices for cross product
     diff_xyz_IP = np.empty((grid.number_of_nodes, 3))  # East
     # ^this is the vector (xP-xI, yP-yI, zP-yI)
     diff_xyz_IQ = np.empty((grid.number_of_nodes, 3))  # Northeast
@@ -707,7 +707,7 @@ def _calc_subtriangle_unit_normals_at_node(grid, elevs="topographic__elevation")
     diff_xyz_IV = np.empty((grid.number_of_nodes, 3))  # South
     diff_xyz_IW = np.empty((grid.number_of_nodes, 3))  # Southeast
 
-    # identify the grid neigbors at each location
+    # identify the grid neighbors at each location
     node_at_cell = np.arange(grid.number_of_nodes)
     P = grid.adjacent_nodes_at_node[node_at_cell, 0]
     Q = grid.diagonal_adjacent_nodes_at_node[node_at_cell, 0]
@@ -1073,7 +1073,7 @@ def _calc_subtriangle_slopes_at_node(
         elif subtriangle_unit_normals[7].shape[0] == grid.number_of_cells:
             reshape_size = grid.number_of_cells
         else:
-            ValueError("Subtriangles must be of lenght nnodes or ncells")
+            ValueError("Subtriangles must be of length nnodes or ncells")
     else:
         (
             n_ENE,
@@ -1316,7 +1316,7 @@ def _calc_subtriangle_aspect_at_node(
         elif subtriangle_unit_normals[7].shape[0] == grid.number_of_cells:
             reshape_size = grid.number_of_cells
         else:
-            ValueError("Subtriangles must be of lenght nnodes or ncells")
+            ValueError("Subtriangles must be of length nnodes or ncells")
         (
             n_ENE,
             n_NNE,
@@ -1774,7 +1774,7 @@ def calc_slope_at_node(
     If ignore_closed_nodes is False, all proximal elevation values will be used
     in the calculation. If True, only unclosed nodes are used.
 
-    This is a verion of this code specialized for a raster. It subdivides
+    This is a version of this code specialized for a raster. It subdivides
     the four square patches around each node into subtriangles,
     in order to ensure more correct solutions that incorporate equally
     weighted information from all surrounding nodes on rough surfaces.

@@ -329,7 +329,7 @@ class Flexure(Component):
         loads : ndarray of float
             Loads applied to grid node. ``loads`` can be either an array
             of size ``n_nodes``, in which case the load values are applied
-            at their corresponding nodes, or an array of arbitray length,
+            at their corresponding nodes, or an array of arbitrary length,
             in which case loads are applied at locations supplied through
             the ``row_col_of_load`` keyword.
         row_col_of_load: tuple of ndarray of int, optional
