@@ -265,6 +265,8 @@ class SoilGrading(Component):
                 # Try to capture grains weight from an existing field
                 try:
                     self._grains_weight =  np.copy(grid.at_node[grains_weight])
+                    if np.ndim(self._grains_weight)==1:
+                        self._grains_weight =self._grains_weight[:,np.newaxis]
                 except KeyError:
                     print(f'the field {grains_weight} is not found')
 
