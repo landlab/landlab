@@ -328,7 +328,7 @@ class LossyFlowAccumulator(FlowAccumulator):
         ----------
         grid : ModelGrid
             A Landlab grid.
-        surface : str, int or array of int
+        surface : str, int or ndarray of int
             The surface to direct flow across.  Can be a field name at node or
             an array of length *node*.
         flow_director : str, class or instance of class.
@@ -336,8 +336,8 @@ class LossyFlowAccumulator(FlowAccumulator):
             uninstantiated FlowDirector class, or an instance of a
             :class:`FlowDirector` class. This sets the method
             used to calculate flow directions.
-        runoff_rate : field name, array, or float, optional (m/time)
-            If provided, sets the runoff rate and will be assigned to the grid
+        runoff_rate : str, ndarray, or float, optional
+            If provided, sets the runoff rate [m/time] and will be assigned to the grid
             field ``'water__unit_flux_in'``. If a spatially and and temporally variable
             runoff rate is desired, pass this field name and update the field
             through model run time. If both the field and argument are present at

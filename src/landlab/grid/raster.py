@@ -32,12 +32,12 @@ def _node_has_boundary_neighbor(mg, id, method="d8"):
         Source grid
     node_id : int
         ID of node to test.
-    method: string, optional
+    method: str, optional
         default is d8 neighbor, other method is 'd4'
 
     Returns
     -------
-    boolean
+    bool
         ``True`` if node has a neighbor on the boundary, ``False`` otherwise.
     """
     for neighbor in mg.active_adjacent_nodes_at_node[id]:
@@ -546,7 +546,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
 
         Returns
         -------
-        (4, ) ndarray
+        ndarray
             Array of corner node IDs.
 
         Examples
@@ -632,14 +632,14 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
 
         Parameters
         ----------
-        xcoord : float, array-like
+        xcoord : float, array_like
             x-coordinate of point
-        ycoord : float, array-like
+        ycoord : float, array_like
             y-coordinate of point
 
         Returns
         -------
-        (4, N) ndarray
+        ndarray
             IDs of nodes around the point.
 
         Examples
@@ -697,14 +697,14 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
 
         Parameters
         ----------
-        coords : tuple of array-like
+        coords : tuple of array_like
             Coordinates of points.
         mode : {'raise', 'wrap', 'clip'}, optional
             What to do if a point is off the grid.
 
         Returns
         -------
-        array-like
+        array_like
             IDs of the nearest nodes.
 
         Notes
@@ -866,9 +866,9 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
             Set top edge as fixed boundary.
         right_is_fixed_val : boolean
             Set right edge as fixed boundary.
-        value : float, array or None (default).
+        value : float, ndarray, optional
             Override value to be kept constant at nodes.
-        value_of : string.
+        value_of : str
             The name of the grid field containing the values of interest.
 
         Examples
@@ -1221,7 +1221,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
 
         Parameters
         ----------
-        data_name : string
+        data_name : str
             Name of node-data item attached to grid.
         shift : int
             Number of rows to shift upward.
@@ -1344,9 +1344,9 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
 
         Parameters
         ----------
-        row : array-like
+        row : array_like
             Row of node.
-        col : array-like
+        col : array_like
             Column of node.
 
         Returns
@@ -1493,7 +1493,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         ----------
         path : str
             Path to output file.
-        names : iterable of strings, optional
+        names : iterable of str, optional
             List of field names to save, defaults to all if not specified.
         format : {'netcdf', 'esri-ascii'}, optional
             Output file format. Guess from file extension if not given.
@@ -1543,7 +1543,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
 
         Returns
         -------
-        ndarray (num_cells, 8)
+        ndarray
             The eight neighbors of each cell.
 
         Examples
@@ -1835,21 +1835,21 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
 
         Parameters
         ----------
-        node_data : field name or ndarray
+        node_data : str or ndarray
             At-node field name or at-node data values to use for identifying
             watershed location.
         nodata_value : float, optional
             Value that indicates an invalid value.
-        return_outlet_id : boolean, optional
+        return_outlet_id : bool, optional
             Indicates whether or not to return the id of the found outlet
-        remove_disconnected : boolean, optional
+        remove_disconnected : bool, optional
             Indicates whether to search for and remove disconnected nodes.
-        adjacency_method : string, optional. Default is 'D8'.
+        adjacency_method : str, optional
             Sets the connection method for use if remove_disconnected==True
 
         Returns
         --------
-        outlet_loc : array
+        outlet_loc : ndarray
             Array of size 1 containing id of outlet location
 
         Examples
@@ -2041,17 +2041,17 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
 
         Parameters
         ----------
-        node_data : field name or ndarray
+        node_data : str or ndarray
             At-node field name or at-node data values to use for identifying
             watershed location.
-        outlet_id : one element numpy array, optional.
+        outlet_id : ndarray, optional.
             The node ID of the outlet that all open nodes must be connected to.
             If a node ID is provided, it does not need have the status
             ``BC_NODE_IS_FIXED_VALUE``. However, it must not have the status of
             ``BC_NODE_IS_CLOSED``.
-        nodata_value : float, optional, default is -9999.
+        nodata_value : float, optional
             Value that indicates an invalid value.
-        adjacency_method : string, optional. Default is 'D8'.
+        adjacency_method : str, optional
             Sets the connection method.
 
         Examples
@@ -2221,9 +2221,9 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
 
         Parameters
         ----------
-        outlet_coords : list - two integer values
+        outlet_coords : tuple of int
             row, column of outlet, NOT THE ABSOLUTE X AND Y LOCATIONS
-        node_data : field name or ndarray
+        node_data : str or ndarray
             At-node field name or at-node data values to use for identifying
             watershed location.
         nodata_value : float, optional
@@ -2296,9 +2296,9 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
 
         Parameters
         ----------
-        outlet_id : integer
+        outlet_id : int
             id of the outlet node
-        node_data : field name or ndarray
+        node_data : str or ndarray
             At-node field name or at-node data values to use for identifying
             watershed location.
         nodata_value : float, optional

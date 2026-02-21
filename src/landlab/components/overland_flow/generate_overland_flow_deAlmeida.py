@@ -297,7 +297,7 @@ class OverlandFlow(Component):
             Acceleration due to gravity (m/s^2).
         theta : float, optional
             Weighting factor from de Almeida et al., 2012.
-        rainfall_intensity : float or array of float, optional
+        rainfall_intensity : float or ndarray of float, optional
             Rainfall intensity. Default is zero.
         steep_slopes : bool, optional
             Modify the algorithm to handle steeper slopes at the expense of

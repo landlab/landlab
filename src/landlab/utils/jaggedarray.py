@@ -274,7 +274,7 @@ class JaggedArray:
 
         Parameters
         ----------
-        values_per_row : array of int
+        values_per_row : ndarray of int
             The number of values in each row of the JaggedArray.
 
         Returns

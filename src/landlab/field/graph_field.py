@@ -740,7 +740,7 @@ class GraphFields:
 
         Returns
         -------
-        array
+        ndarray
             The values of the field.
 
         Raises
@@ -811,7 +811,7 @@ class GraphFields:
 
         Parameters
         ----------
-        field: str or array
+        field: str or ndarray
             Name of the field withing *group*.
         at: str, optional
             Name of the group.
@@ -1071,7 +1071,7 @@ class GraphFields:
         ----------
         name : str
             Name of the new field to add.
-        value_array : numpy.array
+        value_array : numpy.ndarray
             Array of values to add to the field.
         at : str, optional
             Grid location to store values. If not given, values are
@@ -1330,7 +1330,7 @@ class GraphFields:
 
         Returns
         -------
-        array :
+        numpy.ndarray :
             A reference to the newly-created array.
 
         See also

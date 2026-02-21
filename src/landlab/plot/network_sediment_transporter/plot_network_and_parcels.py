@@ -77,7 +77,7 @@ def plot_network_and_parcels(
     map_buffer : float, optional
         Increase the plot extent by at least this much. Note, because of axis
         equal, may be more.
-    parcel_filter : array_like of bool, shape (number_of_parcels, ), optional
+    parcel_filter : array_like of bool, optional
         Filter to plot only a selection of the parcels.
 
     Other Parameters

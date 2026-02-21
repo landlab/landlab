@@ -330,12 +330,12 @@ class DepthDependentTaylorDiffuser(Component):
             number of terms in the Taylor expansion.
             Two terms (default) gives the behavior
             described in Ganti et al. (2012).
-        dynamic_dt : bool, optional, default  = False
+        dynamic_dt : bool, optional
             Whether internal timestepping is used.
         if_unstable : str, optional, default = "pass"
             What to do if unstable (options are "pass",
             "raise", "warn")
-        courant_factor : float, optional, default = 0.2
+        courant_factor : float, optional
             Courant factor for timestep calculation.
         soil_transport_velocity : float, optional, default = 1.0
             Velocity parameter for soil transport, m/yr. Diffusivity is the
@@ -379,7 +379,7 @@ class DepthDependentTaylorDiffuser(Component):
 
         Parameters
         ----------
-        dt: float (time)
+        dt: float
             The imposed timestep.
         """
         # establish time left as all of dt
@@ -501,7 +501,7 @@ class DepthDependentTaylorDiffuser(Component):
 
         Parameters
         ----------
-        dt: float (time)
+        dt: float
             The imposed timestep.
         """
         self.soilflux(dt)
