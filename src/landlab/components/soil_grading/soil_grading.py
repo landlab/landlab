@@ -259,12 +259,14 @@ class SoilGrading(Component):
             self._initial_total_soil_weight = initial_total_soil_weight
             self.generate_weight_distribution()
 
-
         else:
             if isinstance(grains_weight, str):
                 # Try to capture grains weight from an existing field
                 try:
-                    self._grains_weight =  np.copy(grid.at_node[grains_weight])
+                    self._grains_weight =  np.copy(grid.at_node[grains_weight]) # WHY A COPY NOT REFERENCE?
+                    if self._grains_weight.ndim == 1:
+                        self._grains_weight = self._grains_weight.reshape((self._grains_weight.size, 1))
+                    print("Made a copy of gw, which has shape", self._grains_weight.shape)
                 except KeyError:
                     print(f'the field {grains_weight} is not found')
 
@@ -272,15 +274,12 @@ class SoilGrading(Component):
                 self._grains_weight = self._create_2D_array_for_input_var(
                     grains_weight, "grains__weight"
                 )
-
-
+                print("Created gw with shape", self._grains_weight.shape)
 
         # Update mass
+        print("Before um, sgw is shape", self._grains_weight.shape)
         self._update_mass(self._grains_weight)
         
-
-        # TODO: do we need to update soil, topo, or bedrock if grains__weight is provided as a field?
-
         # Update bed grains proportions
         self.update_bed_grains_proportions()
 
@@ -519,6 +518,7 @@ class SoilGrading(Component):
             ) / (self._soil_density * (1 - self._phi))
 
         else:
+            print("IN ELSE. gwd shape is", grains_weight__distribution.shape)
             self._grid.at_node["grains__weight"][self._grid.core_nodes] = (
                 grains_weight__distribution[self._grid.core_nodes, 0]
             )
