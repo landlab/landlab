@@ -151,7 +151,7 @@ def calculate_distance_to_divide(
             "nodes of the input grid."
         )
 
-    # get the reciever nodes, depending on if this is to-one, or to-multiple,
+    # get the receiver nodes, depending on if this is to-one, or to-multiple,
     # we'll need to get a different at-node field.
     if grid.at_node["flow__receiver_node"].size != grid.size("node"):
         to_one = False
@@ -174,7 +174,7 @@ def calculate_distance_to_divide(
             grid.at_node["flow__link_to_receiver_node"]
         ]
 
-    # create an array that representes the distance to the divide.
+    # create an array that represents the distance to the divide.
     distance_to_divide = np.zeros(grid.nodes.size)
 
     if not longest_path:
@@ -188,34 +188,34 @@ def calculate_distance_to_divide(
         if drainage_area[node] == grid.cell_area_at_node[node]:
             distance_to_divide[node] = 0
 
-        # get flow recievers
-        reciever = flow__receiver_node[node]
+        # get flow receivers
+        receiver = flow__receiver_node[node]
 
         if to_one:
             # if not processing an outlet node.
-            if reciever != node:
+            if receiver != node:
                 if longest_path:
                     cond = (
-                        distance_to_divide[reciever]
+                        distance_to_divide[receiver]
                         < distance_to_divide[node] + flow_link_lengths[node]
                     )
                 else:
                     cond = (
-                        distance_to_divide[reciever]
+                        distance_to_divide[receiver]
                         > distance_to_divide[node] + flow_link_lengths[node]
                     )
 
                 if cond:
-                    distance_to_divide[reciever] = (
+                    distance_to_divide[receiver] = (
                         distance_to_divide[node] + flow_link_lengths[node]
                     )
 
         else:
-            # non-existant links are coded with -1
-            useable_receivers = np.where(reciever != grid.BAD_INDEX)[0]
+            # non-existent links are coded with -1
+            useable_receivers = np.where(receiver != grid.BAD_INDEX)[0]
 
             for idx in range(len(useable_receivers)):
-                r = reciever[useable_receivers][idx]
+                r = receiver[useable_receivers][idx]
                 fll = flow_link_lengths[node][useable_receivers][idx]
 
                 # if not processing an outlet node.
