@@ -49,7 +49,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
     transport-limited response style. ``v_s == 1`` means equal contributions from
     transport and erosion, and a hybrid response as described by Davy & Lague.
 
-    Unlike other some other fluvial erosion componets in Landlab, in this
+    Unlike other some other fluvial erosion components in Landlab, in this
     component (and :py:class:`~landlab.components.SPACE`) no erosion occurs
     in depressions or in areas with adverse slopes. There is no ability to
     pass a keyword argument ``erode_flooded_nodes``.

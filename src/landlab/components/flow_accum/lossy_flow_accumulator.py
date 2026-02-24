@@ -319,8 +319,8 @@ class LossyFlowAccumulator(FlowAccumulator):
     ):
         """Initialize the FlowAccumulator component.
 
-        Saves the grid, tests grid type, tests imput types and
-        compatability for the flow_director and depression_finder
+        Saves the grid, tests grid type, tests input types and
+        compatibility for the flow_director and depression_finder
         keyword arguments, tests the argument of runoff_rate, and
         initializes new fields.
 
@@ -368,7 +368,7 @@ class LossyFlowAccumulator(FlowAccumulator):
             verified during component instantiation.
         **kwargs : optional
             Any additional parameters to pass to a FlowDirector or
-            DepressionFinderAndRouter instance (e.g., partion_method for
+            DepressionFinderAndRouter instance (e.g., partition_method for
             FlowDirectorMFD). This will have no effect if an instantiated
             component is passed using the flow_director or depression_finder
             keywords.

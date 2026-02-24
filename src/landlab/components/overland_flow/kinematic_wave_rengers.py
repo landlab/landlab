@@ -63,7 +63,7 @@ class KinematicWaveRengers(Component):
         criterion.
     min_surface_water_depth : float (m)
         A water depth below which surface water thickness may never fall, to
-        ensure model stabilty.
+        ensure model stability .
 
     Examples
     --------

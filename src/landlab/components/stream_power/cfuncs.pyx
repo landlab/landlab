@@ -66,7 +66,7 @@ def brent_method_erode_variable_threshold(
     # Loop through nodes.
     for i in range(n_nodes):
 
-        # get IDs for source and reciever nodes
+        # get IDs for source and receiver nodes
         src_id = src_nodes[i]
         dst_id = dst_nodes[src_id]
 
@@ -86,7 +86,7 @@ def brent_method_erode_variable_threshold(
             # calculate the difference between z_old and z_downstream
             z_diff_old = z_old - z_downstream
 
-            # using z_diff_old, calculate the alpha paramter of Braun and
+            # using z_diff_old, calculate the alpha parameter of Braun and
             # Willet by calculating alpha times z
 
             alpha_param = alpha[src_id] * powf(z_diff_old, n-1.0)
@@ -133,7 +133,7 @@ def brent_method_erode_variable_threshold(
                     x = (1.0 + beta_param)/(1.0 + alpha_param)
 
                 # If x is provided as a value greater than zero, calculate
-                # z at t=t+delta_t useing the values of x, z_downstream and
+                # z at t=t+delta_t using the values of x, z_downstream and
                 # z_old as given by the definition of x (see erode_fn for
                 # details). If x is equal to zero, set it as just slightly
                 # higher than x_downstream.
@@ -198,7 +198,7 @@ def brent_method_erode_fixed_threshold(
     # Loop through nodes.
     for i in range(n_nodes):
 
-        # get IDs for source and reciever nodes
+        # get IDs for source and receiver nodes
         src_id = src_nodes[i]
         dst_id = dst_nodes[src_id]
 
@@ -219,7 +219,7 @@ def brent_method_erode_fixed_threshold(
             # calculate the difference between z_old and z_downstream
             z_diff_old = z_old - z_downstream
 
-            # using z_diff_old, calculate the alpha paramter of Braun and
+            # using z_diff_old, calculate the alpha parameter of Braun and
             # Willet by calculating alpha times z
 
             alpha_param = alpha[src_id] * powf(z_diff_old, n-1.0)
@@ -265,7 +265,7 @@ def brent_method_erode_fixed_threshold(
                     x = (1.0 + beta_param)/(1.0 + alpha_param)
 
                 # If x is provided as a value greater than zero, calculate
-                # z at t=t+delta_t useing the values of x, z_downstream and
+                # z at t=t+delta_t using the values of x, z_downstream and
                 # z_old as given by the definition of x (see erode_fn for
                 # details). If x is equal to zero, set it as just slightly
                 # higher than x_downstream.
@@ -326,7 +326,7 @@ def erode_fn(
             z_node(t + delta_t) - z_downstream(t + delta_t)
         ) / (z_node(t) - z_downstream(t + delta_t))
 
-    A discretized version of the stream power equation above yeilds the equation::
+    A discretized version of the stream power equation above yields the equation::
 
         f = x - 1 + alpha*(x**n) - beta
 
@@ -353,7 +353,7 @@ def erode_fn(
     given by Braun and Willet (2012).
 
     When the threshold term is greater than zero, it is possible that no
-    erosion will occur. In this case, an evaluation of f(x=1) will yeild a
+    erosion will occur. In this case, an evaluation of f(x=1) will yield a
     negative number.
 
     If for the values of alpha and beta provided, f(x=1)<0, then this function
@@ -361,7 +361,7 @@ def erode_fn(
     interval is required will fail.
 
     It is recommended that before using this method in a solver, that the
-    function be evaluated with x=1 to determine if it any erosion occured.
+    function be evaluated with x=1 to determine if it any erosion occurred .
 
     """
     cdef double f

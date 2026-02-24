@@ -281,7 +281,7 @@ class FastscapeEroder(Component):
         interval, dt, following the Braun-Willett (2013) implicit Fastscape
         algorithm.
 
-        This follows Landlab standardized component design, and supercedes the
+        This follows Landlab standardized component design, and supersedes the
         old driving method :func:`erode`.
 
         Parameters

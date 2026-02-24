@@ -9,7 +9,7 @@ from landlab.components.lithology.lithology import Lithology
 class LithoLayers(Lithology):
     """Create LithoLayers component.
 
-    A LithoLayers is a three dimentional representation of material operated on
+    A LithoLayers is a three dimensional representation of material operated on
     by landlab components. Material can be removed through erosion or added to
     through deposition. Rock types can have multiple attributes (e.g. age,
     erodability or other parameter values, etc).

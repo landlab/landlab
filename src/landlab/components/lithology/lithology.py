@@ -14,7 +14,7 @@ from landlab.utils.return_array import return_array_at_node
 class Lithology(Component):
     """Create a Lithology object.
 
-    A Lithology is a three dimentional representation of material operated on
+    A Lithology is a three dimensional representation of material operated on
     by landlab components. Material can be removed through erosion or added to
     through deposition. Rock types can have multiple attributes (e.g. age,
     erodability or other parameter values, etc).
@@ -193,7 +193,7 @@ class Lithology(Component):
                 "exists as an at-node field."
             ) from exc
 
-        # save inital information about thicknesses, layers, attributes, and ids.
+        # save initial information about thicknesses, layers, attributes, and ids.
         self._init_thicknesses = np.asarray(thicknesses)
         self._attrs = attrs
         self._number_of_init_layers = self._init_thicknesses.shape[0]

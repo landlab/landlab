@@ -1,7 +1,7 @@
 #!/usr/env/python
 
 """
-flow_accum_bw.py: Implementation of the Braun & Willet (2012) stack alorithm.
+flow_accum_bw.py: Implementation of the Braun & Willet (2012) stack algorithm.
 
 Implementation of Braun & Willett (2012) algorithm for calculating drainage
 area and (optionally) water discharge. Assumes each node has only one

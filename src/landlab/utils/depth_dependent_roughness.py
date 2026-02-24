@@ -7,7 +7,7 @@ This component creates -or- overwrites a field on the grid called
 'mannings_n' where each node is assigned a Manning's n value based on the
 minimum Manning's n value for the landscape, the local water depths, an index
 (or threshold) water depth above which all Manning's n values are considered
-constant, and a vegetation drag coefficent (for more on vegetation drag and
+constant, and a vegetation drag coefficient (for more on vegetation drag and
 the impact on surface roughness, see Wu et al., 1999 in the Journal of
 Hydraulic Engineering.)
 

@@ -9,7 +9,7 @@ from landlab.utils.distance_to_divide import calculate_distance_to_divide
 
 
 def test_no_flow_receivers():
-    """Test that correct error is raised when no flow recievers are
+    """Test that correct error is raised when no flow receivers are
     on the grid."""
     mg = RasterModelGrid((30, 70))
     with pytest.raises(FieldError):

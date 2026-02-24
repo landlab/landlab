@@ -368,7 +368,7 @@ there are no supporting functions for the use of junctions, but support is immin
 
 Notice that the links also enclose a set of polygons that are offset from the
 cells. These secondary polygons are known as *patches* ({ref}`Figure 1,
-dotted <basic-grid-elements>`). This means that any grid comprises two complementary tesselations: one
+dotted <basic-grid-elements>`). This means that any grid comprises two complementary tessellations: one
 made of cells, and one made of patches. If one of these is a Voronoi
 tessellation, the other is a Delaunay triangulation. For this reason, Delaunay
 triangulations and Voronoi diagrams are said to be dual to one another: for any
