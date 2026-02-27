@@ -2,19 +2,55 @@
 
 ## Peer-reviewed journal articles
 
+### 2026
+
+Sharma, H., & Ehlers, T. A. (2026). **Effects of Extreme Precipitation Events on Catchment Erosion along Climate and Ecological Gradient in the Chilean Coastal Cordillera.** In *Water Security and Climate Change: Adaptation for Sustainable and Resilient Development* (pp. 113-122). Cham: Springer Nature Switzerland, [https://doi.org/10.1007/978-3-032-08411-8_8](https://doi.org/10.1007/978-3-032-08411-8_8)
+
+Wang, Z., Jin, J., Lou, J., Wei, C., Zuo, X., Ling, Z., ... & Qiu, J. (2026). **Optically stimulated luminescence (OSL) dating of Qin-Han ancient city moat sediments in South China and its implications for geomorphic evolution.** *Catena*, 262, 109669, [https://doi.org/10.1016/j.catena.2025.109669](https://doi.org/10.1016/j.catena.2025.109669)
+
 ### 2025
 
 Alvis, A. D., Luce, C. H., Istanbulluoglu, E., Knuth, F., Wittkopf, L., Shean, D., & Stewart, G. (2025). **Spatiotemporal Evolution of Forest Road Rutting and Flow Pathways Examined Using Unoccupied Aerial Vehicles (UAVs).** *Hydrological Processes,* 39(3), e70105.
 
+Aránguiz‐Rago, T. F., Duvall, A. R., Tucker, G. E., & Campforts, B. (2025). **Climate oscillation and fault slip rate control sediment aggradation and channel morphology along strike‐slip faults**. *Geophysical Research Letters*, 52(21), e2025GL118146, [https://doi.org/10.1029/2025GL118146](https://doi.org/10.1029/2025GL118146)
+
+Ariagno, C., Le Bouteiller, C., Campforts, B., van der Beek, P., & Tucker, G. (2025). **Modeling seasonal sediment dynamics and landscape evolution in a marly badland catchment, Draix‐Bléone Critical Zone Observatory, SE France.** *Journal of Geophysical Research: Earth Surface*, 130(12), e2024JF008183, [https://doi.org/10.1029/2024JF008183](https://doi.org/10.1029/2024JF008183)
+
+Ariagno, C., Steer, P., Valla, P. G., & Campforts, B. (2025). **Post-glacial reshaping of Alpine topography induced by landsliding.** *Earth Surface Dynamics*, 13(6), 1109-1132, [https://doi.org/10.5194/esurf-13-1109-2025](https://doi.org/10.5194/esurf-13-1109-2025)
+
+Armitage, J. J., & Rohais, S. (2025). **A numerical model of microplastic erosion, transport, and deposition for fluvial systems.** *Earth Surface Dynamics,* 13(4), 771-789, [https://doi.org/10.5194/esurf-13-771-2025](https://doi.org/10.5194/esurf-13-771-2025)
+
 Baran, Z. J., & Cardenas, B. T. (2025). **Modeling Lake Bonneville paleoshoreline erosion at Mars‐like rates and durations: Implications for the preservation of erosional Martian shorelines and viability as evidence for a Martian ocean.** *Journal of Geophysical Research: Planets,* 130(4), e2024JE008851.
 
+Cardenas, B. T., Beer, A. R., Donohoe, P. J., Kanine, O., Dickson, J. L., & Lamb, M. P. (2025). **Crater-wall degradation and bedrock-chute formation from dry rockfall erosion**. *Geology*, 53(5), 456-460, [https://doi.org/10.1130/G53096.1](https://doi.org/10.1130/G53096.1)
+
+Chen, H., & Byun, J. (2025). **Effects of relief on headwater catchment landscapes**. *Geomorphology*, 109969, [https://doi.org/10.1016/j.geomorph.2025.109969](https://doi.org/10.1016/j.geomorph.2025.109969)
+
+Ikemi, H. (2026). **Topographic and erosional asymmetry in the Otoishi River watershed: climatic and tectonic insights**. *Environmental Earth Sciences*, 85(1), 24, [https://doi.org/10.1007/s12665-025-12754-8](https://doi.org/10.1007/s12665-025-12754-8)
+
+Kargère, B., Constantine, J., Hales, T., Grieve, S., & Johnson, S. (2025). **A fractal framework for channel–hillslope coupling**. *Earth Surface Dynamics*, 13(3), 403-415, [https://doi.org/10.5194/esurf-13-403-2025](https://doi.org/10.5194/esurf-13-417-2025)
+
+Lai, L. S. H., Booth, A. M., Duvall, A. R., & Herzig, E. (2025). **Multiscale topographic complexity analysis with pyTopoComplexity**. *Earth Surface Dynamics*, 13(3), 417-435, [https://doi.org/10.5194/esurf-13-417-2025](https://doi.org/10.5194/esurf-13-417-2025)
+
+Li, T., Sklar, L. S., & Gasparini, N. M. (2025). **Hillslope grain size variation across evolving landscapes linked to climate, tectonics and lithology**. *Earth Surface Processes and Landforms*, 50(8), e70111, [https://doi.org/10.1002/esp.70111](https://doi.org/10.1002/esp.70111)
+
 Litwin, D. G., Malatesta, L. C., & Sklar, L. S. (2025). **Hillslope diffusion and channel steepness in landscape evolution models.** *Earth Surface Dynamics,* 13(2), 277-293.
+
+Mason, J. A., McDowell, T. M., & Vo, T. (2025). **Evolution of loess tablelands in the central Great Plains: Relief generation by loess accumulation and the importance of closed depressions**. *Journal of Geophysical Research: Earth Surface*, 130(12), e2025JF008375, [https://doi.org/10.1029/2025JF008375](https://doi.org/10.1029/2025JF008375)
 
 Monsalve, A. D., Anderson, S. R., Gasparini, N. M., and Yager, E. M. (2025) **RiverBedDynamics v1.0: a Landlab component for computing two-dimensional sediment transport and river bed evolution,** *Geosci. Model Dev.,* 18, 3427–3451, [https://doi.org/10.5194/gmd-18-3427-2025](https://doi.org/10.5194/gmd-18-3427-2025).
 
 Monsalve A., Bernal, S., and Link, O., (2025). **RiverFlowDynamics v1.0: A Landlab component for computing two-dimensional river flow dynamics.** *Journal of Open Source Software,* 10(110), 7823, [https://doi.org/10.21105/joss.07823](https://doi.org/10.21105/joss.07823).
 
+Morris, M. J., & Roberts, G. G. (2025). **Impact of noise on landscapes and metrics generated with stream power models**. *Earth Surface Dynamics*, 13(5), 1003-1038, [https://doi.org/10.5194/esurf-13-1003-2025](https://doi.org/10.5194/esurf-13-1003-2025)
+
+Petit, C., Jourdon, A., & Coltice, N. (2025). **Reconstructing landscapes: an adjoint model of the stream power and diffusion erosion equation**. *Earth Surface Dynamics*, 13(6), 1263-1280, [https://doi.org/10.5194/esurf-13-1263-2025](https://doi.org/10.5194/esurf-13-1263-2025)
+
 Pierce, E., Overeem, I., & Jouvet, G. (2024). **Modeling sediment fluxes from debris‐rich basal ice layers.** *Journal of Geophysical Research: Earth Surface,* 129(10), e2024JF007665.
+
+Raina, S. S., Borse, D., & Biswal, B. (2025). **On Hack's law and efficiency of landscapes**. *Earth Surface Processes and Landforms*, 50(15), e70207, [https://doi.org/10.1002/esp.70207](https://doi.org/10.1002/esp.70207)
+
+Roberts, G. G. (2025). **Learning how landscapes evolve with neural operators**. *Earth Surface Dynamics*, 13(4), 563-570, [https://doi.org/10.5194/esurf-13-563-2025](https://doi.org/10.5194/esurf-13-563-2025)
 
 Rosier, I., Van Orshoven, J., Somers, B., & Diels, J. (2025). **Dealing with sub-pixel landscape elements in distributed rainfall-runoff modelling in agricultural catchments.** *International Soil and Water Conservation Research.*
 
@@ -29,6 +65,8 @@ Wolpert, J. A., & Schoenbohm, L. M. (2025). **Channel steepness biases and nonst
 Wang, Y., & Wu, Y. (2025). **The topographic implications deduced from relationships between different river concavity indices.** *Geomorphology,* 109613.
 
 Zhao, H., Zhang, Z., Zhou, X., He, H., Wang, S., Jiang, S., ... & Kan, W. (2025). **Quantitative reconstruction of soil erosion process in a crater lake catchment during the Holocene, Southwest China.** *CATENA,* 250, 108758.
+
+Xue, L., Hu, X., Tang, Q., Qi, S., & Moucha, R. (2025). **Post-anthropogenic landscape evolution: Terrain reshaping and geomorphic response in the Loess Plateau**. *Geomorphology*, 109976, [https://doi.org/10.1016/j.geomorph.2025.109976](https://doi.org/10.1016/j.geomorph.2025.109976).
 
 ### 2024
 
@@ -60,7 +98,7 @@ Lu, X., Lai, J., Wang, L., Ji, J., & Zhong, D. (2024). **Numerical modelling of 
 
 Lu, X., Wang, L., Ji, J., & Chen, Z. (2024). **Investigating the influence of climate on the evolution of fold-and-thrust belts in Chinese Tianshan: A 2D doubly vergent numerical model approach.** *Journal of Asian Earth Sciences,* 276, 106344.
 
-Mohr, C. H., Dietze, M., Tolorza, V., Gonzalez, E., Sotomayor, B., Iroume, A., Mohr, C.H., Dietze, M., Tolorza, V., Gonzalez, E., Sotomayor, B., Iroume, A., Gilfert, S., and Tautz, F. (2024). **Ideas and perspectives: Sensing energy and matter fluxes in a biota-dominated Patagonian landscape through environmental seismology–introducing the Pumalín Critical Zone Observatory.** *Biogeosciences,* 21(6), 1583-1599.
+Mohr, C.H., Dietze, M., Tolorza, V., Gonzalez, E., Sotomayor, B., Iroume, A., Gilfert, S., and Tautz, F. (2024). **Ideas and perspectives: Sensing energy and matter fluxes in a biota-dominated Patagonian landscape through environmental seismology–introducing the Pumalín Critical Zone Observatory.** *Biogeosciences,* 21(6), 1583-1599.
 
 Rosier, I., Diels, J., Somers, B., & Van Orshoven, J. (2024). **Maximising runoff retention by vegetated landscape elements positioned through spatial optimisation.** *Landscape and Urban Planning,* 243, 104968.
 
