@@ -527,7 +527,7 @@ class SoilGrading(Component):
             layer_depth = (self._grid.at_node["grains__weight"][self._grid.core_nodes] 
                            / (self._soil_density * (1 - self._phi)))
 
-        self._grid.at_node["soil__depth"][self._grid.core_nodes] += layer_depth
+        self._grid.at_node["soil__depth"][self._grid.core_nodes] = layer_depth
         self._grid.at_node["topographic__elevation"] = (
             self._grid.at_node["soil__depth"] + self._grid.at_node["bedrock__elevation"]
         )
