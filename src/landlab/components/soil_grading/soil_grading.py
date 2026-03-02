@@ -206,15 +206,12 @@ class SoilGrading(Component):
         # for the 'grains__weight' and 'grains_classes__size' fields
         # because the shape of these fields is: n_nodes x n_grain_sizes.
         if not grid.has_field("median_size__weight", at="node"):
-            print("creating MSW")
             grid.add_zeros("median_size__weight", at="node")
         if not grid.has_field("grains_classes__size", at="node"):
-            print("creating GCS")
             grid.at_node["grains_classes__size"] = np.ones(
                 (grid.number_of_nodes, self._n_sizes)
             )
         if not grid.has_field("bed_grains__proportions", at="node"):
-            print("creating BGP")
             grid.at_node["bed_grains__proportions"] = np.ones(
                 (grid.number_of_nodes, self._n_sizes)
             )
@@ -840,6 +837,9 @@ class SoilGrading(Component):
         if np.any(non_zero_deposition_indices):
             grains_weight[non_zero_deposition_indices, :] +=(
                     deposition_mass[non_zero_deposition_indices] * depoistion_ratios_per_class)
+
+        if np.ndim(self._grid.at_node['grains__weight'])==1:
+            self._grid.at_node['grains__weight'][:] = grains_weight[:,0]
 
         
     def _test_input_outsource_dz(self, var):
