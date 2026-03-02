@@ -239,8 +239,6 @@ class SoilGrading(Component):
             self._grid.at_node["grains__weight"] = np.zeros(
                 (grid.number_of_nodes, self._n_sizes)
             )
-        else:
-            print("SG was given a preexisting GW")
 
         if grains_weight is None:
             if initial_median_size is None:
