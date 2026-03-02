@@ -222,7 +222,6 @@ class SoilGrading(Component):
 #                "Soil depth is rewrite due to inconsistent with grains__weight",
 #                stacklevel=2,
 #            )
-            print("creating SD")
             grid.add_zeros("soil__depth", at="node", clobber=True)
     
         if "topographic__elevation" not in grid.at_node:
