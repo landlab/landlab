@@ -799,7 +799,8 @@ class SoilGrading(Component):
             # Get the fraction of each grain class at node.
             a = np.sum(grains_weight[non_zero_erosion_indices, :], axis=1)[:,np.newaxis]
             b = grains_weight[non_zero_erosion_indices, :]
-            grains_fractions = np.divide(b, a, where= a!= 0)
+
+            grains_fractions = np.divide(b, a, where= a > 10**-10)
 
             # Partitioning the eroded soil mass across grain classes
             soil_erosion_mass = erosion_mass[non_zero_erosion_indices,:]
@@ -812,6 +813,7 @@ class SoilGrading(Component):
 
             # Update grains_weight field according to removed soil
             grains_weight[non_zero_erosion_indices, :] -= soil_erosion_mass_per_class
+            grains_weight[non_zero_erosion_indices, :][grains_weight[non_zero_erosion_indices, :]<10**-10]=0
 
             # Update and partitioning the removed mass across despoisted grain classes
             # Remove the soil mass from the bedrock vector and add it to the soil vector
@@ -826,19 +828,23 @@ class SoilGrading(Component):
 
         # Get the fraction of each sediment class for deposition
         tot_deposition_mass=np.sum(tot_out_mass_per_class)
+
         depoistion_ratios_per_class = np.divide(tot_out_mass_per_class,
                                                 tot_deposition_mass,
-                                                where=tot_out_mass_per_class!=0)
+                                                where=tot_out_mass_per_class!=0,
+                                                out=np.zeros_like(tot_out_mass_per_class))
 
         # Partitioning the deposited mass based on the dz input
         if np.any(non_zero_deposition_indices):
+            depoistion_ratios_per_class[depoistion_ratios_per_class<10**-10]=0
             grains_weight[non_zero_deposition_indices, :] +=(
                     deposition_mass[non_zero_deposition_indices] * depoistion_ratios_per_class)
 
         if np.ndim(self._grid.at_node['grains__weight'])==1:
             self._grid.at_node['grains__weight'][:] = grains_weight[:,0]
 
-        
+        self.update_median_grain_size()
+
     def _test_input_outsource_dz(self, var):
 
         """Verify inputs dimensions.
