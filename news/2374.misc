@@ -1,0 +1,2 @@
+Updated how wheels are built and fixed an issue where *openmp* is some
+cases wasn't correctly bundled with the wheel.
