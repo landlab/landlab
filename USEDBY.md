@@ -30,6 +30,8 @@ Ikemi, H. (2026). **Topographic and erosional asymmetry in the Otoishi River wat
 
 Kargère, B., Constantine, J., Hales, T., Grieve, S., & Johnson, S. (2025). **A fractal framework for channel–hillslope coupling**. *Earth Surface Dynamics*, 13(3), 403-415, [https://doi.org/10.5194/esurf-13-403-2025](https://doi.org/10.5194/esurf-13-417-2025)
 
+Keck, J., Istanbulluoglu, E., Strauch, R., Cristea, N. (2025). **Could climate change decrease landslide hazard in snow-dominated mountainous regions? Insights from a distributed hydrology-shallow landslide model of the North Cascades, USA.** *Water Resources Research,* 61, e2025WR040071, [https://doi.org/10.1029/2025WR040071](https://doi.org/10.1029/2025WR040071).
+
 Lai, L. S. H., Booth, A. M., Duvall, A. R., & Herzig, E. (2025). **Multiscale topographic complexity analysis with pyTopoComplexity**. *Earth Surface Dynamics*, 13(3), 417-435, [https://doi.org/10.5194/esurf-13-417-2025](https://doi.org/10.5194/esurf-13-417-2025)
 
 Li, T., Sklar, L. S., & Gasparini, N. M. (2025). **Hillslope grain size variation across evolving landscapes linked to climate, tectonics and lithology**. *Earth Surface Processes and Landforms*, 50(8), e70111, [https://doi.org/10.1002/esp.70111](https://doi.org/10.1002/esp.70111)
