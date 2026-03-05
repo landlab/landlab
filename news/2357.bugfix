@@ -1,0 +1,3 @@
+Fix an issue in VoronoiDelaunayToGraph where, when the perimeter_links parameter is
+provided, some links outside the boundary defined by perimeter_links were not
+removed in the presence of deep concavities.
