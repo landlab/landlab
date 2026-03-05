@@ -266,7 +266,7 @@ class VoronoiDelaunayToGraph(VoronoiDelaunay):
             is_perimeter_link = self.is_perimeter_face()
         return is_perimeter_link
 
-    def is_extra_link(self):
+    def _is_extra_link(self):
         is_extra_link = np.zeros(self.nodes_at_link.shape[0], dtype=bool)
 
         if self._perimeter_links is not None:
@@ -367,7 +367,7 @@ class VoronoiDelaunayToGraph(VoronoiDelaunay):
     def unbound_corners(self):
         faces_to_drop = np.where(
             (self.is_perimeter_face() & ~self.is_perimeter_link())
-            | (self.is_extra_link())
+            | (self._is_extra_link())
         )
 
         unbound_corners = self.corners_at_face[faces_to_drop].reshape((-1,))
@@ -390,7 +390,7 @@ class VoronoiDelaunayToGraph(VoronoiDelaunay):
 
         # Remove bad links
         is_a_link = np.any(self._mesh["corners_at_face"].data != -1, axis=1)
-        is_a_link[np.where(self.is_extra_link())] = False
+        is_a_link[np.where(self._is_extra_link())] = False
         self.drop_element(np.where(~is_a_link)[0], at="link")
 
         # Remove the bad patches
