@@ -126,7 +126,7 @@ def calculate_flow__distance(grid, add_to_grid=False, clobber=False):
             "nodes of the input grid."
         )
 
-    # get the reciever nodes, depending on if this is to-one, or to-multiple,
+    # get the receiver nodes, depending on if this is to-one, or to-multiple,
     # we'll need to get a different at-node field.
     if grid.at_node["flow__receiver_node"].size != grid.size("node"):
         to_one = False
@@ -147,23 +147,23 @@ def calculate_flow__distance(grid, add_to_grid=False, clobber=False):
             grid.at_node["flow__link_to_receiver_node"]
         ]
 
-    # create an array that representes the outlet lengths.
+    # create an array that represents the outlet lengths.
     flow__distance = np.zeros(grid.nodes.size)
 
     # iterate through the flow__upstream_node_order, this will already have
     # identified the locations of the outlet nodes and have
     for node in flow__upstream_node_order:
-        # get flow recievers
-        reciever = flow__receiver_node[node]
+        # get flow receivers
+        receiver = flow__receiver_node[node]
 
         # assess if this is a to one (D8/D4) or to multiple (Dinf, MFD)
         # flow directing method.
         if to_one:
-            potential_outlet = reciever
+            potential_outlet = receiver
         else:
-            # if this is an outlet, the first element of the recievers will be
+            # if this is an outlet, the first element of the receivers will be
             # the nodes ID.
-            potential_outlet = reciever[0]
+            potential_outlet = receiver[0]
 
         # assess if this is an outlet or not.
         if potential_outlet == node:
@@ -176,15 +176,15 @@ def calculate_flow__distance(grid, add_to_grid=False, clobber=False):
             # deal with the two cases of route to one and route to multiple.
             if to_one:
                 # get the stream length of the downstream node
-                downstream_stream_length = flow__distance[reciever]
+                downstream_stream_length = flow__distance[receiver]
 
                 # get the stream segment length from this node to its downstream
-                # neigbor
+                # neighbor
                 stream_increment_length = flow_link_lengths[node]
 
             else:
-                # non-existant links are coded with -1
-                useable_receivers = np.where(reciever != grid.BAD_INDEX)[0]
+                # non-existent links are coded with -1
+                useable_receivers = np.where(receiver != grid.BAD_INDEX)[0]
 
                 # we will have the stream flow to the downstream node with the
                 # shortest distance to the outlet.

@@ -298,7 +298,7 @@ def test_accumulated_area_closes(fd):
 
 
 def test_specifying_routing_method_wrong():
-    """Test specifying incorrect method for routing compatability with
+    """Test specifying incorrect method for routing compatibility with
     DepressionFinderAndRouter.
     """
     mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
@@ -350,7 +350,7 @@ def test_field_name_array_float_case1():
     )
 
     fa.run_one_step()
-    reciever = np.array(
+    receiver = np.array(
         [0, 1, 2, 3, 4, 1, 2, 7, 8, 10, 6, 11, 12, 14, 10, 15, 16, 17, 18, 19]
     )
 
@@ -404,7 +404,7 @@ def test_field_name_array_float_case1():
         ]
     )
 
-    assert_array_equal(mg.at_node["flow__receiver_node"], reciever)
+    assert_array_equal(mg.at_node["flow__receiver_node"], receiver)
     assert_array_equal(mg.at_node["drainage_area"], da)
     assert_array_equal(mg.at_node["surface_water__discharge"], q)
 
@@ -468,7 +468,7 @@ def test_field_name_array_float_case2():
     fa = FlowAccumulator(mg, "topographic__elevation", runoff_rate="runoff_rate")
 
     fa.run_one_step()
-    reciever = np.array(
+    receiver = np.array(
         [0, 1, 2, 3, 4, 1, 2, 7, 8, 10, 6, 11, 12, 14, 10, 15, 16, 17, 18, 19]
     )
 
@@ -522,7 +522,7 @@ def test_field_name_array_float_case2():
         ]
     )
 
-    assert_array_equal(mg.at_node["flow__receiver_node"], reciever)
+    assert_array_equal(mg.at_node["flow__receiver_node"], receiver)
     assert_array_equal(mg.at_node["drainage_area"], da)
     assert_array_equal(mg.at_node["surface_water__discharge"], q)
 
@@ -585,7 +585,7 @@ def test_field_name_array_float_case3():
     fa = FlowAccumulator(mg, "topographic__elevation", runoff_rate=runoff_rate)
 
     fa.run_one_step()
-    reciever = np.array(
+    receiver = np.array(
         [0, 1, 2, 3, 4, 1, 2, 7, 8, 10, 6, 11, 12, 14, 10, 15, 16, 17, 18, 19]
     )
 
@@ -639,7 +639,7 @@ def test_field_name_array_float_case3():
         ]
     )
 
-    assert_array_equal(mg.at_node["flow__receiver_node"], reciever)
+    assert_array_equal(mg.at_node["flow__receiver_node"], receiver)
     assert_array_equal(mg.at_node["drainage_area"], da)
     assert_array_equal(mg.at_node["surface_water__discharge"], q)
 
@@ -680,7 +680,7 @@ def test_field_name_array_float_case4():
     )
 
     fa.run_one_step()
-    reciever = np.array(
+    receiver = np.array(
         [0, 1, 2, 3, 4, 1, 2, 7, 8, 10, 6, 11, 12, 14, 10, 15, 16, 17, 18, 19]
     )
 
@@ -734,7 +734,7 @@ def test_field_name_array_float_case4():
         ]
     )
 
-    assert_array_equal(mg.at_node["flow__receiver_node"], reciever)
+    assert_array_equal(mg.at_node["flow__receiver_node"], receiver)
     assert_array_equal(mg.at_node["drainage_area"], da)
     assert_array_equal(mg.at_node["surface_water__discharge"], q)
 
@@ -798,7 +798,7 @@ def test_field_name_array_float_case5():
     fa = FlowAccumulator(mg, "topographic__elevation", runoff_rate="runoff_rate")
 
     fa.run_one_step()
-    reciever = np.array(
+    receiver = np.array(
         [0, 1, 2, 3, 4, 1, 2, 7, 8, 10, 6, 11, 12, 14, 10, 15, 16, 17, 18, 19]
     )
 
@@ -852,7 +852,7 @@ def test_field_name_array_float_case5():
         ]
     )
 
-    assert_array_equal(mg.at_node["flow__receiver_node"], reciever)
+    assert_array_equal(mg.at_node["flow__receiver_node"], receiver)
     assert_array_equal(mg.at_node["drainage_area"], da)
     assert_array_equal(mg.at_node["surface_water__discharge"], q)
 
@@ -915,7 +915,7 @@ def test_field_name_array_float_case6():
     fa = FlowAccumulator(mg, topographic__elevation, runoff_rate=runoff_rate)
 
     fa.run_one_step()
-    reciever = np.array(
+    receiver = np.array(
         [0, 1, 2, 3, 4, 1, 2, 7, 8, 10, 6, 11, 12, 14, 10, 15, 16, 17, 18, 19]
     )
 
@@ -969,7 +969,7 @@ def test_field_name_array_float_case6():
         ]
     )
 
-    assert_array_equal(mg.at_node["flow__receiver_node"], reciever)
+    assert_array_equal(mg.at_node["flow__receiver_node"], receiver)
     assert_array_equal(mg.at_node["drainage_area"], da)
     assert_array_equal(mg.at_node["surface_water__discharge"], q)
 

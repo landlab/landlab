@@ -306,7 +306,7 @@ def test_change_bc_post_init():
     mg.add_field("topographic__elevation", mg.node_x**2 + mg.node_y**2, at="node")
     fd = FlowDirectorSteepest(mg, "topographic__elevation")
     fd.run_one_step()
-    true_reciever = np.array(
+    true_receiver = np.array(
         [
             0,
             1,
@@ -335,11 +335,11 @@ def test_change_bc_post_init():
             24,
         ]
     )
-    assert_array_equal(true_reciever, fd._receiver)
+    assert_array_equal(true_receiver, fd._receiver)
 
     mg.status_at_node[mg.nodes_at_bottom_edge] = mg.BC_NODE_IS_CLOSED
     fd.run_one_step()
-    new_true_reciever = np.array(
+    new_true_receiver = np.array(
         [
             0,
             1,
@@ -368,7 +368,7 @@ def test_change_bc_post_init():
             24,
         ]
     )
-    assert_array_equal(new_true_reciever, fd._receiver)
+    assert_array_equal(new_true_receiver, fd._receiver)
 
 
 def test_flow_director_steepest_flow__link_dir_field_creation():
