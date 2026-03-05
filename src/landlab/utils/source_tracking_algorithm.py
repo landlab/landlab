@@ -131,7 +131,7 @@ def track_source(grid, hsd_ids, flow_directions=None):
         'hsd_upstr' maps each grid node to corresponding
         contributing upstream hsd_ids. hsd_upstr.keys() will return
         node_ids of the grid. hsd_upstr.values() will return lists of
-        all upstream contributing hsd_ids, including repitions of hsd_ids,
+        all upstream contributing hsd_ids, including repititions of hsd_ids,
         at corresponding node_ids.
         'flow_accum' is an array of the number of upstream contributing
         nodes at each node.

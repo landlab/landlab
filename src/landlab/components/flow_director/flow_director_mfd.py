@@ -43,7 +43,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
        of dimension (number of nodes x max number of receivers). If the slope is
        uphill or flat, the value is assigned zero.
     -  Boolean node array of all local lows: *'flow__sink_flag'*
-    -  Link array identifing if flow goes with (1) or against (-1) the link
+    -  Link array identifying if flow goes with (1) or against (-1) the link
        direction: *'flow__link_direction'*
 
     The primary method of this class is :func:`run_one_step`.
@@ -172,7 +172,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
     For the second example we will use a Hexagonal Model Grid, a special type
     of Voroni Grid that has regularly spaced hexagonal cells. FlowDirectorMFD
     has multiple ways to partition flow based on slope. The default method is
-    based on the slope angle. A secondary methods is to partion based on the
+    based on the slope angle. A secondary methods is to partition based on the
     square root of slope. This represents the solution to a steady kinematic
     wave.
 
@@ -488,7 +488,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
             partition_method=self._partition_method,
         )
 
-        # Save the four ouputs of this component.
+        # Save the four outputs of this component.
         self._grid["node"]["flow__receiver_node"][:] = self._receivers
         self._grid["node"]["flow__receiver_proportions"][:] = self._proportions
         self._grid["node"]["topographic__steepest_slope"][:] = slopes_to_receivers

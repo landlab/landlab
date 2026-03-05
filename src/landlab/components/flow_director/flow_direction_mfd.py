@@ -64,9 +64,9 @@ def flow_directions_mfd(
         A proportion of zero indicates that the link does not have flow along
         it.
     slopes: ndarray of size (num nodes, max neighbors at node)
-        For each node in the array ``recievers``, the slope value (positive
+        For each node in the array ``receivers``, the slope value (positive
         downhill) in the direction of flow. If no flow occurs (value of
-        ``recievers`` is -1), then this array is set to 0.
+        ``receivers`` is -1), then this array is set to 0.
     steepest_slope : ndarray
         The slope value (positive downhill) in the direction of flow.
     steepest_receiver : ndarray
@@ -255,7 +255,7 @@ def flow_directions_mfd(
     # Make a copy so this can be changed based on where no flow occurs.
     receiver_links = links_at_node.copy()
 
-    # some of these potential recievers may have already been assigned as
+    # some of these potential receivers may have already been assigned as
     # BAD_INDEX_VALUE because the link was inactive. Make a mask of these for
     # future use. Also find the close nodes.
     inactive_link_to_neighbor = active_link_dir_at_node == 0
@@ -288,7 +288,7 @@ def flow_directions_mfd(
     receivers[closed_nodes, 0] = node_id[closed_nodes]
 
     # Next, calculate flow proportions.
-    # Copy slope array and mask by where flow is not occuring and where the
+    # Copy slope array and mask by where flow is not occurring and where the
     # link is inactive.
     flow_slopes = slopes_to_neighbors_at_node.copy()
     flow_slopes[flow_does_not_occur] = 0.0

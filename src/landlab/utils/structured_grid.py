@@ -184,7 +184,7 @@ def active_face_count(shape):
 
     Total number of active faces in a structured grid with dimensions,
     *shape*. Each cell has four faces, and shared faces only count once.
-    An active face is one that has a corresponing active link.
+    An active face is one that has a corresponding active link.
 
     >>> from landlab.utils.structured_grid import active_face_count
     >>> active_face_count((3, 4))

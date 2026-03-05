@@ -38,7 +38,7 @@ class FlowDirectorDINF(_FlowDirectorToMany):
        of dimension (number of nodes x max number of receivers). If the slope is
        uphill or flat, the value is assigned zero.
     -  Boolean node array of all local lows: *'flow__sink_flag'*
-    -  Link array identifing if flow goes with (1) or against (-1) the link
+    -  Link array identifying if flow goes with (1) or against (-1) the link
        direction: *'flow__link_direction'*
 
     The primary method of this class is :func:`run_one_step`.
@@ -356,7 +356,7 @@ class FlowDirectorDINF(_FlowDirectorToMany):
             self._grid, self._surface_values, baselevel_nodes=baselevel_nodes
         )
 
-        # Save the four ouputs of this component.
+        # Save the four outputs of this component.
         self._grid["node"]["flow__receiver_node"][:] = self._receivers
         self._grid["node"]["flow__receiver_proportions"][:] = self._proportions
         self._grid["node"]["topographic__steepest_slope"][:] = slopes_to_receivers

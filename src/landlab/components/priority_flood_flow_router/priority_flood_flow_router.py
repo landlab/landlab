@@ -266,7 +266,7 @@ class PriorityFloodFlowRouter(Component):
             "units": "-",
             "mapping": "node",
             "doc": (
-                "Length to adjacent nodes, squared (calcualted in advance to "
+                "Length to adjacent nodes, squared (calculated in advance to "
                 "save time during calculation"
             ),
         },
@@ -388,7 +388,7 @@ class PriorityFloodFlowRouter(Component):
                 "use default Landlab flow accumulator instead"
             )
 
-        # save elevations as class properites.
+        # save elevations as class properties.
         self._surface = surface
         self._surface_values = return_array_at_node(grid, surface)
 
@@ -473,7 +473,7 @@ class PriorityFloodFlowRouter(Component):
             self._discharges = self.grid.at_node["surface_water__discharge"]
         self._sort = self.grid.at_node["flow__upstream_node_order"]
         # if multiple flow algorithm is made, the dimensions of the slope
-        # and receiver fields change (8 colums for all neightbors)
+        # and receiver fields change (8 columns for all neighbors)
         if flow_metric in PMULTIPLE_FMs:
             self.grid.at_node["topographic__steepest_slope"] = np.zeros(
                 (self.grid.number_of_nodes, 8)
@@ -698,7 +698,7 @@ class PriorityFloodFlowRouter(Component):
 
     def _FlowAcc_D8(self, hill_flow=False):
         """
-        Function to calcualte flow accumulation using the D8 flow algorithm.
+        Function to calculate flow accumulation using the D8 flow algorithm.
 
         Parameters
         ----------
@@ -754,7 +754,7 @@ class PriorityFloodFlowRouter(Component):
             recvr_link,
         )
 
-        # Calcualte flow acc
+        # Calculate flow acc
         do_FA = False
         if hill_flow:
             if self._accumulate_flow_hill:
@@ -853,12 +853,12 @@ class PriorityFloodFlowRouter(Component):
 
     def _accumulate_flow_RD(self, props_Pf, hill_flow=False):
         """
-        Function to accumualte flow using the richdem package
+        Function to accumulate flow using the richdem package
 
         Parameters
         ----------
         props_Pf : float
-            flow proportions calcualte with the RichDEM package using the
+            flow proportions calculate with the RichDEM package using the
             FlowProportions function
         hill_flow : Boolean, optional
             Defines which instance of flow accumulation is updated.

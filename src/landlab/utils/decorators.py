@@ -168,7 +168,7 @@ class use_field_name_or_array:
     array([  0.,   2.,   4.,   6.,   8.,  10.])
 
     Decorate the function so that the second argument can be array-like or
-    the name of a field contained withing the grid. The decorator takes a
+    the name of a field contained within the grid. The decorator takes a
     single argument that is the name (as a `str`) of the grid element that
     the values are defined on ("node", "cell", etc.).
 
@@ -258,7 +258,7 @@ class use_field_name_array_or_value:
     array([  0.,   2.,   4.,   6.,   8.,  10.])
 
     Decorate the function so that the second argument can be array-like,
-    the name of a field contained withing the grid, or a value (float, int,
+    the name of a field contained within the grid, or a value (float, int,
     etc.). The decorator takes a single argument that is the name (as a `str`)
     of the grid element that the values are defined on ("node", "cell", etc.).
 

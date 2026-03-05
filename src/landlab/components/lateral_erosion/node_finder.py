@@ -235,7 +235,7 @@ def node_finder(grid, i, flowdirs, drain_area):
     # receiver node of flow is flowdirs[i]
     receiver = flowdirs[i]
 
-    # find indicies of where flowdirs=i to find donor nodes.
+    # find indices of where flowdirs=i to find donor nodes.
     # will donor nodes always equal the index of flowdir list?
     inflow = np.where(flowdirs == i)
 

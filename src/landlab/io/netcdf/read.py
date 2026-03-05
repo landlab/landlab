@@ -85,7 +85,7 @@ def _read_netcdf_coordinate_values(root):
 
 
 def _read_netcdf_coordinate_units(root):
-    """Get units for coodinate values.
+    """Get units for coordinate values.
 
     Parameters
     ----------
@@ -254,7 +254,7 @@ def read_netcdf(
         Adds data to an existing *grid* instead of creating a new one.
     name : str, optional
         Add only fields with NetCDF variable name to the grid. Default is to
-        add all NetCDF varibles to the grid.
+        add all NetCDF variables to the grid.
     just_grid : boolean, optional
         Create a new grid but don't add value data.
     halo : integer, optional

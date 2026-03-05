@@ -180,7 +180,7 @@ def _trace_fracture_through_grid_raster(m, start_xy, spacing):
     """Create a 2D fracture in a grid.
 
     Creates a "fracture" in a 2D grid, m, by setting cell values to unity
-    along the trace of the fracture (i.e., "drawing" a line throuh the
+    along the trace of the fracture (i.e., "drawing" a line through the
     grid).
 
     Parameters

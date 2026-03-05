@@ -312,7 +312,7 @@ class GroundwaterDupuitPercolator(Component):
             the aquifer saturated hydraulic conductivity, m/s.
             If function is given, it should take a landlab ModelGrid and return
             an array of floats at link. This may be used if the lateral hydraulic
-            conductivity is not vertically homogenous and the effective hydraulic
+            conductivity is not vertically homogeneous and the effective hydraulic
             conductivity needs to be modified based upon on the position of the
             water table. See component tests for example.
             Default = 0.001 m/s
@@ -327,7 +327,7 @@ class GroundwaterDupuitPercolator(Component):
             surface and subsurface flow
             Default = 0.01
         courant_coefficient: float (-)
-            The muliplying factor on the condition that the timestep is
+            The multiplying factor on the condition that the timestep is
             smaller than the minimum link length over groundwater flow
             velocity. This parameter is only used with
             ``run_with_adaptive_time_step_solver`` and must be greater than
@@ -430,7 +430,7 @@ class GroundwaterDupuitPercolator(Component):
         Parameters
         ----------
         courant_coefficient: float (-)
-            The muliplying factor on the condition that the timestep is
+            The multiplying factor on the condition that the timestep is
             smaller than the minimum link length over groundwater flow
             velocity. This parameter is only used with
             ``run_with_adaptive_time_step_solver`` and must be greater than

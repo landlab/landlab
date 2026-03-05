@@ -1815,12 +1815,12 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         closed nodes may result from clipping a raster to a polygon and will
         prevent the flow router from functioning as intended.
 
-        This can be acomplished by setting the
+        This can be accomplished by setting the
         parameter: *remove_disconnected* to True (default is False).
 
         This will run the function:
         set_open_nodes_disconnected_from_watershed_to_closed
-        which will find any isolated open nodes that have no neigbors in the
+        which will find any isolated open nodes that have no neighbors in the
         main watershed and set them to closed. The adjacency method used
         to assess connectivity can be set to either 'D8'(default) or 'D4' using
         the flag *adjacency_method*.
@@ -2146,7 +2146,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         connected_nodes = list(outlet_id)
         newNodes = connected_nodes
 
-        # keep track of the number of nodes added in the previous itteration.
+        # keep track of the number of nodes added in the previous iteration.
         numAdded = len(newNodes)
 
         # continue running until no new nodes are added.

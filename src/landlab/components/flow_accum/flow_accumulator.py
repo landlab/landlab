@@ -77,7 +77,7 @@ class FlowAccumulator(Component):
        *'topographic__steepest_slope'* This array is 2D for RouteToMany
        methods and has the shape (n-nodes x max number of receivers).
     -  Boolean node array of all local lows: *'flow__sink_flag'*
-    -  Link array identifing if flow goes with (1) or against (-1) the link
+    -  Link array identifying if flow goes with (1) or against (-1) the link
        direction: *'flow__link_direction'*
 
     The primary method of this class is :func:`run_one_step`.
@@ -113,7 +113,7 @@ class FlowAccumulator(Component):
          DepressionFinder class.
          This sets the method for depression finding.
     **kwargs : any additional parameters to pass to a FlowDirector or
-         DepressionFinderAndRouter instance (e.g., partion_method for
+         DepressionFinderAndRouter instance (e.g., partition_method for
          FlowDirectorMFD). This will have no effect if an instantiated component
          is passed using the flow_director or depression_finder keywords.
 
@@ -672,8 +672,8 @@ class FlowAccumulator(Component):
     ):
         """Initialize the FlowAccumulator component.
 
-        Saves the grid, tests grid type, tests imput types and
-        compatability for the flow_director and depression_finder
+        Saves the grid, tests grid type, tests input types and
+        compatibility for the flow_director and depression_finder
         keyword arguments, tests the argument of runoff_rate, and
         initializes new fields.
         """
@@ -690,7 +690,7 @@ class FlowAccumulator(Component):
         # as part of the grid.
         self._test_water_inputs(grid, runoff_rate)
 
-        # save elevations and node_cell_area to class properites.
+        # save elevations and node_cell_area to class properties.
         self._surface = surface
         self._surface_values = return_array_at_node(grid, surface)
 
@@ -922,7 +922,7 @@ class FlowAccumulator(Component):
                 raise ValueError(
                     "String provided in flow_director is not a "
                     "valid method or component name. The following"
-                    "components are valid imputs:\n" + str(PERMITTED_DIRECTORS)
+                    "components are valid inputs:\n" + str(PERMITTED_DIRECTORS)
                 ) from exc
             self._flow_director = FlowDirector(self._grid, self._surface, **kw)
         # flow director is provided as an instantiated flow director
@@ -933,7 +933,7 @@ class FlowAccumulator(Component):
                 raise ValueError(
                     "String provided in flow_director is not a "
                     "valid method or component name. The following"
-                    "components are valid imputs:\n" + str(PERMITTED_DIRECTORS)
+                    "components are valid inputs:\n" + str(PERMITTED_DIRECTORS)
                 )
 
             if len(kw) > 0:
@@ -952,7 +952,7 @@ class FlowAccumulator(Component):
                 raise ValueError(
                     "String provided in flow_director is not a "
                     "valid method or component name. The following"
-                    "components are valid imputs:\n" + str(PERMITTED_DIRECTORS)
+                    "components are valid inputs:\n" + str(PERMITTED_DIRECTORS)
                 )
 
         # save method as attribute
@@ -1016,7 +1016,7 @@ class FlowAccumulator(Component):
                     raise ValueError(
                         "Component provided in depression_finder "
                         "is not a valid component. The following "
-                        "components are valid imputs: "
+                        "components are valid inputs: "
                         f"{', '.join(repr(x) for x in PERMITTED_DEPRESSION_FINDERS)}."
                     ) from exc
 
@@ -1032,7 +1032,7 @@ class FlowAccumulator(Component):
                     raise ValueError(
                         "Component provided in depression_finder "
                         "is not a valid component. The following "
-                        "components are valid imputs:\n"
+                        "components are valid inputs:\n"
                         + str(PERMITTED_DEPRESSION_FINDERS)
                     )
 
@@ -1055,7 +1055,7 @@ class FlowAccumulator(Component):
                     raise ValueError(
                         "Component provided in depression_finder "
                         "is not a valid component. The following "
-                        "components are valid imputs:\n"
+                        "components are valid inputs:\n"
                         + str(PERMITTED_DEPRESSION_FINDERS)
                     )
 
@@ -1082,7 +1082,7 @@ class FlowAccumulator(Component):
     def flow_director_raster_method(self):
         """Return 'D8' or 'D4' depending on the direction method used.
 
-        (Note: only call this function for a raster gird;
+        (Note: only call this function for a raster grid;
         does not handle multiple-flow directors)
         """
         assert isinstance(self._grid, RasterModelGrid)
@@ -1094,7 +1094,7 @@ class FlowAccumulator(Component):
     def depression_handler_raster_direction_method(self):
         """Return 'D8' or 'D4' depending on the direction method used.
 
-        (Note: only call this function for a raster gird;
+        (Note: only call this function for a raster grid;
         does not handle multiple-flow directors)
         """
         assert isinstance(self._grid, RasterModelGrid)
@@ -1163,7 +1163,7 @@ class FlowAccumulator(Component):
         if update_flow_director:
             self._flow_director.run_one_step()
 
-        # further steps vary depending on how many recievers are present
+        # further steps vary depending on how many receivers are present
         # one set of steps is for route to one (D8, Steepest/D4)
 
         # step 2. Get r
@@ -1214,7 +1214,7 @@ class FlowAccumulator(Component):
                 flow_accum_to_n.make_ordered_node_array_to_n(r, p, nd, delta, D)
             )
 
-            # put theese in grid so that depression finder can use it.
+            # put these in grid so that depression finder can use it.
             # store the generated data in the grid
             self._grid["node"]["flow__data_structure_delta"][:] = delta[1:]
             self._D_structure = D
