@@ -98,85 +98,15 @@ from landlab.components.overland_flow._calc import calc_discharge_at_links
 from landlab.components.overland_flow._calc import calc_grad_at_link
 from landlab.components.overland_flow._calc import calc_weighted_mean_of_parallel_links
 from landlab.components.overland_flow._calc import zero_out_dry_links
-from landlab.components.overland_flow._links import active_link_ids
-from landlab.components.overland_flow._links import horizontal_active_link_ids
-from landlab.components.overland_flow._links import horizontal_east_link_neighbor
-from landlab.components.overland_flow._links import horizontal_west_link_neighbor
-from landlab.components.overland_flow._links import is_horizontal_link
-from landlab.components.overland_flow._links import is_vertical_link
-from landlab.components.overland_flow._links import nth_horizontal_link
-from landlab.components.overland_flow._links import nth_vertical_link
-from landlab.components.overland_flow._links import vertical_active_link_ids
-from landlab.components.overland_flow._links import vertical_north_link_neighbor
-from landlab.components.overland_flow._links import vertical_south_link_neighbor
 from landlab.core._validate import require_between
 from landlab.core._validate import require_nonnegative
 from landlab.core._validate import require_positive
 from landlab.core.errors import Error
 from landlab.grid.linkstatus import LinkStatus
 
-_SEVEN_OVER_THREE = 7.0 / 3.0
-
 
 class NoWaterError(Error):
     pass
-
-
-def _active_links_at_node(grid, *args):
-    """_active_links_at_node([node_ids]) Active links of a node.
-
-    .. note::
-
-        This function returns links that are in *clockwise* order,
-        rather than the standard *counterclockwise* ordering that
-        landlab uses everywhere else.
-
-    Parameters
-    ----------
-    grid : RasterModelGrid
-        A grid.
-    node_ids : int or list of ints
-        ID(s) of node(s) for which to find connected active links
-
-    Returns
-    -------
-    (4, N) ndarray
-        The ids of active links attached to grid nodes with
-        *node_ids*. If *node_ids* is not given, return links for all of the
-        nodes in the grid. Link ids are listed in clockwise order starting
-        with the south link. Diagonal links are never returned.
-
-    Examples
-    --------
-    >>> from landlab import RasterModelGrid
-
-    >>> grid = RasterModelGrid((3, 4))
-    >>> grid.links_at_node[5]
-    array([ 8, 11,  7,  4])
-    >>> _active_links_at_node(grid, (5, 6))
-    array([[ 4,  5],
-           [ 7,  8],
-           [11, 12],
-           [ 8,  9]])
-    >>> _active_links_at_node(grid)
-    array([[-1, -1, -1, -1, -1,  4,  5, -1, -1, 11, 12, -1],
-           [-1, -1, -1, -1, -1,  7,  8,  9, -1, -1, -1, -1],
-           [-1,  4,  5, -1, -1, 11, 12, -1, -1, -1, -1, -1],
-           [-1, -1, -1, -1,  7,  8,  9, -1, -1, -1, -1, -1]])
-
-    :meta landlab: deprecated, info-link, info-node
-    """
-    active_links_at_node = grid.links_at_node.copy()
-    active_links_at_node[grid.active_link_dirs_at_node == 0] = -1
-    active_links_at_node = active_links_at_node[:, (3, 2, 1, 0)]
-
-    if len(args) == 0:
-        return active_links_at_node.T
-    elif len(args) == 1:
-        node_ids = np.broadcast_arrays(args[0])[0]
-        return active_links_at_node[node_ids, :].T
-    else:
-        raise ValueError("only zero or one arguments accepted")
 
 
 class OverlandFlow(Component):
@@ -340,13 +270,6 @@ class OverlandFlow(Component):
         # Start time of simulation is at 1.0 s
         self._elapsed_time = 1.0
 
-        # When we instantiate the class we recognize that neighbors have not
-        # been found. After the user either calls self.set_up_neighbor_array
-        # or self.overland_flow this will be set to True. This is done so
-        # that every iteration of self.overland_flow does NOT need to
-        # reinitialize the neighbors and saves computation time.
-        self._neighbor_flag = False
-
     @property
     def h(self):
         """The depth of water at each node."""
@@ -424,84 +347,6 @@ class OverlandFlow(Component):
             )
 
         return self._cached_is_active_node
-
-    def set_up_neighbor_arrays(self):
-        """Create and initialize link neighbor arrays.
-
-        Set up arrays of neighboring horizontal and vertical links that
-        are needed for the de Almeida solution.
-        """
-        # First we identify all active links
-
-        active_ids = active_link_ids(self._grid.shape, self._grid.status_at_node)
-
-        active_links_at_open_bdy = _active_links_at_node(
-            self.grid, self.grid.open_boundary_nodes
-        ).transpose()
-
-        active_links_at_open_bdy = active_links_at_open_bdy[
-            np.where(active_links_at_open_bdy > -1)
-        ]
-
-        # Find all horizontal active link ids
-        _horizontal_active_link_ids = horizontal_active_link_ids(
-            self._grid.shape, active_ids
-        )
-
-        # Find the *active* verical link ids
-        _vertical_active_link_ids = vertical_active_link_ids(
-            self._grid.shape, active_ids
-        )
-
-        vert_bdy_ids = active_links_at_open_bdy[
-            is_vertical_link(self._grid.shape, active_links_at_open_bdy)
-        ]
-
-        vert_bdy_ids = nth_vertical_link(self._grid.shape, vert_bdy_ids)
-
-        horiz_bdy_ids = active_links_at_open_bdy[
-            is_horizontal_link(self._grid.shape, active_links_at_open_bdy)
-        ]
-
-        horiz_bdy_ids = nth_horizontal_link(self._grid.shape, horiz_bdy_ids)
-
-        # Using the active vertical link ids we can find the north
-        # and south vertical neighbors
-        self._north_neighbors = vertical_north_link_neighbor(
-            self._grid.shape, _vertical_active_link_ids
-        )
-        self._south_neighbors = vertical_south_link_neighbor(
-            self._grid.shape, _vertical_active_link_ids
-        )
-
-        # Using the horizontal active link ids, we can find the west and
-        # east neighbors
-        self._west_neighbors = horizontal_west_link_neighbor(
-            self._grid.shape, _horizontal_active_link_ids
-        )
-        self._east_neighbors = horizontal_east_link_neighbor(
-            self._grid.shape, _horizontal_active_link_ids
-        )
-
-        # replace bdy condition links
-        (ids,) = np.where(self._west_neighbors[horiz_bdy_ids] == -1)
-        ids = horiz_bdy_ids[ids]
-        self._west_neighbors[ids] = _horizontal_active_link_ids[ids]
-
-        (ids,) = np.where(self._east_neighbors[horiz_bdy_ids] == -1)
-        ids = horiz_bdy_ids[ids]
-        self._east_neighbors[ids] = _horizontal_active_link_ids[ids]
-
-        (ids,) = np.where(self._north_neighbors[vert_bdy_ids] == -1)
-        ids = vert_bdy_ids[ids]
-        self._north_neighbors[ids] = _vertical_active_link_ids[ids]
-
-        (ids,) = np.where(self._south_neighbors[vert_bdy_ids] == -1)
-        ids = vert_bdy_ids[ids]
-        self._south_neighbors[ids] = _vertical_active_link_ids[ids]
-
-        # Once the neighbor arrays are set up, we change the flag to True!
-        self._neighbor_flag = True
 
     def overland_flow(self, dt=None):
         """Generate overland flow across a grid.
@@ -610,16 +455,10 @@ class OverlandFlow(Component):
                 out=q_at_link,
             )
 
-            if self._steep_slopes is True:
+            if self._steep_slopes:
                 # To prevent water from draining too fast for our time steps...
                 # Our two limiting factors, the froude number and courant
                 # number.
-
-                # IDs where water discharge is positive...
-                (positive_q,) = np.where(q_at_link > 0)
-
-                # ... and negative.
-                (negative_q,) = np.where(q_at_link < 0)
 
                 # Where does our calculated q exceed the Froude number? If q
                 # does exceed the Froude number, we are getting supercritical
@@ -670,26 +509,6 @@ class OverlandFlow(Component):
             # And reset our field values with the newest water depth and
             # discharge.
             self._grid.at_link["surface_water__discharge"][:] = q_at_link
-            #
-            #
-            #  self._helper_q = self._grid.map_upwind_node_link_max_to_node(self._q)
-            #  self._helper_s = self._grid.map_upwind_node_link_max_to_node(
-            #      self._water_surface_slope)
-            #
-            #  self._helper_q = self._grid.map_max_of_link_nodes_to_link(self._helper_q)
-            #  self._helper_s = self._grid.map_max_of_link_nodes_to_link(self._helper_s)
-            #
-            #  self._grid['link']['surface_water__discharge'][
-            #     self._active_links_at_open_bdy] = self._helper_q[
-            #     self._active_links_at_open_bdy]
-            #
-            #  self._grid['link']['water_surface__gradient'][
-            #     self._active_links_at_open_bdy] = self._helper_s[
-            #     self._active_links_at_open_bdy]
-            # Update nodes near boundary locations - nodes adjacent to
-            # boundaries may have discharge and water surface slopes
-            # artificially reduced due to boundary effects. This step removes
-            # those errors.
 
         return elapsed
 

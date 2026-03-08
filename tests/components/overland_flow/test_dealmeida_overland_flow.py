@@ -11,7 +11,6 @@ from numpy.testing import assert_equal
 
 from landlab import RasterModelGrid
 from landlab.components.overland_flow import OverlandFlow
-from landlab.components.overland_flow._links import horizontal_link_ids
 from landlab.components.overland_flow.generate_overland_flow_deAlmeida import (
     NoWaterError,
 )
@@ -31,8 +30,8 @@ def deAlm():
     return OverlandFlow(grid, mannings_n=0.01, h_init=0.001)
 
 
-def _left_edge_horizontal_ids(shape):
-    return horizontal_link_ids(shape)[:, 0]
+def _left_edge_horizontal_ids(grid):
+    return grid.horizontal_links.reshape((grid.shape[0], grid.shape[1] - 1))[:, 0]
 
 
 @pytest.mark.parametrize(
@@ -177,7 +176,7 @@ def test_deAlm_analytical():
     grid.add_zeros("surface_water__depth", at="node")
     grid.add_zeros("topographic__elevation", at="node")
     grid.set_closed_boundaries_at_grid_edges(True, True, True, True)
-    left_inactive_ids = _left_edge_horizontal_ids(grid.shape)
+    left_inactive_ids = _left_edge_horizontal_ids(grid)
     deAlm = OverlandFlow(grid, mannings_n=0.01, h_init=0.001)
     time = 0.0
 
@@ -210,7 +209,7 @@ def test_deAlm_analytical_imposed_dt_short():
     grid.add_zeros("surface_water__depth", at="node")
     grid.add_zeros("topographic__elevation", at="node")
     grid.set_closed_boundaries_at_grid_edges(True, True, True, True)
-    left_inactive_ids = _left_edge_horizontal_ids(grid.shape)
+    left_inactive_ids = _left_edge_horizontal_ids(grid)
     deAlm = OverlandFlow(grid, mannings_n=0.01, h_init=0.001)
     time = 0.0
 
@@ -243,7 +242,7 @@ def test_deAlm_analytical_imposed_dt_long():
     grid.add_zeros("surface_water__depth", at="node")
     grid.add_zeros("topographic__elevation", at="node")
     grid.set_closed_boundaries_at_grid_edges(True, True, True, True)
-    left_inactive_ids = _left_edge_horizontal_ids(grid.shape)
+    left_inactive_ids = _left_edge_horizontal_ids(grid)
     deAlm = OverlandFlow(grid, mannings_n=0.01, h_init=0.001)
     time = 0.0
 
