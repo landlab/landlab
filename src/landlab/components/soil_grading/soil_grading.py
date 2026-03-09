@@ -800,7 +800,8 @@ class SoilGrading(Component):
             a = np.sum(grains_weight[non_zero_erosion_indices, :], axis=1)[:,np.newaxis]
             b = grains_weight[non_zero_erosion_indices, :]
 
-            grains_fractions = np.divide(b, a, where= a > 10**-10)
+            grains_fractions = np.divide(b, a, where= a > 10**-10,
+                                         out=np.zeros_like(b))
 
             # Partitioning the eroded soil mass across grain classes
             soil_erosion_mass = erosion_mass[non_zero_erosion_indices,:]

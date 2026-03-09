@@ -1339,6 +1339,7 @@ class ExtendedGravelBedrockEroder(Component):
         if out is None:
             out = np.empty_like(self._grid.at_node["grains_classes__size"])
 
+
         if self._n_classes > 1:
             out[:] = (
                 self.TRANSPORT_COEFFICIENT
