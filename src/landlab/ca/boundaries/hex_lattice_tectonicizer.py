@@ -497,7 +497,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
                 ln, self.grid
             ):
                 tail_node = self.grid.node_at_link_tail[ln]
-                (_, c) = self.grid.node_row_and_column(tail_node)
+                _, c = self.grid.node_row_and_column(tail_node)
                 link_orientation = self._get_link_orientation(ln)
                 offset = default_offset
                 if nc % 2 == 1:  # odd number of columns
@@ -1025,7 +1025,7 @@ class LatticeUplifter(HexLatticeTectonicizer):
             # Schedule a new transition, if applicable
             ca.link_state[lk] = new_link_state
             if ca.n_trn[new_link_state] > 0:
-                (event_time, this_trn_id) = get_next_event_new(
+                event_time, this_trn_id = get_next_event_new(
                     lk, new_link_state, current_time, ca.n_trn, ca.trn_id, ca.trn_rate
                 )
                 ca.priority_queue.push(lk, event_time)

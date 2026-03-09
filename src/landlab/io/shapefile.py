@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Functions to read shapefiles and create a NetworkModelGrid."""
+
 import pathlib
 
 import numpy as np

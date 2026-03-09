@@ -30,16 +30,12 @@ class DualGraphMeta(type):
 
             fdoc = inspect.getdoc(prop)
             if fdoc:
-                fdoc = inspect.cleandoc(
-                    """{}
+                fdoc = inspect.cleandoc("""{}
 
                     See Also
                     --------
                     :attr:`~{}`
-                    """.format(
-                        converter.conform(fdoc.splitlines()[0], "nlp"), name
-                    )
-                )
+                    """.format(converter.conform(fdoc.splitlines()[0], "nlp"), name))
 
             setattr(
                 cls,

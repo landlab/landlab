@@ -146,8 +146,7 @@ def test_network_from_dict():
 
 
 def test_network_from_file():
-    file_like = StringIO(
-        """
+    file_like = StringIO("""
         yx_of_node:
             - [0, 1, 2, 2]
             - [0, 0, -1, 1]
@@ -164,8 +163,7 @@ def test_network_from_file():
         xy_axis_units:
             - 'smoot'
             - 'parsec'
-        """
-    )
+        """)
     mg = NetworkModelGrid.from_file(file_like)
 
     assert_array_equal(mg.x_of_node, np.array([0.0, 0.0, -1.0, 1.0]))

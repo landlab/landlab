@@ -1,5 +1,6 @@
 # ! /usr/env/python
 """channel_profiler.py component to create channel profiles."""
+
 from collections import OrderedDict
 
 import matplotlib as mpl
@@ -763,7 +764,7 @@ class ChannelProfiler(_BaseProfiler):
 
         if self._main_channel_only:
             for i in self._outlet_nodes:
-                (channel_segment, nodes_to_process) = self._get_channel_segment(i)
+                channel_segment, nodes_to_process = self._get_channel_segment(i)
                 segment_tuple = (channel_segment[0], channel_segment[-1])
                 self._data_struct[i] = {
                     segment_tuple: {"ids": as_id_array(channel_segment)}
@@ -775,7 +776,7 @@ class ChannelProfiler(_BaseProfiler):
                 queue = [i]
                 while len(queue) > 0:
                     node_to_process = queue.pop(0)
-                    (channel_segment, nodes_to_process) = self._get_channel_segment(
+                    channel_segment, nodes_to_process = self._get_channel_segment(
                         node_to_process
                     )
                     segment_tuple = (channel_segment[0], channel_segment[-1])

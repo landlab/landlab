@@ -702,7 +702,7 @@ class LateralEroder(Component):
                 qs_in = grid.zeros(centering="node")
 
                 # recalculate flow directions
-                (da, q) = self._flow_accumulator.accumulate_flow()
+                da, q = self._flow_accumulator.accumulate_flow()
 
                 if inlet_on:
                     # if inlet on, reset drainage area and qsin to reflect inlet conditions

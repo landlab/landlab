@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 """Return array with same shape as grid elements."""
+
 from landlab.utils.decorators import use_field_name_array_or_value
 
 

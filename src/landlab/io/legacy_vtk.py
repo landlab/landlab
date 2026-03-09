@@ -370,11 +370,6 @@ def _format_vtk_cell_data(cell_data):
 
 
 def _format_vtk_scalar_data(values, name="data"):
-    return "\n".join(
-        [
-            f"""\
+    return "\n".join([f"""\
 SCALARS {name} float 1
-LOOKUP_TABLE default"""
-        ]
-        + [str(float(value)) for value in values]
-    )
+LOOKUP_TABLE default"""] + [str(float(value)) for value in values])
