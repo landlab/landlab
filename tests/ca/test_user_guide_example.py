@@ -136,14 +136,8 @@ def test_user_guide_example():
         # know that the sim is running ok
         current_real_time = time.time()
         if current_real_time >= next_report:
-            print(
-                "Current simulation time "
-                + str(current_time)
-                + "  \
-                   ("
-                + str(int(100 * current_time / run_duration))
-                + "%)"
-            )
+            print("Current simulation time " + str(current_time) + "  \
+                   (" + str(int(100 * current_time / run_duration)) + "%)")
             next_report = current_real_time + report_interval
 
         # Run the model forward in time until the next output step

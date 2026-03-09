@@ -2,6 +2,7 @@
 """
 Unit tests for landlab.components.gravel_river_transporter.gravel_river_transporter
 """
+
 from numpy.testing import assert_allclose
 from numpy.testing import assert_equal
 from numpy.testing import assert_raises

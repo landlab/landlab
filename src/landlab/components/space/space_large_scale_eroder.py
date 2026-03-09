@@ -607,5 +607,5 @@ class SpaceLargeScaleEroder(Component):
         - V_leaving_riv (float): Volume of bedload sediment leaving the domain.
         """
 
-        (vol_SSY_riv, V_leaving_riv) = self.run_one_step_basic(dt)
+        vol_SSY_riv, V_leaving_riv = self.run_one_step_basic(dt)
         return vol_SSY_riv, V_leaving_riv

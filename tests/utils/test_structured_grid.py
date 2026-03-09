@@ -8,45 +8,43 @@ from landlab.grid.nodestatus import NodeStatus
 
 
 def test_node_x_2d():
-    (x, _) = sgrid.node_coords((3, 2))
+    x, _ = sgrid.node_coords((3, 2))
 
     assert_array_equal(x, np.array([0.0, 1.0, 0.0, 1.0, 0.0, 1.0]))
 
 
 def test_node_x_2d_with_spacing():
-    (x, _) = sgrid.node_coords((3, 2), (2.0, 10.0))
+    x, _ = sgrid.node_coords((3, 2), (2.0, 10.0))
 
     assert_array_equal(x, np.array([0.0, 10.0, 0.0, 10.0, 0.0, 10.0]))
 
 
 def test_node_x_2d_with_origin():
-    (x, _) = sgrid.node_coords((3, 2), (2.0, 10.0), (-1.0, 1.0))
+    x, _ = sgrid.node_coords((3, 2), (2.0, 10.0), (-1.0, 1.0))
 
     assert_array_equal(x, np.array([1.0, 11.0, 1.0, 11.0, 1.0, 11.0]))
 
 
 def test_node_y_2d():
-    (_, y) = sgrid.node_coords((3, 2))
+    _, y = sgrid.node_coords((3, 2))
 
     assert_array_equal(y, np.array([0.0, 0.0, 1.0, 1.0, 2.0, 2.0]))
 
 
 def test_node_y_2d_with_spacing():
-    (_, y) = sgrid.node_coords((3, 2), (2.0, 10.0))
+    _, y = sgrid.node_coords((3, 2), (2.0, 10.0))
 
     assert_array_equal(y, np.array([0.0, 0.0, 2.0, 2.0, 4.0, 4.0]))
 
 
 def test_node_y_2d_with_origin():
-    (_, y) = sgrid.node_coords((3, 2), (2.0, 10.0), (-1.0, 1.0))
+    _, y = sgrid.node_coords((3, 2), (2.0, 10.0), (-1.0, 1.0))
 
     assert_array_equal(y, np.array([-1.0, -1.0, 1.0, 1.0, 3.0, 3.0]))
 
 
 def test_round_off_error():
-    (x, y) = sgrid.node_coords(
-        (135, 127), (5.4563957090392, 5.4563957090392), (0.0, 0.0)
-    )
+    x, y = sgrid.node_coords((135, 127), (5.4563957090392, 5.4563957090392), (0.0, 0.0))
 
     assert x.shape == (135 * 127,)
     assert y.shape == (135 * 127,)
@@ -71,13 +69,13 @@ def test_shape_4_by_5():
 
 
 def test_2d_3_by_2_from_links():
-    (from_indices, _) = sgrid.node_index_at_link_ends((3, 2))
+    from_indices, _ = sgrid.node_index_at_link_ends((3, 2))
 
     assert_array_equal(from_indices, np.array([0, 1, 2, 3, 0, 2, 4]))
 
 
 def test_2d_3_by_2_to_links():
-    (_, to_indices) = sgrid.node_index_at_link_ends((3, 2))
+    _, to_indices = sgrid.node_index_at_link_ends((3, 2))
 
     assert_array_equal(to_indices, np.array([2, 3, 4, 5, 1, 3, 5]))
 

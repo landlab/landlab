@@ -118,7 +118,6 @@ trn_rate : 1d array of floats (# transitions)
 Created GT Sep 2014, starting from link_cap.py.
 """
 
-
 import numpy as np
 import pylab as plt
 
@@ -688,7 +687,7 @@ class CellLabCTSModel:
 
         self.link_state[link] = new_link_state
         if self.n_trn[new_link_state] > 0:
-            (event_time, trn_id) = get_next_event_new(
+            event_time, trn_id = get_next_event_new(
                 link,
                 new_link_state,
                 current_time,
