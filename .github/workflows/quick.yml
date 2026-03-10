@@ -38,7 +38,6 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
           HYPOTHESIS_PROFILE: "ci"
           MPLBACKEND: "Agg"
-          PYTEST_ADDOPTS: "-m 'not richdem'"
         with:
           python-version: "3.14"
           nox-session: "test"
@@ -53,7 +52,7 @@ jobs:
           OPENTOPOGRAPHY_API_KEY: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
           MPLBACKEND: "module://matplotlib_inline.backend_inline"
-          PYTEST_ADDOPTS: "--overwrite -m 'not richdem'"
+          PYTEST_ADDOPTS: "--overwrite"
         with:
           python-version: "3.13"
           nox-session: "test-notebooks"

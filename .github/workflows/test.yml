@@ -106,7 +106,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
           HYPOTHESIS_PROFILE: "ci"
           MPLBACKEND: "Agg"
-          PYTEST-ADDOPTS: "-m '${{ matrix.pytest-marker }} and not richdem'"
+          PYTEST-ADDOPTS: "-m '${{ matrix.pytest-marker }}'"
         with:
           python-version: ${{ matrix.python-version }}
           nox-session: "test"
@@ -129,61 +129,11 @@ jobs:
           OPENTOPOGRAPHY_API_KEY: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
           MPLBACKEND: "module://matplotlib_inline.backend_inline"
-          PYTEST_ADDOPTS: "--overwrite -m '${{ matrix.pytest-marker }} and not richdem'"
+          PYTEST_ADDOPTS: "--overwrite -m '${{ matrix.pytest-marker }}'"
         with:
           python-version: "3.13"
           nox-session: "test-notebooks"
           upload-name: ${{ matrix.os == 'macos-latest' && format('notebooks-{0}', matrix.pytest-marker) || '' }}
-
-  test-richdem:
-    needs: build-wheels
-    name: Run the richdem tests
-
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.11", "3.12", "3.13"]
-
-    runs-on: ${{ matrix.os }}
-
-    defaults:
-      run:
-        shell: bash -l {0}
-
-    steps:
-      - uses: actions/checkout@v5
-      - uses: conda-incubator/setup-miniconda@v3
-        with:
-          python-version: ${{ matrix.python-version }}
-          miniforge-variant: Miniforge3
-          miniforge-version: latest
-          auto-update-conda: true
-          channels: conda-forge,defaults
-
-      - uses: actions/download-artifact@v5
-        name: Download build artifacts
-        with:
-          pattern: "build-wheels-*"
-          merge-multiple: true
-          path: ${{ github.workspace }}/dist
-
-      - name: Test
-        env:
-          OPENTOPOGRAPHY_API_KEY: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
-          MPLBACKEND: "module://matplotlib_inline.backend_inline"
-          PYTEST_ADDOPTS: "--overwrite"
-        run: |
-          pip install matplotlib_inline
-          pip install nox
-          nox --verbose -s test-richdem \
-              --force-pythons=${{ matrix.python-version }} \
-              -- dist/
-
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
 
   check-links:
     needs: check-tag
@@ -268,7 +218,6 @@ jobs:
       - check-tag
       - test-landlab
       - test-notebooks
-      - test-richdem
       - build-sdist
     name: "Publish to PyPI/TestPyPI"
     runs-on: ubuntu-latest
