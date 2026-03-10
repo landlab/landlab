@@ -1,0 +1,2 @@
+Changed CI to install *llvm-openmp* from *conda* on *macos* instead of
+downloading *openmp* from *mac.r-project.org* to improve CI reliability.
