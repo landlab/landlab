@@ -1,0 +1,2 @@
+Replaced the optional dependency on *richdem with *py-richdem*, which is
+actively maintained and distributed on PyPI for *Linux*, *macOS*, and *Windows*.
