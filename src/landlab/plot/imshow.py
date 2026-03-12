@@ -31,7 +31,7 @@ except ImportError:
 class ModelGridPlotterMixIn:
     """MixIn that provides plotting functionality.
 
-    Inhert from this class to provide a ModelDataFields object with the
+    Inherit from this class to provide a ModelDataFields object with the
     method function, ``imshow``, that plots a data field.
     """
 
@@ -106,7 +106,7 @@ def imshow_grid_at_node(grid, values, **kwds):
         grid property `axis_units` for this information. If no units are
         specified there, no entry is made.
     symmetric_cbar : bool
-        Make the colormap symetric about 0.
+        Make the colormap symmetric about 0.
     cmap : str
         Name of a colormap
     limits : tuple of float
@@ -187,7 +187,7 @@ def imshow_grid_at_cell(grid, values, **kwds):
         gri property `axis_units` for this information. If no units are
         specified there, no entry is made.
     symmetric_cbar : bool
-        Make the colormap symetric about 0.
+        Make the colormap symmetric about 0.
     cmap : str
         Name of a colormap
     limits : tuple of float
@@ -474,7 +474,7 @@ def imshow_grid(grid, values, **kwds):
         gri property `axis_units` for this information. If no units are
         specified there, no entry is made.
     symmetric_cbar : bool
-        Make the colormap symetric about 0.
+        Make the colormap symmetric about 0.
     cmap : str
         Name of a colormap
     alpha : array-like or scalar or None, optional

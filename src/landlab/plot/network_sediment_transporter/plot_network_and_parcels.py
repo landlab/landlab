@@ -302,7 +302,7 @@ def plot_network_and_parcels(
     # Locate parcel XY for each parcel at a particular time
     # some aspects of this may be possible to speed up, but at minimum
     # locate_parcel_xy must be called for each link (since calculating location)
-    # along link requires interpoloation.
+    # along link requires interpolation.
     # if this occurs we must also ensure the parcel order is maintained b/c of
     # color and shape formatting.
 

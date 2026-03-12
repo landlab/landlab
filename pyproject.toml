@@ -136,23 +136,24 @@ profile = "black"
 ignore = [".nox", "build"]
 
 [tool.cibuildwheel]
-build = "cp311-* cp312-* cp313-* cp314-*"
-skip = "*-musllinux_* *-win32*"
-archs = "x86_64,aarch64,arm64,AMD64,x86"
+build = ["cp311-*", "cp312-*", "cp313-*", "cp314-*"]
+skip = ["*-win32", "*-manylinux_i686*", "*-musllinux_i686*"]
+environment = """
+MACOSX_DEPLOYMENT_TARGET=11.0
+"""
 test-command = [
 	"python -c \"import landlab; print(landlab.__version__)\"",
 	"python -c \"from landlab import RasterModelGrid; print(RasterModelGrid((3, 3)))\"",
 ]
 
-[tool.cibuildwheel.linux.environment]
-CPPFLAGS = "-fopenmp"
+[tool.cibuildwheel.linux]
+archs = ["x86_64", "aarch64"]
 
-[tool.cibuildwheel.macos.environment]
-MACOSX_DEPLOYMENT_TARGET = "12.0"
-CC = "clang"
-CXX = "clang++"
-# CPPFLAGS = "-Xclang -fopenmp"
-# LDFLAGS = "-lomp"
+[tool.cibuildwheel.macos]
+archs = ["x86_64", "arm64"]
+
+[tool.cibuildwheel.windows]
+archs = ["AMD64"]
 
 [tool.cython-lint]
 max-line-length = 88

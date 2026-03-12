@@ -48,9 +48,9 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
         A proportion of zero indicates that the link does not have flow along
         it.
     slopes: ndarray of size (num nodes, max neighbors at node)
-        For each node in the array ``recievers``, the slope value (positive
+        For each node in the array ``receivers``, the slope value (positive
         downhill) in the direction of flow. If no flow occurs (value of
-        ``recievers`` is -1), then this array is set to 0.
+        ``receivers`` is -1), then this array is set to 0.
     steepest_slope : ndarray
         The slope value (positive downhill) in the direction of flow.
     steepest_receiver : ndarray
@@ -276,7 +276,7 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     # links are
     diag_length = ((grid.dx) ** 2 + (grid.dy) ** 2) ** 0.5
 
-    # for irregular grids, d1 and d2 will need to be matricies
+    # for irregular grids, d1 and d2 will need to be matrices
     d1 = np.array(
         [grid.dx, grid.dy, grid.dy, grid.dx, grid.dx, grid.dy, grid.dy, grid.dy]
     )
@@ -346,12 +346,12 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
         rg[:, i] = (af[i] * radj[:, i]) + (ac[i] * np.pi / 2.0)
 
     # set slopes that are nan to below zero
-    # if there is a flat slope, it should be chosen over the closed or non-existant
+    # if there is a flat slope, it should be chosen over the closed or non-existent
     # triangles that are represented by the nan values.
     s[np.isnan(s)] = -999.0
 
     # sort slopes
-    # we've set slopes going to closed or non-existant triangles to -999.0, so
+    # we've set slopes going to closed or non-existent triangles to -999.0, so
     # we shouldn't ever choose these.
     steepest_sort = np.argsort(s, kind="stable")
 
@@ -384,7 +384,7 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     proportions[:, 0] = (alpha1) / (alpha1 + alpha2)
     proportions[:, 1] = (alpha2) / (alpha1 + alpha2)
 
-    # where proportions == 0, set reciever  to -1
+    # where proportions == 0, set receiver  to -1
     receivers[proportions == 0] = -1
 
     # END OF THE Tarboton algorithm, start of work to make this code mesh

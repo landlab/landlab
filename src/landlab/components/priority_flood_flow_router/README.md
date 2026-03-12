@@ -2,7 +2,7 @@
 
 
 
-``FlowDirAccPf`` is a ``Landlab`` component that provides an alternative and efficent approach to fill or breach DEMs, calculate flow directions and update flow accumulations. The component is restricted to structured grids and contains a wrapper for the RichDEM python package [@barnes2016parallel,@barnes2017parallel]. [``RichDEM``](https://richdem.readthedocs.io/en/latest/intro.html) is a set of hydrologic analysis tools using parallel processing to process large DEMs and calculate hydrologic properties.
+``FlowDirAccPf`` is a ``Landlab`` component that provides an alternative and efficient approach to fill or breach DEMs, calculate flow directions and update flow accumulations. The component is restricted to structured grids and contains a wrapper for the RichDEM python package [@barnes2016parallel,@barnes2017parallel]. [``RichDEM``](https://richdem.readthedocs.io/en/latest/intro.html) is a set of hydrologic analysis tools using parallel processing to process large DEMs and calculate hydrologic properties.
 
 #TODO
 

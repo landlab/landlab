@@ -63,7 +63,7 @@ def vertical_south_link_neighbor(shape, vertical_ids, bad_index_value=-1):
     vertical_ids : array of int
         Array of all vertical link ids - MUST BE ARRAY OF LEN(VERTICAL_LINKS)
     bad_index_value: int, optional
-        Value assigned to inactive indicies in the array.
+        Value assigned to inactive indices in the array.
 
     Returns
     -------
@@ -127,7 +127,7 @@ def vertical_west_link_neighbor(shape, vertical_ids, bad_index_value=-1):
     vertical_ids : array of int
         Array of all vertical link ids- MUST BE ARRAY OF LEN(VERTICAL_LINKS)
     bad_index_value: int, optional
-        Value assigned to inactive indicies in the array.
+        Value assigned to inactive indices in the array.
 
     Returns
     -------
@@ -193,7 +193,7 @@ def vertical_north_link_neighbor(shape, vertical_ids, bad_index_value=-1):
     vertical_ids : array of int
         Array of all vertical link ids- MUST BE ARRAY OF LEN(VERTICAL_LINKS)
     bad_index_value: int, optional
-        Value assigned to inactive indicies in the array.
+        Value assigned to inactive indices in the array.
 
     Returns
     -------
@@ -257,7 +257,7 @@ def vertical_east_link_neighbor(shape, vertical_ids, bad_index_value=-1):
     vertical_ids : array of int
         Array of all vertical link ids - MUST BE ARRAY OF LEN(VERTICAL_LINKS)
     bad_index_value: int, optional
-        Value assigned to inactive indicies in the array.
+        Value assigned to inactive indices in the array.
 
     Returns
     -------
@@ -411,7 +411,7 @@ def vertical_active_link_ids(shape, active_ids, bad_index_value=-1):
     active_ids : array of int
         Array of all active link ids
     bad_index_value: int, optional
-        Value assigned to inactive indicies in the array.
+        Value assigned to inactive indices in the array.
 
     Returns
     -------
@@ -629,7 +629,7 @@ def horizontal_active_link_ids(shape, active_ids, bad_index_value=-1):
     active_ids : array of int
         Array of all active link ids
     bad_index_value: int, optional
-        Value assigned to inactive indicies in the array.
+        Value assigned to inactive indices in the array.
 
     Returns
     -------
@@ -772,7 +772,7 @@ def horizontal_west_link_neighbor(shape, horizontal_ids, bad_index_value=-1):
     horizontal_ids : array of int
         Array of all horizontal link ids - *must be of len(horizontal_links)*
     bad_index_value: int, optional
-        Value assigned to inactive indicies in the array.
+        Value assigned to inactive indices in the array.
 
     Returns
     -------
@@ -833,7 +833,7 @@ def horizontal_east_link_neighbor(shape, horizontal_ids, bad_index_value=-1):
     horizontal_ids : array of int
         Array of all horizontal link ids - *must be of len(horizontal_links)*
     bad_index_value: int, optional
-        Value assigned to inactive indicies in the array.
+        Value assigned to inactive indices in the array.
 
     Returns
     -------
@@ -894,7 +894,7 @@ def horizontal_north_link_neighbor(shape, horizontal_ids, bad_index_value=-1):
     horizontal_ids : array of int
         Array of all horizontal link ids - *must be of len(horizontal_links)*
     bad_index_value: int, optional
-        Value assigned to inactive indicies in the array.
+        Value assigned to inactive indices in the array.
 
     Returns
     -------
@@ -955,7 +955,7 @@ def horizontal_south_link_neighbor(shape, horizontal_ids, bad_index_value=-1):
     horizontal_ids : array of int
         Array of all horizontal link ids *must be of len(horizontal_links)*.
     bad_index_value: int, optional
-        Value assigned to inactive indicies in the array.
+        Value assigned to inactive indices in the array.
 
     Returns
     -------

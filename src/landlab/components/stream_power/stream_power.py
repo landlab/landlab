@@ -356,7 +356,7 @@ class StreamPowerEroder(Component):
         If you are routing across flooded depressions in your flow routing
         scheme, be sure to set *erode_flooded_nodes* flag in the instantiation
         of the component to ensure erosion cannot occur in the lake. Erosion
-        is always zero if the gradient is adverse, but can still procede as
+        is always zero if the gradient is adverse, but can still proceed as
         usual on the entry into the depression unless this flag is set.
 
         Parameters

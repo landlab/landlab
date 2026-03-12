@@ -2,7 +2,7 @@
 
 """Short description.
 
-flow_accum_to_n.py: Implementation a route-to-multiple drainage stack alorithm.
+flow_accum_to_n.py: Implementation a route-to-multiple drainage stack algorithm.
 
 
 Algorithm for route to multiple (N) flow accumulation. Inspiration for data
@@ -138,7 +138,7 @@ class _DrainageStack_to_n:
             base = {nodes}
 
         # instantiate the time keeping variable i, and a variable to keep track
-        # of the visit time. Using visit time allows us to itterate through
+        # of the visit time. Using visit time allows us to iterate through
         # the entire graph and make sure that only put a node in the stack
         # the last time it is visited.
 
@@ -214,7 +214,7 @@ def _make_number_of_donors_array_to_n(r, p):
     Parameters
     ----------
     r : ndarray size (np, q) where r[i,:] gives all receivers of node i. Each
-        node recieves flow fom up to q donors.
+        node receive flow from up to q donors.
 
     p : ndarray size (np, q) where p[i,v] give the proportion of flow going
         from node i to the receiver listed in r[i,v].
@@ -461,7 +461,7 @@ def find_drainage_area_and_discharge_to_n(
     s : ndarray of int
         Ordered (downstream to upstream) array of node IDs
     r : ndarray size (np, q) where r[i, :] gives all receivers of node i. Each
-        node recieves flow fom up to q donors.
+        node receive flow from up to q donors.
     p : ndarray size (np, q) where p[i, v] give the proportion of flow going
         from node i to the receiver listed in r[i, v].
     node_cell_area : float or ndarray
@@ -585,7 +585,7 @@ def find_drainage_area_and_discharge_to_n_lossy(
     s : ndarray of int
         Ordered (downstream to upstream) array of node IDs
     r : ndarray size (np, q) where r[i, :] gives all receivers of node i. Each
-        node receives flow fom up to q donors.
+        node receives flow from up to q donors.
     link_to_receiver : ndarray size (np, q) where l[i, :] gives all links to receivers of
         node i.
     p : ndarray size (np, q) where p[i, v] give the proportion of flow going
@@ -659,7 +659,7 @@ def find_drainage_area_and_discharge_to_n_lossy(
     >>> np.allclose(mg.at_node["surface_water__discharge_loss"][:3], 0.5 * q[:3])
     True
 
-    Note by definition no loss is occuring at the outlet node, as there are no
+    Note by definition no loss is occurring at the outlet node, as there are no
     nodes downstream.
 
     Final example of total transmission loss:
@@ -684,7 +684,7 @@ def find_drainage_area_and_discharge_to_n_lossy(
     drainage_area = numpy.zeros(np) + node_cell_area
     discharge = numpy.zeros(np) + node_cell_area * runoff
 
-    # grab the field to ouput loss to
+    # grab the field to output loss to
 
     # Optionally zero out drainage area and discharge at boundary nodes
     if boundary_nodes is not None:

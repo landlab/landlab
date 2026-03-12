@@ -2349,7 +2349,7 @@ optional = false
 units = '-'
 
 [components.MassWastingRunout.info.mass__wasting_id]
-doc = 'interger or float id of each mass wasting area is assigned                 to all nodes representing the mass wasting area.'
+doc = 'integer or float id of each mass wasting area is assigned                 to all nodes representing the mass wasting area.'
 dtype = 'int64'
 intent = 'in'
 mapping = 'node'
@@ -2754,7 +2754,7 @@ optional = true
 units = '-'
 
 [components.PriorityFloodFlowRouter.info.squared_length_adjacent]
-doc = 'Length to adjacent nodes, squared (calcualted in advance to save time during calculation'
+doc = 'Length to adjacent nodes, squared (calculated in advance to save time during calculation'
 dtype = 'float64'
 intent = 'out'
 mapping = 'node'
@@ -4641,7 +4641,7 @@ provided_by = [
 ]
 
 [fields.mass__wasting_id]
-desc = 'interger or float id of each mass wasting area is assigned                 to all nodes representing the mass wasting area.'
+desc = 'integer or float id of each mass wasting area is assigned                 to all nodes representing the mass wasting area.'
 used_by = [
   'landlab.components.mass_wasting_runout.mass_wasting_runout.MassWastingRunout',
 ]
@@ -5060,7 +5060,7 @@ provided_by = [
 ]
 
 [fields.squared_length_adjacent]
-desc = 'Length to adjacent nodes, squared (calcualted in advance to save time during calculation'
+desc = 'Length to adjacent nodes, squared (calculated in advance to save time during calculation'
 used_by = []
 provided_by = [
   'landlab.components.priority_flood_flow_router.priority_flood_flow_router.PriorityFloodFlowRouter',

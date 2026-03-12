@@ -49,7 +49,7 @@
 
 ### 🔩 Other Changes and Additions
 
-- Minor improvements to plot_network_and_parcels to allow straightforward compatability with imshowgrid. [#1986](https://github.com/landlab/landlab/issues/1986)
+- Minor improvements to plot_network_and_parcels to allow straightforward compatibility with imshowgrid. [#1986](https://github.com/landlab/landlab/issues/1986)
 - Deprecated passing the `at` keyword as the first argument to
   functions like, for example, :meth:`~.GraphFields.add_ones`. [#1999](https://github.com/landlab/landlab/issues/1999)
 - Added support for Python 3.13 and dropped support for 3.10. [#2017](https://github.com/landlab/landlab/issues/2017)

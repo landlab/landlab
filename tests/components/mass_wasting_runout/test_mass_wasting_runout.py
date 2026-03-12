@@ -507,7 +507,7 @@ class TestDetermineRNProportionsAttributes:
 
 class TestDetermineQsi:
     def test_normal_1(self, example_square_MWRu):
-        """test ouput of function  _determine_qsi is correct and stored
+        """test output of function  _determine_qsi is correct and stored
         in class variable vqdat as expected"""
         example_square_MWRu.itL = 2
         example_square_MWRu.run_one_step()

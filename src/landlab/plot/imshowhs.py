@@ -473,7 +473,7 @@ def _imshowhs_grid_values(
             "drape1='field1_to_be_plotted' and drape2='field2_to_be_plotted'"
         )
 
-    # Poperties of bounding box of colorbar label, if used:
+    # Properties of bounding box of colorbar label, if used:
     if add_label_bbox:
         bbox_prop = {
             "boxstyle": "round",

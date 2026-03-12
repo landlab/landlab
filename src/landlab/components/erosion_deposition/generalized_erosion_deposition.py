@@ -12,7 +12,7 @@ DEFAULT_MINIMUM_TIME_STEP = 0.001  # default minimum time step duration
 class _GeneralizedErosionDeposition(Component):
     """Base class for erosion-deposition type components.
 
-    More documenation here.
+    More documentation here.
     """
 
     _name = "_GeneralizedErosionDeposition"
@@ -127,7 +127,7 @@ class _GeneralizedErosionDeposition(Component):
         self._stack = grid.at_node["flow__upstream_node_order"]
         self._topographic__elevation = grid.at_node["topographic__elevation"]
         self._slope = grid.at_node["topographic__steepest_slope"]
-        self._link_to_reciever = grid.at_node["flow__link_to_receiver_node"]
+        self._link_to_receiver = grid.at_node["flow__link_to_receiver_node"]
         self._cell_area_at_node = grid.cell_area_at_node
 
         if isinstance(grid, RasterModelGrid):
@@ -204,7 +204,7 @@ class _GeneralizedErosionDeposition(Component):
         self._slope[:] = (
             self._topographic__elevation
             - self._topographic__elevation[self._flow_receivers]
-        ) / self._link_lengths[self._link_to_reciever]
+        ) / self._link_lengths[self._link_to_receiver]
 
     def _calc_hydrology(self):
         self._Q_to_the_m[:] = np.power(self._q, self._m_sp)

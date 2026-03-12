@@ -26,7 +26,7 @@ class MaterialLayers(EventLayers):
     layers stand in contrast to the EventLayers for which each event is
     represented by a layer.
 
-    MaterialLayers is likely a more memory efficent data structure than
+    MaterialLayers is likely a more memory efficient data structure than
     EventLayers as it does not record erosion as an array of zeros.
 
     Parameters

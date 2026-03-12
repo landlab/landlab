@@ -89,7 +89,7 @@ class NormalFault(Component):
             Surface that is modified by the NormalFault component. Must be a
             field name or a list of field names if the fault should uplift more
             than one field. Default value is `topographic__elevation`.
-            If the faulted surface does not yet exist, it will be ingored. The
+            If the faulted surface does not yet exist, it will be ignored. The
             ``run_one_step`` method will check to see an ignored field has been
             added and if it has been, it will modify it.
         fault_throw_rate_through_time : dict, optional
@@ -97,7 +97,7 @@ class NormalFault(Component):
             Expected format is:
             `fault_throw_rate_through_time = {'time': array, 'rate': array}`
             Default value is a constant rate of 0.001 (units not specified).
-            This is acomplished by providing the dictionary
+            This is accomplished by providing the dictionary
             `{'time': [0], 'rate': [0.001]}`. NormalFault uses numpy.interp
             to interpolate the time and rate pattern to the current model time.
             This function uses the first value for all values less than the
@@ -267,7 +267,7 @@ class NormalFault(Component):
         self._surfaces = {}
         self._not_yet_instantiated = []
         if isinstance(faulted_surface, list):
-            # if faulted surface is a list, then itterate through multiple
+            # if faulted surface is a list, then iterate through multiple
             # surfaces and save
             for surf in faulted_surface:
                 try:
@@ -339,7 +339,7 @@ class NormalFault(Component):
                 )
             ]
 
-        # save a n-node array of boolean identifing faulted nodes.
+        # save a n-node array of boolean identifying faulted nodes.
         self._faulted_nodes = np.zeros(self._grid.size("node"), dtype=bool)
         self._faulted_nodes[faulted_node_ids] = True
 

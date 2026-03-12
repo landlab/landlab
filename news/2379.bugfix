@@ -1,0 +1,1 @@
+Fixed OpenMP build configuration in setup.py and removed bundled libomp from wheels.

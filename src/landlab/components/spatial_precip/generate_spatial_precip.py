@@ -102,7 +102,7 @@ class SpatialPrecipitationDistribution(Component):
         - nodes_under_storm
         - target_median_total_rainfall_this_season
 
-    Note that becuase these are medians not means,
+    Note that because these are medians not means,
     median_total_rainfall_last_season + median_total_rainfall_this_season
     != median_total_rainfall_this_year.
 
@@ -625,7 +625,7 @@ class SpatialPrecipitationDistribution(Component):
             Controls if a drift is applied to the total rainfall distribution
             through time. If 0., no trend. If positive, rainfall totals
             increase gradually through time. If negative, they fall through
-            time. S&M recommend +/- 0.07 for a realistic climate chage driven
+            time. S&M recommend +/- 0.07 for a realistic climate change driven
             drift at Walnut Gulch.
         storminess_trend : float
             Controls if a drift is applied to the expected intensity of
@@ -791,7 +791,7 @@ class SpatialPrecipitationDistribution(Component):
             Controls if a drift is applied to the total rainfall distribution
             through time. If 0., no trend. If positive, rainfall totals
             increase gradually through time. If negative, they fall through
-            time. S&M recommend +/- 0.07 for a realistic climate chage driven
+            time. S&M recommend +/- 0.07 for a realistic climate change driven
             drift at Walnut Gulch.
         storminess_trend : float
             Controls if a drift is applied to the expected intensity of
@@ -948,7 +948,7 @@ class SpatialPrecipitationDistribution(Component):
         total_rf_trend controls if a drift is applied to the total rainfall
         distribution through time. If 0., no trend. If positive, rainfall
         totals increase gradually through time. If negative, they fall through
-        time. S&M recommend +/- 0.07 for a realistic climate chage driven drift
+        time. S&M recommend +/- 0.07 for a realistic climate change driven drift
         at Walnut Gulch.
 
         storminess_trend controls if a drift is applied to the expected

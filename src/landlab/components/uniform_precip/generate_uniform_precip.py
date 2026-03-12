@@ -508,7 +508,7 @@ class PrecipitationDistribution(Component):
             (storm_duration, interstorm_duration)
 
         When each tuple pair is yielded, the grid scalar field 'rainfall__flux'
-        is updated with the rainfall rate occuring during storm_duration.
+        is updated with the rainfall rate occurring during storm_duration.
 
         This generator method is designed for direct equivalence with the
         spatially resolved generators found elsewhere in Landlab.

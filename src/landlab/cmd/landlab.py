@@ -80,7 +80,7 @@ err = partial(click.secho, fg="red", file=sys.stderr)
     "--cd",
     default=".",
     type=click.Path(exists=True, file_okay=False, dir_okay=True, readable=True),
-    help="chage to directory, then execute",
+    help="change to directory, then execute",
 )
 @click.option(
     "-s",

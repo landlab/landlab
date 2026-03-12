@@ -34,7 +34,7 @@ def calculate_qs_in(
         # choose the node id
         node_id = stack_flip_ud[i]
 
-        # If q at current node is greather than zero, calculate qs based on a
+        # If q at current node is greater than zero, calculate qs based on a
         # local analytical solution. This local analytical solution depends on
         # qs_in, the sediment flux coming into the node from upstream (hence
         # the upstream to downstream node ordering).
