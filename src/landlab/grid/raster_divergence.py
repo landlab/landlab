@@ -19,12 +19,12 @@ def calc_flux_div_at_node(grid, unit_flux, out=None):
     ----------
     grid : ModelGrid
         A ModelGrid.
-    unit_flux : ndarray or field name
+    unit_flux : ndarray or str
         Flux per unit width along links (x number of links).
 
     Returns
     -------
-    ndarray (x number of nodes)
+    ndarray
         Flux divergence at nodes.
 
     Examples
@@ -98,14 +98,14 @@ def calc_net_face_flux_at_cell(grid, unit_flux_at_face, out=None):
     ----------
     grid : ModelGrid
         A ModelGrid.
-    unit_flux_at_faces : ndarray or field name
+    unit_flux_at_faces : ndarray or str
         Flux per unit width associated with faces.
     out : ndarray, optional
         Buffer to hold the result.
 
     Returns
     -------
-    ndarray (x number of cells)
+    ndarray
         Net flux at cells.
     """
     if len(unit_flux_at_face) != grid.number_of_faces:

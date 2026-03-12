@@ -262,7 +262,7 @@ class TransportLengthHillslopeDiffuser(Component):
         ----------
         grid : ModelGrid
             Landlab ModelGrid object
-        dt: float (time)
+        dt: float
             The imposed timestep.
         """
 
@@ -321,7 +321,7 @@ class TransportLengthHillslopeDiffuser(Component):
 
         Parameters
         ----------
-        dt: float (time)
+        dt: float
             The imposed timestep.
         """
         self.tldiffusion(dt)

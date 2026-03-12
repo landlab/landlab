@@ -90,16 +90,16 @@ class FlowAccumulator(Component):
     ----------
     grid : ModelGrid
         A Landlab grid.
-    surface : field name at node or array of length node
-        The surface to direct flow across.
+    surface : str or ndarray
+        The at-node surface to direct flow across.
     flow_director : string, class, instance of class.
         A string of method or class name (e.g. 'D8' or 'FlowDirectorD8'), an
         uninstantiated FlowDirector class, or an instance of a FlowDirector
         class. This sets the method used to calculate flow directions.
         Default is 'FlowDirectorSteepest'
-    runoff_rate : field name, array, or float, optional (m/time)
-        If provided, sets the runoff rate and will be assigned to the grid field
-        'water__unit_flux_in'. If a spatially and and temporally variable runoff
+    runoff_rate : str, ndarray, or float, optional
+        If provided, sets the runoff rate [m/time] and will be assigned to the grid
+        field 'water__unit_flux_in'. If a spatially and and temporally variable runoff
         rate is desired, pass this field name and update the field through model
         run time. If both the field and argument are present at the time of
         initialization, runoff_rate will *overwrite* the field. If neither are
@@ -1148,7 +1148,7 @@ class FlowAccumulator(Component):
 
         Returns
         -------
-        drainage_area : array
+        drainage_area : ndarray
             At node array which points to the field
             grid.at_node["drainage_area"].
         surface_water__discharge

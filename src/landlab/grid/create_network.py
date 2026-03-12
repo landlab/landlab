@@ -276,9 +276,9 @@ def _reduce_nodes(distance_along_segment, spacing=1.0):
 
     Parameters
     ----------
-    distance_along_segment : array of float
+    distance_along_segment : ndarray of float
         Distance along a segment to each of the segment's nodes.
-    spacing : float or array of float, optional
+    spacing : float or ndarray of float, optional
         Minimum spacing for each node along a segment. If a scalar,
         a constant spacing is used along the segment.
 
@@ -350,9 +350,9 @@ def _reduce_to_fewest_nodes(xy_of_node, spacing=1.0):
 
     Parameters
     ----------
-    xy_of_node : array of float shape (n_nodes, 2)
+    xy_of_node : ndarray of float
         x and y coordinates of each node along a segment.
-    spacing : float or array of float, optional
+    spacing : float or ndarray of float, optional
         Minimum spacing for each node along a segment. If a scalar,
         a constant spacing is used along the segment.
 

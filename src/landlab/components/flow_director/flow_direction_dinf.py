@@ -31,7 +31,7 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     ----------
     grid : ModelGrid
         A grid of type Voroni.
-    elevs : field name at node or array of length node
+    elevs : str or ndarray
         The surface to direct flow across.
     baselevel_nodes : array_like, optional
         IDs of open boundary (baselevel) nodes.
