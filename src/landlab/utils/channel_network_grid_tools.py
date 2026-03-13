@@ -2,7 +2,6 @@ from collections.abc import Sequence
 from typing import Literal
 
 import numpy as np
-import pandas as pd
 from numpy.typing import ArrayLike
 from numpy.typing import NDArray
 
@@ -266,9 +265,11 @@ def map_nmg_links_to_rmg_coincident_nodes(
     grid, nmgrid, link_nodes, remove_duplicates=False
 ):
     """Map links of a network model grid to all coincident raster model grid
-    nodes. Each coincident raster model grid node is defined in terms of its
-    x and y coordinates, the link it is mapped to and distance downstream from
-    the upstream (tail) end of the link.
+    nodes (nodes whose associated cell intersect the link). Each coincident raster model
+    grid node is defined in terms of its x and y coordinates, the link it is mapped to
+    and the downstream distance of the node on the link. The downstream distance
+    of the node on the link is defined as the distance from the upstream end (tail) of
+    the link to the farthest-downstream edge of the node's cell.
 
 
     Parameters
@@ -285,53 +286,68 @@ def map_nmg_links_to_rmg_coincident_nodes(
     Returns
     -------
 
-    nmg_link_to_rmg_coincident_nodes_mapper: pandas dataframe
-        each row of the dataframe lists the link ID, the coincident node ID, the
-        x and y coordinates and the downstream distance of the coincident node
-        and the drainage area of the link
+    nmg_link_to_rmg_coincident_nodes_mapper: dict
+        each key of the dictionary contains an np.array whose length is equal to the
+        number of coincident nodes. Keys include link ID, coincident node ID,
+        downstream distance of the coincident node, x coordinate of the coicident
+        node, y coordinate of the coincident node and drainage area of the link.
 
     """
-    Lxy = []  # list of all nodes and node attributes that coincide with the
-    # network model grid links
-    # loop through all links in network model grid to determine raster grid cells
-    # coincident with each link and equivalent distance from upstream (tail) node
-    for linkID, lknd in enumerate(link_nodes):  # for each link in network grid
-
-        x0 = nmgrid.x_of_node[lknd[0]]  # x and y of downstream link node
+    linkIDs_list = []
+    nodes_list = []
+    Xs_list = []
+    Ys_list = []
+    dists_list = []
+    link_drainage_areas_list = []
+    for linkID, lknd in enumerate(link_nodes):
+        # x and y of downstream (head) node of link
+        x0 = nmgrid.x_of_node[lknd[0]]
         y0 = nmgrid.y_of_node[lknd[0]]
-        x1 = nmgrid.x_of_node[lknd[1]]  # x and y of upstream link node
+        # x and y of upstream (tail) node of link
+        x1 = nmgrid.x_of_node[lknd[1]]
         y1 = nmgrid.y_of_node[lknd[1]]
 
-        # x and y coordinates and downstream distance from the upstream (tail)
+        # get x and y coordinates and downstream distance from the upstream
         # node for 1000 points generated from downstream node to upstream node
-        X, Y, dist = _link_to_points_and_dist((x0, y0), (x1, y1), number_of_points=1000)
-        dist = dist.max() - dist  # convert to distance from tail node
-        nodelist = []  # list of nodes along link
-        for i, y in enumerate(Y):
-            x = X[i]
-            node = grid.find_nearest_node((x, y))
-            # if node not already in list, append - many points will be in same cell;
-            # only need to list cell once
-            if node not in nodelist:
-                nodelist.append(node)
-                xy = {
-                    "linkID": linkID,
-                    "coincident_node": node,
-                    "x": grid.node_x[node],
-                    "y": grid.node_y[node],
-                    "dist": dist[i],
-                    "drainage_area": nmgrid.at_link["drainage_area"][linkID],
-                }
-                Lxy.append(xy)
-    df = pd.DataFrame(Lxy)
+        Xs, Ys, dists = _link_to_points_and_dist(
+            (x0, y0), (x1, y1), number_of_points=1000
+        )
+        dists = dists.max() - dists  # convert to distance from tail node
+        nodes = grid.find_nearest_node((Xs, Ys))
+        # using the x and y coordinate of the first (most downstream) point
+        # within the node's cell to represent the node location on the link
+        mask = choose_from_repeated(nodes, choose="first")
+        nodes = nodes[mask]
 
-    # if remove_duplicates, remove duplicate node id from link with smaller
-    # contributing area.
+        linkIDs_list.append((np.ones(len(nodes)) * linkID).astype(int))
+        nodes_list.append(nodes)
+        Xs_list.append(grid.node_x[nodes])
+        Ys_list.append(grid.node_y[nodes])
+        dists_list.append(dists[mask])
+        link_drainage_areas_list.append(
+            (np.ones(len(nodes)) * nmgrid.at_link["drainage_area"][linkID]).astype(
+                float
+            )
+        )
+
+    nmg_link_to_rmg_coincident_nodes_mapper = {
+        "linkID": np.concatenate(linkIDs_list),
+        "coincident_node": np.concatenate(nodes_list),
+        "x": np.concatenate(Xs_list),
+        "y": np.concatenate(Ys_list),
+        "coincident_node_downstream_dist": np.concatenate(dists_list),
+        "link_drainage_area": np.concatenate(link_drainage_areas_list),
+    }
+
     if remove_duplicates:
-        values = df["coincident_node"].to_numpy()
-        area = df["drainage_area"].to_numpy()
+        values = nmg_link_to_rmg_coincident_nodes_mapper["coincident_node"]
+        area = nmg_link_to_rmg_coincident_nodes_mapper["link_drainage_area"]
         idx = choose_unique(values=values, order_by=[area], choose="last")
         idx.sort()
-        df = df.iloc[idx].reset_index(drop=True)
+        for key in nmg_link_to_rmg_coincident_nodes_mapper.keys():
 
-    return df
+            nmg_link_to_rmg_coincident_nodes_mapper[key] = (
+                nmg_link_to_rmg_coincident_nodes_mapper[key][idx]
+            )
+
+    return nmg_link_to_rmg_coincident_nodes_mapper
