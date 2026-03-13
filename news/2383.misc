@@ -1,0 +1,1 @@
+Speeds up map_nmg_links_to_rmg_coincident_nodes and removes pandas operations. Updated syntax of tests to compare expected values to values in a dictionary rather than a pandas dataframe.
