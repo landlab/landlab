@@ -213,6 +213,7 @@ class SoilGrading(Component):
             grid.at_node["grains_classes__size"] = np.ones(
                 (grid.number_of_nodes, self._n_sizes)
             )
+        self._grains_classes_size = grid.at_node["grains_classes__size"].reshape((grid.number_of_nodes, self._n_sizes))
         if not grid.has_field("bed_grains__proportions", at="node"):
             print("creating BGP")
             grid.at_node["bed_grains__proportions"] = np.ones(
@@ -227,6 +228,8 @@ class SoilGrading(Component):
 #            )
             print("creating SD")
             grid.add_zeros("soil__depth", at="node", clobber=True)
+        else:
+            print("SD already exists")
     
         if "topographic__elevation" not in grid.at_node:
             grid.add_zeros("topographic__elevation", at="node", clobber=True)
@@ -237,7 +240,6 @@ class SoilGrading(Component):
         # Update the weight in each size class.
         # In case grains_weight not provided, the weights will be spread around
         # the initial_median_size assuming normal distribution
-
 
         if not grid.has_field("grains__weight", at="node"):
             self._grid.at_node["grains__weight"] = np.zeros(
@@ -259,12 +261,15 @@ class SoilGrading(Component):
             self._initial_total_soil_weight = initial_total_soil_weight
             self.generate_weight_distribution()
 
+
         else:
             if isinstance(grains_weight, str):
                 # Try to capture grains weight from an existing field
                 try:
+                    print("PLACE A")
                     self._grains_weight =  np.copy(grid.at_node[grains_weight])
                     if np.ndim(self._grains_weight)==1:
+                        print("PLACE B")
                         self._grains_weight =self._grains_weight[:,np.newaxis]
                 except KeyError:
                     print(f'the field {grains_weight} is not found')
@@ -273,12 +278,15 @@ class SoilGrading(Component):
                 self._grains_weight = self._create_2D_array_for_input_var(
                     grains_weight, "grains__weight"
                 )
-                print("Created gw with shape", self._grains_weight.shape)
+
+
 
         # Update mass
-        print("Before um, sgw is shape", self._grains_weight.shape)
         self._update_mass(self._grains_weight)
         
+
+        # TODO: do we need to update soil, topo, or bedrock if grains__weight is provided as a field?
+
         # Update bed grains proportions
         self.update_bed_grains_proportions()
 
@@ -287,6 +295,8 @@ class SoilGrading(Component):
 
         # Store meansizes at grains_classes__size field and verify
         # that the number of classes match the number of classes at the grain__weight field
+        print("Is field GCS array GCS?")
+        print(self._grid.at_node["grains_classes__size"] is self._grains_classes_size)
         if np.ndim(self._grid.at_node["grains_classes__size"])==1:
             self._grid.at_node["grains_classes__size"] *= self._meansizes[:,0]
         else:
@@ -515,14 +525,15 @@ class SoilGrading(Component):
             layer_depth = np.sum(
                 self._grid.at_node["grains__weight"][self._grid.core_nodes], 1
             ) / (self._soil_density * (1 - self._phi))
+            print("UM case 1 ld = ", layer_depth)
 
         else:
-            print("IN ELSE. gwd shape is", grains_weight__distribution.shape)
             self._grid.at_node["grains__weight"][self._grid.core_nodes] = (
                 grains_weight__distribution[self._grid.core_nodes, 0]
             )
             layer_depth = (self._grid.at_node["grains__weight"][self._grid.core_nodes] 
                            / (self._soil_density * (1 - self._phi)))
+            print("UM case 2 = ", layer_depth)
 
         self._grid.at_node["soil__depth"][self._grid.core_nodes] += layer_depth
         self._grid.at_node["topographic__elevation"] = (
@@ -702,6 +713,12 @@ class SoilGrading(Component):
         This procedure verifies that the number of classes in grains__weight
         field and in grains_classes__size, match each other.
         """
+        print("in CMWNC")
+        print("gw field:", self._grid.at_node["grains__weight"].shape)
+        print("gw arr:", self._grains_weight.shape)
+        print(self._grid.at_node["grains__weight"] is self._grains_weight)
+        print("gsc field:", self._grid.at_node["grains_classes__size"].shape)
+        print("gsc arr:", self._grains_classes_size.shape)
         if np.ndim(self._grid.at_node["grains__weight"])==1:
             if np.ndim(self._grid.at_node["grains_classes__size"])!=1:
                 raise ValueError(

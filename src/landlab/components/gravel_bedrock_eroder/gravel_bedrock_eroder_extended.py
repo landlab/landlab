@@ -625,11 +625,14 @@ class ExtendedGravelBedrockEroder(Component):
         self._sed = grid.at_node["soil__depth"]
         if "bedrock__elevation" in grid.at_node:
             self._bedrock__elevation = grid.at_node["bedrock__elevation"]
+            print("EGBE preexisting rock")
+            print(self._bedrock__elevation)
         else:
             self._bedrock__elevation = grid.add_zeros(
                 "bedrock__elevation", at="node", dtype=float
             )
             self._bedrock__elevation[:] = self._elev - self._sed
+            print("EGBE assigning rock")
         self._discharge = grid.at_node["surface_water__discharge"]
         self._slope = grid.at_node["topographic__steepest_slope"]
         self._receiver_node = grid.at_node["flow__receiver_node"]
@@ -650,7 +653,9 @@ class ExtendedGravelBedrockEroder(Component):
         self._tau = np.zeros_like(self.grid.nodes.flatten()).astype(float)
         self._br_abr_coef = np.zeros_like(self.grid.nodes.flatten(), dtype=float)
 
+        print("EG1 pc", plucking_coefficient)
         self._plucking_coef[:] = self._create_1D_array_for_input_var(plucking_coefficient, 'plucking_coefficient')
+        print("EG2 pc", self._plucking_coef)
         self._br_abr_coef[:] = self._create_1D_array_for_input_var(bedrock_abrasion_coefficient, 'bedrock_abrasion_coefficient')
 
         if self._plucking_by_tools_flag:
@@ -703,15 +708,22 @@ class ExtendedGravelBedrockEroder(Component):
         >>> np.ndim(eroder._create_2D_array_for_input_var(input_var,'test'))
         2
         """
-
+        print('ctda', var_name, input_var, type(input_var), np.ndim(input_var))
+        if isinstance(input_var, np.ndarray):
+            print(' array of shape', input_var.shape, self._grid.number_of_nodes)
         if np.ndim(input_var) == 2:
+            print(' ctda shape', input_var.shape)
             input_var_array = input_var
+        elif np.ndim(input_var) == 1 and np.size == self._grid.number_of_nodes:
+            print(' ctda RESHAPING')
+            input_var_array = input_var.reshape((self._grid.number_of_nodes, 1))
         elif isinstance(input_var, int) or isinstance(input_var, float):
             input_var_array = np.zeros(
                 (np.size(self._grid.nodes.flatten()), self._n_classes)
             )
             input_var_array[:, :] = input_var
         elif np.ndim(input_var) <= 1:
+            print(' ctda ndim<1')
             if isinstance(input_var, list):
                 input_var = np.array(input_var)
             if isinstance(input_var, tuple):
@@ -728,8 +740,10 @@ class ExtendedGravelBedrockEroder(Component):
         # the number of classes (lithology/grain sizes).
         if np.shape(input_var_array)[1] > 1:
             if np.shape(input_var_array)[1] != self._n_classes:
+                input_shape = np.shape(input_var_array)
                 raise ValueError(
-                    f"{var_name} array dont match the number of lithology classes"
+                    f"{var_name} array with shape {input_shape} does not match "
+                    + f"the number of lithology classes ({self._n_classes})"
                 )
         if np.shape(input_var_array)[0] != np.size(self._grid.nodes.flatten()):
             raise ValueError(
