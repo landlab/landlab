@@ -1157,11 +1157,11 @@ class LinearDiffuserMultiClass(Component):
         # Sum all outfluxes per node to check if transport rate is greater than the mass
         # stored in the upwind node
         sum_fluxes_out = np.abs(np.sum(np.abs(outlinks_fluxes_at_node), 1))
-        dz_per_grainsize_at_node = np.abs(grain_weight_node / ((1 - self._phi) * self.grid.dx ** 2))
+        dz_per_grainsize_at_node = np.abs(grain_weight_node / (1 - self._phi)) * self.grid.area_of_cell[0]
         if n_classes > 1:
-            indices_to_correct_flux = np.where((sum_fluxes_out / self.grid.dx) > dz_per_grainsize_at_node)
+            indices_to_correct_flux = np.where((sum_fluxes_out / self._grid.length_of_link[0]) > dz_per_grainsize_at_node)
         else:
-            indices_to_correct_flux = np.where((sum_fluxes_out[:,0] / self.grid.dx) > dz_per_grainsize_at_node)
+            indices_to_correct_flux = np.where((sum_fluxes_out[:,0] / self._grid.length_of_link[0]) > dz_per_grainsize_at_node)
 
         if np.any(indices_to_correct_flux):
 
