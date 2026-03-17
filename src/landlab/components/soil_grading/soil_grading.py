@@ -530,7 +530,7 @@ class SoilGrading(Component):
             print("UM case 2 = ", layer_depth)
 
         self._grid.at_node["soil__depth"][self._grid.core_nodes] = layer_depth
-        self._grid.at_node["topographic__elevation"] = (
+        self._grid.at_node["topographic__elevation"][:] = (
             self._grid.at_node["soil__depth"] + self._grid.at_node["bedrock__elevation"]
         )
 
