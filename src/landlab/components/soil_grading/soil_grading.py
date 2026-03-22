@@ -137,6 +137,7 @@ class SoilGrading(Component):
         std=None,
         CV=0.6,
         is_bedrock_distribution_flag=False,
+        interpolate_median_size=False,
         seed=2024,
     ):
         """
@@ -178,6 +179,9 @@ class SoilGrading(Component):
         is_bedrock_distribution_flag: bool, optional
             A flag to indicate if the grain size distribution is generated for soil or
             bedrock layer.
+        interpolate_median_size: bool, optional
+            Flag to indicate if median size is to be determined using linear interpolation within
+            size classes
         seed: float, optional
             Provide seed to set grain size distribution.
             If not provided, seed is set to 2024.
@@ -191,6 +195,7 @@ class SoilGrading(Component):
         self._seed = seed
         self._CV = CV
         self._is_bedrock_distribution_flag = is_bedrock_distribution_flag
+        self._interpolate_median_size = interpolate_median_size
         random.seed(seed)
         
         # Get number of classes
@@ -443,8 +448,17 @@ class SoilGrading(Component):
                 self._meansizes[self._grid.core_nodes[0], :-1]
                 + self._meansizes[self._grid.core_nodes[0], 1:]
             ) * 0.5
-            lowers = np.insert(lowers, 0, 0.0)
-            uppers = np.concatenate((lowers[1:], [np.inf]))
+
+
+            values, counts = np.unique(np.diff(lowers), return_counts=True)
+            most_frequent = values[np.argmax(counts)]  # np.argmax finds first max occurrence
+
+            # lowers = np.insert(lowers, 0, 0.0)
+            # uppers = np.concatenate((lowers[1:], [np.inf]))
+
+            lowers = np.insert(lowers, 0, lowers[0]-most_frequent)
+            uppers = np.concatenate((lowers[1:], [lowers[-1]+most_frequent]))
+
             limits = np.empty((self._n_sizes, 2))
             limits[:, 0] = lowers
             limits[:, 1] = uppers
@@ -599,20 +613,51 @@ class SoilGrading(Component):
                 out=np.zeros_like(cumsum_gs),
                 where=sum_gs_exp != 0,
             )
+
+            fraction_from_total_copy = np.copy(fraction_from_total)
+
             fraction_from_total[fraction_from_total < 0.5] = np.inf
             median_val_indx = np.argmin(
                 fraction_from_total - 0.5,
                 axis=1,
             )
+
+            if not self._interpolate_median_size:
+
+
     
-            self._grid.at_node["median_size__weight"][self._grid.core_nodes] = (
-                self._meansizes[
-                    self._grid.core_nodes, median_val_indx[self._grid.core_nodes]
-                ]
-            )
+                self._grid.at_node["median_size__weight"][self._grid.core_nodes] = (
+                    self._meansizes[
+                        self._grid.core_nodes, median_val_indx[self._grid.core_nodes]
+                    ]
+                )
+            else:
+
+                median_val_indx_previous = median_val_indx - 1
+                median_val_indx_previous[median_val_indx_previous < 0] = 0
+
+                x2= fraction_from_total_copy[self._grid.core_nodes, median_val_indx[self._grid.core_nodes]]
+                x1 = fraction_from_total_copy[self._grid.core_nodes, median_val_indx_previous[self._grid.core_nodes]]
+
+                y1 = self._limits[median_val_indx[self._grid.core_nodes], 0]
+                y2 = self._limits[median_val_indx[self._grid.core_nodes], 1]
+
+                slope = np.divide(y2-y1,
+                                  x2-x1,
+                                  where=(x2-x1)>0,
+                                  out=np.zeros_like(x1))
+                intercept = y1 - (slope*x1)
+                intercept[intercept <=10**-10] = np.min(self._meansizes)
+                inverted_median = slope*(0.5) + intercept
+
+                self._grid.at_node["median_size__weight"][self._grid.core_nodes] = inverted_median
+
+
         else:
             self._grid.at_node["median_size__weight"][self._grid.core_nodes]= self._meansizes[self._grid.core_nodes,0]
-            
+
+
+
     def run_one_step(self, A_factor=None):
         """
         The run_one_step procedure transform mass from parent grain size classes to
