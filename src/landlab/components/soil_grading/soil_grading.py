@@ -33,7 +33,7 @@ import numpy as np
 
 from landlab import Component
 
-
+_epsilon = 10**-10
 class SoilGrading(Component):
     """Simulate fragmentation of soil grains through time.
 
@@ -623,9 +623,6 @@ class SoilGrading(Component):
             )
 
             if not self._interpolate_median_size:
-
-
-    
                 self._grid.at_node["median_size__weight"][self._grid.core_nodes] = (
                     self._meansizes[
                         self._grid.core_nodes, median_val_indx[self._grid.core_nodes]
@@ -633,25 +630,27 @@ class SoilGrading(Component):
                 )
             else:
 
+                # Get the cummulative fractions around the median
                 median_val_indx_previous = median_val_indx - 1
                 median_val_indx_previous[median_val_indx_previous < 0] = 0
 
-                x2= fraction_from_total_copy[self._grid.core_nodes, median_val_indx[self._grid.core_nodes]]
+                x2 = fraction_from_total_copy[self._grid.core_nodes, median_val_indx[self._grid.core_nodes]]
                 x1 = fraction_from_total_copy[self._grid.core_nodes, median_val_indx_previous[self._grid.core_nodes]]
+                x1[x1>=x2]=0 # In case x1>=x2, the first size class fraction is >0.5. In this case, force x1=0
 
+                # Get the boundaries of the median size class
                 y1 = self._limits[median_val_indx[self._grid.core_nodes], 0]
                 y2 = self._limits[median_val_indx[self._grid.core_nodes], 1]
 
                 slope = np.divide(y2-y1,
-                                  x2-x1,
-                                  where=(x2-x1)>0,
-                                  out=np.zeros_like(x1))
+                                  x2-x1)
+
                 intercept = y1 - (slope*x1)
-                intercept[intercept <=10**-10] = np.min(self._meansizes)
+                # intercept[np.abs(intercept) <=_epsilon] = (y2[np.abs(intercept) <=_epsilon] +
+                #                                            y1[np.abs(intercept) <=_epsilon])/2
+
                 inverted_median = slope*(0.5) + intercept
-
                 self._grid.at_node["median_size__weight"][self._grid.core_nodes] = inverted_median
-
 
         else:
             self._grid.at_node["median_size__weight"][self._grid.core_nodes]= self._meansizes[self._grid.core_nodes,0]
@@ -859,7 +858,7 @@ class SoilGrading(Component):
             a = np.sum(grains_weight[non_zero_erosion_indices, :], axis=1)[:,np.newaxis]
             b = grains_weight[non_zero_erosion_indices, :]
 
-            grains_fractions = np.divide(b, a, where= a > 10**-10,
+            grains_fractions = np.divide(b, a, where= a > _epsilon,
                                          out=np.zeros_like(b))
 
             # Partitioning the eroded soil mass across grain classes
@@ -873,7 +872,7 @@ class SoilGrading(Component):
 
             # Update grains_weight field according to removed soil
             grains_weight[non_zero_erosion_indices, :] -= soil_erosion_mass_per_class
-            grains_weight[non_zero_erosion_indices, :][grains_weight[non_zero_erosion_indices, :]<10**-10]=0
+            grains_weight[non_zero_erosion_indices, :][grains_weight[non_zero_erosion_indices, :]<_epsilon]=0
 
             # Update and partitioning the removed mass across despoisted grain classes
             # Remove the soil mass from the bedrock vector and add it to the soil vector
@@ -896,7 +895,7 @@ class SoilGrading(Component):
 
         # Partitioning the deposited mass based on the dz input
         if np.any(non_zero_deposition_indices):
-            depoistion_ratios_per_class[depoistion_ratios_per_class<10**-10]=0
+            depoistion_ratios_per_class[depoistion_ratios_per_class<_epsilon]=0
             grains_weight[non_zero_deposition_indices, :] +=(
                     deposition_mass[non_zero_deposition_indices] * depoistion_ratios_per_class)
 
