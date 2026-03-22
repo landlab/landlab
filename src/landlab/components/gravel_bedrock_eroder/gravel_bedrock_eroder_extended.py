@@ -625,14 +625,14 @@ class ExtendedGravelBedrockEroder(Component):
         self._sed = grid.at_node["soil__depth"]
         if "bedrock__elevation" in grid.at_node:
             self._bedrock__elevation = grid.at_node["bedrock__elevation"]
-            print("EGBE preexisting rock")
-            print(self._bedrock__elevation)
+            #print("EGBE preexisting rock")
+            #print(self._bedrock__elevation)
         else:
             self._bedrock__elevation = grid.add_zeros(
                 "bedrock__elevation", at="node", dtype=float
             )
             self._bedrock__elevation[:] = self._elev - self._sed
-            print("EGBE assigning rock")
+            #print("EGBE assigning rock")
         self._discharge = grid.at_node["surface_water__discharge"]
         self._slope = grid.at_node["topographic__steepest_slope"]
         self._receiver_node = grid.at_node["flow__receiver_node"]
@@ -653,9 +653,9 @@ class ExtendedGravelBedrockEroder(Component):
         self._tau = np.zeros_like(self.grid.nodes.flatten()).astype(float)
         self._br_abr_coef = np.zeros_like(self.grid.nodes.flatten(), dtype=float)
 
-        print("EG1 pc", plucking_coefficient)
+        #print("EG1 pc", plucking_coefficient)
         self._plucking_coef[:] = self._create_1D_array_for_input_var(plucking_coefficient, 'plucking_coefficient')
-        print("EG2 pc", self._plucking_coef)
+        #print("EG2 pc", self._plucking_coef)
         self._br_abr_coef[:] = self._create_1D_array_for_input_var(bedrock_abrasion_coefficient, 'bedrock_abrasion_coefficient')
 
         if self._plucking_by_tools_flag:
@@ -708,14 +708,14 @@ class ExtendedGravelBedrockEroder(Component):
         >>> np.ndim(eroder._create_2D_array_for_input_var(input_var,'test'))
         2
         """
-        print('ctda', var_name, input_var, type(input_var), np.ndim(input_var))
-        if isinstance(input_var, np.ndarray):
-            print(' array of shape', input_var.shape, self._grid.number_of_nodes)
+        #print('ctda', var_name, input_var, type(input_var), np.ndim(input_var))
+        #if isinstance(input_var, np.ndarray):
+        #    print(' array of shape', input_var.shape, self._grid.number_of_nodes)
         if np.ndim(input_var) == 2:
-            print(' ctda shape', input_var.shape)
+            #print(' ctda shape', input_var.shape)
             input_var_array = input_var
         elif np.ndim(input_var) == 1 and np.size == self._grid.number_of_nodes:
-            print(' ctda RESHAPING')
+            #print(' ctda RESHAPING')
             input_var_array = input_var.reshape((self._grid.number_of_nodes, 1))
         elif isinstance(input_var, int) or isinstance(input_var, float):
             input_var_array = np.zeros(
@@ -723,7 +723,7 @@ class ExtendedGravelBedrockEroder(Component):
             )
             input_var_array[:, :] = input_var
         elif np.ndim(input_var) <= 1:
-            print(' ctda ndim<1')
+            #print(' ctda ndim<1')
             if isinstance(input_var, list):
                 input_var = np.array(input_var)
             if isinstance(input_var, tuple):
@@ -940,6 +940,8 @@ class ExtendedGravelBedrockEroder(Component):
 
         fractions_sizes = self._grid.at_node["grains_classes__size"]
         median_size_at_node = self._grid.at_node["median_size__weight"][:, np.newaxis]
+        #print("ctsc, ms", median_size_at_node[self.grid.core_nodes])
+        #print("ctsc, fs", fractions_sizes[self.grid.core_nodes])
         tau_star_c = self._tau_star_c
         tau_star_c[:] = np.inf
         if self._n_classes > 1:
@@ -960,6 +962,7 @@ class ExtendedGravelBedrockEroder(Component):
                 )
                 ** -self._alpha
             )
+        #print("ctsc, tsc", tau_star_c[self.grid.core_nodes])
 
     def _calc_tau_c(self):
         """Calculate tau_c based on tau_star_c
@@ -1300,6 +1303,12 @@ class ExtendedGravelBedrockEroder(Component):
 
         self._excess_stress[:] = self._tau_star - self._tau_star_c
         self._excess_stress[self._excess_stress < 0] = 0
+        #print("egctr")
+        #print("w", self._channel_width[self.grid.core_nodes])
+        #print("tau", self._tau[self.grid.core_nodes])
+        #print("taus", self._tau_star[self.grid.core_nodes])
+        #print("tausc", self._tau_star_c[self.grid.core_nodes])
+        #print("exstr", self._excess_stress[self.grid.core_nodes])
 
         # Get sediment flux
         qs = self._calc_qs(excess_stress=self._excess_stress)
@@ -1307,9 +1316,13 @@ class ExtendedGravelBedrockEroder(Component):
         self._sed_outfluxes[:] = Qs * (
             1.0 - self._rock_exposure_fraction[:, np.newaxis]
         )
+        #print("qs", qs[self.grid.core_nodes])
+        #print("Qs", Qs[self.grid.core_nodes])
+        #print("so1", self._sed_outfluxes[self.grid.core_nodes])
         self._sed_outfluxes[
             self._grid.at_node["grains__weight"] <= self._weight_threshold_to_deliv
         ] = 0
+        #print("so2", self._sed_outfluxes[self.grid.core_nodes])
         if self._n_classes > 1:
             self._sediment_outflux[:] = np.sum(self._sed_outfluxes, axis=1)
         else:
