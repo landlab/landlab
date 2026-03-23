@@ -501,9 +501,9 @@ class ExtendedGravelBedrockEroder(Component):
             "dtype": float,
             "intent": "in",
             "optional": False,
-            "units": "kg",
+            "units": "kg/m2",
             "mapping": "node",
-            "doc": "",
+            "doc": "Mass per unit area of grains in each size class stored at node",
         },
         "sediment__rate_of_change": {
             "dtype": float,
@@ -2066,7 +2066,6 @@ class ExtendedGravelBedrockEroder(Component):
     def _init_vars(self):
         """Initialize variables"""
         self._rock_abrasion_rate.fill(0.0)
-        #self._br_abr_coef.fill(0.0)
         self._sed_influxes.fill(0.0)
         self._sed_outfluxes.fill(0.0)
         self._rock_exposure_fraction.fill(0.0)

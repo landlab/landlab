@@ -449,15 +449,14 @@ class SoilGrading(Component):
                 + self._meansizes[self._grid.core_nodes[0], 1:]
             ) * 0.5
 
-
-            values, counts = np.unique(np.diff(lowers), return_counts=True)
-            most_frequent = values[np.argmax(counts)]  # np.argmax finds first max occurrence
-
-            # lowers = np.insert(lowers, 0, 0.0)
-            # uppers = np.concatenate((lowers[1:], [np.inf]))
-
-            lowers = np.insert(lowers, 0, lowers[0]-most_frequent)
-            uppers = np.concatenate((lowers[1:], [lowers[-1]+most_frequent]))
+            if np.any(lowers):
+                values, counts = np.unique(np.diff(lowers), return_counts=True)
+                most_frequent = values[np.argmax(counts)]  # np.argmax finds first max occurrence
+                lowers = np.insert(lowers, 0, lowers[0]-most_frequent)
+                uppers = np.concatenate((lowers[1:], [lowers[-1]+most_frequent]))
+            else:
+                lowers = self._meansizes[0]/2
+                uppers = self._meansizes[0]*2
 
             limits = np.empty((self._n_sizes, 2))
             limits[:, 0] = lowers
