@@ -450,7 +450,7 @@ class SoilGrading(Component):
             ) * 0.5
 
             if np.any(lowers):
-                values, counts = np.unique(np.diff(lowers), return_counts=True)
+                values, counts = np.unique(np.diff(self._meansizes), return_counts=True)
                 most_frequent = values[np.argmax(counts)]  # np.argmax finds first max occurrence
                 lowers = np.insert(lowers, 0, lowers[0]-most_frequent)
                 uppers = np.concatenate((lowers[1:], [lowers[-1]+most_frequent]))
@@ -642,7 +642,9 @@ class SoilGrading(Component):
                 y2 = self._limits[median_val_indx[self._grid.core_nodes], 1]
 
                 slope = np.divide(y2-y1,
-                                  x2-x1)
+                                  x2-x1,
+                                  where=(x2-x1)>0,
+                                  )
 
                 intercept = y1 - (slope*x1)
                 # intercept[np.abs(intercept) <=_epsilon] = (y2[np.abs(intercept) <=_epsilon] +

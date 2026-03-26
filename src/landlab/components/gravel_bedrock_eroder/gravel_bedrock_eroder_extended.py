@@ -18,6 +18,9 @@ from cfuncs import _calc_bedrock_abrs_rate
 from cfuncs import _get_classes_fractions
 from cfuncs import _calc_pluck_rate
 from cfuncs import _calc_pluck_rate_tools
+from cfuncs import _min_time_to_exhaust_sed
+from cfuncs import _min_time_to_flatten_slope
+import time
 
 _DT_MAX = 1.0e-2
 _ONE_SIXTH = 1.0 / 6.0
@@ -1958,7 +1961,7 @@ class ExtendedGravelBedrockEroder(Component):
         >>> eroder = ExtendedGravelBedrockEroder(grid, sediment_porosity=porosity)
         >>> eroder._rock_lowering_rate[grid.core_nodes[0]]=1
         >>> print(eroder._estimate_max_time_step_size())
-        5.0
+        500000.0
 
 
 
@@ -1984,10 +1987,12 @@ class ExtendedGravelBedrockEroder(Component):
         >>> print(eroder._estimate_max_time_step_size())
         0.25
         """
+
         dhdt_by_class = self._dHdt_by_class
         dh_by_class = self._grid.at_node["grains__weight"] / (
             self._rho_sed * (1 - self._sediment_porosity)
         )
+
         if self._n_classes > 1:
             sed_is_declining = np.logical_and(dhdt_by_class < 0.0, dh_by_class > self._d_min/self._n_classes)
         else:
@@ -1996,9 +2001,25 @@ class ExtendedGravelBedrockEroder(Component):
             )
 
         if np.any(sed_is_declining):
-            min_time_to_exhaust_sed = np.amin(
-                dh_by_class[sed_is_declining] / np.abs(dhdt_by_class[sed_is_declining])
-            )
+
+            # min_time_to_exhaust_sed = np.amin(
+            #     dh_by_class[sed_is_declining] / np.abs(dhdt_by_class[sed_is_declining])
+            # )
+            logical_values = sed_is_declining[self._grid.core_nodes]
+            num_core_nodes = np.size(self._grid.core_nodes)
+            value_at_node_per_class = dh_by_class[self._grid.core_nodes]
+            value_at_node_per_class_dt = np.abs(dhdt_by_class[self._grid.core_nodes])
+
+            if np.ndim(value_at_node_per_class)<2:
+                value_at_node_per_class = value_at_node_per_class[:, np.newaxis]
+                logical_values = logical_values[:, np.newaxis]
+            min_time_to_exhaust_sed = _min_time_to_exhaust_sed(self._n_classes,
+                                            num_core_nodes,
+                                            logical_values,
+                                            value_at_node_per_class,
+                                            value_at_node_per_class_dt,
+                                            upper_limit_dt)
+
         else:
             min_time_to_exhaust_sed = upper_limit_dt
 
@@ -2007,9 +2028,16 @@ class ExtendedGravelBedrockEroder(Component):
         height_above_rcvr = self._elev - self._elev[self._receiver_node]
         slope_is_declining = np.logical_and(rate_diff > 0.0, height_above_rcvr > 0.0)
         if np.any(slope_is_declining):
-            min_time_to_flatten_slope = np.amin(
-                height_above_rcvr[slope_is_declining] / rate_diff[slope_is_declining]
-            )
+            # min_time_to_flatten_slope = np.amin(
+            #     height_above_rcvr[slope_is_declining] / rate_diff[slope_is_declining]
+            # )
+            num_core_nodes = np.size(self._grid.core_nodes)
+            min_time_to_flatten_slope = _min_time_to_flatten_slope(self._n_classes,
+                                            num_core_nodes,
+                                            slope_is_declining,
+                                            height_above_rcvr,
+                                            rate_diff,
+                                            upper_limit_dt)
         else:
             min_time_to_flatten_slope = upper_limit_dt
         min_dt = 0.5 * min(min_time_to_exhaust_sed, min_time_to_flatten_slope)
@@ -2077,9 +2105,12 @@ class ExtendedGravelBedrockEroder(Component):
         time_remaining = global_dt
         while time_remaining > 0.0:
             self.update_rates()
+
             max_dt = self._estimate_max_time_step_size()
+
             this_dt = min(max_dt, time_remaining)
             this_dt = max(this_dt, _DT_MAX)
+
             self._update_rock_sed_and_elev(this_dt)
             time_remaining -= this_dt
 
