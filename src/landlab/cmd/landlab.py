@@ -1,3 +1,4 @@
+import argparse
 import contextlib
 import inspect
 import itertools
@@ -12,7 +13,6 @@ from collections.abc import Iterable
 from functools import partial
 
 import numpy as np
-import rich_click as click
 
 from landlab import FramedVoronoiGrid
 from landlab import HexModelGrid
@@ -20,11 +20,10 @@ from landlab import ModelGrid
 from landlab import RadialModelGrid
 from landlab import RasterModelGrid
 from landlab import VoronoiDelaunayGrid
-
-from .authors import AuthorList
-from .authors import AuthorsConfig
-from .authors import AuthorsSubprocessError
-from .authors import GitLog
+from landlab.cmd.authors import AuthorList
+from landlab.cmd.authors import AuthorsConfig
+from landlab.cmd.authors import AuthorsSubprocessError
+from landlab.cmd.authors import GitLog
 
 GRIDS = [
     ModelGrid,
@@ -58,82 +57,59 @@ CATEGORIES = {
 }
 
 
-click.rich_click.ERRORS_SUGGESTION = (
-    "Try running the '--help' flag for more information."
-)
-click.rich_click.ERRORS_EPILOGUE = (
-    "To find out more, visit https://github.com/landlab/landlab"
-)
-click.rich_click.STYLE_ERRORS_SUGGESTION = "yellow italic"
-click.rich_click.SHOW_ARGUMENTS = True
-click.rich_click.GROUP_ARGUMENTS_OPTIONS = False
-click.rich_click.SHOW_METAVARS_COLUMN = True
-click.rich_click.USE_MARKDOWN = True
-
-out = partial(click.secho, bold=True, file=sys.stderr)
-err = partial(click.secho, fg="red", file=sys.stderr)
+out = partial(print, file=sys.stderr)
+err = partial(print, file=sys.stderr)
 
 
-@click.group()  # chain=True)
-@click.version_option()
-@click.option(
-    "--cd",
-    default=".",
-    type=click.Path(exists=True, file_okay=False, dir_okay=True, readable=True),
-    help="change to directory, then execute",
-)
-@click.option(
-    "-s",
-    "--silent",
-    is_flag=True,
-    help="Suppress status status messages, including the progress bar.",
-)
-@click.option(
-    "-v", "--verbose", is_flag=True, help="Also emit status messages to stderr."
-)
-def landlab(cd, silent, verbose) -> None:
-    os.chdir(cd)
+def _abort() -> None:
+    raise SystemExit(1)
 
 
-@landlab.command(name="list")
-def _list():
+def _is_verbose(args) -> bool:
+    return getattr(args, "verbose", False)
+
+
+def _is_silent(args) -> bool:
+    return getattr(args, "silent", False)
+
+
+def _authors_config(args) -> AuthorsConfig:
+    params = {}
+    for name in ("authors_file", "credits_file"):
+        value = getattr(args, name, None)
+        if value:
+            params[name] = value
+    return AuthorsConfig(**params)
+
+
+def _list(args=None):
     for cls in get_all_components():
         print(cls.__name__)
 
 
-@landlab.command()
-@click.argument("component", type=str, nargs=-1)
-def used_by(component):
-    for name in _used_by(get_components(component)):
+def used_by(args):
+    for name in _used_by(get_components(args.component)):
         print(name)
 
 
-@landlab.command()
-@click.argument("component", type=str, nargs=-1)
-def provided_by(component):
-    for name in _provided_by(get_components(component)):
+def provided_by(args):
+    for name in _provided_by(get_components(args.component)):
         print(name)
 
 
-@landlab.command()
-@click.argument("var", type=str)
-def uses(var):
-    for name in get_users_of(var):
+def uses(args):
+    for name in get_users_of(args.var):
         print(name)
 
 
-@landlab.command()
-@click.argument("var", type=str)
-def provides(var):
-    for name in get_providers_of(var):
+def provides(args):
+    for name in get_providers_of(args.var):
         print(name)
 
 
-@landlab.command()
-@click.argument("component", type=str, nargs=-1)
-def validate(component):
+def validate(args):
     failures = 0
-    classes = get_components(component)
+    classes = get_components(args.component)
     for cls in classes:
         out(cls.__name__)
         errors = _validate_component(cls)
@@ -142,60 +118,34 @@ def validate(component):
             for error in errors:
                 err(f"Error: {cls.__name__}: {error}")
     if failures:
-        click.Abort()
+        _abort()
     else:
         out("💥 All good! 💥")
 
 
-@landlab.group()
-@click.option(
-    "--authors-file",
-    type=click.Path(exists=False, file_okay=True, dir_okay=False, readable=True),
-    help="existing authors file",
-)
-@click.option(
-    "--credits-file",
-    default=".credits.toml",
-    type=click.Path(exists=False, file_okay=True, dir_okay=False, readable=True),
-    help="The file that contains a list of authors",
-)
-@click.pass_context
-def authors(ctx, authors_file, credits_file):
-    """Commands for working with lists of authors."""
-    verbose = ctx.parent.params["verbose"]
-    silent = ctx.parent.params["silent"]
-
-    config = AuthorsConfig(**{k: v for k, v in ctx.params.items() if v})
-
-    for k, v in config.items():
-        ctx.params[k] = v
+def authors_create(args):
+    """Create a database of contributors."""
+    verbose = _is_verbose(args)
+    silent = _is_silent(args)
+    config = _authors_config(args)
+    credits_file = pathlib.Path(config["credits_file"])
 
     if verbose and not silent:
         config_str = textwrap.indent(str(config), prefix="  ")
         out("using the following configuration:")
         out(f"{config_str}")
 
-
-@authors.command()
-@click.option("--update-existing/--no-update-existing", default=True)
-@click.pass_context
-def create(ctx, update_existing):
-    """Create a database of contributors."""
-    verbose = ctx.parent.parent.params["verbose"]
-    silent = ctx.parent.parent.params["silent"]
-    credits_file = pathlib.Path(ctx.parent.params["credits_file"])
-
     git_log = GitLog("%an, %ae")
     try:
         names_and_emails = git_log()
     except AuthorsSubprocessError as error:
         err(error)
-        raise click.Abort() from error
+        raise SystemExit(1) from error
     else:
         if verbose and not silent:
             out(f"{git_log}")
 
-    if not silent and update_existing:
+    if not silent and args.update_existing:
         if not credits_file.is_file():
             err(f"nothing to update ({credits_file})")
         else:
@@ -203,7 +153,7 @@ def create(ctx, update_existing):
 
     authors = (
         AuthorList.from_toml(credits_file)
-        if update_existing and credits_file.is_file()
+        if args.update_existing and credits_file.is_file()
         else AuthorList()
     )
 
@@ -213,24 +163,29 @@ def create(ctx, update_existing):
     print((2 * os.linesep).join(lines))
 
 
-@authors.command()
-@click.pass_context
-def build(ctx):
+def authors_build(args):
     """Build an authors file."""
-    verbose = ctx.parent.parent.params["verbose"]
-    silent = ctx.parent.parent.params["silent"]
-    exclude = ctx.parent.params["exclude"]
-    authors_file = pathlib.Path(ctx.parent.params["authors_file"])
-    author_format = ctx.parent.params["author_format"]
-    credits_file = pathlib.Path(ctx.parent.params["credits_file"])
-    start_string = ctx.parent.params["start_string"]
+    verbose = _is_verbose(args)
+    silent = _is_silent(args)
+    config = _authors_config(args)
+
+    if verbose and not silent:
+        config_str = textwrap.indent(str(config), prefix="  ")
+        out("using the following configuration:")
+        out(f"{config_str}")
+
+    exclude = args.exclude
+    authors_file = pathlib.Path(args.authors_file)
+    author_format = args.author_format
+    credits_file = pathlib.Path(config["credits_file"])
+    start_string = args.start_string
 
     git_log = GitLog("%aN")
     try:
         commit_authors = git_log()
     except AuthorsSubprocessError as error:
         err(error)
-        raise click.Abort() from error
+        raise SystemExit(1) from error
     else:
         if verbose and not silent:
             out(f"{git_log}")
@@ -330,16 +285,19 @@ def _guess_github_user(author):
     return github
 
 
-@authors.command()
-@click.pass_context
-def mailmap(ctx):
+def authors_mailmap(args):
     """Create a mailmap file from an author list."""
-    verbose = ctx.parent.parent.params["verbose"]
-    silent = ctx.parent.parent.params["silent"]
-    credits_file = ctx.parent.params["credits_file"]
+    verbose = _is_verbose(args)
+    silent = _is_silent(args)
+    config = _authors_config(args)
+    credits_file = config["credits_file"]
 
     if verbose and not silent:
+        config_str = textwrap.indent(str(config), prefix="  ")
+        out("using the following configuration:")
+        out(f"{config_str}")
         out(f"reading author list: {credits_file}")
+
     print(
         textwrap.dedent(
             """
@@ -369,32 +327,24 @@ def mailmap(ctx):
             print(f"{good_name} <{good_email}> {bad_name} <{bad_email}>")
 
 
-@authors.command(name="list")
-@click.option(
-    "--file",
-    default="authors.toml",
-    type=click.Path(exists=True, file_okay=True, dir_okay=False, readable=True),
-    help="existing authors file",
-)
-@click.pass_context
-def authors_list(ctx, file):
-    verbose = ctx.parent.parent.params["verbose"]
-    silent = ctx.parent.parent.params["silent"]
-    exclude = ctx.parent.params["exclude"]
+def authors_list(args):
+    verbose = _is_verbose(args)
+    silent = _is_silent(args)
+    exclude = args.exclude
 
     git_log = GitLog("%aN")
     try:
         commit_authors = git_log()
     except AuthorsSubprocessError as error:
         err(error)
-        raise click.Abort() from error
+        raise SystemExit(1) from error
     else:
         if verbose and not silent:
             out(f"{git_log}")
 
     if verbose and not silent:
-        out(f"reading authors from {file}")
-    authors = AuthorList.from_toml(file)
+        out(f"reading authors from {args.file}")
+    authors = AuthorList.from_toml(args.file)
 
     commits = Counter()
     for author in commit_authors.splitlines():
@@ -415,17 +365,9 @@ def exclude_matches_any(names: Iterable[str], exclude: str):
     return False
 
 
-@landlab.group(chain=True)
-@click.pass_context
-def index(ctx):
-    pass
-
-
-@index.command()
-@click.pass_context
-def grids(ctx):
-    verbose = ctx.parent.parent.params["verbose"]
-    silent = ctx.parent.parent.params["silent"]
+def index_grids(args):
+    verbose = _is_verbose(args)
+    silent = _is_silent(args)
 
     index = {"grids": {}}
     for cls in GRIDS:
@@ -469,11 +411,9 @@ def grids(ctx):
             out(f"{cat} = {summary[cat]}")
 
 
-@index.command()
-@click.pass_context
-def components(ctx):
-    verbose = ctx.parent.parent.params["verbose"]
-    silent = ctx.parent.parent.params["silent"]
+def index_components(args):
+    verbose = _is_verbose(args)
+    silent = _is_silent(args)
 
     from sphinx.util.docstrings import prepare_docstring
 
@@ -513,11 +453,9 @@ def components(ctx):
         out(f"count = {len(index['components'])}")
 
 
-@index.command()
-@click.pass_context
-def fields(ctx):
-    verbose = ctx.parent.parent.params["verbose"]
-    silent = ctx.parent.parent.params["silent"]
+def index_fields(args):
+    verbose = _is_verbose(args)
+    silent = _is_silent(args)
 
     fields = defaultdict(lambda: defaultdict(list))
     for cls in get_all_components():
@@ -539,8 +477,6 @@ def fields(ctx):
         print(f"[fields.{field}]")
         print(f"desc = {info['desc'][0]!r}")
         if info["used_by"]:
-            # used_by = [repr(f) for f in info["used_by"]]
-            # print(f"used_by = [{', '.join(used_by)}]")
             print("used_by = [")
             for component in sorted(info["used_by"]):
                 print(f"  {component!r},")
@@ -577,7 +513,7 @@ def get_all_components_by_name():
     return {cls.__name__: cls for cls in get_all_components()}
 
 
-def get_components(*args):
+def get_components(args):
     """Get components by name.
 
     Parameters
@@ -590,12 +526,12 @@ def get_components(*args):
     list of class
         Components with any of the given names.
     """
-    if len(args) == 0 or len(args[0]) == 0:
+    if len(args) == 0:
         components = get_all_components()
     else:
         components_by_name = get_all_components_by_name()
         components = []
-        for name in args[0]:
+        for name in args:
             try:
                 components.append(components_by_name[name])
             except KeyError:
@@ -724,3 +660,124 @@ def _extract_landlab_category(s: str):
         cat.strip() or "uncategorized"
         for cat in separate_metadata(s)[1].get("landlab", "").split(",")
     ]
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="landlab",
+        epilog="To find out more, visit https://github.com/landlab/landlab",
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version="%(prog)s",
+    )
+    parser.add_argument(
+        "--cd",
+        default=".",
+        type=pathlib.Path,
+        help="change to directory, then execute",
+    )
+    parser.add_argument(
+        "-s",
+        "--silent",
+        action="store_true",
+        help="Suppress status status messages, including the progress bar.",
+    )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="Also emit status messages to stderr.",
+    )
+
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    p = subparsers.add_parser("list")
+    p.set_defaults(func=_list)
+
+    p = subparsers.add_parser("used_by")
+    p.add_argument("component", nargs="*", type=str)
+    p.set_defaults(func=used_by)
+
+    p = subparsers.add_parser("provided_by")
+    p.add_argument("component", nargs="*", type=str)
+    p.set_defaults(func=provided_by)
+
+    p = subparsers.add_parser("uses")
+    p.add_argument("var", type=str)
+    p.set_defaults(func=uses)
+
+    p = subparsers.add_parser("provides")
+    p.add_argument("var", type=str)
+    p.set_defaults(func=provides)
+
+    p = subparsers.add_parser("validate")
+    p.add_argument("component", nargs="*", type=str)
+    p.set_defaults(func=validate)
+
+    authors = subparsers.add_parser(
+        "authors", description="Commands for working with lists of authors."
+    )
+    authors.add_argument("--authors-file", type=str, help="existing authors file")
+    authors.add_argument(
+        "--credits-file",
+        default=".credits.toml",
+        type=str,
+        help="The file that contains a list of authors",
+    )
+    authors_subparsers = authors.add_subparsers(dest="authors_command", required=True)
+
+    p = authors_subparsers.add_parser("create")
+    p.add_argument(
+        "--update-existing", dest="update_existing", action="store_true", default=True
+    )
+    p.add_argument("--no-update-existing", dest="update_existing", action="store_false")
+    p.set_defaults(func=authors_create)
+
+    p = authors_subparsers.add_parser("build")
+    p.add_argument("--exclude", required=True)
+    p.add_argument("--author-format", required=True)
+    p.add_argument("--start-string", required=True)
+    p.set_defaults(func=authors_build)
+
+    p = authors_subparsers.add_parser("mailmap")
+    p.set_defaults(func=authors_mailmap)
+
+    p = authors_subparsers.add_parser("list")
+    p.add_argument(
+        "--file",
+        default="authors.toml",
+        type=str,
+        help="existing authors file",
+    )
+    p.add_argument("--exclude", required=True)
+    p.set_defaults(func=authors_list)
+
+    index = subparsers.add_parser("index")
+    index_subparsers = index.add_subparsers(dest="index_command", required=True)
+
+    p = index_subparsers.add_parser("grids")
+    p.set_defaults(func=index_grids)
+
+    p = index_subparsers.add_parser("components")
+    p.set_defaults(func=index_components)
+
+    p = index_subparsers.add_parser("fields")
+    p.set_defaults(func=index_fields)
+
+    return parser
+
+
+def main(args=None) -> int:
+    parser = build_parser()
+    ns = parser.parse_args(args)
+
+    os.chdir(ns.cd)
+    ns.func(ns)
+
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

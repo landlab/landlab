@@ -1,0 +1,2 @@
+Refactored the Landlab cli to use the `argparse` module
+instead of `click`/`rich-click` to reduce external dependencies.
