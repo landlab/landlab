@@ -72,7 +72,7 @@ testing = [
 ]
 
 [project.scripts]
-landlab = "landlab.cmd.landlab:landlab"
+landlab = "landlab.cmd.landlab:main"
 
 [tool.setuptools]
 include-package-data = true
