@@ -48,7 +48,6 @@ dependencies = [
   "pyyaml",
   "pyshp != 2.3.0",
   "requireit>=0.8.0",
-  "rich-click",
   "scipy",
   "statsmodels",
   "pandas",
