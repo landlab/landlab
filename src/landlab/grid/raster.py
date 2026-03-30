@@ -2,6 +2,7 @@
 """A class used to create and manage regular raster grids for 2D numerical
 models in Landlab.
 """
+
 import contextlib
 
 import numpy as np
@@ -974,8 +975,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
                 self.fixed_value_node_properties["internal_flag"] = True
 
         if not self.has_field(value_of, at="node"):
-            print(
-                """
+            print("""
                 *************************************************
                 WARNING: set_fixed_value_boundaries_at_grid_edges
                 has not been provided with a grid field name to
@@ -986,8 +986,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
                 after loading the starting conditions into the
                 grid fields.
                 *************************************************
-                """
-            )
+                """)
 
             # set a flag to indicate no internal values
             self.fixed_value_node_properties["internal_flag"] = False
@@ -2396,7 +2395,7 @@ def _add_format_extension(path, format):
     """
     import os
 
-    (base, ext) = os.path.splitext(path)
+    base, ext = os.path.splitext(path)
     if format == "netcdf":
         ext = ".nc"
     elif format == "esri-ascii":

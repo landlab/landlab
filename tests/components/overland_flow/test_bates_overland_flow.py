@@ -10,7 +10,7 @@ import pytest
 from landlab import RasterModelGrid
 from landlab.components.overland_flow import OverlandFlowBates
 
-(_SHAPE, _SPACING, _ORIGIN) = ((32, 240), (25, 25), (0.0, 0.0))
+_SHAPE, _SPACING, _ORIGIN = ((32, 240), (25, 25), (0.0, 0.0))
 _ARGS = (_SHAPE, _SPACING, _ORIGIN)
 
 

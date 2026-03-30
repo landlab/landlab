@@ -10,7 +10,6 @@ directing, depression finding, and flow routing can all be accomplished
 together.
 """
 
-
 import numpy as np
 
 from landlab import Component  # for type tests

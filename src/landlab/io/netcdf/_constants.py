@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 """Constants used with the netcdf module."""
 
-
 _DIMENSION_NAMES = ["ni", "nj", "nk"]
 _AXES_NAMES = ["x", "y", "z"]
 

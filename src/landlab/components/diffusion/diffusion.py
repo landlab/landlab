@@ -5,7 +5,6 @@ Created July 2013 GT Last updated March 2016 DEJH with LL v1.0 component
 style
 """
 
-
 import numpy as np
 
 from landlab import Component

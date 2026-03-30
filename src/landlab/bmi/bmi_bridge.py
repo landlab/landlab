@@ -249,9 +249,7 @@ def wrap_as_bmi(cls):
     class BmiWrapper(Bmi):
         __doc__ = """
         Basic Modeling Interface for the {name} component.
-        """.format(
-            name=cls.__name__
-        ).strip()
+        """.format(name=cls.__name__).strip()
 
         _cls = cls
 

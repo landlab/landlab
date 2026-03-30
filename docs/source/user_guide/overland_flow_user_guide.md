@@ -220,9 +220,7 @@ This is the simplest method, and is used when a constant precipitation intensity
 ```python
 elapsed_time = 0.0
 model_run_time = 86400.0
-of = OverlandFlow(
-    rmg, steep_slopes=True, rainfall_intensity=1.38889 * (10**-6)
-)  # m/s
+of = OverlandFlow(rmg, steep_slopes=True, rainfall_intensity=1.38889 * (10**-6))  # m/s
 ```
 
 #### Single storm event

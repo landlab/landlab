@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 """Functions to calculate flow distance from divide."""
+
 import numpy as np
 
 from landlab import FieldError

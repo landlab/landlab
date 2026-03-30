@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 """Calculate vector divergence and related quantities at nodes or cells."""
+
 import numpy as np
 
 from landlab.utils.decorators import use_field_name_or_array

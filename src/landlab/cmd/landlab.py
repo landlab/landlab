@@ -340,9 +340,7 @@ def mailmap(ctx):
 
     if verbose and not silent:
         out(f"reading author list: {credits_file}")
-    print(
-        textwrap.dedent(
-            """
+    print(textwrap.dedent("""
             # Prevent git from showing duplicate names with commands like "git shortlog"
             # See the manpage of git-shortlog for details.
             # The syntax is:
@@ -357,9 +355,7 @@ def mailmap(ctx):
             #   git log --format="%aN <%aE>" | sort -u
             #
             # gives no duplicates.
-            """
-        ).lstrip()
-    )
+            """).lstrip())
     authors = AuthorList.from_toml(credits_file)
     for author in authors:
         good_name, good_email = author.name, author.email

@@ -8,6 +8,7 @@ Read netcdf
 
     ~read_netcdf
 """
+
 import contextlib
 
 import numpy as np

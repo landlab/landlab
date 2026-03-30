@@ -380,9 +380,7 @@ def deprecated(use, version):
 
     Use :func:`{use}` instead.
 
-""".format(
-            ver=version, use=use
-        )
+""".format(ver=version, use=use)
 
         doc_lines = (func.__doc__ or "").split(os.linesep)
 

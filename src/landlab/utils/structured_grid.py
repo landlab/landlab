@@ -386,7 +386,7 @@ def node_coords(shape, *args):
     row_y = np.arange(shape[0]) * spacing[0] + origin[0]
     col_x = np.arange(shape[1]) * spacing[1] + origin[1]
 
-    (node_x, node_y) = np.meshgrid(col_x, row_y)
+    node_x, node_y = np.meshgrid(col_x, row_y)
 
     node_x.shape = (node_count_,)
     node_y.shape = (node_count_,)
@@ -538,9 +538,9 @@ def active_links(shape, node_status_array=None, link_nodes=None):
         node_status_array = status_at_node(shape)
 
     if link_nodes is None:
-        (link_from_node, link_to_node) = node_index_at_link_ends(shape)
+        link_from_node, link_to_node = node_index_at_link_ends(shape)
     else:
-        (link_from_node, link_to_node) = link_nodes
+        link_from_node, link_to_node = link_nodes
 
     from_node_status = node_status_array[link_from_node]
     to_node_status = node_status_array[link_to_node]
@@ -1404,7 +1404,7 @@ def node_index_with_halo(shape, halo_indices=BAD_INDEX_VALUE):
 
     ids = np.empty(shape_with_halo, dtype=int)
 
-    (interiors, boundaries) = (
+    interiors, boundaries = (
         interior_nodes(shape_with_halo),
         perimeter_nodes(shape_with_halo),
     )
@@ -1775,9 +1775,9 @@ def nodes_around_points_on_unit_grid(shape, coords, mode="raise"):
     array([4, 7, 8, 5])
     """
     if isinstance(coords[0], np.ndarray):
-        (rows, cols) = (as_id_array(coords[0]), as_id_array(coords[1]))
+        rows, cols = (as_id_array(coords[0]), as_id_array(coords[1]))
     else:
-        (rows, cols) = (int(coords[0]), int(coords[1]))
+        rows, cols = (int(coords[0]), int(coords[1]))
 
     return as_id_array(
         np.ravel_multi_index(

@@ -6,7 +6,6 @@ Fill sinks in a landscape to the brim, following the Barnes et al.
 (2014) algorithms.
 """
 
-
 import numpy as np
 
 from landlab.components import LakeMapperBarnes

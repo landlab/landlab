@@ -12,7 +12,6 @@ stochastic, pair-based CA.
 Created GT Sep 2014
 """
 
-
 import numpy as np
 
 from ..grid import RasterModelGrid

@@ -198,9 +198,7 @@ that prevents accidentally overwriting an existing field.
 ```python
 >>> import numpy as np
 >>> elevs_in = np.random.rand(mg.number_of_nodes)
->>> mg.add_field(
-...     "elevation", elevs_in, at="node", units="m", copy=True, clobber=True
-... )
+>>> mg.add_field("elevation", elevs_in, at="node", units="m", copy=True, clobber=True)
 ```
 
 Fields can store data at nodes, cells, links, faces, patches, junctions, and corners (though the
