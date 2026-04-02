@@ -39,6 +39,7 @@ from .lithology import LithoLayers
 from .lithology import Lithology
 from .marine_sediment_transport import SimpleSubmarineDiffuser
 from .mass_wasting_runout import MassWastingRunout
+from .multi_class_linear_diffusion import MultiClassLinearDiffusion
 from .network_sediment_transporter import NetworkSedimentTransporter
 from .network_sediment_transporter.bed_parcel_initializers import (
     BedParcelInitializerArea,
@@ -147,6 +148,7 @@ COMPONENTS = [
     Lithology,
     LossyFlowAccumulator,
     MassWastingRunout,
+    MultiClassLinearDiffusion,
     NetworkSedimentTransporter,
     NormalFault,
     OverlandFlow,

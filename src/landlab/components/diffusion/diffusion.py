@@ -417,11 +417,11 @@ class LinearDiffuser(Component):
         # do mapping of array kd here, in case it points at an updating
         # field:
         if isinstance(self._kd, np.ndarray):
-            self._kd_node = ((self._rock_exposure_fraction * self._kd_rock) + (1 - self._rock_exposure_fraction) *
-                        self._kd_soil)
+            # self._kd_node = ((self._rock_exposure_fraction * self._kd_rock) + (1 - self._rock_exposure_fraction) *
+            #             self._kd_soil)
 
             if not self._kd_on_links:
-                kd_links = self._grid.map_max_of_link_nodes_to_link(self._kd_node)
+                kd_links = self._grid.map_max_of_link_nodes_to_link(self._kd)
                 kd_activelinks = kd_links[self._grid.active_links]
                 # re-derive CFL condition, as could change dynamically:
                 dt_links = self._CFL_actives_prefactor / kd_activelinks
@@ -685,8 +685,8 @@ class LinearDiffuserMultiClass(Component):
                  deposit=True,
                  phi=0.4,
                  depth_decay_scale=1,
-                 rho_sed=2650
-                 ):
+                 rho_sed=2650,
+                 diffuse_bedrock_flag=False):
         """
         Parameters
         ----------
@@ -731,7 +731,7 @@ class LinearDiffuserMultiClass(Component):
 
         self._current_time = 0.0
         self._run_before = False
-
+        self._diffuse_bedrock_flag=diffuse_bedrock_flag
         self._depth_decay_scale = depth_decay_scale
         self.calc_rock_exposure_fraction()
         self._kd_soil = linear_diffusivity_soil
@@ -1110,7 +1110,8 @@ class LinearDiffuserMultiClass(Component):
 
 
 
-    def _spread_mass_between_classes(self, dt):
+    def _spread_mass_between_classes(self, dt,
+                                     ):
 
         sediment_flux = self._grid.at_link["hillslope_sediment__unit_volume_flux"]*dt
         bed = self._grid.at_node['bedrock__elevation']
@@ -1199,28 +1200,61 @@ class LinearDiffuserMultiClass(Component):
         soil += dz_soil_sediment
         soil[soil <= 0] = 0
 
-        # Now we move-on to bedrock diffusion
-        # Get the dz after bedrock diffusion
-        dz_bedrock_sediment = -self._grid.calc_flux_div_at_node(bedrock_sediment_flux_at_link)
 
-        # We are ready for topography update
-        bed[dz_bedrock_sediment < 0] = bed[dz_bedrock_sediment < 0] - np.abs(dz_bedrock_sediment[dz_bedrock_sediment < 0])
-        #^ Consider here only NEGATIVE values
+        if self._diffuse_bedrock_flag:
+            print('test')
+            # Now we move-on to bedrock diffusion
+            # Get the dz after bedrock diffusion
+            dz_bedrock_sediment = -self._grid.calc_flux_div_at_node(bedrock_sediment_flux_at_link)
 
-        soil[dz_bedrock_sediment > 0] = soil[dz_bedrock_sediment > 0] + dz_bedrock_sediment[dz_bedrock_sediment > 0]
-        #^ Consider here only POSTIVE values
+            # We are ready for topography update
+            bed[dz_bedrock_sediment < 0] = bed[dz_bedrock_sediment < 0] - np.abs(dz_bedrock_sediment[dz_bedrock_sediment < 0])
+            #^ Consider here only NEGATIVE values
 
-        positive_dz_bedrock_sediment = np.clip(dz_bedrock_sediment,0, np.inf)
-        if self._n_classes>1:
-            grain_weight_node += positive_dz_bedrock_sediment[:, np.newaxis] * (1 - self._phi) * self._rho_sed * self._grid.at_node[
-                'bed_grains__proportions']  # in kg/m2
-        else:
-            grain_weight_node += positive_dz_bedrock_sediment[:] * (1 - self._phi) * self._rho_sed * self._grid.at_node[
-                'bed_grains__proportions']  # in kg/m2
+            soil[dz_bedrock_sediment > 0] = soil[dz_bedrock_sediment > 0] + dz_bedrock_sediment[dz_bedrock_sediment > 0]
+            #^ Consider here only POSTIVE values
+
+            positive_dz_bedrock_sediment = np.clip(dz_bedrock_sediment,0, np.inf)
+            if self._n_classes>1:
+                grain_weight_node += positive_dz_bedrock_sediment[:, np.newaxis] * (1 - self._phi) * self._rho_sed * self._grid.at_node[
+                    'bed_grains__proportions']  # in kg/m2
+            else:
+                grain_weight_node += positive_dz_bedrock_sediment[:] * (1 - self._phi) * self._rho_sed * self._grid.at_node[
+                    'bed_grains__proportions']  # in kg/m2
 
         topo[:] = soil[:] + bed[:]
 
+    def calc_weathering(self,
+                        dt=1,
+                        p0=10**-4,
+                        kappa = 10**-4,):
 
+        soil = self._grid.at_node['soil__depth']
+        bedrock = self._grid.at_node['bedrock__elevation']
+        grains__weight = self._grid.at_node['grains__weight']
+        slope = self._grid.at_node['topographic__steepest_slope']
+        topo = self._grid.at_node['topographic__elevation']
+
+        ## Update rock exposure fraction
+        self.calc_rock_exposure_fraction()
+
+        ## Calc dz by weathering
+        dz_weathering = ((p0+kappa*slope[self._grid.core_nodes]) *
+                         self._rock_exposure_fraction[self._grid.core_nodes] * dt)
+
+        # Convert dz to mass per area [kg/m2]
+        dmass_per_area = (dz_weathering *
+        self.grid.area_of_cell * self._rho_sed * (1-self._phi))
+
+        # Update fields
+        bedrock[self._grid.core_nodes] -= dz_weathering
+        if np.ndim(self._grid.at_node['bed_grains__proportions'])>1:
+            grains__weight[self._grid.core_nodes,:] += dmass_per_area[:,np.newaxis] * self._grid.at_node['bed_grains__proportions'][self._grid.core_nodes]
+        else:
+            grains__weight[self._grid.core_nodes] += dmass_per_area * self._grid.at_node['bed_grains__proportions'][
+                                                            self._grid.core_nodes]
+        soil[self._grid.core_nodes] += dz_weathering
+        topo[self._grid.core_nodes] =  soil[self._grid.core_nodes]+bedrock[self._grid.core_nodes]
 
     def calc_rock_exposure_fraction(self):
         """Update the bedrock exposure fraction.

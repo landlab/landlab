@@ -1,8 +1,5 @@
 #! /usr/env/python
-"""Component that models 2D diffusion using an explicit finite-volume method.
-
-Created July 2013 GT Last updated March 2016 DEJH with LL v1.0 component
-style
+"""
 """
 
 
@@ -14,9 +11,9 @@ from landlab import NodeStatus
 from landlab import RasterModelGrid
 
 
-class LinearDiffuserMultiClasse(LinearDiffuser):
+class MultiClassLinearDiffusion(LinearDiffuser):
 
-    _name = "LinearDiffuserMultiClass"
+    _name = "MultiClassLinearDiffusion"
 
     _unit_agnostic = True
 
@@ -29,13 +26,21 @@ class LinearDiffuserMultiClasse(LinearDiffuser):
             "mapping": "node",
             "doc": "Land surface topographic elevation",
         },
-        "topographic__gradient": {
+        "soil__depth": {
             "dtype": float,
-            "intent": "out",
+            "intent": "inout",
             "optional": False,
             "units": "-",
-            "mapping": "link",
-            "doc": "Gradient of the ground surface",
+            "mapping": "node",
+            "doc": "Soil depth",
+        },
+        "grains__weight": {
+            "dtype": float,
+            "intent": "inout",
+            "optional": False,
+            "units": "kg/m2",
+            "mapping": "node",
+            "doc": "Mass per unit area of grains in each size class stored at node",
         },
     }
 
@@ -48,18 +53,43 @@ class LinearDiffuserMultiClasse(LinearDiffuser):
                  phi=0.4,
                  depth_decay_scale=1,
                  rho_sed=2650,
-                 diffuse_bedrock_flag=False):
+                 diffuse_bedrock_flag=False,
+                 **kwds):
         """
         Parameters
         ----------
         grid : ModelGrid
             A grid.
         """
-        super().__init__(grid)
+
+        if "kd" not in grid.at_node:
+            grid.add_zeros("kd", at="node")
+
+        kwds.setdefault("linear_diffusivity", "kd")
+        grid.at_node["kd"][:] = linear_diffusivity_soil
+
+        super().__init__(grid,**kwds)
+        self._depth_decay_scale = depth_decay_scale
+        self._deposit = deposit
+        self._phi = phi
+        self._values_to_diffuse = 'topographic__elevation'
+        if np.ndim(self._grid.at_node['grains__weight']) > 1:
+            self._n_classes = np.shape(self._grid.at_node['grains__weight'])[1]
+        else:
+            self._n_classes = 1
+        self._zeros_at_node = self._grid.zeros(at="node")
+        self._zeros_at_link = self._grid.zeros(at="link")
+        self._zeros_at_link_for_fractions = np.zeros(
+            (np.shape(self._zeros_at_link)[0], self._n_classes))
+        self._kd_soil = linear_diffusivity_soil
+        self._kd_rock = linear_diffusivity_rock
+        self._rho_sed = rho_sed
 
 
     def _spread_mass_between_classes(self, dt,
                                      ):
+
+
         sediment_flux = self._grid.at_link["hillslope_sediment__unit_volume_flux"] * dt
         bed = self._grid.at_node['bedrock__elevation']
         soil = self._grid.at_node['soil__depth']
@@ -145,10 +175,8 @@ class LinearDiffuserMultiClasse(LinearDiffuser):
         bedrock_sediment_flux_at_link = np.abs((np.abs(sediment_flux) - np.abs(sed_flux_at_link))) * np.sign(
             sed_flux_at_link)
 
-        # Update topography after soil diffusion
-        soil += dz_soil_sediment
-        soil[soil <= 0] = 0
-        topo[:] = soil[:] + bed[:]
+
+        return dz_soil_sediment
 
 
     def calc_rock_exposure_fraction(self):
@@ -167,16 +195,15 @@ class LinearDiffuserMultiClasse(LinearDiffuser):
         dt : float
             Time-step duration (y)
         """
-        z_before = self.grid.at_node["topographic__elevation"].copy()
+        topo_before = self.grid.at_node["topographic__elevation"].copy()
+        soil_before = self.grid.at_node["soil__depth"].copy()
+
         super().run_one_step(dt)
 
-        self._spread_mass_between_classes(dt=dt)
-        self._time += dt
+        dz_soil_sediment = self._spread_mass_between_classes(dt=dt)
 
-
-    @property
-    def time_step(self):
-        """Returns internal time-step size (as a property)."""
-        return self._dt
-
-
+        # Update topography after soil diffusion
+        self._grid.at_node['soil__depth'][:] = soil_before + dz_soil_sediment
+        self._grid.at_node['soil__depth'][self._grid.at_node['soil__depth'] <= 0] = 0
+        self._grid.at_node['topographic__elevation'][:] = (self._grid.at_node['soil__depth'][:] +
+                                                           self._grid.at_node['bedrock__elevation'][:])
