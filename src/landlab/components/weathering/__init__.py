@@ -1,4 +1,5 @@
 from .exponential_weathering import ExponentialWeatherer
 from .exponential_weathering_integrated import ExponentialWeathererIntegrated
+from .multi_class_exp_slope_dependent_weathering import MultiClassExpSlopeDependentWeatherer
 
-__all__ = ["ExponentialWeatherer", "ExponentialWeathererIntegrated"]
+__all__ = ["ExponentialWeatherer", "ExponentialWeathererIntegrated","MultiClassExpSlopeDependentWeatherer"]

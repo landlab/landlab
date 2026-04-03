@@ -96,7 +96,7 @@ from .uniform_precip import PrecipitationDistribution
 from .vegetation_dynamics import Vegetation
 from .weathering import ExponentialWeatherer
 from .weathering import ExponentialWeathererIntegrated
-
+from .weathering import MultiClassExpSlopeDependentWeatherer
 COMPONENTS = [
     AdvectionSolverTVD,
     AreaSlopeTransporter,
@@ -149,6 +149,7 @@ COMPONENTS = [
     LossyFlowAccumulator,
     MassWastingRunout,
     MultiClassLinearDiffusion,
+    MultiClassExpSlopeDependentWeatherer,
     NetworkSedimentTransporter,
     NormalFault,
     OverlandFlow,
