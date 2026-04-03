@@ -10,7 +10,7 @@ from landlab import Component
 
 
 class MultiClassExpSlopeDependentWeatherer(Component):
-    """Calculate exponential and slope-dependent weathering of bedrock on hillslopes taking
+    """Calculate exponential and slope-dependent weathering of bedrock taking
     into account various sediment grains classes.
 
     Uses exponential soil production function in the style of Ahnert (1976).
@@ -22,30 +22,52 @@ class MultiClassExpSlopeDependentWeatherer(Component):
 
         soil_production =  w0 * exp(-soil__depth / w_star)
 
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from landlab import RasterModelGrid
-    >>> from landlab.components import ExponentialWeatherer
-    >>> mg = RasterModelGrid((5, 5))
-    >>> soilz = mg.add_zeros("soil__depth", at="node")
-    >>> soilrate = mg.add_ones("soil_production__rate", at="node")
-    >>> expw = ExponentialWeatherer(mg)
-    >>> expw.calc_soil_prod_rate()
-    >>> np.allclose(mg.at_node["soil_production__rate"], 1.0)
-    True
+    Slope dependent weathering is calculate according to local topographic slope ``S`` and
+    maximum weathering rate ``kappa``:
 
+        slope_dependent_weathering = kappa * S
+    
     References
     ----------
-
-    **Additional References**
-
     Ahnert, F. (1976). Brief description of a comprehensive three-dimensional
     process-response model of landform development Z. Geomorphol. Suppl.  25,
     29 - 49.
 
     Armstrong, A. (1976). A three dimensional simulation of slope forms.
     Zeitschrift für Geomorphologie  25, 20 - 28.
+
+    # Examples
+    # --------
+    # >>> from landlab.components.weathering import MultiClassExpSlopeDependentWeatherer
+    # >>> from landlab import RasterModelGrid
+    # >>> from landlab.components.soil_grading import SoilGrading
+    # >>> from landlab.components import FlowAccumulator
+    # >>> rows=3
+    # >>> columns=3
+    # >>> xy_spacing = 10
+    # >>> porosity = 0.4
+    # >>> sed_depth = 500
+    # >>> rho_sed = 2650
+    # >>> grain_sizes = 0.01
+    # >>> grains_weight = 10
+    # >>> p0=10**-2
+    # >>> kappa=10**-4
+    # >>> grid = RasterModelGrid((rows, columns), xy_spacing=xy_spacing)
+    # >>> sg = SoilGrading(grid,
+    # ...     meansizes=grain_sizes,
+    # ...     grains_weight=grains_weight,
+    # ...     phi=porosity,
+    # ...     soil_density=rho_sed)
+    # >>> weatherer = MultiClassExpSlopeDependentWeatherer(grid,
+    # ...     phi=porosity,
+    # ...     rho=rho_sed,
+    # ...     soil_production_maximum_rate=p0,
+    # ...     slope_dependent_weathering_maximum_rate=kappa)
+    # >>> fa = FlowAccumulator(grid)
+    # >>> fa.run_one_step()
+    # >>> weatherer.run_one_step(dt=1)
+    # >>> np.round(grid.at_node['soil__depth'][grid.core_nodes][0],4)
+    np.float64(0.0162)
     """
 
     _name = "MultiClassExpSlopeDependentWeatherer"
@@ -76,19 +98,26 @@ class MultiClassExpSlopeDependentWeatherer(Component):
 
     def __init__(
         self, grid,
-            phi,
-            rho,
+            phi=0.35,
+            rho=2650,
             soil_production_maximum_rate=10**-2,
+            slope_dependent_weathering_maximum_rate=10**-4,
             soil_production_decay_depth=1.0,
-            kappa=10**-4,
     ):
         """
         Parameters
         ----------
         grid: ModelGrid
             Landlab ModelGrid object
+        phi : float  (default 0.35)
+            Bulk porosity of bed sediment
+        rho : float (default 2650)
+            Density of the sediment layer
         soil_production_maximum_rate : float, array of float
-            Maximum weathering rate for bare bedrock
+            Maximum weathering rate for bare bedrock with no dependecy on the
+            topographic slope
+        slope_dependent_weathering_maximum_rate : float, array of float
+            Maximum slope-depedent weathering rate for bare bedrock
         soil_production_decay_depth : float, array of float
             Characteristic weathering depth
         """
@@ -97,11 +126,11 @@ class MultiClassExpSlopeDependentWeatherer(Component):
         self._phi = phi
         self._rho = rho
         self._p0 = soil_production_maximum_rate
-        self._kappa = kappa
+        self._kappa = slope_dependent_weathering_maximum_rate
         self._depth_decay_scale = soil_production_decay_depth
         self._cores = self._grid.core_nodes
 
-        # weathering rate
+        # Create soil_production__rate field
         if "soil_production__rate" not in grid.at_node:
             grid.add_zeros("soil_production__rate", at="node")
 
@@ -150,18 +179,23 @@ class MultiClassExpSlopeDependentWeatherer(Component):
 
     def run_one_step(self,
                      dt=1):
-        """
 
+        """
         Parameters
         ----------
         dt: float
-            Used only for compatibility with standard run_one_step.
+            model time step (yr)
         """
-
         self.calc_soil_prod_rate()
         self._update_dz_and_mass(dt=dt)
 
     @property
-    def maximum_weathering_rate(self):
-        """Maximum rate of weathering (m/yr)."""
-        return self._w0
+    def maximum_soil_production_rate(self):
+        """Maximum rate of weathering with no depdency on the topographic slope (m/yr)."""
+        return self._p0
+
+
+    @property
+    def maximum_slope_dependent_weathering_rate(self):
+        """Slope-dependent maximum weathering rate (m/yr)."""
+        return self._kappa

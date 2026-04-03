@@ -126,8 +126,8 @@ class MultiClassLinearDiffusion(LinearDiffuser):
             g_total_dt_node = np.sum(grain_weight_node, 1).copy()  # Total grains mass at node
             g_total_link[nonzero_link_ids] = g_total_dt_node[
                 nonzero_upwind_node_ids]  # Total sediment mass for of each up-wind node mapped to link.
-            g_state_link[nonzero_link_ids, :] = grain_weight_node[nonzero_upwind_node_ids,
-            :]  # Sediment mass for all size-fraction, mapped to link
+            g_state_link[nonzero_link_ids, :] = (
+                grain_weight_node)[nonzero_upwind_node_ids, :]  # Sediment mass for all size-fraction, mapped to link
             g_fraction_link = np.divide(g_state_link,
                                         g_total_link.reshape(-1, 1),
                                         out=np.zeros_like(g_state_link),
@@ -158,7 +158,6 @@ class MultiClassLinearDiffusion(LinearDiffuser):
                 (sum_fluxes_out[:, 0] / self._grid.length_of_link[0]) > dz_per_grainsize_at_node)
 
         if np.any(indices_to_correct_flux):
-
             # If the outflux is greater than the mass in the upstream node we should fix the outflux.
             if n_classes > 1:
                 ratios = np.divide(dz_per_grainsize_at_node[indices_to_correct_flux],
