@@ -5,36 +5,30 @@
 """
 
 import numpy as np
-
 from landlab import Component
 
 
 class MultiClassExpSlopeDependentWeatherer(Component):
-    """Calculate exponential and slope-dependent weathering of bedrock taking
-    into account various sediment grains classes.
+    """Calculate exponential and slope-dependent weathering of bedrock.
+    This component spreads the weathered material into various sediment grain classes.
 
-    Uses exponential soil production function in the style of Ahnert (1976).
-
+    Exponential soil production is calculated based on Ahnert (1976):
     Consider that ``w0`` is the maximum soil production rate and
     that ``w_star`` is the characteristic soil production depth. The
-    soil production rate ``w0`` is given as a function of the soil
-    depth::
+    soil production rate is given by:
 
         soil_production =  w0 * exp(-soil__depth / w_star)
 
-    Slope dependent weathering is calculate according to local topographic slope ``S`` and
+    Slope dependent weathering is calculated according to local topographic slope ``S`` and
     maximum weathering rate ``kappa``:
 
-        slope_dependent_weathering = kappa * S
-    
+        slope_dependent_weathering = kappa * S * exp(-soil__depth / w_star)
+
     References
     ----------
     Ahnert, F. (1976). Brief description of a comprehensive three-dimensional
     process-response model of landform development Z. Geomorphol. Suppl.  25,
     29 - 49.
-
-    Armstrong, A. (1976). A three dimensional simulation of slope forms.
-    Zeitschrift für Geomorphologie  25, 20 - 28.
 
     # Examples
     # --------
@@ -58,15 +52,15 @@ class MultiClassExpSlopeDependentWeatherer(Component):
     # ...     grains_weight=grains_weight,
     # ...     phi=porosity,
     # ...     soil_density=rho_sed)
+    # >>> fa = FlowAccumulator(grid)
+    # >>> fa.run_one_step()
     # >>> weatherer = MultiClassExpSlopeDependentWeatherer(grid,
     # ...     phi=porosity,
     # ...     rho=rho_sed,
     # ...     soil_production_maximum_rate=p0,
     # ...     slope_dependent_weathering_maximum_rate=kappa)
-    # >>> fa = FlowAccumulator(grid)
-    # >>> fa.run_one_step()
     # >>> weatherer.run_one_step(dt=1)
-    # >>> np.round(grid.at_node['soil__depth'][grid.core_nodes][0],4)
+    # >>> round(grid.at_node['soil__depth'][grid.core_nodes][0],4)
     np.float64(0.0162)
     """
 
@@ -78,13 +72,37 @@ class MultiClassExpSlopeDependentWeatherer(Component):
     """
 
     _info = {
+        "topographic__elevation": {
+            "dtype": float,
+            "intent": "inout",
+            "optional": True,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Topographic elevation at node",
+        },
+        "bedrock__elevation": {
+            "dtype": float,
+            "intent": "inout",
+            "optional": True,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Bedrock elevation at node",
+        },
         "soil__depth": {
             "dtype": float,
-            "intent": "in",
+            "intent": "inout",
             "optional": False,
             "units": "m",
             "mapping": "node",
             "doc": "Depth of soil or weathered bedrock",
+        },
+        "topographic__steepest_slope": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Steepest topographic slope stores stores at node",
         },
         "soil_production__rate": {
             "dtype": float,
@@ -93,6 +111,22 @@ class MultiClassExpSlopeDependentWeatherer(Component):
             "units": "m/yr",
             "mapping": "node",
             "doc": "rate of soil production at nodes",
+        },
+        "grains__weight": {
+            "dtype": float,
+            "intent": "inout",
+            "optional": False,
+            "units": "kg/m2",
+            "mapping": "node",
+            "doc": "Mass per unit area of grains in each size class stored at node",
+        },
+        "bed_grains__proportions": {
+            "dtype": float,
+            "intent": "in",
+            "optional": True,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Proportional mass of each grain size class in the bed layer",
         },
     }
 

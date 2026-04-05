@@ -13,6 +13,42 @@ from landlab import RasterModelGrid
 
 class MultiClassLinearDiffusion(LinearDiffuser):
 
+    """Calculate linear difffusion and spread sediment mass across grains classes.
+    This component call the LinearDiffuser component to update sediment flux by diffusion and
+    then update the mass accordingly.
+
+    The primary method of this class is :func:`run_one_step`.
+
+    # Examples
+    # --------
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.components import MultiClassLinearDiffusion
+    >>> from landlab.components.soil_grading import SoilGrading
+    >>> from landlab.components import FlowAccumulator
+    >>> rows=3
+    >>> columns=3
+    >>> xy_spacing = 10
+    >>> porosity = 0.4
+    >>> rho_sed = 2650
+    >>> grains_weight = 100
+    >>> linear_diffusivity=0.1
+    >>> grid = RasterModelGrid((rows, columns), xy_spacing=xy_spacing)
+    >>> sg = SoilGrading(grid,
+    ...     meansizes=grain_sizes,
+    ...     grains_weight=grains_weight,
+    ...     phi=porosity,
+    ...     soil_density=rho_sed)
+    >>> fa = FlowAccumulator(grid)
+    >>> fa.run_one_step()
+    >>> diffuser = MultiClassLinearDiffusion(grid,
+    ...     linear_diffusivity=linear_diffusivity,
+    ...     phi=porosity,
+    ...     rho_sed=rho_sed)
+    >>> diffuser.run_one_step(dt=1)
+    >>> round(grid.at_node['topographic__elevation'][grid.core_nodes][0],4)
+    np.float64(0.0626)
+    """
+
     _name = "MultiClassLinearDiffusion"
 
     _unit_agnostic = True
@@ -21,18 +57,34 @@ class MultiClassLinearDiffusion(LinearDiffuser):
         "topographic__elevation": {
             "dtype": float,
             "intent": "inout",
-            "optional": False,
+            "optional": True,
             "units": "m",
             "mapping": "node",
-            "doc": "Land surface topographic elevation",
+            "doc": "Topographic elevation at node",
+        },
+        "bedrock__elevation": {
+            "dtype": float,
+            "intent": "inout",
+            "optional": True,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Bedrock elevation at node",
+        },
+        "hillslope_sediment__unit_volume_flux": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m**2/s",
+            "mapping": "link",
+            "doc": "Volume flux per unit width along links",
         },
         "soil__depth": {
             "dtype": float,
             "intent": "inout",
             "optional": False,
-            "units": "-",
+            "units": "m",
             "mapping": "node",
-            "doc": "Soil depth",
+            "doc": "Depth of soil or weathered bedrock",
         },
         "grains__weight": {
             "dtype": float,
@@ -125,7 +177,7 @@ class MultiClassLinearDiffusion(LinearDiffuser):
         if n_classes > 1:
             g_total_dt_node = np.sum(grain_weight_node, 1).copy()  # Total grains mass at node
             g_total_link[nonzero_link_ids] = g_total_dt_node[
-                nonzero_upwind_node_ids]  # Total sediment mass for of each up-wind node mapped to link.
+                nonzero_upwind_node_ids]  # Total sediment mass for of each up-wind node (mapped to link).
             g_state_link[nonzero_link_ids, :] = (
                 grain_weight_node)[nonzero_upwind_node_ids, :]  # Sediment mass for all size-fraction, mapped to link
             g_fraction_link = np.divide(g_state_link,
