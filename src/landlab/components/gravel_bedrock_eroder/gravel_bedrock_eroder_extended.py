@@ -688,6 +688,22 @@ class ExtendedGravelBedrockEroder(Component):
         self._excess_stress = np.zeros((grid.number_of_nodes, self._n_classes))
         self._get_sediment_thickness_by_class()
 
+        #DEBUG
+        frogtest = np.zeros(self.grid.number_of_nodes)
+        onesie = np.ones(self.grid.number_of_nodes)
+        _calc_pluck_rate(
+                1,
+                self.grid.number_of_core_nodes,
+                0.01,
+                1.0, #self._flow_link_length_over_cell_area,
+                self._grid.core_nodes,
+                self._plucking_coef,
+                self._channel_width,
+                self._rock_exposure_fraction,
+                self._excess_stress_dims,
+                frogtest #self._pluck_rate
+        )
+
     def _create_2D_array_for_input_var(self, input_var, var_name):
         """
         This procedure receive an input variable that will be used
@@ -839,6 +855,10 @@ class ExtendedGravelBedrockEroder(Component):
             )
         else:
             self._flow_length_is_variable = True
+            #self._flow_link_length_over_cell_area = np.mean(self.grid.length_of_link) / np.mean(self.grid.area_of_cell)
+            # WARNING: THIS CREATES AN ARRAY INSTEAD OF A SCALAR,
+            # WHICH DOES NOT PLAY NICELY WITH THE CYTHON PLUCKING
+            # FUNCTIONS - TODO
             self._update_flow_link_length_over_cell_area()
             self._grid_has_diagonals = False
 
@@ -1076,7 +1096,6 @@ class ExtendedGravelBedrockEroder(Component):
     def _update_slopes(self):
         """Update topographic slope at node.
         Result is stored in field ``topographic__steepest_slope``.
-
 
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import FlowAccumulator
@@ -1490,6 +1509,10 @@ class ExtendedGravelBedrockEroder(Component):
 
         self._calc_excess_stress_dims()
 
+        print(self._n_classes, self.grid.number_of_core_nodes, classes_fractions.shape)
+        print(self._intermittency_factor, self._flow_link_length_over_cell_area.shape, self._grid.core_nodes.shape)
+        print(self._plucking_coef.shape, self._channel_width.shape, self._rock_exposure_fraction.shape)
+        print(self._excess_stress_dims.shape, self._pluck_rate.shape)
         if self._plucking_by_tools_flag:
             _calc_pluck_rate_tools(
                 self._n_classes,
@@ -1815,8 +1838,8 @@ class ExtendedGravelBedrockEroder(Component):
         self.calc_transport_rate()
         self.calc_sediment_influx()
 
-        if self._flow_length_is_variable:
-            self._update_flow_link_length_over_cell_area()
+        #if self._flow_length_is_variable:
+        #    self._update_flow_link_length_over_cell_area()
         self.calc_bedrock_plucking_rate()
         if np.amax(self._abr_coefs) > 0.0:
             self.calc_abrasion_rate()
