@@ -39,6 +39,7 @@ from .lithology import LithoLayers
 from .lithology import Lithology
 from .marine_sediment_transport import SimpleSubmarineDiffuser
 from .mass_wasting_runout import MassWastingRunout
+from .multi_class_linear_diffusion import MultiClassLinearDiffusion
 from .network_sediment_transporter import NetworkSedimentTransporter
 from .network_sediment_transporter.bed_parcel_initializers import (
     BedParcelInitializerArea,
@@ -95,7 +96,7 @@ from .uniform_precip import PrecipitationDistribution
 from .vegetation_dynamics import Vegetation
 from .weathering import ExponentialWeatherer
 from .weathering import ExponentialWeathererIntegrated
-
+from .weathering import MultiClassExpSlopeDependentWeatherer
 COMPONENTS = [
     AdvectionSolverTVD,
     AreaSlopeTransporter,
@@ -147,6 +148,8 @@ COMPONENTS = [
     Lithology,
     LossyFlowAccumulator,
     MassWastingRunout,
+    MultiClassLinearDiffusion,
+    MultiClassExpSlopeDependentWeatherer,
     NetworkSedimentTransporter,
     NormalFault,
     OverlandFlow,

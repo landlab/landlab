@@ -3,6 +3,7 @@ from cython.parallel import prange
 
 cimport cython
 cimport numpy as np
+from numpy.ma.core import min_val
 
 DTYPE_INT = int
 ctypedef np.intp_t DTYPE_INT_t
@@ -229,8 +230,7 @@ def _calc_pluck_rate(
         cython.floating[:] channel_width,
         cython.floating[:] rock_exposure_fraction,
         cython.floating[:] excess_stress,
-        cython.floating[:] out,
-):
+        cython.floating[:] out):
 
 
     cdef int col, node, row
@@ -249,3 +249,52 @@ def _calc_pluck_rate(
                                   flow_length*
                                   rock_exposure_fraction[node])
 
+
+
+def _min_time_to_exhaust_sed(
+    DTYPE_INT_t num_classes,
+    DTYPE_INT_t num_core_nodes,
+    np.ndarray[np.uint8_t, ndim=2] logical_values,
+    cython.floating[:, :] value_at_node_per_class,
+    cython.floating[:, :] value_at_node_per_class_dt,
+    min_dt):
+
+    cdef int col, row
+    cdef float min_dt_c
+
+    min_dt_c=min_dt
+
+    for row in prange(num_core_nodes, nogil=True, schedule="static", num_threads=32):
+            for col in range(num_classes):
+                if logical_values[row, col]:
+                    temp_val = value_at_node_per_class[row, col] / value_at_node_per_class_dt[row, col]
+                    if temp_val < min_dt_c:
+                        min_dt_c=temp_val
+
+    return min_dt_c
+
+
+
+
+
+
+def _min_time_to_flatten_slope(
+    DTYPE_INT_t num_classes,
+    DTYPE_INT_t num_core_nodes,
+    np.ndarray[np.uint8_t, ndim=1] logical_values,
+    cython.floating[:] height_above_rcvr,
+    cython.floating[:] rate_diff,
+    min_dt):
+
+    cdef int col, row
+    cdef float min_dt_c
+
+    min_dt_c=min_dt
+
+    for row in prange(num_core_nodes, nogil=True, schedule="static", num_threads=32):
+        if logical_values[row]:
+            temp_val = height_above_rcvr[row] / rate_diff[row]
+            if temp_val < min_dt_c:
+                min_dt_c=temp_val
+
+    return min_dt_c
