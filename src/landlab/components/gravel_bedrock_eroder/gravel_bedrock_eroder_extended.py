@@ -690,25 +690,6 @@ class ExtendedGravelBedrockEroder(Component):
         self._tau_star_c = np.zeros((grid.number_of_nodes, self._n_classes))
         self._excess_stress = np.zeros((grid.number_of_nodes, self._n_classes))
         self._get_sediment_thickness_by_class()
-<<<<<<< HEAD
-=======
-        #
-        # #DEBUG
-        # frogtest = np.zeros(self.grid.number_of_nodes)
-        # onesie = np.ones(self.grid.number_of_nodes)
-        # _calc_pluck_rate(
-        #         1,
-        #         self.grid.number_of_core_nodes,
-        #         0.01,
-        #         1.0, #self._flow_link_length_over_cell_area,
-        #         self._grid.core_nodes,
-        #         self._plucking_coef,
-        #         self._channel_width,
-        #         self._rock_exposure_fraction,
-        #         self._excess_stress_dims,
-        #         frogtest #self._pluck_rate
-        # )
->>>>>>> c8194b5e258768f48a7454afddf37420c0ab958e
 
     def _create_2D_array_for_input_var(self, input_var, var_name):
         """
@@ -1515,13 +1496,6 @@ class ExtendedGravelBedrockEroder(Component):
 
         self._calc_excess_stress_dims()
 
-<<<<<<< HEAD
-=======
-        #print(self._n_classes, self.grid.number_of_core_nodes, classes_fractions.shape)
-        #print(self._intermittency_factor, self._flow_link_length_over_cell_area.shape, self._grid.core_nodes.shape)
-        #print(self._plucking_coef.shape, self._channel_width.shape, self._rock_exposure_fraction.shape)
-        #print(self._excess_stress_dims.shape, self._pluck_rate.shape)
->>>>>>> c8194b5e258768f48a7454afddf37420c0ab958e
         if self._plucking_by_tools_flag:
             _calc_pluck_rate_tools(
                 self._n_classes,
