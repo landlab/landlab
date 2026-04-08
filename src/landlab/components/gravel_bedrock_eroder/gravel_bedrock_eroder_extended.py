@@ -2042,9 +2042,9 @@ class ExtendedGravelBedrockEroder(Component):
                                             value_at_node_per_class,
                                             value_at_node_per_class_dt,
                                             upper_limit_dt)
-
         else:
             min_time_to_exhaust_sed = upper_limit_dt
+
 
         dzdt = self._dHdt - self._rock_lowering_rate
         rate_diff = dzdt[self._receiver_node] - dzdt
@@ -2063,6 +2063,7 @@ class ExtendedGravelBedrockEroder(Component):
                                             upper_limit_dt)
         else:
             min_time_to_flatten_slope = upper_limit_dt
+
         min_dt = 0.5 * min(min_time_to_exhaust_sed, min_time_to_flatten_slope)
 
         return min_dt
