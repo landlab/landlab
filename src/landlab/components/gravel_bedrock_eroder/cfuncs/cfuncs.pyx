@@ -3,7 +3,6 @@ from cython.parallel import prange
 
 cimport cython
 cimport numpy as np
-from numpy.ma.core import min_val
 
 DTYPE_INT = int
 ctypedef np.intp_t DTYPE_INT_t
@@ -254,13 +253,14 @@ def _calc_pluck_rate(
 def _min_time_to_exhaust_sed(
     DTYPE_INT_t num_classes,
     DTYPE_INT_t num_core_nodes,
-    np.ndarray[np.uint8_t, ndim=2] logical_values,
-    cython.floating[:, :] value_at_node_per_class,
-    cython.floating[:, :] value_at_node_per_class_dt,
-    min_dt):
+    const unsigned char[:, :] logical_values,
+    double[:, :] value_at_node_per_class,
+    double[:, :] value_at_node_per_class_dt,
+    double min_dt):
 
     cdef int col, row
-    cdef float min_dt_c
+    cdef double min_dt_c
+    cdef double temp_val
 
     min_dt_c=min_dt
 
@@ -275,26 +275,70 @@ def _min_time_to_exhaust_sed(
 
 
 
-
-
-
 def _min_time_to_flatten_slope(
-    DTYPE_INT_t num_classes,
-    DTYPE_INT_t num_core_nodes,
-    np.ndarray[np.uint8_t, ndim=1] logical_values,
-    cython.floating[:] height_above_rcvr,
-    cython.floating[:] rate_diff,
-    min_dt):
+        DTYPE_INT_t num_classes,
+        DTYPE_INT_t num_core_nodes,
+        const unsigned char[:] logical_values,  # <--- Changed from np.ndarray to Memoryview
+        double[:] height_above_rcvr,
+        double[:] rate_diff,
+        double min_dt):
 
-    cdef int col, row
-    cdef float min_dt_c
+    cdef double min_dt_c
+    cdef double temp_val
+    cdef int row
 
     min_dt_c=min_dt
-
-    for row in prange(num_core_nodes, nogil=True, schedule="static", num_threads=32):
-        if logical_values[row]:
+    for row in range(num_core_nodes):
+        if logical_values[row] and rate_diff[row] != 0.0:
             temp_val = height_above_rcvr[row] / rate_diff[row]
             if temp_val < min_dt_c:
-                min_dt_c=temp_val
+                min_dt_c = temp_val
 
     return min_dt_c
+
+
+
+#
+# def _min_time_to_flatten_slope(
+#     DTYPE_INT_t num_classes,
+#     DTYPE_INT_t num_core_nodes,
+#     np.ndarray[np.uint8_t, ndim=1] logical_values,
+#     cython.floating[:] height_above_rcvr,
+#     cython.floating[:] rate_diff,
+#     min_dt):
+#
+#     cdef int col, row
+#     cdef float min_dt_c
+#     cdef float temp_val
+#
+#     min_dt_c=min_dt
+#
+#     for row in prange(num_core_nodes, nogil=True, schedule="static", num_threads=32):
+#         if logical_values[row]:
+#             temp_val = height_above_rcvr[row] / rate_diff[row]
+#             if temp_val < min_dt_c:
+#                 min_dt_c=temp_val
+#
+#     return min_dt_c
+
+#
+# def _min_time_to_flatten_slope(
+#     DTYPE_INT_t num_classes,
+#     DTYPE_INT_t num_core_nodes,
+#     np.uint8_t[:] logical_values,     # <--- Changed from np.ndarray to Memoryview
+#     cython.floating[:] height_above_rcvr,
+#     cython.floating[:] rate_diff,
+#     double min_dt):
+#
+#     cdef int row
+#     cdef double min_dt_c = min_dt
+#     cdef double temp_val
+#
+#     # Everything inside this loop is now "Pure C"
+#     for row in prange(num_core_nodes, nogil=True, schedule="static", num_threads=32):
+#         if logical_values[row]:
+#             temp_val = height_above_rcvr[row] / rate_diff[row]
+#             if temp_val < min_dt_c:
+#                 min_dt_c = temp_val
+#
+#     return min_dt_c

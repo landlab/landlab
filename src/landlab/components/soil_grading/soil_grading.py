@@ -186,7 +186,7 @@ class SoilGrading(Component):
             Provide seed to set grain size distribution.
             If not provided, seed is set to 2024.
         """
-        print("top of init", np.amax(grid.at_node["grains__weight"]))
+        #print("top of init", np.amax(grid.at_node["grains__weight"]))
 
         super().__init__(grid)
         self._fragmentation_pattern = fragmentation_pattern
@@ -208,7 +208,7 @@ class SoilGrading(Component):
         # Set grading limits
         self.set_grading_limits(limits=limits)
 
-        print("after sgl", np.amax(grid.at_node["grains__weight"]))
+        #print("after sgl", np.amax(grid.at_node["grains__weight"]))
 
         # Note: Landlabs' init_out_field procedure will not work
         # for the 'grains__weight' and 'grains_classes__size' fields

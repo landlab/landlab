@@ -13,11 +13,11 @@ setup(
 
 
 
-# ##
+##
 # ext_modules = [
 #     Extension(
-#         "raster_divergence",
-#         ["raster_divergence.pyx"],
+#         "cfuncs",
+#         ["cfuncs.pyx"],
 #         extra_compile_args=['-fopenmp'],
 #         extra_link_args=['-fopenmp'],
 #     )
