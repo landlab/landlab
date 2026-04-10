@@ -261,15 +261,15 @@ def _min_time_to_exhaust_sed(
     cdef int col, row
     cdef double min_dt_c
     cdef double temp_val
-
     min_dt_c=min_dt
 
-    for row in prange(num_core_nodes, nogil=True, schedule="static", num_threads=32):
-            for col in range(num_classes):
-                if logical_values[row, col]:
-                    temp_val = value_at_node_per_class[row, col] / value_at_node_per_class_dt[row, col]
-                    if temp_val < min_dt_c:
-                        min_dt_c=temp_val
+    # for row in prange(num_core_nodes, nogil=True, schedule="static", num_threads=32):
+    for row in range(num_core_nodes):
+        for col in range(num_classes):
+            if logical_values[row, col]:
+                temp_val = value_at_node_per_class[row, col] / value_at_node_per_class_dt[row, col]
+                if temp_val < min_dt_c:
+                    min_dt_c=temp_val
 
     return min_dt_c
 
@@ -286,10 +286,11 @@ def _min_time_to_flatten_slope(
     cdef double min_dt_c
     cdef double temp_val
     cdef int row
+    cdef double EPS = 1e-300  # or use libc.math's DBL_MIN
 
     min_dt_c=min_dt
     for row in range(num_core_nodes):
-        if logical_values[row] and rate_diff[row] != 0.0:
+        if logical_values[row] and rate_diff[row] > EPS:
             temp_val = height_above_rcvr[row] / rate_diff[row]
             if temp_val < min_dt_c:
                 min_dt_c = temp_val
