@@ -957,7 +957,7 @@ class ExtendedGravelBedrockEroder(Component):
         # print("ctsc, ms", median_size_at_node[self.grid.core_nodes])
         # print("ctsc, fs", fractions_sizes[self.grid.core_nodes])
         tau_star_c = self._tau_star_c
-        tau_star_c[:] = np.inf
+        #tau_star_c[:] = np.inf
         if self._n_classes > 1:
             tau_star_c[self.grid.core_nodes, :] = (
                 self._tau_star_c_median
