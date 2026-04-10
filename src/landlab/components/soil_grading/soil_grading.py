@@ -234,8 +234,6 @@ class SoilGrading(Component):
             #                stacklevel=2,
             #            )
             grid.add_zeros("soil__depth", at="node", clobber=True)
-        else:
-            print("SD already exists")
 
         if "topographic__elevation" not in grid.at_node:
             grid.add_zeros("topographic__elevation", at="node", clobber=True)
@@ -254,12 +252,12 @@ class SoilGrading(Component):
             grains_wt_already_initialized = False
         else:
             grains_wt_already_initialized = True
-            print("In SG init GW field already exists")
+            #print("In SG init GW field already exists")
 
-        print("pre IF", np.amax(grid.at_node["grains__weight"]))
+        #print("pre IF", np.amax(grid.at_node["grains__weight"]))
 
         if grains_weight is None and not grains_wt_already_initialized:
-            print("if1")
+            #print("if1")
             if initial_median_size is None:
                 self._initial_median_size = self._meansizes[
                     self._grid.core_nodes[0], int(self._n_sizes / 2)
@@ -272,12 +270,12 @@ class SoilGrading(Component):
             self._initial_total_soil_weight = initial_total_soil_weight
             self.generate_weight_distribution()
         else:
-            print("else1")
+            #print("else1")
             if isinstance(grains_weight, str):
-                print(" el1if1")
+                #print(" el1if1")
                 # Try to capture grains weight from an existing field
                 try:
-                    print("PLACE A")
+                    #print("PLACE A")
                     self._grains_weight = np.copy(grid.at_node[grains_weight])
                     if np.ndim(self._grains_weight) == 1:
                         # print("PLACE B")
@@ -291,22 +289,22 @@ class SoilGrading(Component):
                     self._grains_weight = grid.at_node["grains__weight"].reshape(
                         (grid.number_of_nodes, 1)
                     )
-                    print(" eee", np.amax(self._grains_weight))
+                    #print(" eee", np.amax(self._grains_weight))
                 else:
                     self._grains_weight = grid.at_node["grains__weight"]
             else:
-                print(" el1el1")
+                #print(" el1el1")
                 self._grains_weight = self._create_2D_array_for_input_var(
                     grains_weight, "grains__weight"
                 )
 
-        print("in sg if-um", np.amin(self._grid.at_node["topographic__elevation"]))
-        print(" s.gw", np.amax(self._grains_weight))
+        #print("in sg if-um", np.amin(self._grid.at_node["topographic__elevation"]))
+        #print(" s.gw", np.amax(self._grains_weight))
 
         # Update mass
         self._update_mass(self._grains_weight, grains_wt_already_initialized)
 
-        print("in sg um ubgp", np.amin(self._grid.at_node["topographic__elevation"]))
+        #print("in sg um ubgp", np.amin(self._grid.at_node["topographic__elevation"]))
 
         # TODO: do we need to update soil, topo, or bedrock if grains__weight is provided as a field?
 
@@ -329,7 +327,7 @@ class SoilGrading(Component):
         # Transition matrix
         self.create_transition_mat()
 
-        print("in sg ctm umgs", np.amin(self._grid.at_node["topographic__elevation"]))
+        #print("in sg ctm umgs", np.amin(self._grid.at_node["topographic__elevation"]))
 
         # Get the median size
         self.update_median_grain_size()
