@@ -321,6 +321,7 @@ class NetworkSedimentTransporter(Component):
         active_layer_d_multiplier: int = 2,
         slope_threshold: float = 1e-4,
         k_transp_dep_abr: float | None = None,
+        save_parcel_history: bool = True,
     ) -> None:
         """
         Parameters
@@ -444,6 +445,18 @@ class NetworkSedimentTransporter(Component):
         self._partition_active_and_storage_layers()
         self._adjust_node_elevation()
         self._update_channel_slopes()
+
+        if save_parcel_history:
+            warnings.warn(
+                "save_parcel_history=True is deprecated and will be removed in a"
+                " future version. Saving parcel history during every timestep"
+                " significantly slows model execution. Save parcel history"
+                " explicitly outside the component instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            self._parcels_record = parcels
+        self._save_parcel_history = save_parcel_history
 
     @property
     def parcels(self) -> Parcels:
@@ -999,6 +1012,48 @@ class NetworkSedimentTransporter(Component):
 
         else:
             raise RuntimeError("No more parcels on grid")
+
+        if self._save_parcel_history:
+            append_parcel_state(self._parcels_record, self._parcels, time=self._time)
+
+
+def append_parcel_state(
+    record: DataRecord,
+    parcels: Parcels,
+    *,
+    time: float,
+) -> DataRecord:
+    """Append the current parcel state to a DataRecord."""
+    if record.number_of_items != len(parcels):
+        raise ValueError(
+            f"record has {record.number_of_items} parcels but state has {len(parcels)}"
+        )
+
+    required = (
+        "element_id",
+        "location_in_link",
+        "time_arrival_in_link",
+        "active_layer",
+        "D",
+        "volume",
+    )
+    for name in required:
+        if name == "element_id":
+            continue
+        if name not in record.dataset:
+            raise ValueError(f"{name} must be assigned to the record")
+
+    record.add_record(time=[time])
+    record.ffill_grid_element_and_id()
+
+    record.dataset.element_id[:, -1] = parcels.element_id
+    record.dataset.location_in_link[:, -1] = parcels.location_in_link
+    record.dataset.time_arrival_in_link[:, -1] = parcels.time_arrival_in_link
+    record.dataset.active_layer[:, -1] = parcels.active_layer
+    record.dataset.D[:, -1] = parcels.D
+    record.dataset.volume[:, -1] = parcels.volume
+
+    return record
 
 
 # %% Methods referenced above, separated for purposes of testing

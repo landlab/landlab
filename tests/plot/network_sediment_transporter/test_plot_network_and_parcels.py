@@ -72,7 +72,7 @@ parcel_size_options = [
 def test_link_options(arg, l_opts, pc_opts, ps_opts, request):
     nst = request.getfixturevalue(arg)
     grid = nst.grid
-    parcels = nst._parcels
+    parcels = nst._parcels_record
     opts = {**l_opts, **pc_opts, **ps_opts}
     plot_network_and_parcels(grid, parcels, parcel_time_index=0, **opts)
 
@@ -84,7 +84,7 @@ def test_link_options(arg, l_opts, pc_opts, ps_opts, request):
 def test_link_array(arg, title, request):
     nst = request.getfixturevalue(arg)
     grid = nst.grid
-    parcels = nst._parcels
+    parcels = nst._parcels_record
 
     random_link = np.random.randn(grid.size("link"))
 
@@ -105,7 +105,7 @@ def test_link_array(arg, title, request):
 def test_with_filter(arg, request):
     nst = request.getfixturevalue(arg)
     grid = nst.grid
-    parcels = nst._parcels
+    parcels = nst._parcels_record
     parcel_filter = np.zeros((parcels.dataset.sizes["item_id"]), dtype=bool)
     parcel_filter[::10] = True
     plot_network_and_parcels(
@@ -126,7 +126,7 @@ def test_with_filter(arg, request):
 
 def test_double_network_color(synthetic):
     grid = synthetic.grid
-    parcels = synthetic._parcels
+    parcels = synthetic._parcels_record
     with pytest.raises(ValueError):
         plot_network_and_parcels(
             grid, parcels, link_attribute="sediment_total_volume", network_color="r"
@@ -144,7 +144,7 @@ def test_double_parcel_color(synthetic):
 
 def test_double_parcel_size(synthetic):
     grid = synthetic.grid
-    parcels = synthetic._parcels
+    parcels = synthetic._parcels_record
     with pytest.raises(ValueError):
         plot_network_and_parcels(
             grid, parcels, parcel_size_attribute="D", parcel_size=3
@@ -153,7 +153,7 @@ def test_double_parcel_size(synthetic):
 
 def test_categorical_parcel_color(synthetic):
     grid = synthetic.grid
-    parcels = synthetic._parcels
+    parcels = synthetic._parcels_record
     "quartzite"
     with pytest.raises(ValueError):
         plot_network_and_parcels(grid, parcels, parcel_color_attribute="quartzite")
@@ -161,7 +161,7 @@ def test_categorical_parcel_color(synthetic):
 
 def test_categorical_parcel_size(synthetic):
     grid = synthetic.grid
-    parcels = synthetic._parcels
+    parcels = synthetic._parcels_record
     "quartzite"
     with pytest.raises(ValueError):
         plot_network_and_parcels(grid, parcels, parcel_size_attribute="quartzite")
@@ -169,7 +169,7 @@ def test_categorical_parcel_size(synthetic):
 
 def test_missing_parcel_color(synthetic):
     grid = synthetic.grid
-    parcels = synthetic._parcels
+    parcels = synthetic._parcels_record
     "quartzite"
     with pytest.raises(ValueError):
         plot_network_and_parcels(grid, parcels, parcel_color_attribute="not_here")
@@ -177,7 +177,7 @@ def test_missing_parcel_color(synthetic):
 
 def test_missing_parcel_size(synthetic):
     grid = synthetic.grid
-    parcels = synthetic._parcels
+    parcels = synthetic._parcels_record
     "quartzite"
     with pytest.raises(ValueError):
         plot_network_and_parcels(grid, parcels, parcel_size_attribute="not_here")
