@@ -260,7 +260,7 @@ def init_grid_and_run_one_step(parameters):
                                          depth_decay_scale = parameters["hc"],
                                          alpha = parameters["mkomar"],
                                          epsilon = parameters["epsilon"],
-                                         fixed_width_flag = not parameters["width_is_dynamic"],
+                                         use_fixed_width = not parameters["width_is_dynamic"],
                                          abrasion_coefficients = parameters["beta"],
                                          intermittency_factor=parameters["intcy"],
                                          mannings_n = parameters["n"],
