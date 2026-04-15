@@ -6,3 +6,4 @@ hypothesis
 pytest
 pytest-datadir
 pytest-xdist
+sphinx

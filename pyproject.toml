@@ -69,6 +69,7 @@ testing = [
   "pytest",
   "pytest-datadir",
   "pytest-xdist",
+  "sphinx",
 ]
 
 [project.scripts]

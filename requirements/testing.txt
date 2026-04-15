@@ -4,3 +4,4 @@ hypothesis==6.138.7
 pytest==8.4.1
 pytest-datadir==1.8.0
 pytest-xdist==3.8.0
+sphinx==9.1.0
