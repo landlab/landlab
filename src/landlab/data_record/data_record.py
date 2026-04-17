@@ -11,6 +11,9 @@ from requireit import raise_as
 from requireit import require_array
 from requireit import require_contains
 from requireit import require_dtype
+from requireit import require_greater_than_or_equal
+from requireit import require_length
+from requireit import require_less_than
 from requireit import require_one_of
 from requireit import require_shape
 from requireit import require_sorted
@@ -796,72 +799,56 @@ class DataRecord:
                [0.5],
                [0.4]])
         """
-        if data_variable not in self.variable_names:
-            raise KeyError(
-                "the variable '{}' is not in the " "DataRecord".format(data_variable)
-            )
+        with raise_as(KeyError):
+            require_contains(self._dataset, required=(data_variable,), name="dataset")
 
-        # If record to be changed is 'grid_element' or 'element_id',
-        # check that provided grid_element is valid and that new
-        # grid_element+element_id combination exist on the grid and
-        # have valid format:
-        if data_variable in ("grid_element", "element_id"):
-            if data_variable == "grid_element":
-                assoc_grid_element = new_value
-                assoc_element_id = self.get_data(time, item_id, "element_id")[0]
-            if data_variable == "element_id":
-                if not isinstance(new_value, int):
-                    raise ValueError(
-                        "You have passed a non-integer "
-                        "element_id to DataRecord, this is not "
-                        "permitted"
-                    )
-                if new_value < 0:
-                    raise ValueError(
-                        "You have passed an element id below "
-                        "zero. This is not permitted"
-                    )
-                assoc_element_id = new_value
-                assoc_grid_element = self.get_data(time, item_id, "grid_element")[0]
+        coords = self._dataset.coords
+        var = self._dataset[data_variable]
+        dims = var.dims
+        values = var.values
 
-            _ = norm_grid_element(assoc_grid_element, allowed=self._permitted_locations)
+        time_index = slice(None)
+        if time is not None:
+            with raise_as(KeyError):
+                require_contains(coords, required=("time",), name="dataset")
+            time = require_length(self._norm_time(time), 1)
+            time_index = _find_time(time[0], self._dataset["time"])
 
-            if assoc_element_id >= self._grid[assoc_grid_element].size:
-                raise ValueError(
-                    f"The location {assoc_grid_element} {assoc_element_id}"
-                    " does not exist on this grid"
+        item_index = slice(None)
+        if item_id is not None:
+            with raise_as(KeyError):
+                require_contains(coords, required=("item_id",), name="dataset")
+            item_index = _norm_item_id(item_id, self._dataset["item_id"])
+
+        if data_variable == "element_id":
+            grid_element = self.get_data(time, item_id, "grid_element")[0]
+            new_value = norm_element_id(new_value)
+            with raise_as(ValueError):
+                require_greater_than_or_equal(new_value, 0, name="new_value")
+                require_less_than(
+                    new_value, self._grid[grid_element].size, name="new_value"
+                )
+        elif data_variable == "grid_element":
+            new_value = norm_grid_element(new_value, allowed=self._permitted_locations)[
+                0
+            ]
+            element_id = self.get_data(time, item_id, "element_id")[0]
+            with raise_as(ValueError):
+                require_greater_than_or_equal(element_id, 0, name="element_id")
+                require_less_than(
+                    element_id, self._grid[new_value].size, name="element_id"
                 )
 
-        if time is None:
-            self._dataset[data_variable].values[item_id] = new_value
-        else:
-            try:
-                len(time)
-            except TypeError as exc:
-                raise TypeError("time must be a list or a 1-d array") from exc
-            try:
-                # check that time coordinate already exists
-                time_index = np.where(self._dataset.time.values == time)[0][0]
-            except IndexError as exc:
-                raise IndexError(
-                    "The time you passed is not currently"
-                    " in the DataRecord, you must change the value"
-                    " you pass or first create the new time "
-                    " coordinate using the add_record method"
-                ) from exc
-
-            if item_id is None:
-                self._dataset[data_variable].values[time_index] = new_value
+        indices = ()
+        for dim in dims:
+            if dim == "time":
+                indices += (time_index,)
+            elif dim == "item_id":
+                indices += (item_index,)
             else:
-                try:
-                    len(item_id)
-                except TypeError as exc:
-                    raise TypeError("item_id must be a list or a 1-d array") from exc
-                try:
-                    self._dataset["item_id"]
-                    self._dataset[data_variable].values[item_id, time_index] = new_value
-                except KeyError as exc:
-                    raise KeyError("This DataRecord does not hold items") from exc
+                indices += (slice(None),)
+
+        values[indices] = new_value
 
     def calc_aggregate_value(
         self,
@@ -1216,6 +1203,16 @@ class DataRecord:
             return np.nan
         else:
             return sorted(self.time_coordinates)[-2]
+
+
+def check_element_id(grid_element, element_id):
+    with raise_as(ValueError):
+        require_greater_than_or_equal(element_id, 0, name="element_id")
+        require_less_than(
+            element_id,
+            self._grid[grid_element].size,
+            name="element_id",
+        )
 
 
 def norm_element_id(ids: ArrayLike) -> NDArray[np.intp]:
