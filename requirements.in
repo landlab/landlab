@@ -8,7 +8,6 @@ py-richdem
 pyshp != 2.3.0
 pyyaml
 requireit
-rich-click
 scipy
 statsmodels
 xarray >= 0.16

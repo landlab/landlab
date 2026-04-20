@@ -8,7 +8,6 @@ py-richdem==2.2.0rc2
 pyshp==3.0.3
 pyyaml==6.0.3
 requireit==0.8.0
-rich-click==1.9.7
 scipy==1.17.0
 statsmodels==0.14.6
 xarray==2026.1.0

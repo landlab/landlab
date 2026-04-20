@@ -48,7 +48,6 @@ dependencies = [
   "pyyaml",
   "pyshp != 2.3.0",
   "requireit>=0.8.0",
-  "rich-click",
   "scipy",
   "statsmodels",
   "pandas",
@@ -70,10 +69,11 @@ testing = [
   "pytest",
   "pytest-datadir",
   "pytest-xdist",
+  "sphinx",
 ]
 
 [project.scripts]
-landlab = "landlab.cmd.landlab:landlab"
+landlab = "landlab.cmd.landlab:main"
 
 [tool.setuptools]
 include-package-data = true
