@@ -1,8 +1,11 @@
+import copy
+
 import numpy as np
 
 from landlab import Component
+from landlab.grid.mappers import map_node_to_cell
 
-_VALID_METHODS = {"Constant", "PriestleyTaylor", "MeasuredRadiationPT", "Cosine"}
+_VALID_METHODS = {"PriestleyTaylor", "PenmanMonteith", "NetRadEqPE"}
 
 
 def _assert_method_is_valid(method):
@@ -15,12 +18,12 @@ class PotentialEvapotranspiration(Component):
     Potential Evapotranspiration Component calculates spatially distributed
     potential evapotranspiration based on input radiation factor (spatial
     distribution of incoming radiation) using chosen method such as constant
-    or Priestley Taylor. Ref: Xiaochi et. al. 2013 for 'Cosine' method and
+    or Priestley Taylor.
     ASCE-EWRI Task Committee Report Jan 2005 for 'PriestleyTaylor' method.
     Note: Calling 'PriestleyTaylor' method would generate/overwrite shortwave &
     longwave radiation fields.
 
-    .. codeauthor:: Sai Nudurupati and Erkan Istanbulluoglu
+    .. codeauthor:: Sai Nudurupati and Erkan Istanbulluoglu and Berkan Mertan
 
     Examples
     --------
@@ -28,37 +31,30 @@ class PotentialEvapotranspiration(Component):
     >>> from landlab.components.pet import PotentialEvapotranspiration
 
     >>> grid = RasterModelGrid((5, 4), xy_spacing=(0.2, 0.2))
-    >>> grid["cell"]["radiation__ratio_to_flat_surface"] = np.array(
-    ...     [0.38488566, 0.38488566, 0.33309785, 0.33309785, 0.37381705, 0.37381705]
-    ... )
-    >>> PET = PotentialEvapotranspiration(grid)
+    >>> grid.at_node["topographic__elevation"] = [
+    ...     [0.0, 0.0, 0.0, 0.0],
+    ...     [1.0, 1.0, 1.0, 1.0],
+    ...     [2.0, 2.0, 2.0, 2.0],
+    ...     [3.0, 4.0, 4.0, 3.0],
+    ...     [4.0, 4.0, 4.0, 4.0],
+    ... ]
+    >>> PET = PotentialEvapotranspiration(grid, latitude=40.0)
     >>> PET.name
     'PotentialEvapotranspiration'
-    >>> PET.input_var_names
-    ('radiation__ratio_to_flat_surface',)
     >>> sorted(PET.output_var_names)
-    ['radiation__incoming_shortwave_flux',
-     'radiation__net_flux',
-     'radiation__net_longwave_flux',
-     'radiation__net_shortwave_flux',
-     'surface__potential_evapotranspiration_rate']
+     ['surface__potential_evapotranspiration_rate']
     >>> sorted(PET.units)
-    [('radiation__incoming_shortwave_flux', 'W/m^2'),
-     ('radiation__net_flux', 'W/m^2'),
-     ('radiation__net_longwave_flux', 'W/m^2'),
-     ('radiation__net_shortwave_flux', 'W/m^2'),
-     ('radiation__ratio_to_flat_surface', 'None'),
-     ('surface__potential_evapotranspiration_rate', 'mm')]
-    >>> PET.grid.number_of_cell_rows
-    3
-    >>> PET.grid.number_of_cell_columns
-    2
+    [('surface__potential_evapotranspiration_rate', 'mm')]
+    >>> PET.grid.number_of_node_rows
+    5
+    >>> PET.grid.number_of_node_columns
+    4
     >>> PET.grid is grid
     True
     >>> pet_rate = grid.at_cell["surface__potential_evapotranspiration_rate"]
     >>> np.allclose(pet_rate, 0.0)
     True
-    >>> PET.current_time = 0.5
+    >>> PET._current_time = 0.5
     >>> PET.update()
     >>> np.allclose(pet_rate, 0.0)
     False
@@ -91,49 +87,6 @@ class PotentialEvapotranspiration(Component):
     _unit_agnostic = False
 
     _info = {
-        "radiation__incoming_shortwave_flux": {
-            "dtype": float,
-            "intent": "out",
-            "optional": False,
-            "units": "W/m^2",
-            "mapping": "cell",
-            "doc": "incident shortwave radiation",
-        },
-        "radiation__net_flux": {
-            "dtype": float,
-            "intent": "out",
-            "optional": False,
-            "units": "W/m^2",
-            "mapping": "cell",
-            "doc": "net radiation",
-        },
-        "radiation__net_longwave_flux": {
-            "dtype": float,
-            "intent": "out",
-            "optional": False,
-            "units": "W/m^2",
-            "mapping": "cell",
-            "doc": "net incident longwave radiation",
-        },
-        "radiation__net_shortwave_flux": {
-            "dtype": float,
-            "intent": "out",
-            "optional": False,
-            "units": "W/m^2",
-            "mapping": "cell",
-            "doc": "net incident shortwave radiation",
-        },
-        "radiation__ratio_to_flat_surface": {
-            "dtype": float,
-            "intent": "in",
-            "optional": False,
-            "units": "None",
-            "mapping": "cell",
-            "doc": (
-                "ratio of incident shortwave radiation on sloped "
-                "surface to flat surface"
-            ),
-        },
         "surface__potential_evapotranspiration_rate": {
             "dtype": float,
             "intent": "out",
@@ -141,17 +94,20 @@ class PotentialEvapotranspiration(Component):
             "units": "mm",
             "mapping": "cell",
             "doc": "potential sum of evaporation and potential transpiration",
-        },
+        }
     }
 
     def __init__(
         self,
         grid,
-        method="Cosine",
+        method="PriestleyTaylor",
         priestley_taylor_const=1.26,
+        relative_humidity=0.65,
         albedo=0.6,
+        air_density=None,
         latent_heat_of_vaporization=28.34,
         psychometric_const=0.066,
+        LAI=2.88,
         stefan_boltzmann_const=0.0000000567,
         solar_const=1366.67,
         latitude=34.0,
@@ -161,28 +117,40 @@ class PotentialEvapotranspiration(Component):
         nd=365.0,
         MeanTmaxF=12.0,
         delta_d=5.0,
-        current_time=None,
-        const_potential_evapotranspiration=12.0,
-        Tmin=0.0,
-        Tmax=1.0,
-        Tavg=0.5,
-        obs_radiation=350.0,
+        current_time=0.5,
+        Tmin=10,
+        Tmax=25,
+        Tavg=17.5,
+        Rl=100,
+        Zm=2.0,
+        Zd=0.084,
+        Zo=0.012,
+        Zveg=None,
+        Vwind=3.12,
+        temperatures=None,
+        radiation=None,
     ):
         """
         Parameters
         ----------
         grid: RasterModelGrid
             A grid.
-        method: {'Constant', 'PriestleyTaylor', 'MeasuredRadiationPT', 'Cosine'}, optional
+        method: {'PriestleyTaylor', 'PenmanMonteith', 'NetRadEqPE'}, optional
             Priestley Taylor method will spit out radiation outputs too.
         priestley_taylor_constant: float, optional
             Alpha used in Priestley Taylor method.
+        relative_humidity: float, optional
+            Relative humidity factor used to determine real Priestley Taylor constant
         albedo: float, optional
             Albedo.
+        air_density: float, field, optional
+            Single value or spatially distributed air densities in kg/m^3.
         latent_heat_of_vaporization: float, optional
             Latent heat of vaporization for water Pwhv (Wd/(m*mm^2)).
         psychometric_const: float, optional
             Psychometric constant (kPa (deg C)^-1).
+        LAI: float, field, optional
+            LAI used for Penman Monteith equation
         stefan_boltzmann_const: float, optional
             Stefan Boltzmann's constant (W/(m^2K^-4)).
         solar_const: float, optional
@@ -203,72 +171,118 @@ class PotentialEvapotranspiration(Component):
             Calibrated difference between max & min daily TmaxF (mm/d).
         current_time: float, required only for 'Cosine' method
             Current time (Years)
-        const_potential_evapotranspiration: float, optional for
-            'Constant' method
-            Constant PET value to be spatially distributed.
         Tmin: float, required for 'Priestley Taylor' method
             Minimum temperature of the day (deg C)
         Tmax: float, required for 'Priestley Taylor' method
             Maximum temperature of the day (deg C)
-        Tavg: float, required for 'Priestley Taylor' and 'MeasuredRadiationPT'
+        Tavg: float, required for 'Priestley Taylor' method
             methods
             Average temperature of the day (deg C)
-        obs_radiation float, required for 'MeasuredRadiationPT' method
-            Observed radiation (W/m^2)
+        Rl: float, optional
+            Stomatal wall resistance in s/m, set by default to 100s/m
+        Zm: float, optional
+            Elevation / height at which wind speed is recorded
+        Zd: float, optional
+            Zero plane displacement height
+        Zo: float, optional
+            Roughness length
+        Zveg: float, optional
+            Vegetation height, used if other Z variables are default
+        Vwind: float, optional
+            Wind speed / velocity
+        temperatures: float, field, optional
+            Spatially distributed temperatures (deg C) to apply to PET grid/fields as a whole
+        radiation float, optional
+            User-provided net radiation field, if not given net radiation will be
+            computed internally (W/m^2)
         """
         super().__init__(grid)
 
-        self.current_time = current_time
-        self.const_potential_evapotranspiration = const_potential_evapotranspiration
-        self.Tmin = Tmin
-        self.Tmax = Tmax
-        self.Tavg = Tavg
-        self.obs_radiation = obs_radiation
+        # Grid copy is used for node to cell mapping operations
+        self._gridCopy = copy.deepcopy(self._grid)
 
+        self._current_time = current_time
+
+        self._zm = Zm
+        self._zd = Zd
+        self._zo = Zo
+        self._zveg = Zveg
+        self._vz = Vwind
+        self._rl = Rl
+
+        self._user_radiation = radiation
         self._method = method
         # For Priestley Taylor
         self._alpha = priestley_taylor_const
         self._a = albedo
+        self._pa = air_density
         self._pwhv = latent_heat_of_vaporization
         self._y = psychometric_const
         self._sigma = stefan_boltzmann_const
         self._Gsc = solar_const
-        self._phi = (np.pi / 180.0) * latitude
-        self._z = elevation_of_measurement
+        self._latitude = latitude
         self._Krs = adjustment_coeff
         self._LT = lt
+        self._LAI = self._validate_lai(LAI)
         self._ND = nd
         self._TmaxF_mean = MeanTmaxF
         self._DeltaD = delta_d
+        self._relative_humidity = relative_humidity
+        self._temperatures = temperatures
         _assert_method_is_valid(self._method)
 
         self.initialize_output_fields()
 
+        self.Tmin, self.Tmax = self._validate_temperature_range(Tmin, Tmax)
+
+        # If user provides Tmin/Tmax and not Tavg, calculate Tavg
+        if not isinstance(Tavg, np.ndarray) and Tavg == 17.5:
+            self.Tavg = (self._Tmin + self._Tmax) / 2
+        else:
+            self.Tavg = Tavg
+
+        # Import Radiation to instantiate an internal radiation component
+        from landlab.components import Radiation
+
+        if "topographic__elevation" not in self._gridCopy.at_node.keys():
+            self._gridCopy.add_zeros("topographic__elevation", at="node")
+
+        # Internal radiation component
+        self._etpRad = Radiation(
+            self._gridCopy,
+            method="Grid",
+            latitude=self._latitude,
+            current_time=self._current_time,
+            albedo=self._a,
+            max_daily_temp=self._Tmax,
+            min_daily_temp=self._Tmin,
+        )
+
         self._cell_values = self._grid["cell"]
 
+        # Omit closed nodes from PET calculations
+        self._gridCopy = copy.deepcopy(self._grid)
+        self._gridCopy.add_field(
+            "pet_status_at_node", self._grid.status_at_node, at="node"
+        )
+        self._cellular_status = map_node_to_cell(self._gridCopy, "pet_status_at_node")
+        self._closed_elevations = (
+            self._cellular_status == self._gridCopy.BC_NODE_IS_CLOSED
+        )
+
+        self._UpdateRad()
+
     @property
-    def const_potential_evapotranspiration(self):
-        """Constant PET value to be spatially distributed.
+    def radiation(self):
+        """User-provided net radiation field (W/m^2)
 
-        Used by 'Constant' method.
+        radiation float, optional user-provided net radiation field.
         """
-        return self._const_potential_evapotranspiration
+        return self._user_radiation
 
-    @const_potential_evapotranspiration.setter
-    def const_potential_evapotranspiration(self, const_potential_evapotranspiration):
-        self._const_potential_evapotranspiration = const_potential_evapotranspiration
-
-    @property
-    def obs_radiation(self):
-        """Observed radiation (W/m^2)
-
-        obs_radiation float, required for 'MeasuredRadiationPT' method.
-        """
-        return self._obs_radiation
-
-    @obs_radiation.setter
-    def obs_radiation(self, obs_radiation):
-        self._obs_radiation = obs_radiation
+    @radiation.setter
+    def radiation(self, radiation):
+        self._user_radiation = radiation
 
     @property
     def Tmin(self):
@@ -297,8 +311,7 @@ class PotentialEvapotranspiration(Component):
     @property
     def Tavg(self):
         """Average temperature of the day (deg C)
-
-        Tavg: float, required for 'Priestley Taylor' and 'MeasuredRadiationPT'
+        Tavg: float, required for 'Priestley Taylor'
         methods.
         """
         return self._Tavg
@@ -307,171 +320,227 @@ class PotentialEvapotranspiration(Component):
     def Tavg(self, Tavg):
         self._Tavg = Tavg
 
+    @property
+    def grid(self):
+        return self._grid
+
+    @grid.setter
+    def grid(self, grid):
+        self._grid = grid
+        self._gridCopy = grid
+        self._etpRad._grid = self._gridCopy
+
+    def _process_field(self, field, field_name):
+        if isinstance(field, np.ndarray) and np.shape(field) == np.shape(
+            self._grid.at_node["topographic__elevation"]
+        ):
+            self._gridCopy.add_field(field_name, field, at="node")
+            return map_node_to_cell(self._gridCopy, field_name)
+
+        return field
+
+    def _validate_temperature_range(self, min_temp, max_temp):
+        if np.any(min_temp is None) or np.any(max_temp is None):
+            raise ValueError("Tmin and Tmax are required fields")
+        if np.any(min_temp > max_temp):
+            raise ValueError("Tmin must be less than Tmax")
+
+        min_temp = self._process_field(min_temp, "min_temperature")
+        max_temp = self._process_field(max_temp, "max_temperature")
+
+        return min_temp, max_temp
+
+    def _validate_lai(self, lai):
+        return self._process_field(lai, "leaf_area_index")
+
+    # Function used to adjust field/variable values that would raise errors
+    def _fix_values(self, field, error_value, fixed_value):
+        if isinstance(field, np.ndarray):
+            if np.any(field == error_value):
+                field[field == error_value] = fixed_value
+
+        elif field == error_value:
+            field = fixed_value
+
     def update(self):
         """Update fields with current conditions.
 
-        If the 'Constant' method is used, this method looks to the value of
-        the ``const_potential_evapotranspiration`` property.
+        If the 'PenmanMonteith' method is used, this method looks to the properties of
+        ``Tmin``, ``Tavg``, ``Zveg``, and all the other Penman / vegetation factors.
 
         If the 'PriestleyTaylor' method is used, this method looks to the
         values of the ``Tmin``, ``Tmax``, and ``Tavg`` properties.
 
-        If the 'MeasuredRadiationPT' method is use this method looks to the
-        values of the ``Tavg`` and ``obs_radiation`` property.
+        If the 'NetRadEqPE' method is used, this method looks to the values of
+        the ``radiation`` (considered radiation field) and
+        ``latent_heat_of_vaporization`` properties.
         """
 
-        if self._method == "Constant":
-            self._PET_value = self._const_potential_evapotranspiration
-        elif self._method == "PriestleyTaylor":
-            self._PET_value = self._PriestleyTaylor(
-                self._current_time, self._Tmax, self._Tmin, self._Tavg
-            )
-            self._cell_values["radiation__incoming_shortwave_flux"] = (
-                self._Rs * self._cell_values["radiation__ratio_to_flat_surface"]
-            )
-            self._cell_values["radiation__net_shortwave_flux"] = (
-                self._Rns * self._cell_values["radiation__ratio_to_flat_surface"]
-            )
-            self._cell_values["radiation__net_longwave_flux"] = (
-                self._Rnl * self._cell_values["radiation__ratio_to_flat_surface"]
-            )
-            self._cell_values["radiation__net_flux"] = (
-                self._Rn * self._cell_values["radiation__ratio_to_flat_surface"]
-            )
-        elif self._method == "MeasuredRadiationPT":
-            Robs = self._obs_radiation
-            self._PET_value = self._MeasuredRadPT(self._Tavg, (1 - self._a) * Robs)
-        elif self._method == "Cosine":
-            self._J = np.floor(
-                (self._current_time - np.floor(self._current_time)) * 365.0
-            )
-            self._PET_value = max(
-                (
-                    self._TmaxF_mean
-                    + self._DeltaD
-                    / 2.0
-                    * np.cos(
-                        (2 * np.pi) * (self._J - self._LT - self._ND / 2) / self._ND
-                    )
-                ),
-                0.0,
-            )
+        self._UpdateRad()
 
-        self._PET = (
-            self._PET_value * self._cell_values["radiation__ratio_to_flat_surface"]
+        if self._method == "PriestleyTaylor":
+            self._PET_value = self._PriestleyTaylor()
+
+        elif self._method == "PenmanMonteith":
+            self._PET_value = self._PenmanMonteith()
+
+        elif self._method == "NetRadEqPE":
+            self._PET_value = self._NetRadEqPE()
+
+        if isinstance(self._PET_value, np.ndarray):
+            self._PET_value[self._closed_elevations] = 0.0
+
+        self._cell_values["surface__potential_evapotranspiration_rate"][
+            :
+        ] = self._PET_value
+
+    def _PriestleyTaylor(self):
+        self._ETp = np.maximum(
+            self._inp_alpha
+            * (self._delta / (self._delta + self._y))
+            * (self._input_rad / self._pwhv),
+            0,
         )
-        self._cell_values["surface__potential_evapotranspiration_rate"][:] = self._PET
+        return self._ETp
 
-    def _PriestleyTaylor(self, current_time, Tmax, Tmin, Tavg):
-        # Julian Day - ASCE-EWRI Task Committee Report, Jan-2005 - Eqn 25, (52)
-        self._J = np.floor((current_time - np.floor(current_time)) * 365)
+    # Penman Monteith method
+    def _PenmanMonteith(self):
+        self._deltaTerm = self._delta * (self._input_rad - self._G)
+        # LAIa is 50% of the LAI
+        # rl is stomatal resistance of the cell wall
+        self._LAIa = self._LAI * 0.5
+        self._rs = self._rl / self._LAIa
+
+        self._fix_values(self._vz, 0, 1.0)
+
+        # Ensure that wind measurements are done above the vegetation canopy
+        if self._is_zveg_defined and np.any((self._zm - self._zveg) <= 0):
+            raise ValueError(
+                f"""Elevation of wind speed observation, Zm ({self._zm}) must exceed
+                the vegetation height, Zdveg ({self._zveg}).
+                if wind was measured at a local station, use a logarithmic wind profile to
+                estimate wind speed above canopy height."""
+            )
+        # If user didn't provide Zveg, ensure that wind measurements are done
+        # above the zero-plane displacement height
+        elif np.any((self._zm - self._zd) <= 0):
+            raise ValueError(
+                f"""Elevation of wind speed observation, Zm ({self._zm}) must exceed
+                the zero-plane displacement height, ({self._zd})."""
+            )
+
+        # Aerodynamic resistance
+        self._ra = (np.log((self._zm - self._zd) / self._zo)) ** 2 / (
+            self._k**2 * self._vz
+        )
+
+        self._vaporTerm = self._ca * self._pa * (self._es - self._ea) / self._ra
+
+        self._denom = self._pwhv * (self._delta + self._y * (1 + self._rs / self._ra))
+        self._ETp = (self._deltaTerm + self._vaporTerm) / self._denom
+
+        return self._ETp
+
+    # Net Rad equivalent PE method
+    def _NetRadEqPE(self):
+        self._E = self._input_rad / self._pwhv
+
+        return self._E
+
+    # Called before every PET update, ensures internal
+    # calculations use user-updated variables
+    def _UpdateRad(self):
+        self._Tmin, self._Tmax = self._validate_temperature_range(
+            self._Tmin, self._Tmax
+        )
+
+        self._LAI = self._validate_lai(self._LAI)
+
+        # Update internal radiation component variables
+        self._etpRad._current_time = self._current_time
+        self._etpRad._Tmax = self._Tmax
+        self._etpRad._Tmin = self._Tmin
+        self._etpRad._a = self._a
+
+        self._etpRad._latitude = self._latitude
+
+        self._etpRad.update()
+
+        self._input_rad = (
+            self._etpRad._cell_values["radiation__net_flux"]
+            if np.all(self._user_radiation is None)
+            else self._user_radiation
+        )
+
+        # Ground heat flux, 10% of net rad
+        self._G = self._input_rad * 0.1
+
+        self._inp_alpha = self._alpha
+
+        if not isinstance(self._Tavg, np.ndarray) and self._Tavg == 17.5:
+            self._Tavg = (self._Tmax + self._Tmin) / 2
+
+        self._inp_temp = self._Tavg
+        if self._temperatures is not None:
+            self._inp_temp = self._temperatures
+
         # Saturation Vapor Pressure - ASCE-EWRI Task Committee Report,
         # Jan-2005 - Eqn 6, (37)
-        self._es = 0.6108 * np.exp((17.27 * Tavg) / (237.7 + Tavg))
+        self._es = 0.6108 * np.exp((17.27 * self._inp_temp) / (237.7 + self._inp_temp))
 
         # Actual Vapor Pressure - ASCE-EWRI Task Committee Report,
         # Jan-2005 - Eqn 8, (38)
-        self._ea = 0.6108 * np.exp((17.27 * Tmin) / (237.7 + Tmin))
+        self._ea = (
+            0.6108
+            * np.exp((17.27 * self._Tmin) / (237.7 + self._Tmin))
+            * self._relative_humidity
+        )
 
         # Slope of Saturation Vapor Pressure - ASCE-EWRI Task Committee Report,
         # Jan-2005 - Eqn 5, (36)
-        self._delta = (4098.0 * self._es) / ((237.3 + Tavg) ** 2.0)
+        self._delta = (4098.0 * self._es) / ((237.3 + self._inp_temp) ** 2.0)
 
-        # Solar Declination Angle - ASCE-EWRI Task Committee Report,
-        # Jan-2005 - Eqn 24,(51)
-        self._sdecl = 0.409 * np.sin(((np.pi / 180.0) * self._J) - 1.39)
+        # Checks if user-provided vegetation variables are spatially distributed
+        is_zveg_field = isinstance(self._zveg, np.ndarray)
+        is_zo_field = isinstance(self._zo, np.ndarray)
+        is_zd_field = isinstance(self._zd, np.ndarray)
 
-        # Inverse Relative Distance Factor - ASCE-EWRI Task Committee Report,
-        # Jan-2005 - Eqn 23,(50)
-        self._dr = 1 + (0.033 * np.cos(np.pi / 180.0 * self._J))
+        # Used in Penman method
+        self._is_zveg_defined = (self._zveg is not None) if not is_zveg_field else True
+        is_zo_default = (self._zo == 0.012) if not is_zo_field else False
+        is_zd_default = (self._zd == 0.084) if not is_zd_field else False
 
-        # To calculate ws - ASCE-EWRI Task Committee Report,
-        # Jan-2005 - Eqn 29,(61)
-        self._x = 1.0 - (((np.tan(self._phi)) ** 2.0) * (np.tan(self._sdecl) ** 2.0))
-        if self._x <= 0:
-            self._x = 0.00001
-            # Sunset Hour Angle - ASCE-EWRI Task Committee Report,
-            # Jan-2005 - Eqn 28,(60)
-        self._ws = (np.pi / 2.0) - np.arctan(
-            (-1 * np.tan(self._phi) * np.tan(self._sdecl)) / (self._x**2.0)
-        )
+        cell_sz = self._grid["cell"].size
 
-        # Extraterrestrial radmodel.docx - ASCE-EWRI Task Committee Report,
-        # Jan-2005 - Eqn 21, (48)
-        # 11.57 converts 1 MJ/m^2/day to W/m^2
-        self._Ra = (
-            11.57
-            * (24.0 / np.pi)
-            * 4.92
-            * self._dr
-            * (
-                (self._ws * np.sin(self._phi) * np.sin(self._sdecl))
-                + (np.cos(self._phi) * np.cos(self._sdecl) * (np.sin(self._ws)))
+        # Assert proper dimensions for these fields, all sizes must match grid cell dimensions
+        if is_zveg_field and self._zveg.size != cell_sz:
+            raise ValueError(
+                f"""Zveg field dimensions must match grid dimensions, Zveg size was
+                {self._zveg.size} while grid size was {cell_sz}"""
             )
-        )
 
-        # Clear-sky Solar Radiation - ASCE-EWRI Task Committee Report,
-        # Jan-2005 - Eqn 19, (47)
-        self._Rso = (0.75 + ((2.0 * (10 ** (-5.0))) * self._z)) * self._Ra
-        self._Rs = min(self._Krs * self._Ra * np.sqrt(Tmax - Tmin), self._Rso)
-
-        # Net Short Wave Radiation - ASCE-EWRI Task Committee Report,
-        # Jan-2005 - Eqn 16, (43)
-        self._Rns = self._Rs * (1 - self._a)
-
-        # Relative Cloudiness - ASCE-EWRI Task Committee Report,
-        # Jan-2005 - Page 20,35
-        if self._Rso > 0:
-            self._u = self._Rs / self._Rso
-        else:
-            self._u = 0
-
-        if self._u < 0.3:
-            self._u = 0.3
-        elif self._u > 1:
-            self._u = 1.0
-
-        # Cloudiness Function - ASCE-EWRI Task Committee Report,
-        # Jan-2005 - Eqn 18, (45)
-        self._fcd = (1.35 * self._u) - 0.35
-
-        # Net Long Wave Radiation - ASCE-EWRI Task Committee Report,
-        # Jan-2005 - Eqn 17, (44)
-        self._Rnl = (
-            self._sigma
-            * self._fcd
-            * (
-                0.34
-                - (0.14 * np.sqrt(self._ea))
-                * (((Tmax + 273.16) ** 4.0 + (Tmin + 273.16) ** 4.0) / 2.0)
+        if is_zo_field and self._zo.size != cell_sz:
+            raise ValueError(
+                f"""Zo field dimensions must match grid dimensions, Zo size was
+                {self._zo.size} while grid size was {cell_sz}"""
             )
-        )
 
-        # Net Radiation - ASCE-EWRI Task Committee Report,
-        # Jan-2005 - Eqn 15, (42)
-        self._Rn = self._Rns - self._Rnl
+        if is_zd_field and self._zd.size != cell_sz:
+            raise ValueError(
+                f"""Zd field dimensions must match grid dimensions, Zd size was
+                {self._zd.size} while grid size was {cell_sz}"""
+            )
 
-        self._ETp = max(
-            self._alpha
-            * (self._delta / (self._delta + self._y))
-            * (self._Rn / self._pwhv),
-            0,
-        )
+        if self._is_zveg_defined and is_zo_default and is_zd_default:
+            self._zd = self._zveg * 0.7
+            self._zo = self._zveg * 0.1
 
-        return self._ETp
+        # von karman constant for air and clear water,
+        # should be smaller for sediment-laden flows
+        self._k = 0.4
 
-    def _MeasuredRadPT(self, Tavg, Rnobs):
-        # Saturation Vapor Pressure - ASCE-EWRI Task Committee Report,
-        # Jan-2005 - Eqn 6, (37)
-        self._es = 0.6108 * np.exp((17.27 * Tavg) / (237.7 + Tavg))
+        if self._pa is None:
+            self._pa = 3.47 * self._etpRad._P / (273.3 + self._inp_temp)
+            self._pa *= 1000
 
-        # Slope of Saturation Vapor Pressure - ASCE-EWRI Task Committee Report,
-        # Jan-2005 - Eqn 5, (36)
-        self._delta = (4098.0 * self._es) / ((237.3 + Tavg) ** 2.0)
-        self._ETp = max(
-            self._alpha
-            * (self._delta / (self._delta + self._y))
-            * (Rnobs / self._pwhv),
-            0,
-        )
-        return self._ETp
+        self._ca = 1.22
