@@ -18,6 +18,7 @@ import numpy as np
 import scipy.constants
 from numpy.typing import ArrayLike
 from numpy.typing import NDArray
+from requireit import raise_as
 from requireit import require_between
 from requireit import require_contains
 from requireit import require_greater_than_or_equal
@@ -324,7 +325,7 @@ class NetworkSedimentTransporter(Component):
         if not isinstance(parcels, DataRecord):
             raise TypeError("parcels must be an instance of DataRecord")
         require_contains(
-            parcels.dataset, requied=_REQUIRED_PARCEL_ATTRIBUTES, name="dataset"
+            parcels.dataset, required=_REQUIRED_PARCEL_ATTRIBUTES, name="dataset"
         )
         self._parcels = parcels
 
@@ -332,22 +333,24 @@ class NetworkSedimentTransporter(Component):
             raise TypeError("flow_director must be FlowDirectorSteepest")
         self._fd = flow_director
 
-        self._bed_porosity = require_between(
-            bed_porosity,
-            a_min=0.0,
-            a_max=1.0,
-            inclusive_min=True,
-            inclusive_max=False,
-            name="bed_porosity",
-        )
+        with raise_as(ValueError):
+            self._bed_porosity = require_between(
+                bed_porosity,
+                a_min=0.0,
+                a_max=1.0,
+                inclusive_min=True,
+                inclusive_max=False,
+                name="bed_porosity",
+            )
         self._g = require_positive(g, name="g")
         self._fluid_density = require_positive(fluid_density, name="fluid_density")
 
-        self._transport_method = require_one_of(
-            transport_method,
-            allowed=_SUPPORTED_TRANSPORT_METHODS,
-            name="transport_method",
-        )
+        with raise_as(ValueError):
+            self._transport_method = require_one_of(
+                transport_method,
+                allowed=_SUPPORTED_TRANSPORT_METHODS,
+                name="transport_method",
+            )
         self._active_layer_method = require_one_of(
             active_layer_method,
             allowed=_SUPPORTED_ACTIVE_LAYER_METHODS,
