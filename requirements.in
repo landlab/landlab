@@ -1,5 +1,5 @@
 bmipy
-importlib-resources; python_version < '3.12'
+importlib-resources
 matplotlib
 netcdf4
 numpy >=1.20
