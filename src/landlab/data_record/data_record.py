@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
+import warnings
+from collections.abc import Callable
+from collections.abc import Collection
 from collections.abc import Iterable
 from collections.abc import Mapping
+from dataclasses import dataclass
+from numbers import Number
 from typing import Any
 
 import numpy as np
@@ -14,6 +19,42 @@ from requireit import require_dtype
 from requireit import require_one_of
 from requireit import require_shape
 from requireit import require_sorted
+
+
+@dataclass(frozen=True)
+class MissingValue:
+    fill_value: Any
+    is_missing: Callable[[NDArray[Any]], NDArray[np.bool_]] | None = None
+
+    def __post_init__(self):
+        fill_value = self.fill_value
+
+        def equals_fill(values):
+            return np.asarray(values) == fill_value
+
+        if self.is_missing is None:
+            if isinstance(fill_value, float) and np.isnan(fill_value):
+                func = np.isnan
+            else:
+                func = equals_fill
+
+            object.__setattr__(self, "is_missing", func)
+
+
+MISSING_NAN = MissingValue(fill_value=np.nan)
+MISSING_ID = MissingValue(fill_value=-1)
+MISSING_ELEMENT = MissingValue(fill_value="nan")
+
+
+def spec_from_value(value: ArrayLike) -> MissingValue:
+    dtype = np.asarray(value).dtype
+    if np.issubdtype(dtype, np.integer):
+        return MISSING_ID
+    elif np.issubdtype(dtype, np.bool_):
+        return MissingValue(False)
+    elif np.issubdtype(dtype, np.str_):
+        return MISSING_ELEMENT
+    return MISSING_NAN
 
 
 class DataRecord:
@@ -82,6 +123,7 @@ class DataRecord:
         items=None,
         data_vars=None,
         attrs=None,
+        fill_value: str | Mapping[str, MissingValue | ArrayLike] | None = "legacy",
     ):
         """
         Parameters
@@ -145,6 +187,13 @@ class DataRecord:
         attrs : dict (optional)
             Dictionary of global attributes on the DataRecord (metadata).
             Example: {'time_units' : 'y'}
+        fill_value : {"legacy"} or mapping or None, optional
+            Control how missing values are represented when the dataset is expanded.
+            Unspecified variables use inferred behavior unless ``"legacy"`` is used.
+
+            * ``"legacy"`` (default): use ``np.nan`` for missing values.
+            * ``None``: infer dtype-preserving missing values from the data.
+            * mapping: specify per-variable missing values or ``MissingValue`` specs.
 
         Examples
         --------
@@ -226,6 +275,15 @@ class DataRecord:
         1       0.0          link           3
 
         """
+        fill_value = {} if fill_value is None else fill_value
+        if fill_value == "legacy":
+            warnings.warn(
+                "The default fill_value='legacy' will change in a future release. "
+                "Use fill_value=None to adopt the new dtype-preserving behavior.",
+                FutureWarning,
+                stacklevel=2,
+            )
+
         with_time = False
         if time is not None:
             with_time = True
@@ -324,6 +382,25 @@ class DataRecord:
         # create an xarray Dataset:
         self._dataset = xr.Dataset(data_vars=data_vars_dict, coords=coords, attrs=attrs)
 
+        self._fill_policy = "legacy" if fill_value == "legacy" else None
+        fill_value = {} if fill_value is None else fill_value
+
+        if fill_value == "legacy":
+            premitted = np.fromiter(self._permitted_locations, dtype=object)
+            MISSING_ELEMENT_LEGACY = MissingValue(
+                fill_value=np.nan, is_missing=lambda v: ~np.isin(v, premitted)
+            )
+            fill_value = {name: MISSING_NAN for name in self._dataset} | {
+                "element_id": MISSING_NAN,
+                "grid_element": MISSING_ELEMENT_LEGACY,
+            }
+        else:
+            fill_value |= {"element_id": MISSING_ID, "grid_element": MISSING_ELEMENT}
+
+        self._fill_value = norm_fill_values(
+            infer_fill_values(values=self._dataset) | fill_value
+        )
+
     def _norm_time(self, time: ArrayLike) -> NDArray[np.floating]:
         time = np.atleast_1d(time)
         with raise_as(TypeError):
@@ -385,6 +462,7 @@ class DataRecord:
         item_id: ArrayLike | None = None,
         new_item_loc: dict[str, Any] | None = None,
         new_record: dict[str, Any] | None = None,
+        fill_value: Mapping[str, MissingValue | ArrayLike] | None = None,
     ) -> None:
         """Add data to the DataRecord.
 
@@ -428,7 +506,7 @@ class DataRecord:
         Note that both arrays have 2 dimensions as they vary along dimensions
         'time' and 'item_id'.
 
-        >>> dr = DataRecord(grid, time=0.0, items=items)
+        >>> dr = DataRecord(grid, time=0.0, items=items, fill_value=None)
 
         Records relating to pre-existing items can be added to the DataRecord
         using the method 'add_record':
@@ -459,6 +537,11 @@ class DataRecord:
         2.0         NaN
         50.0      110.0
         """
+        if self._fill_policy == "legacy":
+            if fill_value is not None:
+                raise ValueError()
+            fill_value = {name: MISSING_NAN for name in set(new_record)}
+
         if time is not None and "time" not in self._dataset:
             raise KeyError("this DataRecord is time-independent; time must be None.")
         if item_id is not None and "item_id" not in self._dataset:
@@ -520,6 +603,16 @@ class DataRecord:
 
         ds_to_add = xr.Dataset(data_vars=new_data_vars, coords=coords_to_add)
 
+        self._fill_value = merge_fill_values(
+            self._fill_value,
+            new=(
+                infer_fill_values({name: ds_to_add[name] for name in new_record})
+                if fill_value is None
+                else fill_value
+            ),
+            allowed=set(new_record),
+        )
+
         # If new times are being added, extend the dataset first.
         if time is not None:
             time = self._norm_time(time)
@@ -529,7 +622,10 @@ class DataRecord:
             if len(new_times) > 0:
                 all_times = np.concatenate([existing, new_times])
                 self._dataset = self._dataset.reindex(
-                    time=all_times, fill_value={"grid_element": "nan", "element_id": -1}
+                    time=all_times,
+                    fill_value={
+                        name: spec.fill_value for name, spec in self._fill_value.items()
+                    },
                 )
 
         # Overwrite / insert values at the requested coordinates.
@@ -539,17 +635,22 @@ class DataRecord:
         if time is not None:
             indexers["time"] = time
 
+        missing_vars = set(ds_to_add) - set(self._dataset)
+        for name in missing_vars:
+            fill = self._fill_value[name].fill_value
+            self._dataset[name] = filled_array(
+                ds_to_add[name], self._dataset, fill_value=fill
+            )
+
         for name, value in ds_to_add.data_vars.items():
-            if name in self._dataset:
-                self._dataset[name].loc[indexers] = value
-            else:
-                self._dataset[name] = value
+            self._dataset[name].loc[indexers] = value
 
     def add_item(
         self,
         time: ArrayLike | None = None,
         new_item: dict[str, Any] | None = None,
         new_item_spec: dict[str, Any] | None = None,
+        fill_value: str | Mapping[str, MissingValue | ArrayLike] | None = "legacy",
     ) -> None:
         """Add new items to a DataRecord.
 
@@ -631,6 +732,13 @@ class DataRecord:
         >>> dr.dataset["size"][:, 1].values
         array([nan, nan, 10.,  5.])
         """
+        new_item_spec = {} if new_item_spec is None else dict(new_item_spec)
+
+        if self._fill_policy == "legacy":
+            if fill_value != "legacy":
+                raise ValueError()
+            fill_value = {name: MISSING_NAN for name in set(new_item_spec)}
+
         has_time = "time" in self._dataset
 
         if time is None and has_time:
@@ -641,8 +749,6 @@ class DataRecord:
             raise TypeError("new_item must be a mapping")
 
         time = self._norm_time(time) if has_time else None
-
-        new_item_spec = {} if new_item_spec is None else dict(new_item_spec)
 
         with raise_as(KeyError):
             require_contains(
@@ -679,6 +785,16 @@ class DataRecord:
         # Dataset of new record:
         ds_to_add = xr.Dataset(data_vars=data_vars_dict, coords=coords_to_add)
 
+        self._fill_value = merge_fill_values(
+            self._fill_value,
+            new=(
+                infer_fill_values({name: ds_to_add[name] for name in new_item_spec})
+                if fill_value is None
+                else fill_value
+            ),
+            allowed=set(new_item_spec),
+        )
+
         self._dataset = xr.concat(
             [self._dataset, ds_to_add],
             dim="item_id",
@@ -686,7 +802,9 @@ class DataRecord:
             coords="minimal",
             compat="override",
             join="outer",
-            fill_value={"grid_element": "nan", "element_id": -1},
+            fill_value={
+                name: spec.fill_value for name, spec in self._fill_value.items()
+            },
         )
 
     def get_data(self, time=None, item_id=None, data_variable=None):
@@ -1059,7 +1177,7 @@ class DataRecord:
         Note that both arrays have 2 dimensions as they vary along dimensions
         'time' and 'item_id'.
 
-        >>> dr3 = DataRecord(grid, time=[0.0], items=my_items3)
+        >>> dr3 = DataRecord(grid, time=[0.0], items=my_items3, fill_value=None)
 
         Records relating to pre-existing items can be added to the DataRecord
         using the method 'add_record':
@@ -1099,7 +1217,7 @@ class DataRecord:
         ...     "grid_element": np.array([["node"], ["link"]]),
         ...     "element_id": np.array([[1], [3]]),
         ... }
-        >>> dr3 = DataRecord(grid, time=[0.0], items=my_items3)
+        >>> dr3 = DataRecord(grid, time=[0.0], items=my_items3, fill_value=None)
         >>> dr3.dataset["element_id"].values
         array([[1], [3]])
         >>> dr3.dataset["grid_element"].values
@@ -1182,12 +1300,12 @@ class DataRecord:
 
         n_rows, n_cols = ids.shape
         for col in range(1, n_cols):
-            bad_vals = ids[:, col] == -1
+            bad_vals = self._fill_value["element_id"].is_missing(ids[:, col])
             ids[bad_vals, col] = ids[bad_vals, col - 1]
 
         elements = self._dataset["grid_element"].values
         for col in range(1, n_cols):
-            bad_vals = elements[:, col] == "nan"
+            bad_vals = self._fill_value["grid_element"].is_missing(elements[:, col])
             elements[bad_vals, col] = elements[bad_vals, col - 1]
 
     @property
@@ -1241,6 +1359,65 @@ class DataRecord:
             return np.nan
         else:
             return sorted(self.time_coordinates)[-2]
+
+
+def norm_fill_values(
+    fill_value: Mapping[str, MissingValue | ArrayLike],
+) -> dict[str, MissingValue]:
+    return {
+        name: (
+            value if isinstance(value, MissingValue) else MissingValue(fill_value=value)
+        )
+        for name, value in fill_value.items()
+    }
+
+
+def infer_fill_values(
+    values: Mapping[str, ArrayLike],
+) -> dict[str, MissingValue]:
+    return {name: spec_from_value(array) for name, array in values.items()}
+
+
+def merge_fill_values(
+    existing: Mapping[str, MissingValue | ArrayLike],
+    *,
+    new: Mapping[str, MissingValue | ArrayLike] | None = None,
+    allowed: Collection[str] | None = None,
+):
+    new = {} if new is None else new
+    allowed = set() if allowed is None else set(allowed)
+
+    old_names = set(existing)
+    new_names = set(new)
+
+    disallowed = new_names - allowed
+    if disallowed:
+        names = ", ".join(sorted(disallowed))
+        raise ValueError(
+            f"fill_value must correspond to variables in new_record: {names}"
+        )
+
+    conflicts = new_names & old_names
+    if conflicts:
+        names = ", ".join(sorted(conflicts))
+        raise ValueError(
+            f"fill_value cannot be provided for existing variables: {names}"
+        )
+
+    return norm_fill_values(dict(existing) | new)
+
+
+def filled_array(
+    values: xr.DataArray,
+    dataset: xr.Dataset,
+    fill_value: str | Number,
+) -> xr.DataArray:
+    dims = values.dims
+    shape = tuple(dataset.sizes[dim] for dim in dims)
+    coords = {dim: dataset.coords[dim] for dim in dims}
+    data = np.full(shape, fill_value, dtype=values.dtype)
+
+    return xr.DataArray(data, dims=dims, coords=coords)
 
 
 def norm_element_id(ids: ArrayLike) -> NDArray[np.intp]:
