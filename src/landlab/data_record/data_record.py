@@ -443,8 +443,8 @@ class DataRecord:
         ...     new_record={"item_size": (["item_id", "time"], [[0.2]])},
         ... )
         >>> dr.dataset["element_id"].values
-        array([[ 1.,  6.],
-               [ 3., nan]])
+        array([[ 1,  6],
+               [ 3, -1]])
         >>> dr.get_data([2.0], [0], "item_size")
         array([0.2])
 
@@ -520,7 +520,30 @@ class DataRecord:
 
         ds_to_add = xr.Dataset(data_vars=new_data_vars, coords=coords_to_add)
 
-        self._dataset = xr.merge((self._dataset, ds_to_add), compat="no_conflicts")
+        # If new times are being added, extend the dataset first.
+        if time is not None:
+            time = self._norm_time(time)
+            # all_times = np.unique(all_times)
+            existing = np.asarray(self._dataset["time"].values, dtype=float)
+            new_times = time[~np.isin(time, existing)]
+            if len(new_times) > 0:
+                all_times = np.concatenate([existing, new_times])
+                self._dataset = self._dataset.reindex(
+                    time=all_times, fill_value={"grid_element": "nan", "element_id": -1}
+                )
+
+        # Overwrite / insert values at the requested coordinates.
+        indexers = {}
+        if item_id is not None:
+            indexers["item_id"] = item_id
+        if time is not None:
+            indexers["time"] = time
+
+        for name, value in ds_to_add.data_vars.items():
+            if name in self._dataset:
+                self._dataset[name].loc[indexers] = value
+            else:
+                self._dataset[name] = value
 
     def add_item(
         self,
@@ -656,8 +679,15 @@ class DataRecord:
         # Dataset of new record:
         ds_to_add = xr.Dataset(data_vars=data_vars_dict, coords=coords_to_add)
 
-        # Merge new record and original dataset:
-        self._dataset = xr.merge((self._dataset, ds_to_add), compat="no_conflicts")
+        self._dataset = xr.concat(
+            [self._dataset, ds_to_add],
+            dim="item_id",
+            data_vars="all",
+            coords="minimal",
+            compat="override",
+            join="outer",
+            fill_value={"grid_element": "nan", "element_id": -1},
+        )
 
     def get_data(self, time=None, item_id=None, data_variable=None):
         """Return values of a variable at a given time and/or for selected items.
@@ -1044,11 +1074,11 @@ class DataRecord:
         for these time coordinates.
 
         >>> dr3.dataset["grid_element"].values
-        array([['node', nan, nan],
-               ['link', nan, nan]], dtype=object)
+        array([['node', 'nan', 'nan'],
+               ['link', 'nan', 'nan']], dtype='<U6')
         >>> dr3.dataset["element_id"].values
-        array([[ 1., nan, nan],
-               [ 3., nan, nan]])
+        array([[ 1, -1, -1],
+               [ 3, -1, -1]])
 
         To fill these values with the last valid value, use the method
         ffill_grid_element_and_id:
@@ -1056,10 +1086,10 @@ class DataRecord:
         >>> dr3.ffill_grid_element_and_id()
         >>> dr3.dataset["grid_element"].values
         array([['node', 'node', 'node'],
-               ['link', 'link', 'link']], dtype=object)
+               ['link', 'link', 'link']], dtype='<U6')
         >>> dr3.dataset["element_id"].values
-        array([[1., 1., 1.],
-               [3., 3., 3.]])
+        array([[1, 1, 1],
+               [3, 3, 3]])
 
         In some applications, there may be no prior valid value. Under these
         circumstances, those values will stay as NaN. That is, this only
@@ -1093,77 +1123,72 @@ class DataRecord:
         >>> dr3.time_coordinates
         [0.0, 1.0]
         >>> dr3.dataset["element_id"].values
-        array([[ 1., nan],
-               [ 3., nan],
-               [nan,  4.],
-               [nan,  4.]])
+        array([[ 1, -1],
+               [ 3, -1],
+               [-1,  4],
+               [-1,  4]])
         >>> dr3.dataset["grid_element"].values
-        array([['node', nan],
-               ['link', nan],
-               [nan, 'node'],
-               [nan, 'node']], dtype=object)
+        array([['node', 'nan'],
+               ['link', 'nan'],
+               ['nan', 'node'],
+               ['nan', 'node']], dtype='<U6')
 
         We expect that the NaN's to the left of the 4.s will stay NaN. And they
         do.
 
         >>> dr3.ffill_grid_element_and_id()
         >>> dr3.dataset["element_id"].values
-        array([[ 1.,  1.],
-               [ 3.,  3.],
-               [nan,  4.],
-               [nan,  4.]])
+        array([[ 1,  1],
+               [ 3,  3],
+               [-1,  4],
+               [-1,  4]])
         >>> dr3.dataset["grid_element"].values
         array([['node', 'node'],
                ['link', 'link'],
-               [nan, 'node'],
-               [nan, 'node']], dtype=object)
+               ['nan', 'node'],
+               ['nan', 'node']], dtype='<U6')
 
         Finally, if we add a new time, we see that we need to fill in the
         full time column.
 
         >>> dr3.add_record(time=[2])
         >>> dr3.dataset["element_id"].values
-        array([[ 1.,  1., nan],
-               [ 3.,  3., nan],
-               [nan,  4., nan],
-               [nan,  4., nan]])
+        array([[ 1,  1, -1],
+               [ 3,  3, -1],
+               [-1,  4, -1],
+               [-1,  4, -1]])
         >>> dr3.dataset["grid_element"].values
-        array([['node', 'node', nan],
-               ['link', 'link', nan],
-               [nan, 'node', nan],
-               [nan, 'node', nan]], dtype=object)
+        array([['node', 'node', 'nan'],
+               ['link', 'link', 'nan'],
+               ['nan', 'node', 'nan'],
+               ['nan', 'node', 'nan']], dtype='<U6')
 
         And that forward filling fills everything as expected.
 
         >>> dr3.ffill_grid_element_and_id()
         >>> dr3.dataset["element_id"].values
-        array([[ 1.,  1.,  1.],
-               [ 3.,  3.,  3.],
-               [nan,  4.,  4.],
-               [nan,  4.,  4.]])
+        array([[ 1,  1,  1],
+               [ 3,  3,  3],
+               [-1,  4,  4],
+               [-1,  4,  4]])
 
         >>> dr3.dataset["grid_element"].values
         array([['node', 'node', 'node'],
                ['link', 'link', 'link'],
-               [nan, 'node', 'node'],
-               [nan, 'node', 'node']], dtype=object)
+               ['nan', 'node', 'node'],
+               ['nan', 'node', 'node']], dtype='<U6')
         """
+        ids = self._dataset["element_id"].values
 
-        ei = self._dataset["element_id"].values
+        n_rows, n_cols = ids.shape
+        for col in range(1, n_cols):
+            bad_vals = ids[:, col] == -1
+            ids[bad_vals, col] = ids[bad_vals, col - 1]
 
-        for i in range(ei.shape[0]):
-            for j in range(1, ei.shape[1]):
-                if np.isnan(ei[i, j]):
-                    ei[i, j] = ei[i, j - 1]
-
-        self._dataset["element_id"] = (["item_id", "time"], ei)
-
-        ge = self._dataset["grid_element"].values
-        for i in range(ge.shape[0]):
-            for j in range(1, ge.shape[1]):
-                if ge[i, j] not in self._permitted_locations:
-                    ge[i, j] = ge[i, j - 1]
-        self._dataset["grid_element"] = (["item_id", "time"], ge)
+        elements = self._dataset["grid_element"].values
+        for col in range(1, n_cols):
+            bad_vals = elements[:, col] == "nan"
+            elements[bad_vals, col] = elements[bad_vals, col - 1]
 
     @property
     def dataset(self):
