@@ -1364,6 +1364,11 @@ class DataRecord:
             return sorted(self.time_coordinates)[-2]
 
 
+def norm_data_vars(data_vars: Mapping[str, Any]) -> dict[str, xr.DataArray]:
+    ds = xr.Dataset(data_vars=data_vars)
+    return dict(ds.data_vars)
+
+
 def norm_fill_specs(
     fill_value: Mapping[str, MissingValue | ArrayLike],
 ) -> dict[str, MissingValue]:
