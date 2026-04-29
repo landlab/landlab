@@ -1448,6 +1448,43 @@ def find_new_coords(
     return new_coords
 
 
+def extend_dimensions(
+    dataset: xr.Dataset,
+    coords_to_add: Mapping[str, xr.DataArray],
+    *,
+    fill_value: dict[str, str | Number] | None = None,
+    policy: FillPolicy = FillPolicy.LEGACY,
+) -> xr.Dataset:
+    if not coords_to_add:
+        return dataset
+
+    object_vars = (
+        {name for name, var in dataset.items() if var.dtype.kind in "OUS"}
+        if policy is FillPolicy.LEGACY
+        else {}
+    )
+
+    new_coords = {}
+    for dim, values in coords_to_add.items():
+        values = np.asarray(values)
+
+        if dim in dataset.coords:
+            new_coords[dim] = np.concatenate([dataset[dim].values, values])
+        else:
+            new_coords[dim] = values
+
+    extended = dataset.reindex(new_coords, fill_value=fill_value)
+
+    for name in object_vars:
+        extended[name] = extended[name].astype(object).copy()
+
+    for name, var in extended.items():
+        if not var.values.flags.writeable:
+            extended[name] = var.copy(deep=True)
+
+    return extended
+
+
 def filled_array(
     values: xr.DataArray,
     dataset: xr.Dataset,
