@@ -615,28 +615,14 @@ class DataRecord:
 
         ds_to_add = xr.Dataset(data_vars=new_data_vars, coords=coords_to_add)
 
+        coords_to_extend = find_new_coords(ds_to_add, self._dataset)
 
-        # If new times are being added, extend the dataset first.
-        if time is not None:
-            time = self._norm_time(time)
-            # all_times = np.unique(all_times)
-            existing = np.asarray(self._dataset["time"].values, dtype=float)
-            new_times = time[~np.isin(time, existing)]
-            if len(new_times) > 0:
-                all_times = np.concatenate([existing, new_times])
-                self._dataset = self._dataset.reindex(
-                    time=all_times,
-                    fill_value={
-                        name: spec.fill_value for name, spec in self._fill_value.items()
-                    },
-                )
-
-        # Overwrite / insert values at the requested coordinates.
-        indexers = {}
-        if item_id is not None:
-            indexers["item_id"] = item_id
-        if time is not None:
-            indexers["time"] = time
+        self._dataset = extend_dimensions(
+            self._dataset,
+            coords_to_extend,
+            fill_value=resolve_fill_values(self._fill_value),
+            policy=self._fill_policy,
+        )
 
         missing_vars = set(ds_to_add) - set(self._dataset)
         for name in missing_vars:
@@ -645,8 +631,9 @@ class DataRecord:
                 ds_to_add[name], self._dataset, fill_value=fill
             )
 
-        for name, value in ds_to_add.data_vars.items():
-            self._dataset[name].loc[indexers] = value
+        for name, da in ds_to_add.data_vars.items():
+            coords = _coords_for(self._dataset, da)
+            self._dataset[name].loc[coords] = da
 
     def add_item(
         self,
@@ -792,18 +779,23 @@ class DataRecord:
         # Dataset of new record:
         ds_to_add = xr.Dataset(data_vars=data_vars_dict, coords=coords_to_add)
 
+        coords_to_extend = find_new_coords(ds_to_add, self._dataset)
 
-        self._dataset = xr.concat(
-            [self._dataset, ds_to_add],
-            dim="item_id",
-            data_vars="all",
-            coords="minimal",
-            compat="override",
-            join="outer",
-            fill_value={
-                name: spec.fill_value for name, spec in self._fill_value.items()
-            },
+        self._dataset = extend_dimensions(
+            self._dataset,
+            coords_to_extend,
+            fill_value=resolve_fill_values(self._fill_value),
+            policy=self._fill_policy,
         )
+
+        for name, da in ds_to_add.data_vars.items():
+            if name not in self._dataset:
+                fill = self._fill_value[name].fill_value
+                self._dataset[name] = filled_array(da, self._dataset, fill_value=fill)
+
+        for name, da in ds_to_add.data_vars.items():
+            coords = _coords_for(self._dataset, da)
+            self._dataset[name].loc[coords] = da
 
     def get_data(self, time=None, item_id=None, data_variable=None):
         """Return values of a variable at a given time and/or for selected items.
