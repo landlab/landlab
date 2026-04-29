@@ -2,11 +2,61 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
+from landlab import RasterModelGrid
+from landlab.data_record.data_record import DataRecord
 from landlab.data_record.data_record import MissingValue
 from landlab.data_record.data_record import infer_fill_values
-from landlab.data_record.data_record import merge_fill_values
 from landlab.data_record.data_record import norm_fill_values
 from landlab.data_record.data_record import spec_from_value
+
+
+def test_data_record():
+    grid = RasterModelGrid((4, 5))
+    items = {
+        "grid_element": [["node"], ["link"]],
+        "element_id": [[1], [3]],
+    }
+    data_vars = {
+        "mean_elevation": (["time"], [110.0]),
+        "item_size": (["item_id", "time"], [[0.3], [0.4]]),
+    }
+    data_record = DataRecord(
+        grid=grid, time=0.0, items=items, data_vars=data_vars, fill_value=None
+    )
+    data_record.add_record(
+        time=50.0,
+        new_record={
+            "int-var": (["time"], [120]),
+            "float-var": (["time"], [120.0]),
+            "foo": (["time"], [120]),
+        },
+        fill_value={"foo": -2},
+    )
+    assert_array_equal(data_record.dataset["int-var"].values, [-1, 120])
+    assert_array_equal(data_record.dataset["float-var"].values, [np.nan, 120.0])
+    assert_array_equal(data_record.dataset["foo"].values, [-2, 120])
+
+    data_record.add_item(
+        time=0.0,
+        new_item={
+            "grid_element": [["node"], ["node"]],
+            "element_id": [[2], [5]],
+        },
+        new_item_spec={
+            "size": (["item_id", "time"], [[10], [5]]),
+        },
+    )
+
+    assert_array_equal(
+        data_record.dataset["size"],
+        [
+            [-1, -1],
+            [-1, -1],
+            [10, -1],
+            [5, -1],
+        ],
+    )
+    assert_array_equal(data_record.dataset["foo"], [-2, 120])
 
 
 def test_missing_value():
@@ -72,10 +122,3 @@ def test_infer_fill_values():
     spec = infer_fill_values({"foo": [1.0, -2.0], "bar": -2})
     assert np.isnan(spec["foo"].fill_value)
     assert spec["bar"].fill_value == -1
-
-
-@pytest.mark.parametrize("fill", (2, MissingValue(2)))
-def test_merge_fill_values_noop(fill):
-    spec = merge_fill_values({"foo": fill})
-    assert set(spec) == {"foo"}
-    assert spec["foo"].fill_value == 2
