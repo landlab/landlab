@@ -1588,6 +1588,42 @@ def norm_grid_element(
     return elements
 
 
+def find_new_items(
+    needles: ArrayLike,
+    haystack: ArrayLike,
+) -> NDArray[np.integer]:
+    needles = np.asarray(needles)
+    require_shape(needles, shape=("n",), name="needles")
+    require_dtype(needles, dtype=np.integer, name="needles")
+
+    haystack = np.asarray(haystack)
+    require_shape(haystack, shape=("n",), name="haystack")
+    require_dtype(haystack, dtype=np.integer, name="haystack")
+
+    found = np.isin(needles, haystack)
+    return needles[~found]
+
+
+def find_new_times(
+    needles: ArrayLike,
+    haystack: ArrayLike,
+) -> NDArray[np.integer | np.floating]:
+    needles = np.asarray(needles)
+    require_shape(needles, shape=("n",), name="needles")
+
+    haystack = np.asarray(haystack)
+    require_shape(haystack, shape=("n",), name="haystack")
+
+    new = []
+    for needle in needles:
+        try:
+            _find_time(needle, haystack)
+        except IndexError:
+            new.append(needle)
+
+    return np.asarray(new, dtype=needles.dtype)
+
+
 def _find_time(time: float | int, times: ArrayLike) -> int:
     """Find the index of a time value in an array of times.
 
