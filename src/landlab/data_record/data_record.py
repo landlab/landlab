@@ -5,6 +5,7 @@ from collections.abc import Collection
 from collections.abc import Iterable
 from collections.abc import Mapping
 from dataclasses import dataclass
+from enum import StrEnum
 from numbers import Number
 from typing import Any
 
@@ -55,6 +56,11 @@ def spec_from_value(value: ArrayLike) -> MissingValue:
     elif np.issubdtype(dtype, np.str_):
         return MISSING_ELEMENT
     return MISSING_NAN
+
+
+class FillPolicy(StrEnum):
+    DEFAULT = "default"
+    LEGACY = "legacy"
 
 
 class DataRecord:
@@ -276,13 +282,16 @@ class DataRecord:
 
         """
         fill_value = {} if fill_value is None else fill_value
-        if fill_value == "legacy":
+        if isinstance(fill_value, str) and fill_value == FillPolicy.LEGACY:
+            self._fill_policy = FillPolicy.LEGACY
             warnings.warn(
                 "The default fill_value='legacy' will change in a future release. "
                 "Use fill_value=None to adopt the new dtype-preserving behavior.",
                 FutureWarning,
                 stacklevel=2,
             )
+        else:
+            self._fill_policy = FillPolicy.DEFAULT
 
         with_time = False
         if time is not None:
@@ -382,10 +391,9 @@ class DataRecord:
         # create an xarray Dataset:
         self._dataset = xr.Dataset(data_vars=data_vars_dict, coords=coords, attrs=attrs)
 
-        self._fill_policy = "legacy" if fill_value == "legacy" else None
         fill_value = {} if fill_value is None else fill_value
 
-        if fill_value == "legacy":
+        if self._fill_policy is FillPolicy.LEGACY:
             premitted = np.fromiter(self._permitted_locations, dtype=object)
             MISSING_ELEMENT_LEGACY = MissingValue(
                 fill_value=np.nan, is_missing=lambda v: ~np.isin(v, premitted)
@@ -537,11 +545,6 @@ class DataRecord:
         2.0         NaN
         50.0      110.0
         """
-        if self._fill_policy == "legacy":
-            if fill_value is not None:
-                raise ValueError()
-            fill_value = {name: MISSING_NAN for name in set(new_record)}
-
         if time is not None and "time" not in self._dataset:
             raise KeyError("this DataRecord is time-independent; time must be None.")
         if item_id is not None and "item_id" not in self._dataset:
@@ -1459,6 +1462,7 @@ def norm_grid_element(
     elements: ArrayLike,
     *,
     allowed: Iterable[str] = (),
+    policy: FillPolicy = FillPolicy.LEGACY,
 ) -> NDArray[np.str_]:
     """Normalize grid element names to a NumPy string array.
 
@@ -1493,7 +1497,11 @@ def norm_grid_element(
     """
     allowed = set(allowed)
 
-    ge_dtype = f"<U{max(len(x) for x in allowed)}" if allowed else str
+    if policy is FillPolicy.LEGACY:
+        ge_dtype = object
+    else:
+        ge_dtype = f"<U{max(len(x) for x in allowed)}" if allowed else str
+
     elements = np.asarray(
         [elements] if isinstance(elements, str) else elements,
         dtype=ge_dtype,
