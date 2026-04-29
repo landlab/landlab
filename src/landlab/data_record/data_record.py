@@ -1485,6 +1485,24 @@ def extend_dimensions(
     return extended
 
 
+def _coords_for(
+    dataset: xr.Dataset,
+    da: xr.DataArray,
+) -> dict[str, xr.DataArray]:
+    coords = {}
+
+    for dim in da.dims:
+        if dim == "time":
+            indices = np.array(
+                [_find_time(t, dataset["time"].values) for t in da[dim].values]
+            )
+            coords[dim] = dataset[dim].isel({dim: indices})
+        else:
+            coords[dim] = da[dim]
+
+    return coords
+
+
 def filled_array(
     values: xr.DataArray,
     dataset: xr.Dataset,
