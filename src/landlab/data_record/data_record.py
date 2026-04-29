@@ -405,7 +405,7 @@ class DataRecord:
         else:
             fill_value |= {"element_id": MISSING_ID, "grid_element": MISSING_ELEMENT}
 
-        self._fill_value = norm_fill_values(
+        self._fill_value = norm_fill_specs(
             infer_fill_values(values=self._dataset) | fill_value
         )
 
@@ -1364,7 +1364,7 @@ class DataRecord:
             return sorted(self.time_coordinates)[-2]
 
 
-def norm_fill_values(
+def norm_fill_specs(
     fill_value: Mapping[str, MissingValue | ArrayLike],
 ) -> dict[str, MissingValue]:
     return {
