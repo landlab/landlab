@@ -1422,6 +1422,10 @@ def prepare_fill_specs(
     )
 
 
+def resolve_fill_values(specs: Mapping[str, MissingValue]):
+    return {name: spec.fill_value for name, spec in specs.items()}
+
+
 def filled_array(
     values: xr.DataArray,
     dataset: xr.Dataset,
