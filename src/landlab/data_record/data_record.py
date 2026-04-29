@@ -557,6 +557,15 @@ class DataRecord:
                 " instead."
             )
 
+        new_record = norm_data_vars({} if new_record is None else dict(new_record))
+
+        self._fill_value |= prepare_fill_specs(
+            fill_value,
+            var_spec=new_record,
+            forbidden=self._dataset,
+            policy=self._fill_policy,
+        )
+
         coords_to_add = {}
         new_data_vars = {}
 
@@ -606,15 +615,6 @@ class DataRecord:
 
         ds_to_add = xr.Dataset(data_vars=new_data_vars, coords=coords_to_add)
 
-        self._fill_value = merge_fill_values(
-            self._fill_value,
-            new=(
-                infer_fill_values({name: ds_to_add[name] for name in new_record})
-                if fill_value is None
-                else fill_value
-            ),
-            allowed=set(new_record),
-        )
 
         # If new times are being added, extend the dataset first.
         if time is not None:
@@ -735,12 +735,16 @@ class DataRecord:
         >>> dr.dataset["size"][:, 1].values
         array([nan, nan, 10.,  5.])
         """
-        new_item_spec = {} if new_item_spec is None else dict(new_item_spec)
+        new_item_spec = norm_data_vars(
+            {} if new_item_spec is None else dict(new_item_spec)
+        )
 
-        if self._fill_policy == "legacy":
-            if fill_value != "legacy":
-                raise ValueError()
-            fill_value = {name: MISSING_NAN for name in set(new_item_spec)}
+        self._fill_value |= prepare_fill_specs(
+            fill_value,
+            var_spec=new_item_spec,
+            forbidden=self._dataset,
+            policy=self._fill_policy,
+        )
 
         has_time = "time" in self._dataset
 
@@ -788,15 +792,6 @@ class DataRecord:
         # Dataset of new record:
         ds_to_add = xr.Dataset(data_vars=data_vars_dict, coords=coords_to_add)
 
-        self._fill_value = merge_fill_values(
-            self._fill_value,
-            new=(
-                infer_fill_values({name: ds_to_add[name] for name in new_item_spec})
-                if fill_value is None
-                else fill_value
-            ),
-            allowed=set(new_item_spec),
-        )
 
         self._dataset = xr.concat(
             [self._dataset, ds_to_add],
@@ -1394,7 +1389,7 @@ def prepare_fill_specs(
     policy: FillPolicy = FillPolicy.LEGACY,
 ):
     forbidden = set() if forbidden is None else set(forbidden)
-    var_spec = dict() if var_spec is None else var_spec
+    var_spec = {} if var_spec is None else var_spec
     allowed = set(var_spec) - forbidden
 
     if policy is FillPolicy.LEGACY:
