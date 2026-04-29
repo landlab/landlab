@@ -1381,33 +1381,40 @@ def infer_fill_values(
     return {name: spec_from_value(array) for name, array in values.items()}
 
 
-def merge_fill_values(
-    existing: Mapping[str, MissingValue | ArrayLike],
+def prepare_fill_specs(
+    fill_value: Mapping[str, MissingValue | ArrayLike] | None,
     *,
-    new: Mapping[str, MissingValue | ArrayLike] | None = None,
-    allowed: Collection[str] | None = None,
+    var_spec: Mapping[str, xr.DataArray] | None = None,
+    forbidden: Collection[str] | None = None,
+    policy: FillPolicy = FillPolicy.LEGACY,
 ):
-    new = {} if new is None else new
-    allowed = set() if allowed is None else set(allowed)
+    forbidden = set() if forbidden is None else set(forbidden)
+    var_spec = dict() if var_spec is None else var_spec
+    allowed = set(var_spec) - forbidden
 
-    old_names = set(existing)
-    new_names = set(new)
+    if policy is FillPolicy.LEGACY:
+        if fill_value is not None:
+            raise ValueError("fill_value is not supported with legacy fill policy")
+        return {name: MISSING_NAN for name in allowed}
 
-    disallowed = new_names - allowed
-    if disallowed:
-        names = ", ".join(sorted(disallowed))
+    fill_value = {} if fill_value is None else dict(fill_value)
+
+    if set(fill_value) & forbidden:
+        names = [repr(name) for name in sorted(set(fill_value) & forbidden)]
         raise ValueError(
-            f"fill_value must correspond to variables in new_record: {names}"
+            f"fill_value provided for existing variables: {', '.join(names)}"
         )
 
-    conflicts = new_names & old_names
-    if conflicts:
-        names = ", ".join(sorted(conflicts))
+    if set(fill_value) - set(var_spec):
+        names = [repr(name) for name in sorted(set(fill_value) - set(var_spec))]
         raise ValueError(
-            f"fill_value cannot be provided for existing variables: {names}"
+            f"fill_value provided for unknown variables: {', '.join(names)}"
         )
 
-    return norm_fill_values(dict(existing) | new)
+    vars_to_infer = allowed - set(fill_value)
+    return norm_fill_specs(
+        infer_fill_values({name: var_spec[name] for name in vars_to_infer}) | fill_value
+    )
 
 
 def filled_array(
