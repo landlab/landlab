@@ -653,7 +653,7 @@ class DataRecord:
         time: ArrayLike | None = None,
         new_item: dict[str, Any] | None = None,
         new_item_spec: dict[str, Any] | None = None,
-        fill_value: str | Mapping[str, MissingValue | ArrayLike] | None = "legacy",
+        fill_value: Mapping[str, MissingValue | ArrayLike] | None = None,
     ) -> None:
         """Add new items to a DataRecord.
 
