@@ -1421,6 +1421,33 @@ def resolve_fill_values(specs: Mapping[str, MissingValue]):
     return {name: spec.fill_value for name, spec in specs.items()}
 
 
+def find_new_coords(
+    new: xr.Dataset,
+    existing: xr.Dataset,
+) -> dict[str, NDArray]:
+    new_coords = {}
+
+    if "item_id" in new.coords:
+        if "item_id" in existing.coords:
+            values = find_new_items(new["item_id"], existing["item_id"])
+        else:
+            values = np.asarray(new["item_id"])
+
+        if values.size:
+            new_coords["item_id"] = values
+
+    if "time" in new.coords:
+        if "time" in existing.coords:
+            values = find_new_times(new["time"], existing["time"])
+        else:
+            values = np.asarray(new["time"])
+
+        if values.size:
+            new_coords["time"] = values
+
+    return new_coords
+
+
 def filled_array(
     values: xr.DataArray,
     dataset: xr.Dataset,
