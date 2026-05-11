@@ -43,23 +43,18 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { os: macos-15-intel, cibw-only: cp311-macosx_x86_64 }
           - { os: macos-15-intel, cibw-only: cp312-macosx_x86_64 }
           - { os: macos-15-intel, cibw-only: cp313-macosx_x86_64 }
           - { os: macos-15-intel, cibw-only: cp314-macosx_x86_64 }
-          - { os: macos-latest, cibw-only: cp311-macosx_arm64 }
           - { os: macos-latest, cibw-only: cp312-macosx_arm64 }
           - { os: macos-latest, cibw-only: cp313-macosx_arm64 }
           - { os: macos-latest, cibw-only: cp314-macosx_arm64 }
-          - { os: ubuntu-latest, cibw-only: cp311-manylinux_x86_64 }
           - { os: ubuntu-latest, cibw-only: cp312-manylinux_x86_64 }
           - { os: ubuntu-latest, cibw-only: cp313-manylinux_x86_64 }
           - { os: ubuntu-latest, cibw-only: cp314-manylinux_x86_64 }
-          - { os: ubuntu-24.04-arm, cibw-only: cp311-manylinux_aarch64 }
           - { os: ubuntu-24.04-arm, cibw-only: cp312-manylinux_aarch64 }
           - { os: ubuntu-24.04-arm, cibw-only: cp313-manylinux_aarch64 }
           - { os: ubuntu-24.04-arm, cibw-only: cp314-manylinux_aarch64 }
-          - { os: windows-2022, cibw-only: cp311-win_amd64 }
           - { os: windows-2022, cibw-only: cp312-win_amd64 }
           - { os: windows-2022, cibw-only: cp313-win_amd64 }
           - { os: windows-2022, cibw-only: cp314-win_amd64 }
@@ -84,7 +79,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, ubuntu-24.04-arm, macos-15-intel, macos-latest, windows-latest]
-        python-version: ["3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.12", "3.13", "3.14"]
         pytest-marker: ["slow", "not slow"]
 
     steps:
