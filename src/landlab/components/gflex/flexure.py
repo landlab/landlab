@@ -141,7 +141,7 @@ class gFlex(Component):
         "topographic__elevation": {
             "dtype": float,
             "intent": "out",
-            "optional": False,
+            "optional": True,
             "units": "m",
             "mapping": "node",
             "doc": "Land surface topographic elevation",
