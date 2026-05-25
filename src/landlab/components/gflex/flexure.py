@@ -16,6 +16,7 @@ Created on Thu Feb 19 18:47:11 2015
 @author: daniel.hobley (SiccarPoint @Github)
 
 ...following AW's run_in_script_2D.py.
+Updated 2026: A. Wickert
 """
 
 import numpy as np
