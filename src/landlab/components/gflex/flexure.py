@@ -229,28 +229,28 @@ class gFlex(Component):
         flex.BC_E = BC_E
         flex.BC_S = BC_S
         flex.BC_N = BC_N
-        for i in (flex.BC_E, flex.BC_W, flex.BC_N, flex.BC_S):
-            assert i in BC_options
+        for name, val in (
+            ("BC_W", BC_W), ("BC_E", BC_E), ("BC_N", BC_N), ("BC_S", BC_S)
+        ):
+            if val not in BC_options:
+                raise ValueError(
+                    f"{name}={val!r} is not a valid boundary condition. "
+                    f"Choose from: {BC_options}"
+                )
 
-        if BC_W == "Periodic":
-            assert BC_E == "Periodic"
-        if BC_E == "Periodic":
-            assert BC_W == "Periodic"
-        if BC_N == "Periodic":
-            assert BC_S == "Periodic"
-        if BC_S == "Periodic":
-            assert BC_N == "Periodic"
+        if (BC_W == "Periodic") != (BC_E == "Periodic"):
+            raise ValueError("BC_W and BC_E must both be 'Periodic', or neither.")
+        if (BC_N == "Periodic") != (BC_S == "Periodic"):
+            raise ValueError("BC_N and BC_S must both be 'Periodic', or neither.")
 
         Te_in = elastic_thickness
         try:
             flex.Te = float(Te_in)
-        except ValueError:
+        except (TypeError, ValueError):
             try:
                 flex.Te = grid.at_node[Te_in].view().reshape(grid.shape)
             except TypeError:
                 flex.Te = Te_in.view().reshape(grid.shape)
-            self._input_var_names.add(Te_in)
-            self._output_var_names.add(Te_in)
 
         # set up the link between surface load stresses in the gFlex component
         # and the LL grid field:
