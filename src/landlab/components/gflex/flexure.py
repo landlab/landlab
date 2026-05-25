@@ -307,4 +307,4 @@ class gFlex(Component):
         ----------
         None
         """
-        self._flex_lithosphere()
+        self.flex_lithosphere()
