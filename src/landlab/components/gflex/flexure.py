@@ -288,7 +288,10 @@ class gFlex(Component):
             self._grid.at_node["surface_load__stress"].view().reshape(self._grid.shape)
         )
         self._flex.run()
-        self._flex.finalize()
+        # Reuse the coefficient matrix on subsequent calls when Te is a
+        # scalar constant; for array Te it may change between steps.
+        if not isinstance(self._flex.Te, float):
+            self._flex.finalize()
 
         self._grid.at_node["lithosphere_surface__elevation_increment"][
             :
