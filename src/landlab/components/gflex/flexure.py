@@ -256,6 +256,10 @@ class gFlex(Component):
         # and the LL grid field:
         flex.qs = grid.at_node["surface_load__stress"].view().reshape(grid.shape)
 
+        # initialize once here: sets drho and validates parameters so that
+        # repeated calls to flex_lithosphere() can go straight to run()
+        flex.initialize()
+
         # create a holder for the "pre-flexure" state of the grid, to allow
         # updating of elevs:
         self._pre_flex = np.zeros(grid.number_of_nodes, dtype=float)
@@ -278,7 +282,6 @@ class gFlex(Component):
         self._flex.qs = (
             self._grid.at_node["surface_load__stress"].view().reshape(self._grid.shape)
         )
-        self._flex.initialize()
         self._flex.run()
         self._flex.finalize()
 
