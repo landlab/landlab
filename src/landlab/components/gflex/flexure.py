@@ -185,8 +185,10 @@ class gFlex(Component):
             The density of the mantle.
         rho_fill : float (kg*m**-3)
             The density of the infilling material (air, water...)
-        elastic_thickness : float (m)
-            The elastic thickness of the lithosphere.
+        elastic_thickness : float, str, or array-like (m)
+            The elastic thickness of the lithosphere. May be a scalar
+            float, the name of an existing node field on the grid, or a
+            numpy array of shape grid.shape.
         BC_W, BC_E, BC_N, BC_S : {'0Displacement0Slope', '0Moment0Shear',
                                   '0Slope0Shear', 'Periodic'}
             The boundary condition status of each grid edge, following gFlex's
