@@ -288,8 +288,9 @@ class gFlex(Component):
             self._grid.at_node["surface_load__stress"].view().reshape(self._grid.shape)
         )
         self._flex.run()
-        # Reuse the coefficient matrix on subsequent calls when Te is a
-        # scalar constant; for array Te it may change between steps.
+        # Building the coefficient matrix is one of the most time-consuming
+        # steps in the flexure calculation. Reuse it across calls when Te is
+        # a scalar constant; for array Te it may change between steps.
         if not isinstance(self._flex.Te, float):
             self._flex.finalize()
 
