@@ -189,7 +189,10 @@ class gFlex(Component):
         """
         super().__init__(grid)
 
-        assert isinstance(grid, RasterModelGrid)
+        if not isinstance(grid, RasterModelGrid):
+            raise TypeError(
+                f"gFlex requires a RasterModelGrid; got {type(grid)}"
+            )
 
         if NO_GFLEX:
             raise ImportError(
