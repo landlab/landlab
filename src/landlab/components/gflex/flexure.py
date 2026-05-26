@@ -105,6 +105,13 @@ class gFlex(Component):
 
     _unit_agnostic = True
 
+    _BC_OPTIONS = (
+        "0Displacement0Slope",
+        "0Moment0Shear",
+        "0Slope0Shear",
+        "Periodic",
+    )
+
     _cite_as = """
     @article{wickert2016open,
       author = {Wickert, A. D.},
@@ -181,7 +188,7 @@ class gFlex(Component):
         elastic_thickness : float (m)
             The elastic thickness of the lithosphere.
         BC_W, BC_E, BC_N, BC_S : {'0Displacement0Slope', '0Moment0Shear',
-                                  'Periodic'}
+                                  '0Slope0Shear', 'Periodic'}
             The boundary condition status of each grid edge, following gFlex's
             definitions. Periodic boundaries must be paired (obviously).
         g : float (m*s**-2)
@@ -199,13 +206,6 @@ class gFlex(Component):
                 "gFlex not installed! For installation instructions see "
                 + "gFlex on GitHub: https://github.com/awickert/gFlex"
             )
-        BC_options = (
-            "0Displacement0Slope",
-            "0Moment0Shear",
-            "0Slope0Shear",
-            "Periodic",
-        )
-
         # instantiate the module:
         self._flex = gflex.F2D()
         flex = self._flex
@@ -235,10 +235,10 @@ class gFlex(Component):
         for name, val in (
             ("BC_W", BC_W), ("BC_E", BC_E), ("BC_N", BC_N), ("BC_S", BC_S)
         ):
-            if val not in BC_options:
+            if val not in self._BC_OPTIONS:
                 raise ValueError(
                     f"{name}={val!r} is not a valid boundary condition. "
-                    f"Choose from: {BC_options}"
+                    f"Choose from: {self._BC_OPTIONS}"
                 )
 
         if (BC_W == "Periodic") != (BC_E == "Periodic"):
