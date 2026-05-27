@@ -146,8 +146,10 @@ def test_deflection_negative_for_positive_load():
 
     gf = gFlex(
         mg,
-        BC_W="Periodic", BC_E="Periodic",
-        BC_N="Periodic", BC_S="Periodic",
+        BC_W="Periodic",
+        BC_E="Periodic",
+        BC_N="Periodic",
+        BC_S="Periodic",
         quiet=True,
     )
     gf.run_one_step()
@@ -158,14 +160,17 @@ def test_deflection_negative_for_positive_load():
 
 def test_larger_load_larger_deflection():
     """Doubling the load should double the deflection (linearity)."""
+
     def run_with_load(q):
         mg = RasterModelGrid((10, 10), xy_spacing=25000.0)
         mg.add_zeros("surface_load__stress", at="node")
         mg.at_node["surface_load__stress"][:] = q
         gf = gFlex(
             mg,
-            BC_W="Periodic", BC_E="Periodic",
-            BC_N="Periodic", BC_S="Periodic",
+            BC_W="Periodic",
+            BC_E="Periodic",
+            BC_N="Periodic",
+            BC_S="Periodic",
             quiet=True,
         )
         gf.run_one_step()
@@ -192,8 +197,10 @@ def test_topo_updated_when_present(grid_with_topo):
     grid_with_topo.at_node["surface_load__stress"][:] = 1e4
     gf = gFlex(
         grid_with_topo,
-        BC_W="Periodic", BC_E="Periodic",
-        BC_N="Periodic", BC_S="Periodic",
+        BC_W="Periodic",
+        BC_E="Periodic",
+        BC_N="Periodic",
+        BC_S="Periodic",
         quiet=True,
     )
     gf.run_one_step()
@@ -206,8 +213,10 @@ def test_topo_tracks_cumulative_deflection(grid_with_topo):
     grid_with_topo.at_node["surface_load__stress"][:] = 1e4
     gf = gFlex(
         grid_with_topo,
-        BC_W="Periodic", BC_E="Periodic",
-        BC_N="Periodic", BC_S="Periodic",
+        BC_W="Periodic",
+        BC_E="Periodic",
+        BC_N="Periodic",
+        BC_S="Periodic",
         quiet=True,
     )
     gf.run_one_step()
@@ -235,8 +244,10 @@ def test_repeated_calls_same_result(grid):
     grid.at_node["surface_load__stress"][:] = 1e4
     gf = gFlex(
         grid,
-        BC_W="Periodic", BC_E="Periodic",
-        BC_N="Periodic", BC_S="Periodic",
+        BC_W="Periodic",
+        BC_E="Periodic",
+        BC_N="Periodic",
+        BC_S="Periodic",
         quiet=True,
     )
     gf.run_one_step()
@@ -252,8 +263,10 @@ def test_load_change_reflected(grid):
     """Updating the load field between calls changes the deflection."""
     gf = gFlex(
         grid,
-        BC_W="Periodic", BC_E="Periodic",
-        BC_N="Periodic", BC_S="Periodic",
+        BC_W="Periodic",
+        BC_E="Periodic",
+        BC_N="Periodic",
+        BC_S="Periodic",
         quiet=True,
     )
 

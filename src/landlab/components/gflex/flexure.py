@@ -199,9 +199,7 @@ class gFlex(Component):
         super().__init__(grid)
 
         if not isinstance(grid, RasterModelGrid):
-            raise TypeError(
-                f"gFlex requires a RasterModelGrid; got {type(grid)}"
-            )
+            raise TypeError(f"gFlex requires a RasterModelGrid; got {type(grid)}")
 
         if NO_GFLEX:
             raise ImportError(
@@ -235,7 +233,10 @@ class gFlex(Component):
         flex.BC_S = BC_S
         flex.BC_N = BC_N
         for name, val in (
-            ("BC_W", BC_W), ("BC_E", BC_E), ("BC_N", BC_N), ("BC_S", BC_S)
+            ("BC_W", BC_W),
+            ("BC_E", BC_E),
+            ("BC_N", BC_N),
+            ("BC_S", BC_S),
         ):
             if val not in self._BC_OPTIONS:
                 raise ValueError(
