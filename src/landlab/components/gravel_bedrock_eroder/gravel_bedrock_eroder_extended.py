@@ -11,15 +11,15 @@ import numpy as np
 from landlab import Component
 from landlab import HexModelGrid
 from landlab.grid.diagonals import DiagonalsMixIn
-from cfuncs import _calc_sediment_influx
-from cfuncs import _calc_sediment_rate_of_change
-from cfuncs import _calc_sed_abrs_rate
-from cfuncs import _calc_bedrock_abrs_rate
-from cfuncs import _get_classes_fractions
-from cfuncs import _calc_pluck_rate
-from cfuncs import _calc_pluck_rate_tools
-from cfuncs import _min_time_to_exhaust_sed
-from cfuncs import _min_time_to_flatten_slope
+from .cfuncs import _calc_sediment_influx
+from .cfuncs import _calc_sediment_rate_of_change
+from .cfuncs import _calc_sed_abrs_rate
+from .cfuncs import _calc_bedrock_abrs_rate
+from .cfuncs import _get_classes_fractions
+from .cfuncs import _calc_pluck_rate
+from .cfuncs import _calc_pluck_rate_tools
+from .cfuncs import _min_time_to_exhaust_sed
+from .cfuncs import _min_time_to_flatten_slope
 import time
 
 _DT_MAX = 1.0e-2
