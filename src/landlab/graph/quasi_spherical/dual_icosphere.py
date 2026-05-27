@@ -564,10 +564,12 @@ class DualIcosphereGraph:
         Examples
         --------
         >>> from landlab import IcosphereGlobalGrid
-        >>> spherical_grid = IcosphereGlobalGrid(radius=6371e3, mesh_densification_level=1)
+        >>> spherical_grid = IcosphereGlobalGrid(
+        ...     radius=6371e3, mesh_densification_level=1
+        ... )
         >>> pll = spherical_grid.parallel_links_at_link
         >>> pll[3:16]
-        array([[34 50  8 -1], 
+        array([[34 50  8 -1],
                [42 -1 30 -1],
                [ 0 -1 44 50],
                [37 43  2 -1],
