@@ -513,7 +513,7 @@ class DualIcosphereGraph:
         be included in the output array. The tail-wise parallel links will be in columns
         0 and 1, and the head-wise parallel links will be in columns 2 and 3.
 
-        For example, for a node which has 5 links attached to it like this:
+        For example, for a node which has 5 links attached to it like this::
 
                    o
                  / |  .
@@ -525,7 +525,7 @@ class DualIcosphereGraph:
               . /     . /
                o---0---0
 
-        the parallel links returned by this function would be:
+        the parallel links returned by this function would be::
 
                    o
                  / |  .
@@ -537,7 +537,7 @@ class DualIcosphereGraph:
               . /     . /
                o-------0
 
-        while for a node which has 6 links attached to it like this:
+        while for a node which has 6 links attached to it like this::
 
                o--11---o
               / .     / .
@@ -549,7 +549,7 @@ class DualIcosphereGraph:
               . /     . /
                o---0---o
 
-        the parallel links returned by this function would be:
+        the parallel links returned by this function would be::
 
                o-------o
               / .     / .
@@ -560,6 +560,26 @@ class DualIcosphereGraph:
              .   9   8   /
               . /     . /
                o-------o
+
+        Examples
+        --------
+        >>> from landlab import IcosphereGlobalGrid
+        >>> spherical_grid = IcosphereGlobalGrid(radius=6371e3, mesh_densification_level=1)
+        >>> pll = spherical_grid.parallel_links_at_link
+        >>> pll[3:16]
+        array([[34 50  8 -1], 
+               [42 -1 30 -1],
+               [ 0 -1 44 50],
+               [37 43  2 -1],
+               [ 9 -1 45 -1],
+               [ 3 -1 11 37],
+               [ 7 -1 19 -1],
+               [13 -1  0 24],
+               [ 8 43 15 -1],
+               [35 -1  1 -1],
+               [36 65 10 -1],
+               [16 -1 38 -1],
+               [11 -1 18 65]])
         """
 
         n_links = self.number_of_links
