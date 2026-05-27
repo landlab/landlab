@@ -277,7 +277,7 @@ def calc_xy_of_polygon(
     edges = np.where(is_edge, edges_at_polygon, 0)
     coords = xy_of_edge[edges]
 
-    coords[~is_edge[..., None]] = 0
+    coords[~is_edge, :] = 0
 
     edges_per_polygon = is_edge.sum(axis=1)
     return coords.sum(axis=1) / edges_per_polygon[:, None]
@@ -360,7 +360,7 @@ def redirect_edges(
     eps = 1e-12
     dot_prod = dx + dy
     is_positive = dot_prod > eps
-    is_about_zero = ~(is_positive | dot_prod < -eps)
+    is_about_zero = ~(is_positive | (dot_prod < -eps))
 
     keep = is_positive | (is_about_zero & (dx > 0))
     flip = ~keep
