@@ -104,6 +104,12 @@ anomaly.
   `lithosphere_surface__elevation_increment` both times.
 - Changing the load between calls changes the output.
 
+### Mirror boundary condition
+`Mirror` is a valid gFlex BC (symmetry across the edge) that was previously
+missing from the Landlab wrapper's `_BC_OPTIONS`.  One test verifies that
+all four edges set to `Mirror` are accepted and produce a downward deflection
+under a uniform positive load.
+
 ### Variable elastic thickness
 The component accepts `elastic_thickness` as a scalar float, as the
 string name of an existing node field, or as a NumPy array of shape
