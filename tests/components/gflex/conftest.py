@@ -1,4 +1,5 @@
 import pytest
+
 from landlab import RasterModelGrid
 from landlab.components.gflex.flexure import gFlex
 
