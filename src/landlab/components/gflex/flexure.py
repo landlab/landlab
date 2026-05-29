@@ -55,8 +55,8 @@ class gFlex(Component):
     already exists. Note that the gFlex component **demands lengths in
     meters**, including the grid dimensions.
     The component also recognises the gFlex specific parameters 'Method',
-    'PlateSolutionType', 'Solver', and 'Quiet'. See the gFlex software
-    documentation for more details.
+    'Solver', and 'Quiet'. See the gFlex software documentation for more
+    details.
 
     Examples
     --------
@@ -165,7 +165,6 @@ class gFlex(Component):
         elastic_thickness=35000.0,
         Method="FD",
         Solver="direct",
-        PlateSolutionType="vWC1994",
         quiet=True,
         BC_W="0Displacement0Slope",
         BC_E="0Displacement0Slope",
@@ -219,7 +218,6 @@ class gFlex(Component):
         # straightforward implementation, but they can still be set if you
         # want:
         flex.Method = Method
-        flex.PlateSolutionType = PlateSolutionType
         flex.Solver = Solver
         flex.Quiet = quiet
 
