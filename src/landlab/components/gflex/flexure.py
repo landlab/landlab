@@ -7,9 +7,7 @@ install on your own machine.
 A stable snapshot of gFlex is hosted on PyPI, which is the recommended version
 to install.
 If you have pip (the Python package install tool), simply run
-'pip install gFlex' from a command prompt.
-Alternatively, you can download and unpack the code (from github, or with PyPI,
-pypi.python.org/pypi/gFlex/), then run 'python setup.py install'.
+'pip install gflex' from a command prompt.
 
 Created on Thu Feb 19 18:47:11 2015
 
@@ -44,9 +42,7 @@ class gFlex(Component):
     A stable snapshot of gFlex is hosted on PyPI, which is the recommended
     version to install.
     If you have pip (the Python package install tool), simply run
-    'pip install gFlex' from a command prompt.
-    Alternatively, you can download and unpack the code (from github, or with
-    PyPI, pypi.python.org/pypi/gFlex/), then run 'python setup.py install'.
+    'pip install gflex' from a command prompt.
 
     Note that gFlex maintains its own internal version if the grid, but this
     should not affect performance.
@@ -109,6 +105,7 @@ class gFlex(Component):
         "0Displacement0Slope",
         "0Moment0Shear",
         "0Slope0Shear",
+        "Mirror",
         "Periodic",
     )
 
@@ -158,7 +155,7 @@ class gFlex(Component):
     def __init__(
         self,
         grid,
-        Youngs_modulus=6.5e11,
+        Youngs_modulus=65e9,
         Poissons_ratio=0.25,
         rho_mantle=3300.0,
         rho_fill=0.0,
@@ -189,9 +186,10 @@ class gFlex(Component):
             float, the name of an existing node field on the grid, or a
             numpy array of shape grid.shape.
         BC_W, BC_E, BC_N, BC_S : {'0Displacement0Slope', '0Moment0Shear',
-                                  '0Slope0Shear', 'Periodic'}
+                                  '0Slope0Shear', 'Mirror', 'Periodic'}
             The boundary condition status of each grid edge, following gFlex's
             definitions. Periodic boundaries must be paired (obviously).
+            Mirror enforces symmetry across that edge.
         g : float (m*s**-2)
             The acceleration due to gravity.
         """

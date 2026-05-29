@@ -1,9 +1,8 @@
 import pytest
-
-pytest.importorskip("gflex")
-
 from landlab import RasterModelGrid
 from landlab.components.gflex.flexure import gFlex
+
+pytest.importorskip("gflex")
 
 
 @pytest.fixture

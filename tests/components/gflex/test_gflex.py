@@ -54,6 +54,7 @@ def test_bc_options_class_attribute():
     assert "0Displacement0Slope" in gFlex._BC_OPTIONS
     assert "0Moment0Shear" in gFlex._BC_OPTIONS
     assert "0Slope0Shear" in gFlex._BC_OPTIONS
+    assert "Mirror" in gFlex._BC_OPTIONS
     assert "Periodic" in gFlex._BC_OPTIONS
 
 
@@ -284,6 +285,16 @@ def test_load_change_reflected(grid):
 # ---------------------------------------------------------------------------
 # Variable elastic thickness
 # ---------------------------------------------------------------------------
+
+
+def test_mirror_bc_runs(grid):
+    """Mirror BC should be accepted and produce a valid deflection."""
+    grid.at_node["surface_load__stress"][:] = 1e4
+    gf = gFlex(grid, BC_W="Mirror", BC_E="Mirror", BC_N="Mirror", BC_S="Mirror",
+               quiet=True)
+    gf.run_one_step()
+    w = grid.at_node["lithosphere_surface__elevation_increment"]
+    assert np.all(w < 0.0)
 
 
 def test_scalar_te_runs(grid):
