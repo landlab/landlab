@@ -95,9 +95,9 @@ anomaly.
 ### `topographic__elevation` interaction
 - The component runs without a `topographic__elevation` field.
 - When the field is present it is updated after each step.
-- The field accumulates the change in deflection between steps, not the
-  absolute deflection; so applying the same load a second time leaves
-  `topographic__elevation` unchanged (the increment is zero).
+- The field is updated by the *change* in equilibrium deflection between
+  calls.  Applying the same load a second time produces zero change, so
+  `topographic__elevation` is unchanged.
 
 ### Repeated calls and load changes
 - Calling `run_one_step` twice with the same load returns the same

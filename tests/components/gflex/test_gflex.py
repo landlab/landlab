@@ -209,8 +209,14 @@ def test_topo_updated_when_present(grid_with_topo):
     assert not np.all(topo == 0.0)
 
 
-def test_topo_tracks_cumulative_deflection(grid_with_topo):
-    """Topographic elevation should accumulate deflection across calls."""
+def test_topo_unchanged_when_load_unchanged(grid_with_topo):
+    """Repeated call with the same load should not change topographic__elevation.
+
+    The component updates topo by the *change* in equilibrium deflection
+    between calls (current w minus the deflection already applied).  With an
+    unchanged load the equilibrium is identical, so the change is zero and
+    topo stays the same.
+    """
     grid_with_topo.at_node["surface_load__stress"][:] = 1e4
     gf = gFlex(
         grid_with_topo,
@@ -226,7 +232,6 @@ def test_topo_tracks_cumulative_deflection(grid_with_topo):
         "lithosphere_surface__elevation_increment"
     ].copy()
 
-    # Same load: topo should shift by the same increment again
     gf.run_one_step()
     topo_after_2 = grid_with_topo.at_node["topographic__elevation"].copy()
     w_after_2 = grid_with_topo.at_node["lithosphere_surface__elevation_increment"]
