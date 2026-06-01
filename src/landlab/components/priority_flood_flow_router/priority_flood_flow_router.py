@@ -121,16 +121,16 @@ class PriorityFloodFlowRouter(Component):
         Depression-Filling or breaching algorithm to process depressions
 
         - 'fill': Depression-Filling.
-          Depression-filling is often used to fill in all the depressions
-          in a DEM to the level of their lowest outlet or spill-point.
-          See also: https://richdem.readthedocs.io/en/latest/depression_filling.html
-        - 'breach': Complete Breaching.
-          Depression-breaching is used to dig channels from the pit cells
-          of a DEM to the nearest cells (in priority-flood sense) outside
-          of the depression containing the pit. This resolves the depression
-          as all cells in the depression now have a drainage path to the
-          edge of the DEM.
-          See also: https://richdem.readthedocs.io/en/latest/depression_breaching.html
+            Depression-filling is often used to fill in all the depressions
+            in a DEM to the level of their lowest outlet or spill-point.
+            See also: https://richdem.readthedocs.io/en/latest/depression_filling.html
+            - 'breach': Complete Breaching.
+            Depression-breaching is used to dig channels from the pit cells
+            of a DEM to the nearest cells (in priority-flood sense) outside
+            of the depression containing the pit. This resolves the depression
+            as all cells in the depression now have a drainage path to the
+            edge of the DEM.
+            See also: https://richdem.readthedocs.io/en/latest/depression_breaching.html
     exponent : float, optional
         Some methods require an exponent (see flow_metric) Default {1}
     epsilon : bool, optional

@@ -1,8 +1,8 @@
 bmipy
-importlib-resources; python_version < '3.12'
+importlib-resources
 matplotlib
 netcdf4
-numpy >=1.20
+numpy >= 1.20
 pandas
 pyshp != 2.3.0
 pyyaml
@@ -10,3 +10,7 @@ rich-click
 scipy
 statsmodels
 xarray >= 0.16
+bmi-topography
+spyder >= 6
+seaborn
+
