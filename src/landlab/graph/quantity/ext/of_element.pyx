@@ -26,7 +26,7 @@ cpdef diff_of_children_at_parent(
     children_at_parent : array of shape (n_parents, max_children)
         Array that specifies the children of each parent as indices
         into the *value_at_child* array. Values of -1 indicate
-        non-existant children.
+        non-existent children.
     value_at_parent : array
         Value for each parent.
     value_at_child : array
@@ -58,7 +58,7 @@ cpdef mean_of_children_at_parent(
     children_at_parent : array of shape (n_parents, max_children)
         Array that specifies the children of each parent as indices
         into the *value_at_child* array. Values of -1 indicate
-        non-existant children.
+        non-existent children.
     value_at_child : array
         Value for each child.
     """
@@ -95,7 +95,7 @@ cpdef min_of_children_at_parent(
     children_at_parent : array of shape (n_parents, max_children)
         Array that specifies the children of each parent as indices
         into the *value_at_child* array. Values of -1 indicate
-        non-existant children.
+        non-existent children.
     value_at_child : array
         Value for each child.
     """
@@ -138,7 +138,7 @@ cpdef max_of_children_at_parent(
     children_at_parent : array of shape (n_parents, max_children)
         Array that specifies the children of each parent as indices
         into the *value_at_child* array. Values of -1 indicate
-        non-existant children.
+        non-existent children.
     value_at_child : array
         Value for each child.
     """
@@ -180,7 +180,7 @@ cpdef count_of_children_at_parent(
     children_at_parent : array of shape (n_parents, max_children)
         Array that specifies the children of each parent as indices
         into the *value_at_child* array. Values of -1 indicate
-        non-existant children.
+        non-existent children.
     """
     cdef int n_parents = children_at_parent.shape[0]
     cdef int n_cols = children_at_parent.shape[1]

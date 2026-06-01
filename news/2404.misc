@@ -1,0 +1,1 @@
+Refactored DataRecord.get_data to simplify control flow and data validation.

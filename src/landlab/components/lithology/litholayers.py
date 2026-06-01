@@ -9,7 +9,7 @@ from landlab.components.lithology.lithology import Lithology
 class LithoLayers(Lithology):
     """Create LithoLayers component.
 
-    A LithoLayers is a three dimentional representation of material operated on
+    A LithoLayers is a three dimensional representation of material operated on
     by landlab components. Material can be removed through erosion or added to
     through deposition. Rock types can have multiple attributes (e.g. age,
     erodability or other parameter values, etc).
@@ -106,10 +106,10 @@ class LithoLayers(Lithology):
             used, then erosion removes material and creates layers of thickness
             zero. Thus, EventLayers may be appropriate if the user is interested
             in chronostratigraphy.
-        dz_advection : float, `(n_nodes, )` shape array, or at-node field array optional
-            Change in rock elevation due to advection by some external process.
+        dz_advection : float, ndarray, or str, optional
+            Change in rock elevation (at-node) due to advection by some external process.
             This can be changed using the property setter.
-        rock_id : value or `(n_nodes, )` shape array, optional
+        rock_id : value or ndarray, optional
             Rock type id for new material if deposited.
             This can be changed using the property setter.
 

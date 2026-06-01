@@ -4,11 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "landlab"
+version = "2.11.1.dev0"
 description = "Open-source Python package for numerical modeling of Earth surface dynamics."
 authors = [
   {email = "mcflugen@gmail.com"},
   {name = "The landlab team"}
 ]
+license = "MIT"
+license-files = ["LICENSE.md"]
 maintainers = [
   {email = "mcflugen@gmail.com"},
   {name = "The landlab team"}
@@ -24,35 +27,33 @@ keywords = [
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Science/Research",
-  "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
   "Programming Language :: Cython",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Programming Language :: Python :: Implementation :: CPython",
   "Topic :: Scientific/Engineering :: Physics",
 ]
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 dependencies = [
   "bmipy",
   "importlib-resources; python_version < '3.12'",
   "matplotlib",
   "netcdf4",
   "numpy >=1.20",
+  "py-richdem",
   "pyyaml",
   "pyshp != 2.3.0",
+  "requireit>=0.8.0",
   "rich-click",
   "scipy",
   "statsmodels",
   "pandas",
   "xarray >= 0.16",
 ]
-dynamic = ["readme", "version"]
-
-[project.license]
-text = "MIT"
+dynamic = ["readme"]
 
 [project.urls]
 homepage = "https://github.com/landlab"
@@ -92,9 +93,6 @@ landlab = [
 
 [tool.setuptools.packages.find]
 where = ["src"]
-
-[tool.setuptools.dynamic]
-version = {attr = "landlab._version.__version__"}
 
 [tool.setuptools.dynamic.readme]
 file = ["README.md", "AUTHORS.md"]
@@ -137,23 +135,24 @@ profile = "black"
 ignore = [".nox", "build"]
 
 [tool.cibuildwheel]
-build = "cp311-* cp312-* cp313-*"
-skip = "*-musllinux_* *-win32*"
-archs = "x86_64,aarch64,arm64,AMD64,x86"
+build = ["cp311-*", "cp312-*", "cp313-*", "cp314-*"]
+skip = ["*-win32", "*-manylinux_i686*", "*-musllinux_i686*"]
+environment = """
+MACOSX_DEPLOYMENT_TARGET=11.0
+"""
 test-command = [
 	"python -c \"import landlab; print(landlab.__version__)\"",
 	"python -c \"from landlab import RasterModelGrid; print(RasterModelGrid((3, 3)))\"",
 ]
 
-[tool.cibuildwheel.linux.environment]
-CPPFLAGS = "-fopenmp"
+[tool.cibuildwheel.linux]
+archs = ["x86_64", "aarch64"]
 
-[tool.cibuildwheel.macos.environment]
-MACOSX_DEPLOYMENT_TARGET = "12.0"
-CC = "clang"
-CXX = "clang++"
-# CPPFLAGS = "-Xclang -fopenmp"
-# LDFLAGS = "-lomp"
+[tool.cibuildwheel.macos]
+archs = ["x86_64", "arm64"]
+
+[tool.cibuildwheel.windows]
+archs = ["AMD64"]
 
 [tool.cython-lint]
 max-line-length = 88

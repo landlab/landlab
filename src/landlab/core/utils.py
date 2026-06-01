@@ -18,6 +18,7 @@ Landlab utilities
     ~anticlockwise_argsort_points
     ~get_categories_from_grid_methods
 """
+
 import errno
 import importlib
 import inspect
@@ -336,7 +337,7 @@ def add_module_functions_to_class(cls, module, pattern=None, exclude=None):
 
     *Note* if both pattern and exclude are provided both conditions must be met.
     """
-    (module, _) = os.path.splitext(os.path.basename(module))
+    module, _ = os.path.splitext(os.path.basename(module))
 
     mod = importlib.import_module("." + module, package="landlab.grid")
 
@@ -596,7 +597,7 @@ def get_categories_from_grid_methods(grid_type):
     """Create a dict of category:[method_names] for a LL grid type.
 
     Looks in the final line of the docstrings
-    of class methods and properties for a catgory declaration, "LLCATS: ".
+    of class methods and properties for a category declaration, "LLCATS: ".
     It then creates and returns a dict with keys found as categories and
     values that are lists of the names of methods that have that category.
 
@@ -617,7 +618,7 @@ def get_categories_from_grid_methods(grid_type):
         - MAP : methods to map from one element type to another
         - BC : methods to interact with BCs
         - SURF : methods for surface analysis (slope, aspect, hillshade)
-        - SUBSET : methods to indentify part of the grid based on conditions
+        - SUBSET : methods to identify part of the grid based on conditions
         - CONN : method describing the connectivity of one element to another
           (i.e., 'links_at_node')
         - MEAS : method describing a quantity defined on an element (i.e.,

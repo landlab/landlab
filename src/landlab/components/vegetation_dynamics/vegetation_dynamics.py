@@ -257,7 +257,7 @@ class Vegetation(Component):
         Blive_init: float, optional
             Initial value for vegetation__live_biomass. Converted to field.
         Bdead_init: float, optional
-            Initial value for vegetation__dead_biomass. Coverted to field.
+            Initial value for vegetation__dead_biomass. Converted to field.
         ETthreshold_up: float, optional
             Potential Evapotranspiration (PET) threshold for
             growing season (mm/d).
@@ -289,7 +289,7 @@ class Vegetation(Component):
         Tb: float, optional
             Inter-storm duration (hours).
         PETthreshold_switch: int, optional
-            Flag to indiate the PET threshold. This controls whether the
+            Flag to indicate the PET threshold. This controls whether the
             threshold is for growth (1) or dormancy (any other value).
         """
         super().__init__(grid)
@@ -369,7 +369,7 @@ class Vegetation(Component):
 
     @property
     def PETthreshold_switch(self):
-        """Flag to indiate the PET threshold.
+        """Flag to indicate the PET threshold.
 
         This controls whether the threshold is for growth (1) or
         dormancy (any other value).
@@ -427,7 +427,7 @@ class Vegetation(Component):
         Blive_init: float, optional
             Initial value for vegetation__live_biomass. Converted to field.
         Bdead_init: float, optional
-            Initial value for vegetation__dead_biomass. Coverted to field.
+            Initial value for vegetation__dead_biomass. Converted to field.
         ETthreshold_up: float, optional
             Potential Evapotranspiration (PET) threshold for
             growing season (mm/d).

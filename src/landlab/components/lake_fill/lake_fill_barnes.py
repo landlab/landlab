@@ -6,7 +6,6 @@ Fill sinks in a landscape to the brim, following the Barnes et al.
 (2014) algorithms.
 """
 
-
 import heapq
 import itertools
 from collections import deque
@@ -32,16 +31,16 @@ def _fill_one_node_to_flat(fill_surface, all_neighbors, pitq, openq, closedq, du
 
     Parameters
     ----------
-    fill_surface : 1-D array of length nnodes
+    fill_surface : ndarray
         The surface to fill in LL node order. Modified in place.
-    all_neighbors : (nnodes, max_nneighbours) array
+    all_neighbors : ndarray
         Adjacent nodes at each node.
     pitq : heap queue (i.e., a structured list)
         Current nodes known to be in a lake, if already identified.
     openq : StablePriorityQueue object
         Ordered queue of nodes remaining to be checked out by the algorithm
         that are known not to be in a lake.
-    closedq : 1-D boolean array of length nnodes
+    closedq : ndarray of bool
         Nodes already or not to be explored by the algorithm.
     dummy : any Python object
         Necessary for direct comparison with _fill_one_node_to_slant.
@@ -129,7 +128,7 @@ class LakeMapperBarnes(Component):
     pit node IDs. Note also this component does not offer the `lake_codes` or
     `display_depression_map` options, for essentially this reason. Use
     `lake_map` instead for both. It also uses a much more Landlabbian
-    `run_one_step()` method as its driver, superceding
+    `run_one_step()` method as its driver, superseding
     DepressionFinderAndRouter's `map_depressions()`.
 
     A variety of options is provided. Flow routing is route-to-one in this
@@ -271,7 +270,7 @@ class LakeMapperBarnes(Component):
         ----------
         grid : ModelGrid
             A grid.
-        surface : field name at node or array of length node
+        surface : str or ndarray
             The surface to direct flow across.
         method : {'Steepest', 'D8'}
             Whether or not to recognise diagonals as valid flow paths, if a raster.
@@ -298,7 +297,7 @@ class LakeMapperBarnes(Component):
             calculated by a FlowDirector! This also means you need to instantiate
             your FlowDirector **before** you instantiate the LakeMapperBarnes.
             Note that the new topographic__steepest_slope will always be set to
-            zero, even if fill_flat=False (i.e., there is actually a miniscule
+            zero, even if fill_flat=False (i.e., there is actually a minuscule
             gradient on the new topography, which gets ignored).
         reaccumulate_flow : bool
             If True, and redirect_flow_steepest_descent is True, the run method
@@ -472,16 +471,16 @@ class LakeMapperBarnes(Component):
 
         Parameters
         ----------
-        fill_surface : 1-D array of length nnodes
+        fill_surface : ndarray
             The surface to fill in LL node order. Modified in place.
-        all_neighbors : (nnodes, max_nneighbours) array
+        all_neighbors : ndarray
             Adjacent nodes at each node.
         pitq : heap queue (i.e., a structured list)
             Current nodes known to be in a lake, if already identified.
         openq : StablePriorityQueue object
             Ordered queue of nodes remaining to be checked out by the algorithm
             that are known not to be in a lake.
-        closedq : 1-D boolean array of length nnodes
+        closedq : ndarray of bool
             Nodes already or not to be explored by the algorithm.
         ignore_overfill : bool
             If False, method will raise a ValueError if adding an increment
@@ -656,16 +655,16 @@ class LakeMapperBarnes(Component):
 
         Parameters
         ----------
-        fill_surface : 1-D array
+        fill_surface : ndarray
             The surface to fill in LL node order. Modified in place.
-        all_neighbors : (nnodes, max_nneighbours) array
+        all_neighbors : ndarray
             Adjacent nodes at each node.
         pitq : heap queue (i.e., a structured list)
             Current nodes known to be in a lake, if already identified.
         openq : StablePriorityQueue object
             Ordered queue of nodes remaining to be checked out by the algorithm
             that are known not to be in a lake.
-        closedq : 1-D boolean array of length nnodes
+        closedq : ndarray of bool
             Nodes already or not to be explored by the algorithm.
 
         Returns
@@ -760,16 +759,16 @@ class LakeMapperBarnes(Component):
 
         Parameters
         ----------
-        fill_surface : 1-D array of length nnodes
+        fill_surface : ndarray
             The surface to fill in LL node order. Modified in place.
-        all_neighbors : (nnodes, max_nneighbours) array
+        all_neighbors : ndarray
             Adjacent nodes at each node.
         pitq : heap queue (i.e., a structured list)
             Current nodes known to be in a lake, if already identified.
         openq : StablePriorityQueue object
             Ordered queue of nodes remaining to be checked out by the algorithm
             that are known not to be in a lake.
-        closedq : 1-D boolean array of length nnodes
+        closedq : ndarray of bool
             Nodes already or not to be explored by the algorithm.
         ignore_overfill : bool
             If False, method will raise a ValueError if adding an increment
@@ -1796,7 +1795,7 @@ class LakeMapperBarnes(Component):
         self._runcount = next(self._runcounter)
         # First get _fill_surface in order.
         self._fill_surface[:] = self._surface  # surfaces begin identical
-        # note this is nice & efficent if _fill_surface is _surface
+        # note this is nice & efficient if _fill_surface is _surface
         # if we're doing a redirect, we're going to need to preserve this
         # initial topo, so let's do that:
         if not self._dontredirect:
@@ -2324,7 +2323,7 @@ class LakeMapperBarnes(Component):
         """A nlakes-long array of the volume of each lake. The order is the
         same as that of the keys in lake_dict, and of lake_outlets. Note that
         this calculation is performed relative to the initial surface, so is
-        only a true lake volume if the initial surface was the rock suface (not
+        only a true lake volume if the initial surface was the rock surface (not
         an earlier water level).
 
         Requires that surface and fill_surface were not the same array at

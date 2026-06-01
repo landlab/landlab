@@ -29,9 +29,9 @@ class RasterCTS(CellLabCTSModel):
         these codes
     transition_list : list of Transition objects
         List of all possible transitions in the model
-    initial_node_states : array of ints (x number of nodes in grid)
+    initial_node_states : ndarray of int
         Starting values for node-state grid
-    prop_data : array (x number of nodes in grid) (optional)
+    prop_data : ndarray, optional
         Array of properties associated with each node/cell
     prop_reset_value : number or object, optional
         Default or initial value for a node/cell property (e.g., 0.0).
@@ -75,9 +75,9 @@ class RasterCTS(CellLabCTSModel):
             these codes
         transition_list : list of Transition objects
             List of all possible transitions in the model
-        initial_node_states : array of ints (x number of nodes in grid)
+        initial_node_states : ndarray of int
             Starting values for node-state grid
-        prop_data : array (x number of nodes in grid) (optional)
+        prop_data : ndarray, optional
             Array of properties associated with each node/cell
         prop_reset_value : number or object, optional
             Default or initial value for a node/cell property (e.g., 0.0).

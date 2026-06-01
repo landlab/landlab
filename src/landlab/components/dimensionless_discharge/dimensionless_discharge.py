@@ -29,14 +29,14 @@ class DimensionlessDischarge(Component):
      segment, :math:`q` is flux in a stream segment,  :math:`\rho_s`
      is soil density, :math:`\rho` is water density, :math:`g` is the
      gravitational constant, and :math:`D_50` is the average sediment
-     partical size in the stream segment area.
+     particle size in the stream segment area.
 
      Constants C and N are coefficients used in the slope-dependent
      equation
 
      .. math::
 
-        q*_{thresold} = \frac{C}{(tan(\theta))^N}
+        q*_{threshold} = \frac{C}{(tan(\theta))^N}
 
      to determine whether the dimensionless discharge calculated
      exceeds thresholds for a sediment-laden (Upper Limit) or
@@ -152,7 +152,7 @@ class DimensionlessDischarge(Component):
 
         Parameters
         ----------
-        soil_density : float, field name, or array, optional
+        soil_density : float, str, or ndarray, optional
             density of soil (kg/m^3) (defaults to 1330)
         water_density : float, optional
             density of water (kg/m^3) (defaults to 997.9)
@@ -165,7 +165,7 @@ class DimensionlessDischarge(Component):
             et al. 2019). (defaults to 0.85)
         gravity : float, optional
             (defaults to scipy's standard acceleration of gravity)
-        channel_bottom_sediment_grain__d50_diameter : float, field_name, or array
+        channel_bottom_sediment_grain__d50_diameter : float, str, or ndarray
             defaults to the field name
             "channel_bottom_sediment_grain__d50_diameter"
         """

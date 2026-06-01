@@ -2,6 +2,7 @@
 """
 Unit tests for landlab.components.flexure.flexure
 """
+
 import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal
@@ -137,7 +138,7 @@ def test_flexure_cmp():
     assert_array_almost_equal(actual, expected)
 
 
-def test_subside_is_symetric():
+def test_subside_is_symmetric():
     n, load_0 = 10, 1e9
 
     n_rows = 2**n + 1

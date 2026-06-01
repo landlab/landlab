@@ -2,6 +2,7 @@
 """Python implementation of ModelGrid, a base class used to create and manage
 grids for 2D numerical models.
 """
+
 import contextlib
 import fnmatch
 from functools import cached_property
@@ -221,7 +222,7 @@ def find_true_vector_from_link_vector_pair(L1, L2, b1x, b1y, b2x, b2y):
     The following example represents the active links in a 7-node hexagonal
     grid, with just one core node. The 'true' vector has a magnitude of 5 units
     and an orientation of 30 degrees, pointing up and to the right (i.e., the
-    postive-x and postive-y quadrant), so that its vector components are 4 (x)
+    positive-x and positive-y quadrant), so that its vector components are 4 (x)
     and 3 (y) (in other words, it is a 3-4-5 triangle). The values assigned to
     L below are the projection of that true vector onto the six link
     vectors. The algorithm should recover the correct vector component
@@ -325,14 +326,12 @@ class ModelGrid(
         --------
         >>> from io import StringIO
         >>> from landlab import RasterModelGrid
-        >>> filelike = StringIO(
-        ...     '''
+        >>> filelike = StringIO('''
         ... shape:
         ...     - 3
         ...     - 4
         ... xy_spacing: 2
-        ... '''
-        ... )
+        ... ''')
         >>> grid = RasterModelGrid.from_file(filelike)
         >>> grid.x_of_node
         array([0.,  2.,  4.,  6.,  0.,  2.,  4.,  6.,  0.,  2.,  4.,  6.])
@@ -728,7 +727,7 @@ class ModelGrid(
 
         Returns
         -------
-        (n_nodes, max_links_per_node) ndarray of int
+        ``(n_nodes, max_links_per_node)`` ndarray of int
             Link directions relative to the nodes of a grid. The shape of the
             matrix will be number of nodes by the maximum number of links per
             node. A zero indicates no link at this position.
@@ -1119,7 +1118,7 @@ class ModelGrid(
 
         Returns
         -------
-        array of int
+        ndarray of int
             Links with the given tail and head node statuses.
 
         Examples
@@ -1590,7 +1589,7 @@ class ModelGrid(
 
         Parameters
         ----------
-        values : str or array
+        values : str or ndarray
             Name of variable field defined at links, or array of values at
             links.
         out : ndarray, optional
@@ -1673,7 +1672,7 @@ class ModelGrid(
 
         Parameters
         ----------
-        values : str or array
+        values : str or ndarray
             Name of variable field defined at links, or array of values at
             links.
         out : ndarray, optional
@@ -1752,7 +1751,7 @@ class ModelGrid(
 
         Parameters
         ----------
-        values : str or array
+        values : str or ndarray
             Name of variable field defined at links, or array of values at
             links.
         bad_index : int
@@ -1837,7 +1836,7 @@ class ModelGrid(
 
         Parameters
         ----------
-        values : str or array
+        values : str or ndarray
             Name of variable field defined at links, or array of values at
             links.
         bad_index : int
@@ -2182,7 +2181,7 @@ class ModelGrid(
         """
         if slp is not None and asp is not None:
             if unit == "degrees":
-                (alt, az, slp, asp) = (
+                alt, az, slp, asp = (
                     np.radians(alt),
                     np.radians(az),
                     np.radians(slp),
@@ -2194,14 +2193,14 @@ class ModelGrid(
                         "Assuming your solar properties are in degrees, "
                         "but your slopes and aspects are in radians..."
                     )
-                    (alt, az) = (np.radians(alt), np.radians(az))
+                    alt, az = (np.radians(alt), np.radians(az))
                     # ...because it would be super easy to specify radians,
                     # but leave the default params alone...
             else:
                 raise TypeError("unit must be 'degrees' or 'radians'")
         elif slp is None and asp is None:
             if unit == "degrees":
-                (alt, az) = (np.radians(alt), np.radians(az))
+                alt, az = (np.radians(alt), np.radians(az))
             elif unit == "radians":
                 pass
             else:
@@ -2533,7 +2532,7 @@ class ModelGrid(
         Parameters
         ----------
         coord : tuple of float
-            Coodinates of point as (x, y).
+            Coordinates of point as (x, y).
         get_az: {None, 'angles', 'displacements'}, optional
             Optionally calculate azimuths as either angles or displacements.
             The calculated values will be returned along with the distances
@@ -2600,10 +2599,10 @@ class ModelGrid(
         Calculate azimuths along with distances. The azimuths are calculated
         in radians but measured clockwise from north.
 
-        >>> (_, azim) = grid.calc_distances_of_nodes_to_point((2, 1), get_az="angles")
+        >>> _, azim = grid.calc_distances_of_nodes_to_point((2, 1), get_az="angles")
         >>> azim.take((2, 6, 7, 8, 12)) * 180.0 / np.pi
         array([180.,  270.,    0.,   90.,    0.])
-        >>> (_, azim) = grid.calc_distances_of_nodes_to_point(
+        >>> _, azim = grid.calc_distances_of_nodes_to_point(
         ...     (2, 1), get_az="angles", node_subset=(1, 3, 11, 13)
         ... )
         >>> azim * 180.0 / np.pi
@@ -2612,7 +2611,7 @@ class ModelGrid(
         When calculating displacements, the first row contains displacements
         in x and the second displacements in y.
 
-        >>> (_, azim) = grid.calc_distances_of_nodes_to_point(
+        >>> _, azim = grid.calc_distances_of_nodes_to_point(
         ...     (2, 1), get_az="displacements", node_subset=(2, 6, 7, 8, 12)
         ... )
         >>> azim

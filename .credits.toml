@@ -29,6 +29,8 @@ alternate_emails = [
 name = 'Amanda Manaster'
 email = 'amanaste@uw.edu'
 aliases = [
+  'Amanda Alvis',
+  'amanaster2',
 ]
 alternate_emails = [
 ]
@@ -225,6 +227,14 @@ alternate_emails = [
 ]
 
 [[tool.landlab.credits.author]]
+name = 'Juan David'
+email = '77643820+JuanGuerrero09@users.noreply.github.com'
+aliases = [
+]
+alternate_emails = [
+]
+
+[[tool.landlab.credits.author]]
 name = 'Katy Barnhart'
 email = 'krbarnhart@usgs.gov'
 aliases = [
@@ -374,12 +384,59 @@ alternate_emails = [
 ]
 
 [[tool.landlab.credits.author]]
+name = 'Timo Heister'
+email = 'timo.heister@gmail.com'
+aliases = [
+]
+alternate_emails = [
+]
+github = 'tjhei'
+
+[[tool.landlab.credits.author]]
+name = 'Wolfgang Bangerth'
+email = 'bangerth@colostate.edu'
+aliases = [
+]
+alternate_emails = [
+]
+github = 'bangerth'
+
+[[tool.landlab.credits.author]]
+name = 'angelmons'
+email = 'amonsalve@uidaho.edu'
+aliases = [
+]
+alternate_emails = [
+  'angelm@uidaho.edu',
+]
+github = 'angelmons'
+
+[[tool.landlab.credits.author]]
+name = 'Daniel Douglas'
+email = 'daniel.douglas@bc.edu'
+aliases = [
+  'danieldouglas92',
+]
+alternate_emails = [
+]
+github = 'danieldouglas92'
+
+[[tool.landlab.credits.author]]
 name = 'dependabot[bot]'
 email = '49699333+dependabot[bot]@users.noreply.github.com'
 aliases = [
 ]
 alternate_emails = [
 ]
+
+[[tool.landlab.credits.author]]
+name = 'gantian127'
+email = 'jamy127@foxmail.com'
+aliases = [
+]
+alternate_emails = [
+]
+github = 'gantian127'
 
 [[tool.landlab.credits.author]]
 name = 'pankajiitkgp'

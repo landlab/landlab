@@ -190,6 +190,7 @@ class SharedStreamPower(ErosionDeposition):
         F_f=0.0,
         discharge_field="surface_water__discharge",
         solver="basic",
+        smooth_threshold=True,
     ):
         """Initialize the Shared Stream Power model.
 
@@ -226,6 +227,10 @@ class SharedStreamPower(ErosionDeposition):
             2. ``"adaptive"``: adaptive time-step solver that estimates a
                stable step size based on the shortest time to "flattening"
                among all upstream-downstream node pairs.
+        smooth_threshold : bool, optional
+            When True, the erosion term is calculated as
+            ``omega - self.sp_crit * (1.0 - np.exp(-omega_over_sp_crit))``.
+            When False, it is calculated as ``omega - self.sp_crit``.
         """
         self._discharge_field = discharge_field
         self._runoff_rate = runoff_rate
@@ -247,6 +252,7 @@ class SharedStreamPower(ErosionDeposition):
             F_f=F_f,
             discharge_field=discharge_field,
             solver=solver,
+            smooth_threshold=smooth_threshold,
             dt_min=DEFAULT_MINIMUM_TIME_STEP,
         )
 

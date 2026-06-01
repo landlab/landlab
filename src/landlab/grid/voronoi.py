@@ -2,6 +2,7 @@
 """Python implementation of VoronoiDelaunayGrid, a class used to create and
 manage unstructured, irregular grids for 2D numerical models.
 """
+
 import pathlib
 
 import numpy as np

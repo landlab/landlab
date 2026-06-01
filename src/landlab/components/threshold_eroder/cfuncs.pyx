@@ -15,7 +15,7 @@ cpdef _thresholder(
     const double slope_thres,
 ):
     """
-    Calcualte D8 flow dirs
+    Calculate D8 flow dirs
     stack: the flow upstream node order
     link_to_rcvr: Link to receiver
     receivers: receivers

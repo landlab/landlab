@@ -198,9 +198,7 @@ that prevents accidentally overwriting an existing field.
 ```python
 >>> import numpy as np
 >>> elevs_in = np.random.rand(mg.number_of_nodes)
->>> mg.add_field(
-...     "elevation", elevs_in, at="node", units="m", copy=True, clobber=True
-... )
+>>> mg.add_field("elevation", elevs_in, at="node", units="m", copy=True, clobber=True)
 ```
 
 Fields can store data at nodes, cells, links, faces, patches, junctions, and corners (though the
@@ -368,7 +366,7 @@ there are no supporting functions for the use of junctions, but support is immin
 
 Notice that the links also enclose a set of polygons that are offset from the
 cells. These secondary polygons are known as *patches* ({ref}`Figure 1,
-dotted <basic-grid-elements>`). This means that any grid comprises two complementary tesselations: one
+dotted <basic-grid-elements>`). This means that any grid comprises two complementary tessellations: one
 made of cells, and one made of patches. If one of these is a Voronoi
 tessellation, the other is a Delaunay triangulation. For this reason, Delaunay
 triangulations and Voronoi diagrams are said to be dual to one another: for any
@@ -579,7 +577,7 @@ Use the *name* keyword to add the elevation to a field in the imported grid.
 
 ```python
 >>> from landlab.io import read_esri_ascii
->>> (mg, z) = read_esri_ascii("myARCoutput.txt", name="topographic__elevation")
+>>> mg, z = read_esri_ascii("myARCoutput.txt", name="topographic__elevation")
 >>> mg.at_node.keys()
 ['topographic__elevation']
 ```

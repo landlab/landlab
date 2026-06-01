@@ -7,7 +7,7 @@ This component creates -or- overwrites a field on the grid called
 'mannings_n' where each node is assigned a Manning's n value based on the
 minimum Manning's n value for the landscape, the local water depths, an index
 (or threshold) water depth above which all Manning's n values are considered
-constant, and a vegetation drag coefficent (for more on vegetation drag and
+constant, and a vegetation drag coefficient (for more on vegetation drag and
 the impact on surface roughness, see Wu et al., 1999 in the Journal of
 Hydraulic Engineering.)
 
@@ -57,10 +57,10 @@ def depth_dependent_mannings_n(
 
     Parameters
     ----------
-    grid : A Landlab RasterModelGrid instance
+    grid : RasterModelGrid
         A Landlab grid - only works with RasterModelGrid instances as of
         1/31/17.
-    water_depths : array or Landlab field of floats
+    water_depths : ndarray or str
         Array of values, with length of number of nodes, water depths
         at all grid node locations. (m)
     min_mannings_n : float

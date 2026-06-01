@@ -1,3 +1,0 @@
-Removed unnecessary class attributes in OverlandFlow causing extra arrays
-to be unnecessarily being held in memory and making the component difficult
-to follow.

@@ -1,32 +1,37 @@
-import os
+from collections.abc import Mapping
+from typing import Any
 
-from ..core.messages import deprecation_message
+from landlab.core.messages import deprecation_message
 
 
 class DeprecatedSignature(DeprecationWarning):
-    msg = "You are using a deprecated calling signature."
+    def __init__(
+        self,
+        name: str,
+        new: tuple[tuple[Any, ...], Mapping[str, Any]] | None = None,
+    ):
+        super().__init__(name, new)
 
-    def __init__(self, name, old=None, new=None):
-        self._name = name
-        self._old = old
-        self._new = new
+    def __str__(self) -> str:
+        name, new = self.args
 
-        if old:
-            self._old = self._construct_call(name, self._old[0], self._old[1])
-        if new:
-            self._new = self._construct_call(name, self._new[0], self._new[1])
+        if new is None:
+            use = None
+        else:
+            new = self._construct_call(name, new[0], new[1])
+            use = f">>> grid = {new}"
+
+        return deprecation_message(
+            "You are using a deprecated calling signature.", use=use
+        )
 
     @staticmethod
-    def _construct_call(name, args, kwds):
+    def _construct_call(
+        name: str,
+        args: tuple[Any, ...],
+        kwds: Mapping[str, Any],
+    ) -> str:
         signature = ", ".join(
             [repr(arg) for arg in args] + [f"{k}={repr(v)}" for k, v in kwds.items()]
         )
         return f"{name}({signature})"
-
-    def __str__(self):
-        if self._new:
-            use = f">>> grid = {self._new}"
-        else:
-            use = None
-
-        return os.linesep + deprecation_message(self.msg, use=use)

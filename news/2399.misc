@@ -1,0 +1,3 @@
+Refactored `DataRecord` validation and initialization logic, including
+stricter checks for time, items, and element IDs. Improved performance
+and consistency of element ID validation.

@@ -39,97 +39,61 @@ _HEADER_VALUE_TESTS = {
 class Error(Exception):
     """Base class for errors in this module."""
 
-    pass
-
 
 class BadHeaderLineError(Error):
     """Raise this error for a bad header is line."""
-
-    def __init__(self, line: str) -> None:
-        self._line = line
-
-    def __str__(self) -> str:
-        return self._line
 
 
 class MissingRequiredKeyError(Error):
     """Raise this error when a header is missing a required key."""
 
-    def __init__(self, key: str) -> None:
-        self._key = key
-
-    def __str__(self) -> str:
-        return self._key
-
 
 class KeyTypeError(Error):
     """Raise this error when a header's key value is of the wrong type."""
 
-    def __init__(self, key: str, expected_type: type | str):
-        self._key = key
-        self._type = str(expected_type)
-
     def __str__(self) -> str:
-        return f"Unable to convert {self._key} to {self._type}"
+        key, expected_type = self.args
+        return f"unable to convert {key!r} to {expected_type}"
 
 
 class KeyValueError(Error):
     """Raise this error when a header's key value has a bad value."""
 
-    def __init__(self, key: str, message: str) -> None:
-        self._key = key
-        self._msg = message
-
     def __str__(self) -> str:
-        return f"{self._key}: {self._msg}"  # this line not yet tested
+        key, message = self.args
+        return f"{key!r}: {message}"
 
 
 class DataSizeError(Error):
     """Raise this error if the size of data does not match the header."""
 
-    def __init__(self, size: int, expected_size: int) -> None:
-        self._actual = size
-        self._expected = expected_size
-
     def __str__(self) -> str:
-        return f"{self._actual} != {self._expected}"
+        size, expected_size = self.args
+        return f"{size} != {expected_size}"
 
 
 class MismatchGridDataSizeError(Error):
     """Raise this error if the data size does not match the grid size."""
 
-    def __init__(self, size: int, expected_size: int) -> None:
-        self._actual = size
-        self._expected = expected_size
-
     def __str__(self) -> str:
-        return f"(data size) {self._actual} != {self._expected} (grid size)"
+        size, expected_size = self.args
+        return f"(data size) {size} != {expected_size} (grid size)"
 
 
 class MismatchGridXYSpacing(Error):
     """Raise this error if the file cell size does not match the grid dx."""
 
-    def __init__(
-        self, dx: tuple[float, float], expected_dx: tuple[float, float]
-    ) -> None:
-        self._actual = dx
-        self._expected = expected_dx
-
-    def __str__(self):
-        return f"(data dx) {self._actual} != {self._expected} (grid dx)"
+    def __str__(self) -> str:
+        dx, expected_dx = self.args
+        return f"(data dx) {dx} != {expected_dx} (grid dx)"
 
 
 class MismatchGridXYLowerLeft(Error):
     """Raise this error if the file lower left does not match the grid."""
 
-    def __init__(
-        self, llc: tuple[float, float], expected_llc: tuple[float, float]
-    ) -> None:
-        self._actual = llc
-        self._expected = expected_llc
-
     def __str__(self) -> str:
-        return f"(data lower-left) {self._actual} != {self._expected} (grid lower-left)"
+        llc, expected_llc = self.args
+        return f"(data lower-left) {llc} != {expected_llc} (grid lower-left)"
 
 
 def read_esri_ascii(
@@ -207,7 +171,7 @@ def read_esri_ascii(
     ... 9. 10. 11.
     ... '''
 
-    >>> (grid, data) = read_esri_ascii(StringIO(contents))
+    >>> grid, data = read_esri_ascii(StringIO(contents))
 
     The returned grid is a :class:`~.RasterModelGrid` with 4 rows and 3 columns.
 
@@ -222,7 +186,7 @@ def read_esri_ascii(
            [  3.,   4.,   5.],
            [  0.,   1.,   2.]])
 
-    >>> (grid, data) = read_esri_ascii(StringIO(contents), halo=1)
+    >>> grid, data = read_esri_ascii(StringIO(contents), halo=1)
 
     Because of the halo, the returned grid now has two more rows and columns than before.
 
@@ -366,7 +330,7 @@ def write_esri_ascii(
     if len(names) == 1:
         paths = [path]
     elif len(names) > 1:
-        (base, ext) = os.path.splitext(path)
+        base, ext = os.path.splitext(path)
         paths = [base + "_" + name + ext for name in names]
     else:
         raise ValueError("no node fields to write")
@@ -540,7 +504,7 @@ def _parse_header_key_value(line: str) -> tuple[str, str] | None:
     if match is None:
         raise BadHeaderLineError(line)
 
-    (key, value) = (match.group("key").lower(), match.group("value"))
+    key, value = (match.group("key").lower(), match.group("value"))
 
     if key in _VALID_HEADER_KEYS:
         return (key, value)

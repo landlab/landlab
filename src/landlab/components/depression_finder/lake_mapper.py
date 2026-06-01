@@ -204,7 +204,7 @@ class DepressionFinderAndRouter(Component):
             If grid is a raster type, controls whether lake connectivity can
             occur on diagonals ('D8', default), or only orthogonally ('D4').
             Has no effect if grid is not a raster.
-        pits : array or str or None, optional
+        pits : ndarray or str, optional
             If a field name, the boolean field containing True where pits.
             If an array, either a boolean array of nodes of the pits, or an
             array of pit node IDs. It does not matter whether or not open
@@ -450,14 +450,14 @@ class DepressionFinderAndRouter(Component):
         >>> z = rg.add_zeros("topographic__elevation", at="node")
         >>> z[4] = 2.0
         >>> df = DepressionFinderAndRouter(rg, routing="D4")
-        >>> (links, nbrs, dnbrs) = df._links_and_nbrs_at_node(4)
+        >>> links, nbrs, dnbrs = df._links_and_nbrs_at_node(4)
         >>> links
         array([6, 8, 5, 3])
         >>> nbrs
         array([5, 7, 3, 1])
         >>> dnbrs
         >>> df = DepressionFinderAndRouter(rg, routing="D8")
-        >>> (links, nbrs, dnbrs) = df._links_and_nbrs_at_node(4)
+        >>> links, nbrs, dnbrs = df._links_and_nbrs_at_node(4)
         >>> links
         array([6, 8, 5, 3])
         >>> nbrs
@@ -534,7 +534,7 @@ class DepressionFinderAndRouter(Component):
                [42, 43, 44, 45, 46, 47, 48]])
         """
 
-        (links, nbrs, diag_nbrs) = self._links_and_nbrs_at_node(outlet_node)
+        links, nbrs, diag_nbrs = self._links_and_nbrs_at_node(outlet_node)
 
         # Sweep through them, identifying the neighbor with the greatest slope.
         # We are probably duplicating some gradient calculations, but this only
@@ -616,12 +616,10 @@ class DepressionFinderAndRouter(Component):
         ----------
         the_node : int
             The node to test.
-        nodes_this_depression : array_like of int
-            Nodes that form a pit.
 
         Returns
         -------
-        boolean
+        bool
             ``True`` if the node can drain. Otherwise, ``False``.
         """
         nbrs = self._node_nbrs[the_node]
@@ -665,12 +663,10 @@ class DepressionFinderAndRouter(Component):
         ----------
         the_node : int
             The node to test.
-        nodes_this_depression : array_like of int
-            Nodes that form a pit.
 
         Returns
         -------
-        boolean
+        bool
             ``True`` if the node is a valid outlet. Otherwise, ``False``.
         """
         if self._grid.status_at_node[the_node] == self._grid.BC_NODE_IS_FIXED_VALUE:
@@ -1057,7 +1053,7 @@ class DepressionFinderAndRouter(Component):
             # Get unresolved "regular" neighbors of the current nodes
             for cn in nodes_being_processed:
                 # Get active and unresolved neighbors of cn
-                (nbrs, lnks) = self._find_unresolved_neighbors_new(
+                nbrs, lnks = self._find_unresolved_neighbors_new(
                     self._grid.adjacent_nodes_at_node[cn],
                     self._grid.links_at_node[cn],
                     self._receivers,
@@ -1081,7 +1077,7 @@ class DepressionFinderAndRouter(Component):
             if self._D8:
                 # Get unresolved "regular" neighbors of the current nodes
                 for cn in nodes_being_processed:
-                    (nbrs, diags) = self._find_unresolved_neighbors_new(
+                    nbrs, diags = self._find_unresolved_neighbors_new(
                         self._grid.diagonal_adjacent_nodes_at_node[cn],
                         self._grid.d8s_at_node[cn, 4:],
                         self._receivers,

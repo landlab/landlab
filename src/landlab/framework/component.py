@@ -49,7 +49,7 @@ def load_components_from_dir(path, cls):
     os.chdir(path)
     for file_name in os.listdir("."):
         if os.path.isfile(file_name) and file_name.endswith(".py"):
-            (mod_name, _) = os.path.splitext(file_name)
+            mod_name, _ = os.path.splitext(file_name)
             mod = imp.load_module(mod_name, *imp.find_module(mod_name))
             for name, value in mod.__dict__.items():
                 if iscomponent(value, cls):

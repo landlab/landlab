@@ -84,7 +84,7 @@ Changes to landlab should be submitted as
 
   * Rename the pull request and provide a comment that synthesizes what
     the pull request changes or adds. This helps us synthesize what
-    changes have occured between Landlab releases.
+    changes have occurred  between Landlab releases.
 
 ## Adding new components
 

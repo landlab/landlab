@@ -381,7 +381,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
             # too, and therefore need our cutoff below this. Even-numbered
             # columns in the next-from-top row will end up at y = NR - 1/2,
             # which is within the grid. So our cutoff must be between NR - 1/2
-            # and NR. Hence the choise of NR - 1/4 as the effective "top" of
+            # and NR. Hence the choice of NR - 1/4 as the effective "top" of
             # the grid.
             top_grid_edge = self.nr - 0.25
 
@@ -497,7 +497,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
                 ln, self.grid
             ):
                 tail_node = self.grid.node_at_link_tail[ln]
-                (_, c) = self.grid.node_row_and_column(tail_node)
+                _, c = self.grid.node_row_and_column(tail_node)
                 link_orientation = self._get_link_orientation(ln)
                 offset = default_offset
                 if nc % 2 == 1:  # odd number of columns
@@ -1025,7 +1025,7 @@ class LatticeUplifter(HexLatticeTectonicizer):
             # Schedule a new transition, if applicable
             ca.link_state[lk] = new_link_state
             if ca.n_trn[new_link_state] > 0:
-                (event_time, this_trn_id) = get_next_event_new(
+                event_time, this_trn_id = get_next_event_new(
                     lk, new_link_state, current_time, ca.n_trn, ca.trn_id, ca.trn_rate
                 )
                 ca.priority_queue.push(lk, event_time)

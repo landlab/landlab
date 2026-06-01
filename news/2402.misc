@@ -1,0 +1,2 @@
+Refactored ``DataRecord.add_record`` to simplify control flow, and improve
+error handling.

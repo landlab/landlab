@@ -43,7 +43,7 @@ def link_is_active(status_at_link_ends):
     ndarray, boolean :
         Boolean array that indicates if a link is active.
     """
-    (status_at_link_start, status_at_link_end) = _split_link_ends(status_at_link_ends)
+    status_at_link_start, status_at_link_end = _split_link_ends(status_at_link_ends)
 
     return (
         (status_at_link_start == NodeStatus.CORE)
@@ -217,14 +217,14 @@ def in_link_ids_at_node(node_at_link_ends, link_ids=None, number_of_nodes=0):
     Examples
     --------
     >>> from landlab.grid.unstructured.links import in_link_ids_at_node
-    >>> (links, count) = in_link_ids_at_node(([0, 1, 2, 3, 4, 5], [3, 4, 5, 6, 7, 8]))
+    >>> links, count = in_link_ids_at_node(([0, 1, 2, 3, 4, 5], [3, 4, 5, 6, 7, 8]))
     >>> links
     array([0, 1, 2, 3, 4, 5])
     >>> count
     array([0, 0, 0, 1, 1, 1, 1, 1, 1])
 
 
-    >>> (links, count) = in_link_ids_at_node(
+    >>> links, count = in_link_ids_at_node(
     ...     ([0, 1, 2, 3, 4, 5], [3, 4, 5, 6, 7, 8]), link_ids=range(1, 7)
     ... )
     >>> links
@@ -260,7 +260,7 @@ def out_link_ids_at_node(node_at_link_ends, link_ids=None, number_of_nodes=None)
     Examples
     --------
     >>> from landlab.grid.unstructured.links import out_link_ids_at_node
-    >>> (links, count) = out_link_ids_at_node(
+    >>> links, count = out_link_ids_at_node(
     ...     ([0, 1, 2, 3, 4, 5], [3, 4, 5, 6, 7, 8]),
     ...     link_ids=range(-1, 5),
     ...     number_of_nodes=9,
@@ -271,7 +271,7 @@ def out_link_ids_at_node(node_at_link_ends, link_ids=None, number_of_nodes=None)
     array([1, 1, 1, 1, 1, 1, 0, 0, 0])
 
 
-    >>> (links, count) = out_link_ids_at_node(
+    >>> links, count = out_link_ids_at_node(
     ...     ([0, 1, 2, 3, 4, 5], [3, 4, 5, 6, 7, 8]), number_of_nodes=9
     ... )
     >>> links
@@ -307,7 +307,7 @@ def link_ids_at_node(node_at_link_ends, number_of_nodes=None):
     Examples
     --------
     >>> from landlab.grid.unstructured.links import link_ids_at_node
-    >>> (links, count) = link_ids_at_node(
+    >>> links, count = link_ids_at_node(
     ...     ([0, 1, 2, 3, 4, 5], [3, 4, 5, 6, 7, 8]), number_of_nodes=9
     ... )
     >>> links

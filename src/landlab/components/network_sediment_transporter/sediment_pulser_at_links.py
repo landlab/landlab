@@ -315,7 +315,7 @@ class SedimentPulserAtLinks(SedimentPulserBase):
         grain_size = np.expand_dims(grain_size, axis=1)
         volume = np.expand_dims(volume, axis=1)
 
-        # time of arrivial (time instance called)
+        # time of arrival (time instance called)
         time_arrival_in_link = np.full(np.shape(element_id), time, dtype=float)
 
         # link location (distance from link inlet / link length) is stochastically

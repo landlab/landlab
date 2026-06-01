@@ -14,7 +14,7 @@ from landlab.utils.return_array import return_array_at_node
 class Lithology(Component):
     """Create a Lithology object.
 
-    A Lithology is a three dimentional representation of material operated on
+    A Lithology is a three dimensional representation of material operated on
     by landlab components. Material can be removed through erosion or added to
     through deposition. Rock types can have multiple attributes (e.g. age,
     erodability or other parameter values, etc).
@@ -112,11 +112,11 @@ class Lithology(Component):
             used, then erosion removes material and creates layers of thickness
             zero. Thus, EventLayers may be appropriate if the user is interested
             in chronostratigraphy.
-        dz_advection : float, `(n_nodes, )` shape array, or at-node field array optional
+        dz_advection : float, ndarray, or str, optional
             Change in rock elevation due to advection by some external process.
             This can be changed using the property setter. Dimensions are in
             length, not length per time.
-        rock_id : value or `(n_nodes, )` shape array, optional
+        rock_id : value or ndarray, optional
             Rock type id for new material if deposited.
             This can be changed using the property setter.
 
@@ -193,7 +193,7 @@ class Lithology(Component):
                 "exists as an at-node field."
             ) from exc
 
-        # save inital information about thicknesses, layers, attributes, and ids.
+        # save initial information about thicknesses, layers, attributes, and ids.
         self._init_thicknesses = np.asarray(thicknesses)
         self._attrs = attrs
         self._number_of_init_layers = self._init_thicknesses.shape[0]
@@ -317,7 +317,7 @@ class Lithology(Component):
 
         Parameters
         ----------
-        rock_id : value or `(n_nodes, )` shape array, optional
+        rock_id : value or ndarray, optional
             Rock type id for new material if deposited.
             This can be changed using the property setter.
 
@@ -503,7 +503,7 @@ class Lithology(Component):
 
         Parameters
         ----------
-        thickness : float or `(n_nodes,)` array
+        thickness : float or ndarray
             Positive values deposit material on to Lithology while negative
             values erode Lithology.
         rock_id : single value or `n_nodes` long itterable, optional if only erosion occurs
@@ -763,7 +763,7 @@ class Lithology(Component):
 
         Parameters
         ----------
-        depths : array
+        depths : ndarray
 
         Returns
         -------

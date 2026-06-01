@@ -1,6 +1,5 @@
 name = "landlab"
-cite_as = [
-    """@article{hobley2017creative,
+cite_as = ["""@article{hobley2017creative,
     title={Creative computing with Landlab: an open-source toolkit
         for building, coupling, and exploring two-dimensional
         numerical models of Earth-surface dynamics},
@@ -27,5 +26,4 @@ cite_as = [
     pages = {1--25},
     url = {https://www.earth-surf-dynam-discuss.net/esurf-2020-12/},
     doi = {10.5194/esurf-2020-12}
-    }"""
-]
+    }"""]

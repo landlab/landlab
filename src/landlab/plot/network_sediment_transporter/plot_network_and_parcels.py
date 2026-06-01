@@ -77,7 +77,7 @@ def plot_network_and_parcels(
     map_buffer : float, optional
         Increase the plot extent by at least this much. Note, because of axis
         equal, may be more.
-    parcel_filter : array_like of bool, shape (number_of_parcels, ), optional
+    parcel_filter : array_like of bool, optional
         Filter to plot only a selection of the parcels.
 
     Other Parameters
@@ -302,7 +302,7 @@ def plot_network_and_parcels(
     # Locate parcel XY for each parcel at a particular time
     # some aspects of this may be possible to speed up, but at minimum
     # locate_parcel_xy must be called for each link (since calculating location)
-    # along link requires interpoloation.
+    # along link requires interpolation.
     # if this occurs we must also ensure the parcel order is maintained b/c of
     # color and shape formatting.
 

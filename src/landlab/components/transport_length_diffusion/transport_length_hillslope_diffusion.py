@@ -4,7 +4,6 @@
 @author: margauxmouchene
 """
 
-
 import numpy as np
 
 from landlab import Component
@@ -262,7 +261,7 @@ class TransportLengthHillslopeDiffuser(Component):
         ----------
         grid : ModelGrid
             Landlab ModelGrid object
-        dt: float (time)
+        dt: float
             The imposed timestep.
         """
 
@@ -295,7 +294,7 @@ class TransportLengthHillslopeDiffuser(Component):
 
         # Calculate erosion rate on node (positive value)
         # If S > Scrit, erosion is simply set for the slope to return to Scrit
-        # Otherwise, erosion is slope times erodibility coefficent
+        # Otherwise, erosion is slope times erodibility coefficient
         for i in self._grid.core_nodes:
             if self._steepest[i] > self._slope_crit:
                 self._erosion[i] = (
@@ -321,13 +320,13 @@ class TransportLengthHillslopeDiffuser(Component):
 
         Parameters
         ----------
-        dt: float (time)
+        dt: float
             The imposed timestep.
         """
         self.tldiffusion(dt)
 
         # Test code stability for timestep dt
-        # Raise unstability error if local slope is reversed by erosion
+        # Raise instability  error if local slope is reversed by erosion
         # and deposition during a timestep dt
         elev_dif = self._elev - self._elev[self._receiver]
         s = elev_dif[np.where(self._grid.at_node["flow__sink_flag"] == 0)]

@@ -1,2 +1,0 @@
-Added *cython*-optimized function `calc_bates_flow_height` for calculating flow
-heights in overland flow simulations using the Bates algorithm.

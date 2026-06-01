@@ -75,9 +75,9 @@ class GravelBedrockEroder(Component):
         Bulk porosity of bed sediment
     depth_decay_scale : float (default 1.0)
         Scale for depth decay in bedrock exposure function
-    plucking_coefficient : float or (n_core_nodes,) array of float (default 1.0e-4 1/m)
+    plucking_coefficient : float or ndarray of float
         Rate coefficient for bedrock erosion by plucking
-    coarse_fraction_from_plucking : float or (n_core_nodes,) array of float (default 1.0)
+    coarse_fraction_from_plucking : float or ndarray of float
         Fraction of plucked material that becomes part of gravel sediment load
 
     Examples

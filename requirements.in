@@ -4,8 +4,10 @@ matplotlib
 netcdf4
 numpy >= 1.20
 pandas
+py-richdem
 pyshp != 2.3.0
 pyyaml
+requireit
 rich-click
 scipy
 statsmodels

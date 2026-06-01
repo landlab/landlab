@@ -13,6 +13,7 @@ ESRI ASCII functions
     ~loads
     ~parse
 """
+
 from __future__ import annotations
 
 import io
@@ -36,11 +37,7 @@ class EsriAsciiError(Exception):
 
 
 class BadHeaderError(EsriAsciiError):
-    def __init__(self, msg: str) -> None:
-        self._msg = msg
-
-    def __str__(self) -> str:
-        return self._msg
+    pass
 
 
 def dump(
@@ -157,7 +154,7 @@ def load(
     Returns
     -------
     :
-        A newly-created ``RasterModelGrid`` with, optionaly, the data added
+        A newly-created ``RasterModelGrid`` with, optionally, the data added
         as a field (if `name` was provided).
     """
     return loads(stream.read(), at=at, name=name, out=out)
@@ -188,7 +185,7 @@ def loads(
     Returns
     -------
     RasterModelGrid
-        A newly-created ``RasterModelGrid`` with, optionaly, the data added
+        A newly-created ``RasterModelGrid`` with, optionally, the data added
         as a field (if `name` was provided).
 
     Examples

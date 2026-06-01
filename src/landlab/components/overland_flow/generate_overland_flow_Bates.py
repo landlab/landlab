@@ -59,7 +59,7 @@ class OverlandFlowBates(Component):
     Examples
     --------
     >>> DEM_name = "DEM_name.asc"
-    >>> (rg, z) = read_esri_ascii(DEM_name)  # doctest: +SKIP
+    >>> rg, z = read_esri_ascii(DEM_name)  # doctest: +SKIP
     >>> of = OverlandFlowBates(rg)  # doctest: +SKIP
 
     References
@@ -152,7 +152,7 @@ class OverlandFlowBates(Component):
         # Assigning a class variable to the water discharge field.
         self._q = self._grid["link"]["surface_water__discharge"]
 
-        # Assiging a class variable to the elevation field.
+        # Assigning a class variable to the elevation field.
         self._z = self._grid.at_node["topographic__elevation"]
 
     @property

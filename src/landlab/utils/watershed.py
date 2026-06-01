@@ -90,7 +90,7 @@ def get_watershed_mask(grid, outlet_id):
             watershed_mask[node] = True
 
         # once the outlet is found, set the watershed mask to the value of
-        # the reciever at node, this will paint the watershed in as we move
+        # the receiver at node, this will paint the watershed in as we move
         # upstream.
         if watershed_mask[receiver_at_node[node]]:
             watershed_mask[node] = True

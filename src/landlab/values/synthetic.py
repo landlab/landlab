@@ -11,7 +11,7 @@ All functions support adding values to only portions of the grid, based on the
 
 For example, if one wanted to construct an initial topographic elevation
 represented by a tetrahedron and add normally distributed noise only to core
-nodes, this could be acomplished as follows:
+nodes, this could be accomplished as follows:
 
 Examples
 --------
@@ -127,11 +127,11 @@ def _where_to_add_values(grid, at, where):
 
     Parameters
     ----------
-    grid : ModelGrid-like
+    grid : ModelGrid
         A landlab ModelGrid.
     at : str
         Name of location where values are defined.
-    where : array-like or str or int or None
+    where : array_like or str or int, optional
         Ids where values are to be placed. If *None*, values will
         be placed on all elements. If *str*, *int* or list of *str* or *int*,
         *where* is interpreted as a boundary condition.
@@ -209,7 +209,7 @@ def random(grid, name, at="node", where=None, distribution="uniform", **kwargs):
 
     Returns
     -------
-    values : array
+    values : ndarray
         Array of the values added to the field.
 
     Examples
@@ -270,12 +270,12 @@ def plane(
         format (x, y, z). Default is (0., 0., 0.)
     normal : tuple, optional
         A tuple defining the normal to the plane in the format
-        (dx, dy, dz). Must not be verticaly oriented. Default
+        (dx, dy, dz). Must not be vertically oriented. Default
         is a horizontal plane (0., 0., 1.).
 
     Returns
     -------
-    values : array
+    values : ndarray
         Array of the values added to the field.
 
     Examples
@@ -363,7 +363,7 @@ def constant(grid, name, at="node", where=None, value=0.0, dtype=None):
 
     Returns
     -------
-    values : array
+    values : ndarray
         Array of the values added to the field.
 
     Examples
@@ -431,7 +431,7 @@ def sine(
 
     Returns
     -------
-    values : array
+    values : ndarray
         Array of the values added to the field.
 
     Examples

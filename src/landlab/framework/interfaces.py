@@ -4,41 +4,21 @@
 class Error(Exception):
     """Base class for BMI exceptions."""
 
-    pass
-
 
 class FatalError(Exception):
     """Raise this exception if an unrecoverable error was found."""
-
-    pass
 
 
 class BadVarNameError(Error):
     """Exception to indicate a bad input/output variable name."""
 
-    def __init__(self, name):
-        super().__init__()
-        self.name = name
-
-    def __str__(self):
-        return self.name
-
 
 class MissingModelAttributeError(Error):
     """Raise this exception if a component is missing a required attribute."""
 
-    def __init__(self, attrib):
-        super().__init__()
-        self.attrib = attrib
-
-    def __str__(self):
-        return self.attrib
-
 
 class TimeBoundsError(Error):
     """Raise this exception if a component updates beyond its time horizon."""
-
-    pass
 
 
 class BmiGridType(int):

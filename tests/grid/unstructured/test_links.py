@@ -69,7 +69,7 @@ def test_links_3x3_quad():
         (7, 8),
     ]
 
-    (links, count) = link_ids_at_node(list(zip(*link_ends)), number_of_nodes=9)
+    links, count = link_ids_at_node(list(zip(*link_ends)), number_of_nodes=9)
 
     assert_array_equal(
         links,
@@ -80,7 +80,7 @@ def test_links_3x3_quad():
 
 def test_out_links_2x2_quad():
     link_ends = [(0, 2), (1, 3), (0, 1), (2, 3)]
-    (links, count) = out_link_ids_at_node(zip(*link_ends), number_of_nodes=4)
+    links, count = out_link_ids_at_node(zip(*link_ends), number_of_nodes=4)
     assert_array_equal(links, [0, 2, 1, 3])
     assert_array_equal(count, [2, 1, 1, 0])
 
@@ -101,6 +101,6 @@ def test_out_links_3x3_quad():
         (7, 8),
     ]
 
-    (links, count) = out_link_ids_at_node(link_ends, number_of_nodes=9)
+    links, count = out_link_ids_at_node(link_ends, number_of_nodes=9)
     assert_array_equal(links, [0, 6, 1, 7, 2, 3, 8, 4, 9, 5, 10, 11])
     assert_array_equal(count, [2, 2, 1, 2, 2, 1, 1, 1, 0])

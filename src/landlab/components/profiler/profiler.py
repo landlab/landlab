@@ -1,5 +1,6 @@
 # ! /usr/env/python
 """profiler.py component to create profiles with user-defined endpoints."""
+
 from collections import OrderedDict
 
 import numpy as np

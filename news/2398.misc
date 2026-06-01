@@ -1,0 +1,2 @@
+Changed `DataRecord.grid_element` to use fixed-width Unicode arrays instead
+of object arrays, improving performance and consistency.

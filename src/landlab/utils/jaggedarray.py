@@ -42,6 +42,9 @@ array([6.,  7.,  7.,  7.,  8.,  8.,  3.,  6.,  6.])
 """
 
 import numpy as np
+from numpy.typing import ArrayLike
+from numpy.typing import NDArray
+from requireit import require_array
 
 
 def flatten_jagged_array(jagged, dtype=None):
@@ -81,7 +84,13 @@ def flatten_jagged_array(jagged, dtype=None):
     return data, offset
 
 
-def unravel(data, offset, out=None, pad=None):
+def unravel(
+    data: ArrayLike,
+    offset: ArrayLike,
+    *,
+    out: NDArray | None = None,
+    pad: int | float | None = None,
+) -> NDArray:
     """Unravel a jagged array.
 
     Parameters
@@ -100,19 +109,50 @@ def unravel(data, offset, out=None, pad=None):
     ndarray
         Matrix that holds the unravelled jagged array.
     """
-    from .ext.jaggedarray import unravel
+    from landlab.utils.ext.jaggedarray import _unravel
+
+    data = np.asarray(data)
+
+    offset = np.asarray(offset, dtype=np.intp)
+    offset = np.require(offset, requirements=["C"])
 
     n_cols = np.diff(offset).max()
     if out is None:
-        if pad is None:
-            out = np.empty((len(offset) - 1, n_cols), dtype=data.dtype)
-        else:
-            out = np.full((len(offset) - 1, n_cols), pad, dtype=data.dtype)
-    else:
-        if pad is not None:
-            out.fill(pad)
+        out = np.empty((len(offset) - 1, n_cols), dtype=data.dtype)
+    if pad is not None:
+        out.fill(pad)
 
-    unravel(data, offset, out)
+    _unravel(data, offset, out)
+
+    return out
+
+
+def padded_row_contains(
+    padded_data: ArrayLike,
+    size_of_row: ArrayLike,
+    *,
+    value: int = -1,
+    out: NDArray | None = None,
+):
+    from landlab.utils.ext.jaggedarray import _padded_row_contains
+
+    padded_data = np.asarray(padded_data, dtype=np.intp)
+    padded_data = require_array(padded_data, contiguous=True, name="padded_data")
+
+    n_rows = padded_data.shape[0]
+
+    size_of_row = np.asarray(size_of_row, dtype=np.intp)
+    size_of_row = require_array(
+        size_of_row, contiguous=True, shape=(n_rows,), name="size_of_row"
+    )
+
+    if out is None:
+        out = np.empty(n_rows, dtype=np.bool_)
+    require_array(
+        out, writable=True, contiguous=True, dtype=np.bool_, shape=(n_rows,), name="out"
+    )
+
+    _padded_row_contains(padded_data, size_of_row, value, out.view(dtype=np.uint8))
 
     return out
 
@@ -274,7 +314,7 @@ class JaggedArray:
 
         Parameters
         ----------
-        values_per_row : array of int
+        values_per_row : ndarray of int
             The number of values in each row of the JaggedArray.
 
         Returns

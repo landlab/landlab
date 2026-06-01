@@ -1,7 +1,7 @@
 #!/usr/env/python
 
 """
-flow_accum_bw.py: Implementation of the Braun & Willet (2012) stack alorithm.
+flow_accum_bw.py: Implementation of the Braun & Willet (2012) stack algorithm.
 
 Implementation of Braun & Willett (2012) algorithm for calculating drainage
 area and (optionally) water discharge. Assumes each node has only one
@@ -24,6 +24,7 @@ If you simply want the ordered list by itself, use::
 
 Created: GT Nov 2013
 """
+
 import numpy
 
 from landlab.core.utils import as_id_array
@@ -304,11 +305,12 @@ def find_drainage_area_and_discharge_lossy(
         Receiver node IDs for each node
     link_to_receiver : ndarray of int
         Link to receiver node IDs for each node
-    loss_function : Python function(Qw, nodeID, linkID, grid)
+    loss_function : callable
         Function dictating how to modify the discharge as it leaves each node.
+        Must have the signature ``loss_function(Qw, nodeID, linkID, grid) -> float``.
         nodeID is the current node; linkID is the downstream link, grid is a
         ModelGrid. Returns a float.
-    grid : Landlab ModelGrid (or None)
+    grid : ModelGrid, optional
         A grid to enable spatially variable parameters to be used in the loss
         function. If no spatially resolved parameters are needed, this can be
         a dummy variable, e.g., None.

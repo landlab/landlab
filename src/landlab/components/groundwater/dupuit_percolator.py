@@ -49,8 +49,8 @@ def get_link_hydraulic_conductivity(grid, K):
 
     Parameters
     ----------
-    K: (2x2) array of floats (m/s)
-        The hydraulic conductivity tensor:
+    K: ndarray of float
+        The hydraulic conductivity [m/s] tensor:
         [[Kxx, Kxy],[Kyx,Kyy]]
     """
 
@@ -308,18 +308,18 @@ class GroundwaterDupuitPercolator(Component):
         ----------
         grid: ModelGrid
             Landlab ModelGrid object
-        hydraulic_conductivity: float, field name, array of float or function.
+        hydraulic_conductivity: float, str, ndarray of float or callable.
             the aquifer saturated hydraulic conductivity, m/s.
             If function is given, it should take a landlab ModelGrid and return
             an array of floats at link. This may be used if the lateral hydraulic
-            conductivity is not vertically homogenous and the effective hydraulic
+            conductivity is not vertically homogeneous and the effective hydraulic
             conductivity needs to be modified based upon on the position of the
             water table. See component tests for example.
             Default = 0.001 m/s
-        porosity: float, field name or array of float
+        porosity: float, str or ndarray of float
             the drainable porosity of the aquifer [-]
             Default = 0.2
-        recharge_rate: float, field name, or array of float
+        recharge_rate: float, str, or ndarray of float
             Rate of recharge, m/s
             Default = 1.0e-8 m/s
         regularization_f: float
@@ -327,7 +327,7 @@ class GroundwaterDupuitPercolator(Component):
             surface and subsurface flow
             Default = 0.01
         courant_coefficient: float (-)
-            The muliplying factor on the condition that the timestep is
+            The multiplying factor on the condition that the timestep is
             smaller than the minimum link length over groundwater flow
             velocity. This parameter is only used with
             ``run_with_adaptive_time_step_solver`` and must be greater than
@@ -430,7 +430,7 @@ class GroundwaterDupuitPercolator(Component):
         Parameters
         ----------
         courant_coefficient: float (-)
-            The muliplying factor on the condition that the timestep is
+            The multiplying factor on the condition that the timestep is
             smaller than the minimum link length over groundwater flow
             velocity. This parameter is only used with
             ``run_with_adaptive_time_step_solver`` and must be greater than

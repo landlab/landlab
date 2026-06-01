@@ -1,29 +1,34 @@
 import os
 import pathlib
-import re
 import sys
 import tomllib
+from dataclasses import dataclass
 from datetime import date
-
-import packaging
 
 
 def get_version_from_file(path):
-    with open(path) as fp:
-        match = re.search(r'__version__\s*=\s*[\'"]([^\'"]+)[\'"]', fp.read())
-        if match:
-            version = match.group(1)
-        else:
-            raise ValueError(f"version string not found ({path})")
-    return packaging.version.Version(version)
+    @dataclass
+    class Version:
+        major: int
+        minor: int = 0
+
+    with open(path, "rb") as fp:
+        metadata = tomllib.load(fp)
+    try:
+        version = metadata["project"]["version"]
+    except KeyError:
+        return None
+    parts = version.split(".")
+    return Version(major=int(parts[0]), minor=int(parts[1]))
 
 
-src_dir = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), os.pardir, os.pardir, "src")
+root_dir = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), os.pardir, os.pardir)
 )
+src_dir = os.path.join(root_dir, "src")
 sys.path.insert(0, src_dir)
 docs_dir = pathlib.Path(__file__).parent
-version_file = os.path.join(src_dir, "landlab", "_version.py")
+version_file = os.path.join(root_dir, "pyproject.toml")
 
 # -- General configuration -----------------------------------------------------
 
@@ -275,6 +280,7 @@ autodoc_mock_imports = [
     "pandas",
     "pyshp",
     "pyyaml",
+    "requireit",
     "rich-click",
     "scipy",
     "statsmodels",

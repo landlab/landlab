@@ -22,11 +22,11 @@ def smooth_heaviside(x, width=0.5, out=None):
 
     Parameters
     ----------
-    x : array or float
+    x : array_like or float
         Dependent variable
     width : float (default 0.5)
         Width parameter for smoothing (same units as x)
-    out : array (default None)
+    out : ndarray, optional
         Optional array in which to store result; must have len(x)
 
     Examples
@@ -258,7 +258,7 @@ class CarbonateProducer(Component):
 
         Returns
         -------
-        float array x number of grid nodes
+        ndarray of float
             Reference to updated carbonate_production_rate field
         """
         self._depth[:] = self.sea_level - self._grid.at_node["topographic__elevation"]
@@ -284,7 +284,7 @@ class CarbonateProducer(Component):
 
         Returns
         -------
-        float array x number of grid nodes
+        ndarray of float
             Reference to updated carbonate_thickness field
         """
         # if self._carbonate_thickness is None:

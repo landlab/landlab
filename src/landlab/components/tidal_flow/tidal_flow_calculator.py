@@ -79,7 +79,7 @@ class TidalFlowCalculator(Component):
         Tidal range (2x tidal amplitude) (m) (default 1)
     tidal_period : float, optional
         Tidal perioid (s) (default M2 tidal period = 12 h 25 min)
-    roughness : float, array, or field name; optional
+    roughness : float, ndarray, or str, optional
         Manning roughness coefficient ("n") (s/m^1/3) (default 0.01)
     mean_sea_level : float, optional
         Mean sea level (m) (default 0)

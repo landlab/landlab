@@ -58,7 +58,7 @@ class MassWastingRunout(Component):
     >>> _ = mg.add_field("soil__thickness", depth, at="node")
 
     Define the initial landslide. Any mass_wasting_id value >1 is considered a
-    landslide. The landslide extent is defined by assigining all nodes withing
+    landslide. The landslide extent is defined by assigining all nodes within
     the landslide the same mass_wasting_id value.
     Here, the landslide is represented by a single node (node 38), which assigned
     a mass_wasting_id value of 1:
@@ -157,7 +157,7 @@ class MassWastingRunout(Component):
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "interger or float id of each mass wasting area is assigned \
+            "doc": "integer or float id of each mass wasting area is assigned \
                 to all nodes representing the mass wasting area.",
         },
         "topographic__elevation": {
@@ -472,7 +472,7 @@ class MassWastingRunout(Component):
                 self.saver.save_conditions_before_runout(mw_i, mw_id)
 
             # Algorith 2, now loop through each receiving nodes,
-            # determine next set of recieving nodes,
+            # determine next set of receiving nodes,
             # repeat until no more receiving nodes (material deposits)
             self.c = 0  # model iteration counter
             while len(self.arn) > 0 and self.c < self.itL:
@@ -530,13 +530,13 @@ class MassWastingRunout(Component):
                     for key in self._tracked_attributes:
                         self._update_attribute_at_node(key)
 
-                # optional settlment of deposits and redistribution of attributes
+                # optional settlement of deposits and redistribution of attributes
                 if self.settle_deposit:
                     self._settle()
                     self._update_topographic_slope()
 
                 # once all nodes in this iteration have been processed, the lists of receiving
-                # nodes (arn), donor nodes (arndn, which are the recieving nodes of this step),
+                # nodes (arn), donor nodes (arndn, which are the receiving nodes of this step),
                 # outgoing node flux (arqso) and node attributes (artt) are updated
                 # for the next iteration
                 self.arndn = self.arndn_ns.astype(int)
@@ -565,7 +565,7 @@ class MassWastingRunout(Component):
                                                     the first landslide will be mw_i = 0,
                                                     the second will be mw_i = 0)
         """
-        # data containers for initial recieving node, outgoing flux and attributes
+        # data containers for initial receiving node, outgoing flux and attributes
         rni = np.array([])
         rqsoi = np.array([])
         if self._tracked_attributes:
@@ -617,7 +617,7 @@ class MassWastingRunout(Component):
                 self.att_ar_out = {}
                 for key in self._tracked_attributes:
                     att_val = self._grid.at_node.dataset[key].values[ni]
-                    # particle diameter to each recieving node
+                    # particle diameter to each receiving node
                     self.att_ar_out[key] = np.ones(len(rqso)) * att_val
 
                     # attribute value is zero at node after reglith leaves
@@ -718,7 +718,7 @@ class MassWastingRunout(Component):
                 # small qso are considered zero
                 qso = np.round(qso, decimals=8)
 
-                # chage elevation
+                # change elevation
                 deta = A - E
 
             # model behavior tracking
@@ -747,7 +747,7 @@ class MassWastingRunout(Component):
 
     def _determine_rn_proportions_attributes(self):
         """determine how outgoing flux is partitioned to downslope cells and
-        attributes of each parition"""
+        attributes of each partition"""
 
         def rn_proportions_attributes(nudat_r):
             n = nudat_r[0]
@@ -902,7 +902,7 @@ class MassWastingRunout(Component):
         simultaneously at a later stage during the iteration.
         """
         # for each node in the list, use the slope field, computed from the previous
-        # iteration, to compute settlment and settlment direction to adjacent cells
+        # iteration, to compute settlement and settlement direction to adjacent cells
         for ii, n in enumerate(self.arn_u):
             if self.D_L[ii] > 0:  # only settle if node has had deposition...use dif?
                 rn = self._grid.at_node.dataset["flow__receiver_node"].values[n]
@@ -925,8 +925,8 @@ class MassWastingRunout(Component):
 
                 # if slope to downlsope nodes > Sc, adjust elevation of node n
                 if len(rn) >= 1:
-                    # destribute material to downslope nodes based on weighted
-                    # average slope (same as multiflow direciton proportions,
+                    # distribute material to downslope nodes based on weighted
+                    # average slope (same as multiflow direction proportions,
                     # but here only determined for downslope nodes in which
                     # S  > Sc )
                     sslp = sum(slpn)
@@ -1127,7 +1127,7 @@ class MassWastingRunout(Component):
         qsi : float
             in coming flux per unit contour width
         slpn : float
-            slope of node, measured in downslope direction (downslope is postive)
+            slope of node, measured in downslope direction (downslope is positive)
 
         Returns
         -------

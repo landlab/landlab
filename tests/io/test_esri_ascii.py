@@ -125,9 +125,7 @@ def test_dump_with_nodata_value(nodata_value):
     grid = RasterModelGrid((4, 3), xy_spacing=10.0, xy_of_lower_left=(1.0, 2.0))
     actual = esri_ascii.dump(grid, nodata_value=nodata_value)
 
-    assert (
-        actual
-        == f"""\
+    assert actual == f"""\
 NROWS 4
 NCOLS 3
 CELLSIZE 10.0
@@ -135,16 +133,13 @@ XLLCENTER 1.0
 YLLCENTER 2.0
 NODATA_VALUE {nodata_value}
 """
-    )
 
 
 def test_dump_to_string_no_data():
     grid = RasterModelGrid((4, 3), xy_spacing=10.0, xy_of_lower_left=(1.0, 2.0))
     actual = esri_ascii.dump(grid)
 
-    assert (
-        actual
-        == """\
+    assert actual == """\
 NROWS 4
 NCOLS 3
 CELLSIZE 10.0
@@ -152,7 +147,6 @@ XLLCENTER 1.0
 YLLCENTER 2.0
 NODATA_VALUE -9999
 """
-    )
 
 
 def test_dump_to_file_no_data(tmpdir):
@@ -179,9 +173,7 @@ def test_dump_to_string_data_at_node():
     grid.at_node["foo"] = np.arange(12, dtype=int)
     actual = esri_ascii.dump(grid, at="node", name="foo")
 
-    assert (
-        actual
-        == """\
+    assert actual == """\
 NROWS 4
 NCOLS 3
 CELLSIZE 10.0
@@ -193,7 +185,6 @@ NODATA_VALUE -9999
 3 4 5
 0 1 2
 """
-    )
 
 
 def test_dump_to_string_data_at_cell():
@@ -201,9 +192,7 @@ def test_dump_to_string_data_at_cell():
     grid.at_cell["foo"] = np.arange(2, dtype=int)
     actual = esri_ascii.dump(grid, at="cell", name="foo")
 
-    assert (
-        actual
-        == """\
+    assert actual == """\
 NROWS 2
 NCOLS 1
 CELLSIZE 10.0
@@ -213,7 +202,6 @@ NODATA_VALUE -9999
 1
 0
 """
-    )
 
 
 @pytest.mark.parametrize("at", ("node", "patch", "corner", "cell"))
