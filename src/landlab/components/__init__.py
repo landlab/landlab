@@ -84,9 +84,9 @@ from .profiler import Profiler
 from .profiler import TrickleDownProfiler
 from .radiation import Radiation
 from .river_flow_dynamics import RiverFlowDynamics
+from .shallow_landslider import ShallowLandslider
 from .sink_fill import SinkFiller
 from .sink_fill import SinkFillerBarnes
-from .shallow_landslider import ShallowLandslider
 from .soil_moisture import SoilInfiltrationGreenAmpt
 from .soil_moisture import SoilMoisture
 from .space import Space

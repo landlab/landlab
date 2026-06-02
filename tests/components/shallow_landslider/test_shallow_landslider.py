@@ -2,10 +2,11 @@
 
 import numpy as np
 import pytest
+
 from landlab import RasterModelGrid
 from landlab.components import PriorityFloodFlowRouter
-from landlab.field.errors import FieldError
 from landlab.components import ShallowLandslider
+from landlab.field.errors import FieldError
 
 
 def make_grid(ny=5, nx=5, spacing=10.0, add_soil=False):
@@ -182,19 +183,19 @@ def test_runout_requires_hill_flow_routing_fields():
 def test_selection_modes_probabilistic_vs_pga_weighted():
     mg = make_grid(add_soil=True)
     comp = ShallowLandslider(
-        mg, cohesion_eff=25.0, angle_int_frict=27.0,
-        selection_method="probabilistic"
+        mg, cohesion_eff=25.0, angle_int_frict=27.0, selection_method="probabilistic"
     )
     comp.run_one_step()
     assert comp._selected_proportion is not None
 
     comp2 = ShallowLandslider(
-        mg, cohesion_eff=25.0, angle_int_frict=27.0,
-        selection_method="pga_weighted"
+        mg, cohesion_eff=25.0, angle_int_frict=27.0, selection_method="pga_weighted"
     )
     comp2.run_one_step()
     assert comp2._selected_proportion is not None
-    assert (0.0 <= comp2._selected_proportion <= 1.0) or np.isnan(comp2._selected_proportion)
+    assert (0.0 <= comp2._selected_proportion <= 1.0) or np.isnan(
+        comp2._selected_proportion
+    )
 
 
 def test_results_property_contains_expected_keys():
@@ -216,6 +217,7 @@ def test_results_property_contains_expected_keys():
     ]:
         assert key in r
 
+
 def test_aspect_labels_refine_region_labels():
     mg = make_grid(add_soil=True)
     comp = ShallowLandslider(mg, cohesion_eff=15, angle_int_frict=30)
@@ -226,12 +228,19 @@ def test_aspect_labels_refine_region_labels():
 
     # Aspect subgrouping should not introduce labels with no parent region.
     assert set(np.unique(asp)) - {0} <= set(np.unique(reg)) - {0}
-    
+
+
 def test_dimension_split_labels_consistency():
     mg = make_grid(add_soil=True)
     comp = ShallowLandslider(
-        mg, cohesion_eff=20, angle_int_frict=30,
-        split_by_width_config={"kde_data": {"overall": None}, "kde_transform": {}, "width_threshold": 2.0},
+        mg,
+        cohesion_eff=20,
+        angle_int_frict=30,
+        split_by_width_config={
+            "kde_data": {"overall": None},
+            "kde_transform": {},
+            "width_threshold": 2.0,
+        },
     )
     comp.run_one_step()
 
@@ -240,4 +249,3 @@ def test_dimension_split_labels_consistency():
 
     # Split labels should refine but never contradict aspect groups
     assert set(np.unique(dim)) - {0} <= set(np.unique(asp)) - {0}
-

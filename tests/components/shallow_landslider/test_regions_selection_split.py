@@ -2,6 +2,7 @@
 
 import numpy as np
 import pytest
+
 from landlab import RasterModelGrid
 from landlab.components import ShallowLandslider
 
@@ -108,13 +109,19 @@ def test_recursive_split_wide_regions_splits():
     transform_info = {"log_x": False, "log_y": False}
 
     new_labels, info = comp._recursive_split_wide_regions(
-        labeled, aspect, slopes,
-        kde_results, transform_info,
-        width_threshold=0.5, max_iterations=1,
-        min_region_size=5, convergence_threshold=0.95,
+        labeled,
+        aspect,
+        slopes,
+        kde_results,
+        transform_info,
+        width_threshold=0.5,
+        max_iterations=1,
+        min_region_size=5,
+        convergence_threshold=0.95,
     )
 
     assert new_labels.max() > 1
+
 
 def test_calculate_region_properties_area_and_bbox():
     mg = make_grid()
@@ -126,14 +133,13 @@ def test_calculate_region_properties_area_and_bbox():
     slopes = np.ones(mg.number_of_nodes) * 12
     aspect = np.ones(mg.shape) * 45
 
-    df, working = comp._calculate_region_properties(
-        labels, slopes, aspect, min_size=1
-    )
+    df, working = comp._calculate_region_properties(labels, slopes, aspect, min_size=1)
     assert 3 in df.index
     assert df.loc[3, "area"] > 0
     assert df.loc[3, "bbox_width"] > 0
     assert df.loc[3, "bbox_height"] > 0
-    
+
+
 def test_recursive_split_converges_early():
     mg = make_grid()
     comp = ShallowLandslider(mg, cohesion_eff=10, angle_int_frict=30)
@@ -153,11 +159,18 @@ def test_recursive_split_converges_early():
     info = {"log_x": False, "log_y": False}
 
     new_labels, splits = comp._recursive_split_wide_regions(
-        labels, aspect, slopes, kde, info,
-        width_threshold=2.0, max_iterations=5,
-        min_region_size=3, convergence_threshold=0.9
+        labels,
+        aspect,
+        slopes,
+        kde,
+        info,
+        width_threshold=2.0,
+        max_iterations=5,
+        min_region_size=3,
+        convergence_threshold=0.9,
     )
     assert splits == []  # no splits → early convergence
+
 
 def test_probabilistic_group_selection_all_zero_probabilities():
     mg = make_grid()
@@ -167,8 +180,6 @@ def test_probabilistic_group_selection_all_zero_probabilities():
     labels[1:3, 1:3] = 1
     probs = np.zeros_like(labels, dtype=float)
 
-    sel, meta = comp._probabilistic_group_selection(
-        labels, probs, reproducible=True
-    )
+    sel, meta = comp._probabilistic_group_selection(labels, probs, reproducible=True)
     assert meta["proportion_calculated"] == 0.0
     assert np.all(sel == 0)

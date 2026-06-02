@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-import numpy as np
 import heapq
 import logging
+
+import numpy as np
 
 from landlab.core.model_component import Component
 
@@ -29,7 +30,7 @@ class ShallowLandslideRunout(Component):
             "mapping": "node",
             "units": "m",
             "optional": False,
-            "doc": "Soil thickness at nodes."
+            "doc": "Soil thickness at nodes.",
         },
         "hill_flow__receiver_node": {
             "dtype": int,
@@ -63,7 +64,7 @@ class ShallowLandslideRunout(Component):
 
     def __init__(self, grid):
         super().__init__(grid)
-        
+
         required = (
             "hill_flow__receiver_node",
             "hill_flow__receiver_proportions",
@@ -77,7 +78,6 @@ class ShallowLandslideRunout(Component):
                 f"but missing: {missing}. "
                 "Run a FlowAccumulator or router before enabling runout."
             )
-
 
     def run_one_step(
         self,
@@ -123,7 +123,7 @@ class ShallowLandslideRunout(Component):
         self,
         starting_nodes,
         newmark_distances,
-        ):
+    ):
         grid = self._grid
 
         receiver_nodes = grid.at_node["hill_flow__receiver_node"]
@@ -133,7 +133,7 @@ class ShallowLandslideRunout(Component):
         final_paths = []
         final_proportions = []
         path_details = {}
-        
+
         logger.info("Tracing landslide runout paths...")
 
         for node in starting_nodes:
@@ -168,30 +168,27 @@ class ShallowLandslideRunout(Component):
                     new_prop = prop * p
                     new_path = path + [r]
 
-                    if (
-                        r in boundary_nodes
-                        or np.isnan(grid.at_node["topographic__elevation"][r])
+                    if r in boundary_nodes or np.isnan(
+                        grid.at_node["topographic__elevation"][r]
                     ):
                         final_paths.append(tuple(path))
                         final_proportions.append(prop)
                         path_details[node].append((path, prop))
                     else:
-                        heapq.heappush(
-                            stack, (new_dist, r, new_prop, new_path)
-                        )
+                        heapq.heappush(stack, (new_dist, r, new_prop, new_path))
 
         return final_paths, final_proportions, path_details
-    
+
     def _update_soil_depth(
         self,
         paths,
         proportions,
         soil_depth,
-        ):
+    ):
         soil = soil_depth.copy()
         erosion = np.zeros_like(soil)
         deposition = np.zeros_like(soil)
-        
+
         logger.info("Updating soil depth...")
         for path, prop in zip(paths, proportions):
             for i in range(len(path) - 1):
@@ -208,4 +205,3 @@ class ShallowLandslideRunout(Component):
         soil += deposition
 
         return soil, erosion, deposition
-

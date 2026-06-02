@@ -1,3 +1,4 @@
+bmi-topography
 bmipy
 importlib-resources
 matplotlib
@@ -9,10 +10,9 @@ pyshp != 2.3.0
 pyyaml
 requireit
 rich-click
-scipy
 scikit-image
+scipy
+seaborn
+spyder >= 6
 statsmodels
 xarray >= 0.16
-bmi-topography
-spyder >= 6
-seaborn
