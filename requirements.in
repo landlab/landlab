@@ -10,9 +10,9 @@ pyyaml
 requireit
 rich-click
 scipy
+scikit-image
 statsmodels
 xarray >= 0.16
 bmi-topography
 spyder >= 6
 seaborn
-

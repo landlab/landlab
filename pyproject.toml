@@ -49,6 +49,7 @@ dependencies = [
   "requireit>=0.8.0",
   "rich-click",
   "scipy",
+  "scikit-image",
   "statsmodels",
   "pandas",
   "xarray >= 0.16",
