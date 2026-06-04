@@ -263,6 +263,11 @@ class gFlex(Component):
         # repeated calls to flex_lithosphere() can go straight to run()
         flex.initialize()
 
+        # For scalar Te the coefficient matrix never changes; cache the LU
+        # factorisation to skip the expensive re-factorization on every call.
+        if isinstance(flex.Te, float):
+            flex.cache_factorization = True
+
         # create a holder for the "pre-flexure" state of the grid, to allow
         # updating of elevs:
         self._pre_flex = np.zeros(grid.number_of_nodes, dtype=float)
@@ -286,12 +291,6 @@ class gFlex(Component):
             self._grid.at_node["surface_load__stress"].view().reshape(self._grid.shape)
         )
         self._flex.run()
-        # Building the coefficient matrix is one of the most time-consuming
-        # steps in the flexure calculation. Reuse it across calls when Te is
-        # a scalar constant; for array Te it may change between steps.
-        if not isinstance(self._flex.Te, float):
-            self._flex.finalize()
-
         self._grid.at_node["lithosphere_surface__elevation_increment"][
             :
         ] = self._flex.w.view().ravel()
