@@ -101,14 +101,6 @@ class gFlex(Component):
 
     _unit_agnostic = True
 
-    _BC_OPTIONS = (
-        "zero_displacement_zero_slope",
-        "zero_moment_zero_shear",
-        "zero_slope_zero_shear",
-        "mirror",
-        "periodic",
-    )
-
     _cite_as = """
     @article{wickert2016open,
       author = {Wickert, A. D.},
@@ -185,11 +177,14 @@ class gFlex(Component):
             The elastic thickness of the lithosphere. May be a scalar
             float, the name of an existing node field on the grid, or a
             numpy array of shape grid.shape.
-        BC_W, BC_E, BC_N, BC_S : {'zero_displacement_zero_slope', 'zero_moment_zero_shear',
-                                  'zero_slope_zero_shear', 'mirror', 'periodic'}
-            The boundary condition status of each grid edge, following gFlex's
-            definitions. Periodic boundaries must be paired (obviously).
-            Mirror enforces symmetry across that edge.
+        BC_W, BC_E, BC_N, BC_S : str
+            Boundary condition for each grid edge. Any string accepted by
+            ``gflex.VALID_BC_STRINGS_2D`` is valid. Canonical names:
+            ``'zero_displacement_zero_slope'`` (alias ``'clamped'``),
+            ``'zero_displacement_zero_moment'``,
+            ``'zero_moment_zero_shear'`` (alias ``'free'``),
+            ``'zero_slope_zero_shear'`` (alias ``'mirror'``),
+            ``'periodic'``. Periodic boundaries must be paired (W–E or N–S).
         g : float (m*s**-2)
             The acceleration due to gravity.
         """
@@ -230,10 +225,10 @@ class gFlex(Component):
             ("BC_N", BC_N),
             ("BC_S", BC_S),
         ):
-            if val not in self._BC_OPTIONS:
+            if val not in gflex.VALID_BC_STRINGS_2D:
                 raise ValueError(
                     f"{name}={val!r} is not a valid boundary condition. "
-                    f"Choose from: {self._BC_OPTIONS}"
+                    f"Choose from: {sorted(gflex.VALID_BC_STRINGS_2D)}"
                 )
 
         if (BC_W == "periodic") != (BC_E == "periodic"):

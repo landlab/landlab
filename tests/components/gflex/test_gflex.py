@@ -49,13 +49,20 @@ def test_output_var_names(gf):
     assert "lithosphere_surface__elevation_increment" in set(gf.output_var_names)
 
 
-def test_bc_options_class_attribute():
-    assert hasattr(gFlex, "_BC_OPTIONS")
-    assert "zero_displacement_zero_slope" in gFlex._BC_OPTIONS
-    assert "zero_moment_zero_shear" in gFlex._BC_OPTIONS
-    assert "zero_slope_zero_shear" in gFlex._BC_OPTIONS
-    assert "mirror" in gFlex._BC_OPTIONS
-    assert "periodic" in gFlex._BC_OPTIONS
+def test_valid_bc_strings_from_gflex():
+    import gflex as _gflex
+
+    expected = {
+        "zero_displacement_zero_slope",
+        "zero_displacement_zero_moment",
+        "zero_moment_zero_shear",
+        "zero_slope_zero_shear",
+        "periodic",
+        "clamped",
+        "free",
+        "mirror",
+    }
+    assert expected <= _gflex.VALID_BC_STRINGS_2D
 
 
 def test_output_field_created_on_init(gf, grid):
