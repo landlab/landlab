@@ -215,19 +215,15 @@ class gFlex(Component):
         # we assume these properties are fixed in this relatively
         # straightforward implementation, but they can still be set if you
         # want:
-        flex.Method = Method
-        flex.Solver = Solver
-        flex.Quiet = quiet
+        flex.method = Method.lower()
+        flex.solver = Solver
+        flex.quiet = quiet
 
         flex.E = float(Youngs_modulus)
         flex.nu = float(Poissons_ratio)
         flex.rho_m = float(rho_mantle)
         flex.rho_fill = float(rho_fill)
         flex.g = float(g)
-        flex.BC_W = BC_W
-        flex.BC_E = BC_E
-        flex.BC_S = BC_S
-        flex.BC_N = BC_N
         for name, val in (
             ("BC_W", BC_W),
             ("BC_E", BC_E),
@@ -244,6 +240,11 @@ class gFlex(Component):
             raise ValueError("BC_W and BC_E must both be 'Periodic', or neither.")
         if (BC_N == "Periodic") != (BC_S == "Periodic"):
             raise ValueError("BC_N and BC_S must both be 'Periodic', or neither.")
+
+        flex.bc_west = BC_W
+        flex.bc_east = BC_E
+        flex.bc_north = BC_N
+        flex.bc_south = BC_S
 
         Te_in = elastic_thickness
         try:
