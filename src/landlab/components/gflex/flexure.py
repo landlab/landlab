@@ -248,12 +248,12 @@ class gFlex(Component):
 
         Te_in = elastic_thickness
         try:
-            flex.te = float(Te_in)
+            flex.T_e = float(Te_in)
         except (TypeError, ValueError):
             try:
-                flex.te = grid.at_node[Te_in].view().reshape(grid.shape)
+                flex.T_e = grid.at_node[Te_in].view().reshape(grid.shape)
             except TypeError:
-                flex.te = Te_in.view().reshape(grid.shape)
+                flex.T_e = Te_in.view().reshape(grid.shape)
 
         # set up the link between surface load stresses in the gFlex component
         # and the LL grid field:
@@ -265,7 +265,7 @@ class gFlex(Component):
 
         # For scalar Te the coefficient matrix never changes; cache the LU
         # factorisation to skip the expensive re-factorization on every call.
-        if isinstance(flex.te, float):
+        if isinstance(flex.T_e, float):
             flex.cache_factorization = True
 
         # create a holder for the "pre-flexure" state of the grid, to allow
