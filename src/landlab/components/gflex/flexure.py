@@ -50,9 +50,8 @@ class gFlex(Component):
     This component will modify the topographic__elevation field only if one
     already exists. Note that the gFlex component **demands lengths in
     meters**, including the grid dimensions.
-    The component also recognises the gFlex specific parameters 'Method',
-    'Solver', and 'Quiet'. See the gFlex software documentation for more
-    details.
+    The component also recognises the gFlex specific parameters 'Method'
+    and 'Quiet'. See the gFlex software documentation for more details.
 
     Examples
     --------
@@ -153,7 +152,6 @@ class gFlex(Component):
         rho_fill=0.0,
         elastic_thickness=35000.0,
         Method="FD",
-        Solver="direct",
         quiet=True,
         BC_W="zero_displacement_zero_slope",
         BC_E="zero_displacement_zero_slope",
@@ -207,11 +205,7 @@ class gFlex(Component):
         flex.dx = grid.dx
         flex.dy = grid.dy
 
-        # we assume these properties are fixed in this relatively
-        # straightforward implementation, but they can still be set if you
-        # want:
         flex.method = Method.lower()
-        flex.solver = Solver
         flex.quiet = quiet
 
         flex.E = float(Youngs_modulus)
