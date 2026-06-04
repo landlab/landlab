@@ -51,11 +51,11 @@ def test_output_var_names(gf):
 
 def test_bc_options_class_attribute():
     assert hasattr(gFlex, "_BC_OPTIONS")
-    assert "0Displacement0Slope" in gFlex._BC_OPTIONS
-    assert "0Moment0Shear" in gFlex._BC_OPTIONS
-    assert "0Slope0Shear" in gFlex._BC_OPTIONS
-    assert "Mirror" in gFlex._BC_OPTIONS
-    assert "Periodic" in gFlex._BC_OPTIONS
+    assert "zero_displacement_zero_slope" in gFlex._BC_OPTIONS
+    assert "zero_moment_zero_shear" in gFlex._BC_OPTIONS
+    assert "zero_slope_zero_shear" in gFlex._BC_OPTIONS
+    assert "mirror" in gFlex._BC_OPTIONS
+    assert "periodic" in gFlex._BC_OPTIONS
 
 
 def test_output_field_created_on_init(gf, grid):
@@ -80,12 +80,12 @@ def test_bad_bc_value_raises_valueerror(grid, bad_bc):
 
 def test_unpaired_periodic_west_east_raises(grid):
     with pytest.raises(ValueError):
-        gFlex(grid, BC_W="Periodic", BC_E="0Displacement0Slope", quiet=True)
+        gFlex(grid, BC_W="periodic", BC_E="zero_displacement_zero_slope", quiet=True)
 
 
 def test_unpaired_periodic_north_south_raises(grid):
     with pytest.raises(ValueError):
-        gFlex(grid, BC_N="Periodic", BC_S="0Displacement0Slope", quiet=True)
+        gFlex(grid, BC_N="periodic", BC_S="zero_displacement_zero_slope", quiet=True)
 
 
 # ---------------------------------------------------------------------------
@@ -126,10 +126,10 @@ def test_uniform_load_isostatic_deflection():
         rho_mantle=rho_m,
         rho_fill=rho_fill,
         g=g,
-        BC_W="Periodic",
-        BC_E="Periodic",
-        BC_N="Periodic",
-        BC_S="Periodic",
+        BC_W="periodic",
+        BC_E="periodic",
+        BC_N="periodic",
+        BC_S="periodic",
         quiet=True,
     )
     gf.run_one_step()
@@ -147,10 +147,10 @@ def test_deflection_negative_for_positive_load():
 
     gf = gFlex(
         mg,
-        BC_W="Periodic",
-        BC_E="Periodic",
-        BC_N="Periodic",
-        BC_S="Periodic",
+        BC_W="periodic",
+        BC_E="periodic",
+        BC_N="periodic",
+        BC_S="periodic",
         quiet=True,
     )
     gf.run_one_step()
@@ -168,10 +168,10 @@ def test_larger_load_larger_deflection():
         mg.at_node["surface_load__stress"][:] = q
         gf = gFlex(
             mg,
-            BC_W="Periodic",
-            BC_E="Periodic",
-            BC_N="Periodic",
-            BC_S="Periodic",
+            BC_W="periodic",
+            BC_E="periodic",
+            BC_N="periodic",
+            BC_S="periodic",
             quiet=True,
         )
         gf.run_one_step()
@@ -198,10 +198,10 @@ def test_topo_updated_when_present(grid_with_topo):
     grid_with_topo.at_node["surface_load__stress"][:] = 1e4
     gf = gFlex(
         grid_with_topo,
-        BC_W="Periodic",
-        BC_E="Periodic",
-        BC_N="Periodic",
-        BC_S="Periodic",
+        BC_W="periodic",
+        BC_E="periodic",
+        BC_N="periodic",
+        BC_S="periodic",
         quiet=True,
     )
     gf.run_one_step()
@@ -220,10 +220,10 @@ def test_topo_unchanged_when_load_unchanged(grid_with_topo):
     grid_with_topo.at_node["surface_load__stress"][:] = 1e4
     gf = gFlex(
         grid_with_topo,
-        BC_W="Periodic",
-        BC_E="Periodic",
-        BC_N="Periodic",
-        BC_S="Periodic",
+        BC_W="periodic",
+        BC_E="periodic",
+        BC_N="periodic",
+        BC_S="periodic",
         quiet=True,
     )
     gf.run_one_step()
@@ -250,10 +250,10 @@ def test_repeated_calls_same_result(grid):
     grid.at_node["surface_load__stress"][:] = 1e4
     gf = gFlex(
         grid,
-        BC_W="Periodic",
-        BC_E="Periodic",
-        BC_N="Periodic",
-        BC_S="Periodic",
+        BC_W="periodic",
+        BC_E="periodic",
+        BC_N="periodic",
+        BC_S="periodic",
         quiet=True,
     )
     gf.run_one_step()
@@ -269,10 +269,10 @@ def test_load_change_reflected(grid):
     """Updating the load field between calls changes the deflection."""
     gf = gFlex(
         grid,
-        BC_W="Periodic",
-        BC_E="Periodic",
-        BC_N="Periodic",
-        BC_S="Periodic",
+        BC_W="periodic",
+        BC_E="periodic",
+        BC_N="periodic",
+        BC_S="periodic",
         quiet=True,
     )
 
@@ -296,7 +296,7 @@ def test_mirror_bc_runs(grid):
     """Mirror BC should be accepted and produce a valid deflection."""
     grid.at_node["surface_load__stress"][:] = 1e4
     gf = gFlex(
-        grid, BC_W="Mirror", BC_E="Mirror", BC_N="Mirror", BC_S="Mirror", quiet=True
+        grid, BC_W="mirror", BC_E="mirror", BC_N="mirror", BC_S="mirror", quiet=True
     )
     gf.run_one_step()
     w = grid.at_node["lithosphere_surface__elevation_increment"]
@@ -370,10 +370,10 @@ def test_point_load_kelvin_function():
         rho_fill=rho_fill,
         g=g,
         elastic_thickness=Te,
-        BC_W="0Moment0Shear",
-        BC_E="0Moment0Shear",
-        BC_N="0Moment0Shear",
-        BC_S="0Moment0Shear",
+        BC_W="zero_moment_zero_shear",
+        BC_E="zero_moment_zero_shear",
+        BC_N="zero_moment_zero_shear",
+        BC_S="zero_moment_zero_shear",
         quiet=True,
     )
     gf.run_one_step()

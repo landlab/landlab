@@ -67,7 +67,7 @@ class gFlex(Component):
     >>> stress = mg.add_zeros("surface_load__stress", at="node", dtype=float)
     >>> stress.view().reshape(mg.shape)[3:7, 3:7] += 1.0e6
     >>> gf = gFlex(
-    ...     mg, BC_E="0Moment0Shear", BC_N="Periodic", BC_S="Periodic"
+    ...     mg, BC_E="zero_moment_zero_shear", BC_N="periodic", BC_S="periodic"
     ... )  # doctest: +SKIP
     >>> gf.run_one_step()  # doctest: +SKIP
 
@@ -102,11 +102,11 @@ class gFlex(Component):
     _unit_agnostic = True
 
     _BC_OPTIONS = (
-        "0Displacement0Slope",
-        "0Moment0Shear",
-        "0Slope0Shear",
-        "Mirror",
-        "Periodic",
+        "zero_displacement_zero_slope",
+        "zero_moment_zero_shear",
+        "zero_slope_zero_shear",
+        "mirror",
+        "periodic",
     )
 
     _cite_as = """
@@ -163,10 +163,10 @@ class gFlex(Component):
         Method="FD",
         Solver="direct",
         quiet=True,
-        BC_W="0Displacement0Slope",
-        BC_E="0Displacement0Slope",
-        BC_N="0Displacement0Slope",
-        BC_S="0Displacement0Slope",
+        BC_W="zero_displacement_zero_slope",
+        BC_E="zero_displacement_zero_slope",
+        BC_N="zero_displacement_zero_slope",
+        BC_S="zero_displacement_zero_slope",
         g=scipy.constants.g,
     ):
         """Constructor for Wickert's gFlex in Landlab.
@@ -185,8 +185,8 @@ class gFlex(Component):
             The elastic thickness of the lithosphere. May be a scalar
             float, the name of an existing node field on the grid, or a
             numpy array of shape grid.shape.
-        BC_W, BC_E, BC_N, BC_S : {'0Displacement0Slope', '0Moment0Shear',
-                                  '0Slope0Shear', 'Mirror', 'Periodic'}
+        BC_W, BC_E, BC_N, BC_S : {'zero_displacement_zero_slope', 'zero_moment_zero_shear',
+                                  'zero_slope_zero_shear', 'mirror', 'periodic'}
             The boundary condition status of each grid edge, following gFlex's
             definitions. Periodic boundaries must be paired (obviously).
             Mirror enforces symmetry across that edge.
@@ -236,10 +236,10 @@ class gFlex(Component):
                     f"Choose from: {self._BC_OPTIONS}"
                 )
 
-        if (BC_W == "Periodic") != (BC_E == "Periodic"):
-            raise ValueError("BC_W and BC_E must both be 'Periodic', or neither.")
-        if (BC_N == "Periodic") != (BC_S == "Periodic"):
-            raise ValueError("BC_N and BC_S must both be 'Periodic', or neither.")
+        if (BC_W == "periodic") != (BC_E == "periodic"):
+            raise ValueError("BC_W and BC_E must both be 'periodic', or neither.")
+        if (BC_N == "periodic") != (BC_S == "periodic"):
+            raise ValueError("BC_N and BC_S must both be 'periodic', or neither.")
 
         flex.bc_west = BC_W
         flex.bc_east = BC_E
