@@ -23,7 +23,7 @@ class WildfireGenerator(Component):
     Simulate stochastic wildfires of differente sizes and severity, and 
     calculate post-fire vegetation recovery based on aridity. 
     
-    Landlab component that calculates that simulates landscape-scale fire 
+    Landlab component that simulates landscape-scale fire 
     activity driven by global climate-vegetation interactions, following
     the theory of Pausas and Paula (2012) and Pausas and Ribeiro (2013). 
     
@@ -199,7 +199,6 @@ class WildfireGenerator(Component):
     def get_neighbors(self, node):
         
         adj_nodes = self.grid.active_adjacent_nodes_at_node[node]  # D4 approach
-        
         return adj_nodes
     
         # adj_nodes = np.concatenate(      # Trying to make it D8
