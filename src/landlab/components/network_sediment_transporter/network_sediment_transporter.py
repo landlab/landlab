@@ -624,54 +624,57 @@ class NetworkSedimentTransporter(Component):
         """Adjusts slope for each link based on parcel motions from last
         timestep and additions from this timestep.
         """
+        channel_width = self._grid.at_link["channel_width"]
+        reach_length = self._grid.at_link["reach_length"]
+        elevation = self._grid.at_node["topographic__elevation"]
+        bedrock = self._grid.at_node["bedrock__elevation"]
 
-        number_of_contributors = np.sum(
-            self._fd.flow_link_incoming_at_node() == 1, axis=1
-        )
+        is_incoming_link = self._fd.flow_link_incoming_at_node() == 1
         downstream_link_id = self._fd.link_to_flow_receiving_node
 
+        number_of_contributors = np.sum(is_incoming_link, axis=1)
+
         upstream_contributing_links_at_node = np.where(
-            self._fd.flow_link_incoming_at_node() == 1, self._grid.links_at_node, -1
+            is_incoming_link, self._grid.links_at_node, -1
         )
 
+        is_head = number_of_contributors == 0
+        is_outlet = downstream_link_id == self._grid.BAD_INDEX
+
         # Update the node topographic elevations depending on the quantity of stored sediment
-        for n in range(self._grid.number_of_nodes):
-            if number_of_contributors[n] > 0:  # we don't update head node elevations
-                upstream_links = upstream_contributing_links_at_node[n]
-                real_upstream_links = upstream_links[
-                    upstream_links != self._grid.BAD_INDEX
-                ]
-                width_of_upstream_links = self._grid.at_link["channel_width"][
-                    real_upstream_links
-                ]
-                length_of_upstream_links = self._grid.at_link["reach_length"][
-                    real_upstream_links
-                ]
+        for node, downstream_link in enumerate(downstream_link_id):
+            upstream_links = upstream_contributing_links_at_node[node]
+            upstream_links = upstream_links[upstream_links != self._grid.BAD_INDEX]
 
-                if downstream_link_id[n] == self._grid.BAD_INDEX:
-                    # I'm sure there's a better way to do this, but...
-                    length_of_downstream_link = 0
-                    width_of_downstream_link = 0
-                else:
-                    length_of_downstream_link = self._grid.at_link["reach_length"][
-                        downstream_link_id
-                    ][n]
-                    width_of_downstream_link = self._grid.at_link["channel_width"][
-                        downstream_link_id
-                    ][n]
+            # Upstream links attributes
+            if is_head[node]:
+                length_of_upstream_links = reach_length[downstream_link]
+                width_of_upstream_links = channel_width[downstream_link]
+            else:
+                length_of_upstream_links = reach_length[upstream_links]
+                width_of_upstream_links = channel_width[upstream_links]
 
-                alluvium__depth = _calculate_alluvium_depth(
-                    self._vol_stor[downstream_link_id][n],
-                    width_of_upstream_links,
-                    length_of_upstream_links,
-                    width_of_downstream_link,
-                    length_of_downstream_link,
-                    self._bed_porosity,
-                )
+            # Downstream link attributes
+            if is_outlet[node]:
+                # assign elevation based on upstream link volume (b/c no downstream exists)
+                volume_downstream = np.sum(self._vol_tot[upstream_links])
+                length_of_downstream_link = np.sum(reach_length[upstream_links])
+                width_of_downstream_link = np.sum(channel_width[upstream_links])
+            else:
+                volume_downstream = self._vol_tot[downstream_link]
+                length_of_downstream_link = reach_length[downstream_link]
+                width_of_downstream_link = channel_width[downstream_link]
 
-                self._grid.at_node["topographic__elevation"][n] = (
-                    self._grid.at_node["bedrock__elevation"][n] + alluvium__depth
-                )
+            alluvium_depth = _calculate_alluvium_depth(
+                volume_downstream,
+                width_of_upstream_links,
+                length_of_upstream_links,
+                width_of_downstream_link,
+                length_of_downstream_link,
+                self._bed_porosity,
+            )
+
+            elevation[node] = bedrock[node] + alluvium_depth
 
     def _calc_transport_wilcock_crowe(self) -> None:
         """Method to determine the transport time for each parcel in the active
@@ -919,8 +922,9 @@ class NetworkSedimentTransporter(Component):
                 # assign new values to current link.
                 current_link[moving_downstream] = downstream_link[moving_downstream]
 
-                # find and address those links who have moved out of network.
-                moved_oon = downstream_link == self._grid.BAD_INDEX
+                # find and address those parcels who have moved out of network.
+                in_outlet_link = downstream_link == self._grid.BAD_INDEX
+                moved_oon = moving_downstream * in_outlet_link
 
                 if np.any(moved_oon):
                     # print('  {x} exiting network'.format(x=np.sum(moved_oon)))
