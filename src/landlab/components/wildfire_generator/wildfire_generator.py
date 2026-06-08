@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Simulation of Wildfires on a 2-D model grid
-
-@author: matheuswanderleydealmeida
-"""
-
 import numpy as np
 import pandas as pd
 import warnings
@@ -26,6 +18,9 @@ class WildfireGenerator(Component):
     Landlab component that simulates landscape-scale fire 
     activity driven by global climate-vegetation interactions, following
     the theory of Pausas and Paula (2012) and Pausas and Ribeiro (2013). 
+    
+    Authors: 
+    Matheus de Almeida & Benjamin Campforts
     
     See the publication:
         
@@ -120,7 +115,9 @@ class WildfireGenerator(Component):
                  alpha = 0.3,
                  aridity=0.5,
                  sev_exponent=0.64):
-        self.grid = grid
+
+        super().__init__(grid) 
+
         self.potential_fires = potential_fires
         self.dt = dt
         self.dx = dx
