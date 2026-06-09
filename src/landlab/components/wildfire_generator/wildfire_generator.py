@@ -107,38 +107,29 @@ class WildfireGenerator(Component):
     def __init__(self,
                  grid,
                  potential_fires=100,
-                 dt=1,
-                 dx=1,
-                 vegetation="fuel_availability",
-                 riv_min = 2e5,
-                 topo="topographic__elevation",
-                 alpha = 0.3,
+                 max_vegetation = 1,
+                 minimum_river_threshold = 2e5,
+                 upslope_preference = 0.3,
                  aridity=0.5,
-                 sev_exponent=0.64):
+                 severity_exponent=0.64,
+                 seed=5000):
 
         super().__init__(grid) 
 
         self.potential_fires = potential_fires
-        self.dt = dt
-        self.dx = dx
-        self.vegetation = grid.at_node[vegetation]
-        self.riv_min = riv_min
-        self.rivers = (grid.at_node["drainage_area"] > self.riv_min)
-        self.max_vegetation = 1
-        self.topo = grid.at_node[topo]
-        self.alpha = alpha
+        self.vegetation = grid.at_node["fuel_availability"]
+        self.riv_min = minimum_river_threshold
+        self.drainage_area = grid.at_node["drainage_area"]
+        self.max_vegetation = max_vegetation
+        self.topo = grid.at_node["topographic__elevation"]
+        self.alpha = upslope_preference
         self.aridity = aridity
-        self.sev_exponent = sev_exponent
+        self.sev_exponent = severity_exponent
+        self._current_time = 0
         self.burned = []
         self.last_fire_time = None
-        self.fire_log = pd.DataFrame(columns=["year",
-                                              "fire_size (km2)",
-                                              "center_X",
-                                              "center_Y",
-                                              "severity_factor",
-                                              "aridity",
-                                              "changed_nodes",
-                                              "pct of vegetation removed"])
+        self._fire_records = []
+
         self.regrowth_table = [
             (0.0, 0.1, 5.4, 0.42),  # Trees + shrubs
             (0.1, 0.3, 8.0, 0.29),  # Dense shrubs
@@ -154,18 +145,29 @@ class WildfireGenerator(Component):
             (0.5, 0.7, 0.8, 0.2), # Sparse shrubs
             (0.7, 1.0, 0.9, 0.1), # Sparse shrubs 
         ]
-        
+
+        if seed is not None:
+            np.random.seed(seed)
+
     @property
     def fire_sizes(self):
-        return self.fire_log["fire_size (km2)"]
+        return self._fire_records["fire_size (km2)"]
     
     @property
     def burned_nodes(self):
-        return self.fire_log["changed_nodes"]
+        return self._fire_records["burned_nodes"]
     
     @property
     def severity(self):
-        return self.fire_log["severity_factor"]
+        return self._fire_records["severity_factor"]
+    
+    @property
+    def rivers(self):
+        return self.grid.at_node["drainage_area"] > self.riv_min
+    
+    @property
+    def fire_log(self):
+        return pd.DataFrame(self._fire_records)
     
     
     def _get_regrowth_params(self):
@@ -181,10 +183,10 @@ class WildfireGenerator(Component):
         raise ValueError(f"Aridity {self.aridity} is out of range [0,1].")
 
         
-    def regrow_vegetation(self, t):
+    def regrow_vegetation(self, dt):
         regrowth_time, regrowth_exponent = self._get_regrowth_params()
 
-        delta = 1 - np.exp(-regrowth_exponent / regrowth_time)
+        delta = 1 - np.exp(-regrowth_exponent * dt / regrowth_time)
         
         # Update the vegetation grid
         self.vegetation[:] = np.minimum(
@@ -219,15 +221,15 @@ class WildfireGenerator(Component):
         return severity
 
 # method that simulate fire ignition and spreading throughout the grid
-    def fire(self, t):
-        
+    def fire(self, dt):
+
         fire_results = []
         
         # Initialize last fire times (if first fire event)
         if self.last_fire_time is None:
             self.last_fire_time = np.full(self.grid.number_of_nodes, -np.inf)
 
-        fire_ignitions = np.random.poisson(self.potential_fires * self.dt)      # define how many fires the model will try to ignite (not all fires will ignite) 
+        fire_ignitions = np.random.poisson(self.potential_fires * dt)      # define how many fires the model will try to ignite (not all fires will ignite) 
         if fire_ignitions == 0:
             return set()
 
@@ -237,7 +239,7 @@ class WildfireGenerator(Component):
             
             fuel_weight, aridity_weight = self.get_aridity_weights()
             
-            center = random.randint(0, self.grid.number_of_nodes - 1)           # Select a random node to ignite the fire
+            center = np.random.choice(self.grid.core_nodes)           # Select a random node to ignite the fire
             if self.rivers[center]:
                 continue
             severity_factor = self.calc_severity()                                                                   
@@ -259,9 +261,17 @@ class WildfireGenerator(Component):
                     for neighbor in self.get_neighbors(node):                   # Looking at the orthogonal neighbors 
                         if neighbor in burned:
                             continue
-                        if self.rivers[neighbor]:                                  # stop the fire front if the current fire reaches a firebreak river
+                        if self.drainage_area[neighbor] > self.riv_min:         # stop the fire front if the current fire reaches a firebreak river
                             continue
-                        slope = ((self.topo[neighbor] - self.topo[node])/self.dx)  # calculate the slope between the current node and its neighbors 
+                        if neighbor == -1:
+                            continue
+                        dist_nodes = np.sqrt(
+                            (self.grid.x_of_node[neighbor] - 
+                            self.grid.x_of_node[node])**2 + 
+                            (self.grid.y_of_node[neighbor] -
+                            self.grid.y_of_node[node])**2
+                            )
+                        slope = ((self.topo[neighbor] - self.topo[node])/dist_nodes)  # calculate the slope between the current node and its neighbors 
                         slope_factor = 1 / (1+ np.exp(-self.alpha * slope))        # calculate the slope factor
                         # Calculating the probability spread below 
                         spread_prob = ( 
@@ -283,32 +293,37 @@ class WildfireGenerator(Component):
             self.vegetation[changed_nodes] *= (1 - severity_factor)
             veg_after = self.vegetation[changed_nodes].copy()
             veg_change = (1 - np.mean(veg_after/veg_before))*100
-            self.last_fire_time[changed_nodes] = t
+            self.last_fire_time[changed_nodes] = self._current_time
 
-            fire_area_km2 = len(changed_nodes) * self.dx**2 / 1e6
-            s1, s2 = self.grid.x_of_node[center], self.grid.y_of_node[center]
+            fire_area_km2 = len(changed_nodes) * dist_nodes**2 / 1e6
 
-            fire_results.append(
-                {"burned_nodes": changed_nodes,
-                 "severity_factor": severity_factor})
-
-            self.fire_log = pd.concat([self.fire_log, pd.DataFrame([{           # add all the fire metrics in the DataFrame called "fire_log"
-                "year": t,
+            fire_results.append({
+                "year": self._current_time,
+                "ignition_node": self.grid.xy_of_node[center],
+                "burned_nodes": changed_nodes,
                 "fire_size (km2)": fire_area_km2,
-                "center_X": s1,
-                "center_Y": s2,
                 "severity_factor": severity_factor,
                 "aridity": self.aridity,
-                "changed_nodes": changed_nodes,
                 "pct of vegetation removed": veg_change
-            }])], ignore_index=True)
+                 })
+
+            self._fire_records.append({           # add all the fire metrics in the DataFrame called "fire_log"
+                "year": self._current_time,
+                "ignition_node": self.grid.xy_of_node[center],
+                "burned_nodes": changed_nodes,
+                "fire_size (km2)": fire_area_km2,
+                "severity_factor": severity_factor,
+                "aridity": self.aridity,
+                "pct of vegetation removed": veg_change
+            })
 
             all_burned.update(burned)
 
         return fire_results
 
-    def run_one_step(self, dt):         # run one step function to simulate fires and vegetation regrowth 
-        self.fire_info = self.fire(dt)
+    def run_one_step(self, dt):
+        self._current_time +=dt         # run one step function to simulate fires and vegetation regrowth 
+        self.fire(dt)
         self.regrow_vegetation(dt)
 
     
