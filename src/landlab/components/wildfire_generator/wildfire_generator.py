@@ -118,7 +118,7 @@ class WildfireGenerator(Component):
 
         self.potential_fires = potential_fires
         self.vegetation = grid.at_node["fuel_availability"]
-        self.riv_min = minimum_river_threshold
+        self.minimum_river_threshold = minimum_river_threshold
         self.drainage_area = grid.at_node["drainage_area"]
         self.max_vegetation = max_vegetation
         self.topo = grid.at_node["topographic__elevation"]
@@ -163,7 +163,7 @@ class WildfireGenerator(Component):
     
     @property
     def rivers(self):
-        return self.grid.at_node["drainage_area"] > self.riv_min
+        return self.grid.at_node["drainage_area"] > self.minimum_river_threshold
     
     @property
     def fire_log(self):
@@ -261,7 +261,7 @@ class WildfireGenerator(Component):
                     for neighbor in self.get_neighbors(node):                   # Looking at the orthogonal neighbors 
                         if neighbor in burned:
                             continue
-                        if self.drainage_area[neighbor] > self.riv_min:         # stop the fire front if the current fire reaches a firebreak river
+                        if self.drainage_area[neighbor] > self.minimum_river_threshold:         # stop the fire front if the current fire reaches a firebreak river
                             continue
                         if neighbor == -1:
                             continue
