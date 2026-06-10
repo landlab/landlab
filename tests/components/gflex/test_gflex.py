@@ -45,8 +45,8 @@ def test_input_var_names(gf):
     assert "load__normal_component_of_stress" in gf.input_var_names
 
 
-def test_optional_te_input_var(gf):
-    assert "lithosphere__elastic_thickness" in gf.input_var_names
+def test_optional_te_in_optional_var_names(gf):
+    assert "lithosphere__elastic_thickness" in gf.optional_var_names
 
 
 def test_output_var_names(gf):
