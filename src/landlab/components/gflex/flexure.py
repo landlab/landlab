@@ -114,6 +114,18 @@ class gFlex(Component):
     }
     """
     _info = {
+        "lithosphere__elastic_thickness": {
+            "dtype": float,
+            "intent": "in",
+            "optional": True,
+            "units": "m",
+            "mapping": "node",
+            "doc": (
+                "Elastic thickness of the lithosphere. If this field exists "
+                "on the grid it is read at every run_one_step() call, "
+                "allowing T_e to be updated between timesteps."
+            ),
+        },
         "lithosphere_surface__elevation_increment": {
             "dtype": float,
             "intent": "out",
@@ -276,6 +288,14 @@ class gFlex(Component):
         Note that flexure of the lithosphere proceeds to steady state in
         a single timestep.
         """
+        try:
+            self._flex.T_e = (
+                self._grid.at_node["lithosphere__elastic_thickness"]
+                .view()
+                .reshape(self._grid.shape)
+            )
+        except FieldError:
+            pass
         self._flex.qs = (
             self._grid.at_node["surface_load__stress"].view().reshape(self._grid.shape)
         )
