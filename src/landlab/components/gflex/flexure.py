@@ -46,7 +46,7 @@ class gFlex(Component):
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import gFlex
     >>> mg = RasterModelGrid((10, 10), xy_spacing=25000.0)
-    >>> stress = mg.add_zeros("surface_load__stress", at="node", dtype=float)
+    >>> stress = mg.add_zeros("load__normal_component_of_stress", at="node", dtype=float)
     >>> stress.view().reshape(mg.shape)[3:7, 3:7] += 1.0e6
     >>> gf = gFlex(
     ...     mg, bc_east="free", bc_north="periodic", bc_south="periodic"
@@ -110,13 +110,20 @@ class gFlex(Component):
                 "flexural isostasy. Downward displacement is negative."
             ),
         },
-        "surface_load__stress": {
+        "load__normal_component_of_stress": {
             "dtype": float,
             "intent": "in",
             "optional": False,
             "units": "Pa",
             "mapping": "node",
-            "doc": "Magnitude of stress exerted by surface load",
+            "doc": (
+                "Normal component of stress applied to the lithosphere surface "
+                "by an overlying load [Pa]. Positive values are compressive "
+                "(pushing down), causing subsidence. The caller is responsible "
+                "for converting material-specific quantities (ice thickness, "
+                "water depth, sediment thickness, etc.) into stress before "
+                "calling run_one_step()."
+            ),
         },
     }
 
@@ -233,7 +240,7 @@ class gFlex(Component):
             except TypeError:
                 flex.T_e = np.asarray(Te_in, dtype=float).reshape(grid.shape)
 
-        flex.qs = grid.at_node["surface_load__stress"].view().reshape(grid.shape)
+        flex.qs = grid.at_node["load__normal_component_of_stress"].view().reshape(grid.shape)
         flex.initialize()
 
         if isinstance(flex.T_e, float):
@@ -249,7 +256,7 @@ class gFlex(Component):
     def run_one_step(self):
         """Compute the flexural isostatic deflection for the current load.
 
-        Reads ``surface_load__stress`` (and ``lithosphere__elastic_thickness``
+        Reads ``load__normal_component_of_stress`` (and ``lithosphere__elastic_thickness``
         if present) from the grid, runs the gFlex solver, and writes the
         result to ``lithosphere__vertical_displacement``.
         """
@@ -263,7 +270,9 @@ class gFlex(Component):
             pass
 
         self._flex.qs = (
-            self._grid.at_node["surface_load__stress"].view().reshape(self._grid.shape)
+            self._grid.at_node["load__normal_component_of_stress"]
+            .view()
+            .reshape(self._grid.shape)
         )
         self._flex.run()
         self._grid.at_node["lithosphere__vertical_displacement"][
