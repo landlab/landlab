@@ -259,7 +259,6 @@ class gFlex(Component):
             except TypeError:
                 flex.T_e = Te_in.view().reshape(grid.shape)
 
-
         # set up the link between surface load stresses in the gFlex component
         # and the LL grid field:
         flex.qs = grid.at_node["surface_load__stress"].view().reshape(grid.shape)
