@@ -297,9 +297,7 @@ class gFlex(Component):
         """
         if self._te_field is not None:
             self._flex.T_e = (
-                self._grid.at_node[self._te_field]
-                .view()
-                .reshape(self._grid.shape)
+                self._grid.at_node[self._te_field].view().reshape(self._grid.shape)
             )
         self._flex.qs = (
             self._grid.at_node["surface_load__stress"].view().reshape(self._grid.shape)
