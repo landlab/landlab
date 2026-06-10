@@ -46,7 +46,9 @@ class gFlex(Component):
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import gFlex
     >>> mg = RasterModelGrid((10, 10), xy_spacing=25000.0)
-    >>> stress = mg.add_zeros("load__normal_component_of_stress", at="node", dtype=float)
+    >>> stress = mg.add_zeros(
+    ...     "load__normal_component_of_stress", at="node", dtype=float
+    ... )
     >>> stress.view().reshape(mg.shape)[3:7, 3:7] += 1.0e6
     >>> gf = gFlex(
     ...     mg, bc_east="free", bc_north="periodic", bc_south="periodic"
@@ -240,7 +242,9 @@ class gFlex(Component):
             except TypeError:
                 flex.T_e = np.asarray(Te_in, dtype=float).reshape(grid.shape)
 
-        flex.qs = grid.at_node["load__normal_component_of_stress"].view().reshape(grid.shape)
+        flex.qs = (
+            grid.at_node["load__normal_component_of_stress"].view().reshape(grid.shape)
+        )
         flex.initialize()
 
         if isinstance(flex.T_e, float):
