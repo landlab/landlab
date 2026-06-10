@@ -111,6 +111,40 @@ def test_unpaired_periodic_north_south_raises(grid):
         )
 
 
+def test_invalid_density_contrast_raises(grid):
+    """rho_fill >= rho_mantle gives no restoring force; gFlex raises ValueError."""
+    with pytest.raises(ValueError):
+        gFlex(grid, rho_mantle=3300.0, rho_fill=3300.0, quiet=True)
+
+
+def test_nonexistent_te_field_raises(grid):
+    """Passing a nonexistent field name for elastic_thickness should raise."""
+    with pytest.raises((KeyError, ValueError)):
+        gFlex(grid, elastic_thickness="does_not_exist", quiet=True)
+
+
+def test_method_uppercase_accepted(grid):
+    """method='FD' (uppercase) should work via .lower() normalisation."""
+    gf = gFlex(grid, method="FD", quiet=True)
+    gf.run_one_step()
+
+
+def test_dict_bc_passes_through(grid):
+    """A dict BC passes Landlab string validation and reaches gFlex."""
+    grid.at_node["load__normal_component_of_stress"][:] = 1e4
+    gf = gFlex(
+        grid,
+        bc_west="zero_displacement_zero_slope",
+        bc_east={"displacement": np.zeros(grid.shape[0])},
+        bc_north="zero_displacement_zero_slope",
+        bc_south="zero_displacement_zero_slope",
+        quiet=True,
+    )
+    gf.run_one_step()
+    w = grid.at_node["lithosphere__vertical_displacement"]
+    assert np.any(w < 0.0)
+
+
 # ---------------------------------------------------------------------------
 # Physical correctness
 # ---------------------------------------------------------------------------
@@ -205,6 +239,82 @@ def test_larger_load_larger_deflection():
     np.testing.assert_allclose(w2, 2.0 * w1, rtol=1e-6)
 
 
+def test_negative_load_upward_deflection():
+    """A negative (upward) surface load should raise the surface."""
+    mg = RasterModelGrid((20, 20), xy_spacing=25000.0)
+    mg.add_zeros("load__normal_component_of_stress", at="node")
+    mg.at_node["load__normal_component_of_stress"][:] = -1e4
+
+    gf = gFlex(
+        mg,
+        bc_west="periodic",
+        bc_east="periodic",
+        bc_north="periodic",
+        bc_south="periodic",
+        quiet=True,
+    )
+    gf.run_one_step()
+
+    w = mg.at_node["lithosphere__vertical_displacement"][mg.core_nodes]
+    assert np.all(w > 0.0)
+
+
+def test_nonzero_rho_fill_isostatic_deflection():
+    """Uniform load with rho_fill > 0 and periodic BCs matches the exact solution.
+
+    The infill density (e.g. seawater at 1030 kg m⁻³) reduces the effective
+    density contrast driving isostasy:
+
+        w = -q / ((rho_m - rho_fill) * g)
+    """
+    rho_m = 3300.0
+    rho_fill = 1030.0  # seawater
+    g = 9.81
+    q = 1e4
+
+    mg = RasterModelGrid((20, 20), xy_spacing=25000.0)
+    mg.add_zeros("load__normal_component_of_stress", at="node")
+    mg.at_node["load__normal_component_of_stress"][:] = q
+
+    gf = gFlex(
+        mg,
+        rho_mantle=rho_m,
+        rho_fill=rho_fill,
+        g=g,
+        bc_west="periodic",
+        bc_east="periodic",
+        bc_north="periodic",
+        bc_south="periodic",
+        quiet=True,
+    )
+    gf.run_one_step()
+
+    w = mg.at_node["lithosphere__vertical_displacement"][mg.core_nodes]
+    expected = -q / ((rho_m - rho_fill) * g)
+    np.testing.assert_allclose(w, expected, rtol=1e-3)
+
+
+def test_method_fft_runs():
+    """FFT solver produces a downward deflection under a positive load."""
+    mg = RasterModelGrid((20, 20), xy_spacing=25000.0)
+    mg.add_zeros("load__normal_component_of_stress", at="node")
+    mg.at_node["load__normal_component_of_stress"][:] = 1e4
+
+    gf = gFlex(
+        mg,
+        method="fft",
+        bc_west="periodic",
+        bc_east="periodic",
+        bc_north="periodic",
+        bc_south="periodic",
+        quiet=True,
+    )
+    gf.run_one_step()
+
+    w = mg.at_node["lithosphere__vertical_displacement"][mg.core_nodes]
+    assert np.all(w < 0.0)
+
+
 # ---------------------------------------------------------------------------
 # Repeated calls and load changes
 # ---------------------------------------------------------------------------
@@ -282,6 +392,40 @@ def test_array_te_runs(grid):
     Te = np.full(grid.shape, 35000.0)
     gf = gFlex(grid, elastic_thickness=Te, quiet=True)
     gf.run_one_step()
+
+
+def test_variable_te_array_differs_from_uniform():
+    """A spatially varying T_e array gives different deflection than uniform T_e.
+
+    Left half: thin plate (Te=10 km); right half: thick plate (Te=60 km).
+    Under a uniform load the thin half should deflect more than the thick half.
+    """
+    mg = RasterModelGrid((20, 20), xy_spacing=25000.0)
+    mg.add_zeros("load__normal_component_of_stress", at="node")
+    mg.at_node["load__normal_component_of_stress"][:] = 1e4
+
+    Te_uniform = np.full(mg.shape, 35000.0)
+    Te_variable = np.full(mg.shape, 35000.0)
+    Te_variable[:, : mg.shape[1] // 2] = 10000.0   # thin west half
+    Te_variable[:, mg.shape[1] // 2 :] = 60000.0   # thick east half
+
+    def run(Te):
+        gf = gFlex(
+            mg,
+            elastic_thickness=Te,
+            bc_west="periodic",
+            bc_east="periodic",
+            bc_north="periodic",
+            bc_south="periodic",
+            quiet=True,
+        )
+        gf.run_one_step()
+        return mg.at_node["lithosphere__vertical_displacement"].copy()
+
+    w_uniform = run(Te_uniform)
+    w_variable = run(Te_variable)
+
+    assert not np.allclose(w_uniform, w_variable)
 
 
 def test_array_te_field_name_runs(grid):
