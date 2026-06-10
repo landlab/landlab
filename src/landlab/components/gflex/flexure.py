@@ -163,7 +163,7 @@ class gFlex(Component):
         rho_mantle=3300.0,
         rho_fill=0.0,
         elastic_thickness=35000.0,
-        Method="FD",
+        method="fd",
         quiet=True,
         BC_W="zero_displacement_zero_slope",
         BC_E="zero_displacement_zero_slope",
@@ -220,7 +220,7 @@ class gFlex(Component):
         flex.dx = grid.dx
         flex.dy = grid.dy
 
-        flex.method = Method.lower()
+        flex.method = method.lower()
         flex.quiet = quiet
 
         flex.E = float(Youngs_modulus)
