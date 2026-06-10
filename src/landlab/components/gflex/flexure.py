@@ -187,14 +187,17 @@ class gFlex(Component):
             The elastic thickness of the lithosphere. May be a scalar
             float, the name of an existing node field on the grid, or a
             numpy array of shape grid.shape.
-        BC_W, BC_E, BC_N, BC_S : str
+        BC_W, BC_E, BC_N, BC_S : str or dict
             Boundary condition for each grid edge. Any string accepted by
             ``gflex.VALID_BC_STRINGS_2D`` is valid. Canonical names:
             ``'zero_displacement_zero_slope'`` (alias ``'clamped'``),
-            ``'zero_displacement_zero_moment'``,
+            ``'zero_displacement_zero_moment'`` (alias ``'pinned'``),
             ``'zero_moment_zero_shear'`` (alias ``'free'``),
             ``'zero_slope_zero_shear'`` (alias ``'mirror'``),
-            ``'periodic'``. Periodic boundaries must be paired (W–E or N–S).
+            ``'no_outside_loads'`` (alias ``'infinite'``), ``'periodic'``.
+            Periodic boundaries must be paired (W–E or N–S). A dict of
+            prescribed values (e.g. ``{"displacement": arr, "slope": arr}``)
+            may also be passed for inhomogeneous (nested-domain) BCs.
         g : float (m*s**-2)
             The acceleration due to gravity.
         """
@@ -231,7 +234,7 @@ class gFlex(Component):
             ("BC_N", BC_N),
             ("BC_S", BC_S),
         ):
-            if val not in gflex.VALID_BC_STRINGS_2D:
+            if not isinstance(val, dict) and val not in gflex.VALID_BC_STRINGS_2D:
                 raise ValueError(
                     f"{name}={val!r} is not a valid boundary condition. "
                     f"Choose from: {sorted(gflex.VALID_BC_STRINGS_2D)}"
