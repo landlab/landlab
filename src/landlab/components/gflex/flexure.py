@@ -48,7 +48,9 @@ class gFlex(Component):
     >>> mg = RasterModelGrid((10, 10), xy_spacing=25000.0)
     >>> stress = mg.add_zeros("surface_load__stress", at="node", dtype=float)
     >>> stress.view().reshape(mg.shape)[3:7, 3:7] += 1.0e6
-    >>> gf = gFlex(mg, bc_east="free", bc_north="periodic", bc_south="periodic")  # doctest: +SKIP
+    >>> gf = gFlex(
+    ...     mg, bc_east="free", bc_north="periodic", bc_south="periodic"
+    ... )  # doctest: +SKIP
     >>> gf.run_one_step()  # doctest: +SKIP
     >>> mg.at_node["lithosphere__vertical_displacement"]  # doctest: +SKIP
 
@@ -261,9 +263,7 @@ class gFlex(Component):
             pass
 
         self._flex.qs = (
-            self._grid.at_node["surface_load__stress"]
-            .view()
-            .reshape(self._grid.shape)
+            self._grid.at_node["surface_load__stress"].view().reshape(self._grid.shape)
         )
         self._flex.run()
         self._grid.at_node["lithosphere__vertical_displacement"][
