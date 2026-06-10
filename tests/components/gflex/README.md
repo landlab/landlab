@@ -16,14 +16,15 @@ pytest tests/components/gflex/
 ## Test groups
 
 ### Component metadata
-Checks that `gf.name`, `input_var_names`, `output_var_names`, and the
-`_BC_OPTIONS` class attribute all have the expected values.
+Checks that `gf.name`, `input_var_names`, `output_var_names`, and
+`optional_var_names` all have the expected values, and that the BC
+strings accepted by the component match `gflex.VALID_BC_STRINGS_2D`.
 
 ### Input validation
 - Passing a non-`RasterModelGrid` raises `TypeError`.
 - An unrecognised BC string raises `ValueError`.
-- A `Periodic` BC on one side without the opposite side also being
-  `Periodic` raises `ValueError`.
+- A `periodic` BC on one side without the opposite side also being
+  `periodic` raises `ValueError`.
 
 ### Physical correctness
 
@@ -46,7 +47,8 @@ FD solver must match it to within 0.1 %.
 
 **Sign convention**
 A positive (downward) surface load must produce a negative (downward)
-deflection.
+deflection, consistent with the component's sign convention for
+`lithosphere__vertical_displacement`.
 
 **Linearity**
 Doubling the load must double the deflection.
@@ -65,14 +67,14 @@ where
 
 Because kei(x) ≤ 0 for x ≥ 0, a positive (downward) load produces a
 negative w, consistent with the component's sign convention for
-`lithosphere_surface__elevation_increment`.
+`lithosphere__vertical_displacement`.
 
 The test uses a 100 × 100 grid at dx = 5 km (Te = 10 km, α ≈ 21 km,
-domain ≈ 24 α wide) with `0Moment0Shear` boundary conditions.
-Comparison points are sampled in the interior at radii 1.5–3.5 α from
-the load centre — well away from the kei zero crossing (forebulge onset
-at r/α ≈ 3.91) where the relative error metric is undefined, and at
-least 3 α from every boundary to minimise boundary reflections.
+domain ≈ 24 α wide) with default `no_outside_loads` boundary conditions
+(infinite-plate approximation).  Comparison points are sampled in the
+interior at radii 1.5–3.5 α from the load centre — well away from the
+kei zero crossing (forebulge onset at r/α ≈ 3.91) where the relative
+error metric is undefined, and at least 3 α from every boundary.
 Tolerance is 5 %.
 
 **Grid-convergence study** (run separately, 2026-05-27):
@@ -92,25 +94,22 @@ The −0.07 at r = 2.92 α, dx = 10 km is a near-cancellation artefact
 (the error changes sign between those two resolutions); it is not a real
 anomaly.
 
-### `topographic__elevation` interaction
-- The component runs without a `topographic__elevation` field.
-- When the field is present it is updated after each step.
-- The field is updated by the *change* in equilibrium deflection between
-  calls.  Applying the same load a second time produces zero change, so
-  `topographic__elevation` is unchanged.
-
 ### Repeated calls and load changes
 - Calling `run_one_step` twice with the same load returns the same
-  `lithosphere_surface__elevation_increment` both times.
+  `lithosphere__vertical_displacement` both times.
 - Changing the load between calls changes the output.
-
-### Mirror boundary condition
-`Mirror` is a valid gFlex BC (symmetry across the edge) that was previously
-missing from the Landlab wrapper's `_BC_OPTIONS`.  One test verifies that
-all four edges set to `Mirror` are accepted and produce a downward deflection
-under a uniform positive load.
 
 ### Variable elastic thickness
 The component accepts `elastic_thickness` as a scalar float, as the
 string name of an existing node field, or as a NumPy array of shape
 `grid.shape`.  All three forms must run without error.
+
+The `lithosphere__elastic_thickness` node field, if present on the grid,
+is read at every `run_one_step()` call (standard Landlab BMI input
+pattern), allowing T_e to be updated between coupling steps.  One test
+verifies that doubling T_e via this field halves the deflection magnitude.
+
+### Mirror boundary condition
+`mirror` is a valid gFlex BC (symmetry across the edge).  One test
+verifies that all four edges set to `mirror` are accepted and produce a
+downward deflection under a uniform positive load.
