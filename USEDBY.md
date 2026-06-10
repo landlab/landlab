@@ -311,7 +311,6 @@ E.W.H., Nudurupati, S.S., and Istanbulluoglu, E. **The Landlab v1.0
 OverlandFlow component: a Python tool for computing shallow-water flow
 across watersheds.** *Geoscientific Model Development*, 2017,
 [DOI](https://doi.org/10.5194/gmd-10-1645-2017).
-[abstract](https://www.geosci-model-dev.net/10/1645/2017/gmd-10-1645-2017.html)
 [paper](https://www.geosci-model-dev.net/10/1645/2017/gmd-10-1645-2017.pdf)
 
 Gray, H.J., Shobe, C.M., Hobley, D.E.J., Tucker, G.E., Duvall, A.R.,
