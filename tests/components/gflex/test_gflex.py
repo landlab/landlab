@@ -42,11 +42,15 @@ def test_component_name(gf):
 
 
 def test_input_var_names(gf):
-    assert gf.input_var_names == ("surface_load__stress",)
+    assert "load__normal_component_of_stress" in gf.input_var_names
+
+
+def test_optional_te_input_var(gf):
+    assert "lithosphere__elastic_thickness" in gf.input_var_names
 
 
 def test_output_var_names(gf):
-    assert "lithosphere_surface__elevation_increment" in set(gf.output_var_names)
+    assert "lithosphere__vertical_displacement" in set(gf.output_var_names)
 
 
 def test_valid_bc_strings_from_gflex():
@@ -57,16 +61,18 @@ def test_valid_bc_strings_from_gflex():
         "zero_displacement_zero_moment",
         "zero_moment_zero_shear",
         "zero_slope_zero_shear",
+        "no_outside_loads",
         "periodic",
         "clamped",
         "free",
         "mirror",
+        "infinite",
     }
     assert expected <= _gflex.VALID_BC_STRINGS_2D
 
 
 def test_output_field_created_on_init(gf, grid):
-    assert "lithosphere_surface__elevation_increment" in grid.at_node
+    assert "lithosphere__vertical_displacement" in grid.at_node
 
 
 # ---------------------------------------------------------------------------
@@ -82,17 +88,27 @@ def test_bad_grid_type_raises_typeerror():
 @pytest.mark.parametrize("bad_bc", ["Free", "ZeroSlope", "open"])
 def test_bad_bc_value_raises_valueerror(grid, bad_bc):
     with pytest.raises(ValueError):
-        gFlex(grid, BC_W=bad_bc, quiet=True)
+        gFlex(grid, bc_west=bad_bc, quiet=True)
 
 
 def test_unpaired_periodic_west_east_raises(grid):
     with pytest.raises(ValueError):
-        gFlex(grid, BC_W="periodic", BC_E="zero_displacement_zero_slope", quiet=True)
+        gFlex(
+            grid,
+            bc_west="periodic",
+            bc_east="zero_displacement_zero_slope",
+            quiet=True,
+        )
 
 
 def test_unpaired_periodic_north_south_raises(grid):
     with pytest.raises(ValueError):
-        gFlex(grid, BC_N="periodic", BC_S="zero_displacement_zero_slope", quiet=True)
+        gFlex(
+            grid,
+            bc_north="periodic",
+            bc_south="zero_displacement_zero_slope",
+            quiet=True,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -104,7 +120,7 @@ def test_zero_load_zero_deflection(grid):
     """No load should produce no deflection."""
     gf = gFlex(grid, quiet=True)
     gf.run_one_step()
-    w = grid.at_node["lithosphere_surface__elevation_increment"]
+    w = grid.at_node["lithosphere__vertical_displacement"]
     np.testing.assert_allclose(w, 0.0, atol=1e-10)
 
 
@@ -125,23 +141,23 @@ def test_uniform_load_isostatic_deflection():
     q = 1e4  # Pa
 
     mg = RasterModelGrid((20, 20), xy_spacing=25000.0)
-    mg.add_zeros("surface_load__stress", at="node")
-    mg.at_node["surface_load__stress"][:] = q
+    mg.add_zeros("load__normal_component_of_stress", at="node")
+    mg.at_node["load__normal_component_of_stress"][:] = q
 
     gf = gFlex(
         mg,
         rho_mantle=rho_m,
         rho_fill=rho_fill,
         g=g,
-        BC_W="periodic",
-        BC_E="periodic",
-        BC_N="periodic",
-        BC_S="periodic",
+        bc_west="periodic",
+        bc_east="periodic",
+        bc_north="periodic",
+        bc_south="periodic",
         quiet=True,
     )
     gf.run_one_step()
 
-    w = mg.at_node["lithosphere_surface__elevation_increment"][mg.core_nodes]
+    w = mg.at_node["lithosphere__vertical_displacement"][mg.core_nodes]
     expected = -q / ((rho_m - rho_fill) * g)
     np.testing.assert_allclose(w, expected, rtol=1e-3)
 
@@ -149,20 +165,20 @@ def test_uniform_load_isostatic_deflection():
 def test_deflection_negative_for_positive_load():
     """A positive (downward) surface load should lower the surface."""
     mg = RasterModelGrid((20, 20), xy_spacing=25000.0)
-    mg.add_zeros("surface_load__stress", at="node")
-    mg.at_node["surface_load__stress"][:] = 1e4
+    mg.add_zeros("load__normal_component_of_stress", at="node")
+    mg.at_node["load__normal_component_of_stress"][:] = 1e4
 
     gf = gFlex(
         mg,
-        BC_W="periodic",
-        BC_E="periodic",
-        BC_N="periodic",
-        BC_S="periodic",
+        bc_west="periodic",
+        bc_east="periodic",
+        bc_north="periodic",
+        bc_south="periodic",
         quiet=True,
     )
     gf.run_one_step()
 
-    w = mg.at_node["lithosphere_surface__elevation_increment"][mg.core_nodes]
+    w = mg.at_node["lithosphere__vertical_displacement"][mg.core_nodes]
     assert np.all(w < 0.0)
 
 
@@ -171,80 +187,22 @@ def test_larger_load_larger_deflection():
 
     def run_with_load(q):
         mg = RasterModelGrid((10, 10), xy_spacing=25000.0)
-        mg.add_zeros("surface_load__stress", at="node")
-        mg.at_node["surface_load__stress"][:] = q
+        mg.add_zeros("load__normal_component_of_stress", at="node")
+        mg.at_node["load__normal_component_of_stress"][:] = q
         gf = gFlex(
             mg,
-            BC_W="periodic",
-            BC_E="periodic",
-            BC_N="periodic",
-            BC_S="periodic",
+            bc_west="periodic",
+            bc_east="periodic",
+            bc_north="periodic",
+            bc_south="periodic",
             quiet=True,
         )
         gf.run_one_step()
-        return mg.at_node["lithosphere_surface__elevation_increment"].copy()
+        return mg.at_node["lithosphere__vertical_displacement"].copy()
 
     w1 = run_with_load(1e4)
     w2 = run_with_load(2e4)
     np.testing.assert_allclose(w2, 2.0 * w1, rtol=1e-6)
-
-
-# ---------------------------------------------------------------------------
-# topographic__elevation interaction
-# ---------------------------------------------------------------------------
-
-
-def test_topo_not_required(grid):
-    """Component must run without a topographic__elevation field."""
-    gf = gFlex(grid, quiet=True)
-    gf.run_one_step()  # should not raise
-
-
-def test_topo_updated_when_present(grid_with_topo):
-    """topographic__elevation should be modified when the field exists."""
-    grid_with_topo.at_node["surface_load__stress"][:] = 1e4
-    gf = gFlex(
-        grid_with_topo,
-        BC_W="periodic",
-        BC_E="periodic",
-        BC_N="periodic",
-        BC_S="periodic",
-        quiet=True,
-    )
-    gf.run_one_step()
-    topo = grid_with_topo.at_node["topographic__elevation"]
-    assert not np.all(topo == 0.0)
-
-
-def test_topo_unchanged_when_load_unchanged(grid_with_topo):
-    """Repeated call with the same load should not change topographic__elevation.
-
-    The component updates topo by the *change* in equilibrium deflection
-    between calls (current w minus the deflection already applied).  With an
-    unchanged load the equilibrium is identical, so the change is zero and
-    topo stays the same.
-    """
-    grid_with_topo.at_node["surface_load__stress"][:] = 1e4
-    gf = gFlex(
-        grid_with_topo,
-        BC_W="periodic",
-        BC_E="periodic",
-        BC_N="periodic",
-        BC_S="periodic",
-        quiet=True,
-    )
-    gf.run_one_step()
-    topo_after_1 = grid_with_topo.at_node["topographic__elevation"].copy()
-    w_after_1 = grid_with_topo.at_node[
-        "lithosphere_surface__elevation_increment"
-    ].copy()
-
-    gf.run_one_step()
-    topo_after_2 = grid_with_topo.at_node["topographic__elevation"].copy()
-    w_after_2 = grid_with_topo.at_node["lithosphere_surface__elevation_increment"]
-
-    np.testing.assert_allclose(w_after_2, w_after_1, rtol=1e-6)
-    np.testing.assert_allclose(topo_after_2, topo_after_1, rtol=1e-6)
 
 
 # ---------------------------------------------------------------------------
@@ -254,20 +212,20 @@ def test_topo_unchanged_when_load_unchanged(grid_with_topo):
 
 def test_repeated_calls_same_result(grid):
     """Calling run_one_step twice with the same load gives the same deflection."""
-    grid.at_node["surface_load__stress"][:] = 1e4
+    grid.at_node["load__normal_component_of_stress"][:] = 1e4
     gf = gFlex(
         grid,
-        BC_W="periodic",
-        BC_E="periodic",
-        BC_N="periodic",
-        BC_S="periodic",
+        bc_west="periodic",
+        bc_east="periodic",
+        bc_north="periodic",
+        bc_south="periodic",
         quiet=True,
     )
     gf.run_one_step()
-    w1 = grid.at_node["lithosphere_surface__elevation_increment"].copy()
+    w1 = grid.at_node["lithosphere__vertical_displacement"].copy()
 
     gf.run_one_step()
-    w2 = grid.at_node["lithosphere_surface__elevation_increment"].copy()
+    w2 = grid.at_node["lithosphere__vertical_displacement"].copy()
 
     np.testing.assert_allclose(w1, w2, rtol=1e-10)
 
@@ -276,20 +234,20 @@ def test_load_change_reflected(grid):
     """Updating the load field between calls changes the deflection."""
     gf = gFlex(
         grid,
-        BC_W="periodic",
-        BC_E="periodic",
-        BC_N="periodic",
-        BC_S="periodic",
+        bc_west="periodic",
+        bc_east="periodic",
+        bc_north="periodic",
+        bc_south="periodic",
         quiet=True,
     )
 
-    grid.at_node["surface_load__stress"][:] = 1e4
+    grid.at_node["load__normal_component_of_stress"][:] = 1e4
     gf.run_one_step()
-    w1 = grid.at_node["lithosphere_surface__elevation_increment"].copy()
+    w1 = grid.at_node["lithosphere__vertical_displacement"].copy()
 
-    grid.at_node["surface_load__stress"][:] = 2e4
+    grid.at_node["load__normal_component_of_stress"][:] = 2e4
     gf.run_one_step()
-    w2 = grid.at_node["lithosphere_surface__elevation_increment"].copy()
+    w2 = grid.at_node["lithosphere__vertical_displacement"].copy()
 
     assert not np.allclose(w1, w2)
 
@@ -301,12 +259,17 @@ def test_load_change_reflected(grid):
 
 def test_mirror_bc_runs(grid):
     """Mirror BC should be accepted and produce a valid deflection."""
-    grid.at_node["surface_load__stress"][:] = 1e4
+    grid.at_node["load__normal_component_of_stress"][:] = 1e4
     gf = gFlex(
-        grid, BC_W="mirror", BC_E="mirror", BC_N="mirror", BC_S="mirror", quiet=True
+        grid,
+        bc_west="mirror",
+        bc_east="mirror",
+        bc_north="mirror",
+        bc_south="mirror",
+        quiet=True,
     )
     gf.run_one_step()
-    w = grid.at_node["lithosphere_surface__elevation_increment"]
+    w = grid.at_node["lithosphere__vertical_displacement"]
     assert np.all(w < 0.0)
 
 
@@ -327,6 +290,36 @@ def test_array_te_field_name_runs(grid):
     gf.run_one_step()
 
 
+def test_te_updated_from_lithosphere_field():
+    """lithosphere__elastic_thickness field is read each step (BMI pattern).
+
+    A stiffer plate (larger T_e) deflects less under the same load.
+    """
+    mg = RasterModelGrid((20, 20), xy_spacing=25000.0)
+    mg.add_zeros("load__normal_component_of_stress", at="node")
+    mg.at_node["load__normal_component_of_stress"][:] = 1e4
+    te_field = mg.add_full(
+        "lithosphere__elastic_thickness", 35000.0, at="node", dtype=float
+    )
+
+    gf = gFlex(
+        mg,
+        bc_west="periodic",
+        bc_east="periodic",
+        bc_north="periodic",
+        bc_south="periodic",
+        quiet=True,
+    )
+    gf.run_one_step()
+    w_thin = mg.at_node["lithosphere__vertical_displacement"].copy()
+
+    te_field[:] = 70000.0
+    gf.run_one_step()
+    w_thick = mg.at_node["lithosphere__vertical_displacement"].copy()
+
+    assert np.all(np.abs(w_thick) < np.abs(w_thin))
+
+
 # ---------------------------------------------------------------------------
 # Analytical benchmark — point load / Kelvin-function solution
 # ---------------------------------------------------------------------------
@@ -340,7 +333,7 @@ def test_point_load_kelvin_function():
     * 100 × 100 grid, dx = dy = 5 km  →  500 km domain
     * Te = 10 km  →  alpha ≈ 21 km  →  domain ≈ 24 alpha wide
     * Central cell loaded with q = 1e6 Pa
-    * 0Moment0Shear BCs on all edges (free edges, minimal reflection)
+    * no_outside_loads BCs (default; mimics infinite plate)
 
     Comparison points are at radii 1.5–3.5 alpha from the load centre
     (below the forebulge onset at kei zero ≈ 3.91 alpha) and at least
@@ -362,12 +355,14 @@ def test_point_load_kelvin_function():
     alpha = (D / (drho * g)) ** 0.25
 
     mg = RasterModelGrid((nrows, ncols), xy_spacing=dx)
-    mg.add_zeros("surface_load__stress", at="node")
+    mg.add_zeros("load__normal_component_of_stress", at="node")
 
     ci = nrows // 2
     cj = ncols // 2
     q_load = 1e6
-    mg.at_node["surface_load__stress"][mg.grid_coords_to_node_id(ci, cj)] = q_load
+    mg.at_node["load__normal_component_of_stress"][
+        mg.grid_coords_to_node_id(ci, cj)
+    ] = q_load
 
     gf = gFlex(
         mg,
@@ -377,15 +372,11 @@ def test_point_load_kelvin_function():
         rho_fill=rho_fill,
         g=g,
         elastic_thickness=Te,
-        BC_W="zero_moment_zero_shear",
-        BC_E="zero_moment_zero_shear",
-        BC_N="zero_moment_zero_shear",
-        BC_S="zero_moment_zero_shear",
         quiet=True,
     )
     gf.run_one_step()
 
-    w_grid = mg.at_node["lithosphere_surface__elevation_increment"].reshape(mg.shape)
+    w_grid = mg.at_node["lithosphere__vertical_displacement"].reshape(mg.shape)
 
     P = q_load * dx * dy
 
