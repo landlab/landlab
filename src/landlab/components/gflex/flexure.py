@@ -259,6 +259,10 @@ class gFlex(Component):
             except TypeError:
                 flex.T_e = Te_in.view().reshape(grid.shape)
 
+        # Re-read T_e from the grid each step only when the user explicitly
+        # passed a field name; None means T_e is fixed (scalar or array).
+        self._te_field = Te_in if isinstance(Te_in, str) else None
+
         # set up the link between surface load stresses in the gFlex component
         # and the LL grid field:
         flex.qs = grid.at_node["surface_load__stress"].view().reshape(grid.shape)
@@ -291,14 +295,12 @@ class gFlex(Component):
         Note that flexure of the lithosphere proceeds to steady state in
         a single timestep.
         """
-        try:
+        if self._te_field is not None:
             self._flex.T_e = (
-                self._grid.at_node["lithosphere__elastic_thickness"]
+                self._grid.at_node[self._te_field]
                 .view()
                 .reshape(self._grid.shape)
             )
-        except FieldError:
-            pass
         self._flex.qs = (
             self._grid.at_node["surface_load__stress"].view().reshape(self._grid.shape)
         )
