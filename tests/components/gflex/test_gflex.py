@@ -406,8 +406,8 @@ def test_variable_te_array_differs_from_uniform():
 
     Te_uniform = np.full(mg.shape, 35000.0)
     Te_variable = np.full(mg.shape, 35000.0)
-    Te_variable[:, : mg.shape[1] // 2] = 10000.0   # thin west half
-    Te_variable[:, mg.shape[1] // 2 :] = 60000.0   # thick east half
+    Te_variable[:, : mg.shape[1] // 2] = 10000.0  # thin west half
+    Te_variable[:, mg.shape[1] // 2 :] = 60000.0  # thick east half
 
     def run(Te):
         gf = gFlex(
