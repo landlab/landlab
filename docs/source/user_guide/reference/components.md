@@ -45,6 +45,7 @@ following categories of components:
 * {mod}`landlab.components.radiation`
 * {mod}`landlab.components.pet`
 * {mod}`landlab.components.soil_moisture`
+* {mod}`landlab.components.snow`
 
 ## Groundwater hydrology
 
