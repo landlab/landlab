@@ -28,6 +28,7 @@ STANDARD_NAME = {
     "lithosphere__overlying_pressure_increment": (
         "lithosphere_top_surface__increment_of_static_pressure"
     ),
+    "lithosphere__vertical_displacement": "lithosphere_top_surface__z_displacement",
     "lithosphere_surface__elevation_increment": (
         "lithosphere_top_surface__increment_of_elevation"
     ),
@@ -59,6 +60,7 @@ STANDARD_NAME = {
         "land_surface_water__potential_evaptranspiration_volume_flux"
     ),
     "surface__runoff_rate": "land_surface_water__runoff_volume_flux",
+    "load__normal_component_of_stress": "lithosphere_surface__normal_component_of_stress",
     "surface_load__stress": "lithosphere_surface__normal_component_of_stress",
     "topographic__elevation": "land_surface__elevation",
     "topographic__gradient": "land_surface__slope",

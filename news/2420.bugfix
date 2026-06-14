@@ -1,0 +1,6 @@
+Fixed several bugs in the `gFlex` component: `run_one_step` called a
+non-existent `_flex_lithosphere` method; `Youngs_modulus` default was
+`6.5e11` Pa (650 GPa, ten times too stiff) instead of `65e9` Pa (65 GPa);
+`topographic__elevation` was declared as a required output field but is
+only modified when already present; `initialize()` was called on every
+`run_one_step`, resetting solver state.
