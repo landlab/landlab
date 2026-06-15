@@ -318,6 +318,11 @@ class WildfireGenerator(Component):
     def burned_nodes(self):
         """Burned node lists for all recorded fires."""
         return [r["burned_nodes"] for r in self._fire_records]
+    
+    @property
+    def ignition_nodes(self):
+        """lists node lists for all recorded fires."""
+        return [r["ignition_node"] for r in self._fire_records]
 
     @property
     def severity(self):
