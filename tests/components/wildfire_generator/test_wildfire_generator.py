@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Created on Fri Jun  5 16:24:02 2026
 
@@ -12,8 +11,8 @@ import numpy as np
 import pytest
 from numpy import testing
 
-from landlab import RasterModelGrid
 from landlab import FieldError
+from landlab import RasterModelGrid
 from landlab.components import WildfireGenerator
 
 
@@ -66,12 +65,23 @@ def test_fire_locations():
     wg.run_one_step(dt)
 
     expected_locations = [
-        np.array([3., 1.]), np.array([1., 1.]), np.array([2., 1.]),
-        np.array([3., 2.]), np.array([1., 3.]), np.array([1., 2.]),
-        np.array([1., 1.]), np.array([2., 2.]), np.array([1., 2.]),
-        np.array([2., 3.]), np.array([2., 2.]), np.array([2., 3.]),
-        np.array([2., 3.]), np.array([3., 2.]), np.array([2., 2.]),
-        np.array([3., 3.]), np.array([1., 1.]),
+        np.array([3.0, 1.0]),
+        np.array([1.0, 1.0]),
+        np.array([2.0, 1.0]),
+        np.array([3.0, 2.0]),
+        np.array([1.0, 3.0]),
+        np.array([1.0, 2.0]),
+        np.array([1.0, 1.0]),
+        np.array([2.0, 2.0]),
+        np.array([1.0, 2.0]),
+        np.array([2.0, 3.0]),
+        np.array([2.0, 2.0]),
+        np.array([2.0, 3.0]),
+        np.array([2.0, 3.0]),
+        np.array([3.0, 2.0]),
+        np.array([2.0, 2.0]),
+        np.array([3.0, 3.0]),
+        np.array([1.0, 1.0]),
     ]
 
     actual_locations = wg.ignition_nodes
@@ -140,8 +150,8 @@ def test_rivers_mask_based_on_minimum_river_threshold():
     z[:] = 100
     mg.add_ones("fuel_availability", at="node")
     mg.add_zeros("drainage_area", at="node")
-    mg.at_node["drainage_area"][20] = 3e5   # above default threshold of 2e5
-    mg.at_node["drainage_area"][21] = 1e5   # below
+    mg.at_node["drainage_area"][20] = 3e5  # above default threshold of 2e5
+    mg.at_node["drainage_area"][21] = 1e5  # below
 
     wf = WildfireGenerator(mg)
 
@@ -149,14 +159,17 @@ def test_rivers_mask_based_on_minimum_river_threshold():
     assert wf._rivers[21] == False
 
 
-@pytest.mark.parametrize("aridity, expected_t, expected_e", [
-    (0.05, 5.4,  0.42),   # Trees + shrubs
-    (0.2,  8.0,  0.29),   # Dense shrubs
-    (0.4,  12.4, 0.18),   # Dense shrubs high end
-    (0.6,  15.0, 0.15),   # Sparse shrubs
-    (0.9,  18.5, 0.12),   # Sparse shrubs high end
-    (1.0,  18.5, 0.12),   # Boundary value aridity == 1
-])
+@pytest.mark.parametrize(
+    "aridity, expected_t, expected_e",
+    [
+        (0.05, 5.4, 0.42),  # Trees + shrubs
+        (0.2, 8.0, 0.29),  # Dense shrubs
+        (0.4, 12.4, 0.18),  # Dense shrubs high end
+        (0.6, 15.0, 0.15),  # Sparse shrubs
+        (0.9, 18.5, 0.12),  # Sparse shrubs high end
+        (1.0, 18.5, 0.12),  # Boundary value aridity == 1
+    ],
+)
 def test_get_regrowth_params(aridity, expected_t, expected_e):
     """
     _get_regrowth_params should return the correct (t, e) pair for each
@@ -174,13 +187,16 @@ def test_get_regrowth_params(aridity, expected_t, expected_e):
     assert e == expected_e
 
 
-@pytest.mark.parametrize("aridity, exp_fw, exp_aw", [
-    (0.05, 0.5, 0.5),
-    (0.2,  0.5, 0.5),
-    (0.6,  0.8, 0.2),
-    (0.9,  0.9, 0.1),
-    (1.0,  0.9, 0.1),
-])
+@pytest.mark.parametrize(
+    "aridity, exp_fw, exp_aw",
+    [
+        (0.05, 0.5, 0.5),
+        (0.2, 0.5, 0.5),
+        (0.6, 0.8, 0.2),
+        (0.9, 0.9, 0.1),
+        (1.0, 0.9, 0.1),
+    ],
+)
 def test_get_aridity_weights(aridity, exp_fw, exp_aw):
     """
     _get_aridity_weights should return the correct (fuel_weight, aridity_weight)
@@ -254,9 +270,9 @@ def test_calc_severity_increases_with_aridity():
     severities_low = [wf_low._calc_severity() for _ in range(500)]
     severities_high = [wf_high._calc_severity() for _ in range(500)]
 
-    assert np.mean(severities_high) > np.mean(severities_low), (
-        "Higher aridity should produce higher mean severity"
-    )
+    assert np.mean(severities_high) > np.mean(
+        severities_low
+    ), "Higher aridity should produce higher mean severity"
 
 
 def test_regrow_vegetation_increases_values():
@@ -275,9 +291,9 @@ def test_regrow_vegetation_increases_values():
     veg_before = wf._vegetation.copy()
     wf._regrow_vegetation(dt=1)
 
-    assert np.all(wf._vegetation >= veg_before), (
-        "Vegetation should not decrease after regrowth"
-    )
+    assert np.all(
+        wf._vegetation >= veg_before
+    ), "Vegetation should not decrease after regrowth"
 
 
 def test_regrow_vegetation_capped_at_max():
@@ -289,14 +305,14 @@ def test_regrow_vegetation_capped_at_max():
     z[:] = 100
     mg.add_ones("fuel_availability", at="node")
     mg.add_zeros("drainage_area", at="node")
-    mg.at_node["fuel_availability"][:] = 1.0   # already at max
+    mg.at_node["fuel_availability"][:] = 1.0  # already at max
     wf = WildfireGenerator(mg, aridity=0.5)
 
     wf._regrow_vegetation(dt=1)
 
-    assert np.all(wf._vegetation <= wf._max_vegetation), (
-        "Vegetation exceeded max_vegetation after regrowth"
-    )
+    assert np.all(
+        wf._vegetation <= wf._max_vegetation
+    ), "Vegetation exceeded max_vegetation after regrowth"
 
 
 def test_regrow_vegetation_recovers_over_time():
@@ -309,14 +325,14 @@ def test_regrow_vegetation_recovers_over_time():
     z[:] = 100
     mg.add_zeros("fuel_availability", at="node")
     mg.add_zeros("drainage_area", at="node")
-    wf = WildfireGenerator(mg, aridity=0.05)   # fast regrowth bin
+    wf = WildfireGenerator(mg, aridity=0.05)  # fast regrowth bin
 
     for _ in range(500):
         wf._regrow_vegetation(dt=1)
 
-    assert np.all(wf._vegetation > 0.9), (
-        "Vegetation should recover close to max_vegetation after many regrowth steps"
-    )
+    assert np.all(
+        wf._vegetation > 0.9
+    ), "Vegetation should recover close to max_vegetation after many regrowth steps"
 
 
 def test_get_neighbors_returns_valid_nodes():
@@ -331,7 +347,7 @@ def test_get_neighbors_returns_valid_nodes():
     mg.add_zeros("drainage_area", at="node")
     wf = WildfireGenerator(mg)
 
-    interior_node = 40   # centre of a 9x9 grid
+    interior_node = 40  # centre of a 9x9 grid
     neighbors = wf._get_neighbors(interior_node)
 
     assert len(neighbors) > 0, "Interior node should have neighbors"
@@ -350,7 +366,7 @@ def test_get_neighbors_interior_node_count():
     mg.add_zeros("drainage_area", at="node")
     wf = WildfireGenerator(mg)
 
-    neighbors = wf._get_neighbors(40)   # centre node, fully surrounded
+    neighbors = wf._get_neighbors(40)  # centre node, fully surrounded
     active_neighbors = [n for n in neighbors if n >= 0]
 
     assert len(active_neighbors) == 4
@@ -374,9 +390,9 @@ def test_fire_reduces_vegetation():
 
     if len(wf.fire_log) > 0:
         burned_nodes = wf.fire_log[0]["burned_nodes"]
-        assert np.all(wf._vegetation[burned_nodes] < 1.0), (
-            "Vegetation at burned nodes should be reduced below 1"
-        )
+        assert np.all(
+            wf._vegetation[burned_nodes] < 1.0
+        ), "Vegetation at burned nodes should be reduced below 1"
 
 
 def test_fire_does_not_cross_rivers():
@@ -401,18 +417,15 @@ def test_fire_does_not_cross_rivers():
         wf._fire(dt=1)
 
     if len(wf.fire_log) > 0:
-        all_burned = set(
-            n for record in wf.fire_log for n in record["burned_nodes"]
-        )
+        all_burned = {n for record in wf.fire_log for n in record["burned_nodes"]}
         for rn in river_nodes:
-            assert rn not in all_burned, (
-                f"River node {rn} should not be burned"
-            )
+            assert rn not in all_burned, f"River node {rn} should not be burned"
 
 
 # =============================================================================
 # run_one_step tests
 # =============================================================================
+
 
 def test_run_one_step_updates_vegetation():
     """
@@ -449,6 +462,6 @@ def test_run_one_step_appends_fire_log():
     for _ in range(10):
         wf.run_one_step(dt=1)
 
-    assert len(wf.fire_log) >= 1, (
-        "fire_log should accumulate entries over multiple steps"
-    )
+    assert (
+        len(wf.fire_log) >= 1
+    ), "fire_log should accumulate entries over multiple steps"
