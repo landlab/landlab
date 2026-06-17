@@ -470,11 +470,16 @@ class WildfireGenerator(Component):
             self._vegetation[changed_nodes] *= 1 - severity_factor
             non_zero_veg = veg_before > 0
             veg_change = (
-                (1 - np.mean(
-                    self._vegetation[changed_nodes][non_zero_veg]
-                    / veg_before[non_zero_veg]
-                )) * 100
-                if non_zero_veg.any() else 0.0
+                (
+                    1
+                    - np.mean(
+                        self._vegetation[changed_nodes][non_zero_veg]
+                        / veg_before[non_zero_veg]
+                    )
+                )
+                * 100
+                if non_zero_veg.any()
+                else 0.0
             )
             self._last_fire_time[changed_nodes] = self._current_time
 
