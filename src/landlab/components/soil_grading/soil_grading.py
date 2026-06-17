@@ -229,10 +229,6 @@ class SoilGrading(Component):
 
         # Create fields for soil depth, topographic elevation and bedrock elevation
         if not grid.has_field("soil__depth"):
-            # MOVETHIS            warnings.warn(
-            #                "Soil depth is rewrite due to inconsistent with grains__weight",
-            #                stacklevel=2,
-            #            )
             grid.add_zeros("soil__depth", at="node", clobber=True)
 
         if "topographic__elevation" not in grid.at_node:
@@ -252,9 +248,6 @@ class SoilGrading(Component):
             grains_wt_already_initialized = False
         else:
             grains_wt_already_initialized = True
-            #print("In SG init GW field already exists")
-
-        #print("pre IF", np.amax(grid.at_node["grains__weight"]))
 
         if grains_weight is None and not grains_wt_already_initialized:
             #print("if1")
@@ -298,15 +291,8 @@ class SoilGrading(Component):
                     grains_weight, "grains__weight"
                 )
 
-        #print("in sg if-um", np.amin(self._grid.at_node["topographic__elevation"]))
-        #print(" s.gw", np.amax(self._grains_weight))
-
         # Update mass
         self._update_mass(self._grains_weight, grains_wt_already_initialized)
-
-        #print("in sg um ubgp", np.amin(self._grid.at_node["topographic__elevation"]))
-
-        # TODO: do we need to update soil, topo, or bedrock if grains__weight is provided as a field?
 
         # Update bed grains proportions
         self.update_bed_grains_proportions()
@@ -316,8 +302,6 @@ class SoilGrading(Component):
 
         # Store meansizes at grains_classes__size field and verify
         # that the number of classes match the number of classes at the grain__weight field
-        # print("Is field GCS array GCS?")
-        # print(self._grid.at_node["grains_classes__size"] is self._grains_classes_size)
         if np.ndim(self._grid.at_node["grains_classes__size"]) == 1:
             self._grid.at_node["grains_classes__size"] *= self._meansizes[:, 0]
         else:
@@ -326,8 +310,6 @@ class SoilGrading(Component):
 
         # Transition matrix
         self.create_transition_mat()
-
-        #print("in sg ctm umgs", np.amin(self._grid.at_node["topographic__elevation"]))
 
         # Get the median size
         self.update_median_grain_size()
@@ -781,12 +763,6 @@ class SoilGrading(Component):
         This procedure verifies that the number of classes in grains__weight
         field and in grains_classes__size, match each other.
         """
-        # print("in CMWNC")
-        # print("gw field:", self._grid.at_node["grains__weight"].shape)
-        # print("gw arr:", self._grains_weight.shape)
-        # print(self._grid.at_node["grains__weight"] is self._grains_weight)
-        # print("gsc field:", self._grid.at_node["grains_classes__size"].shape)
-        # print("gsc arr:", self._grains_classes_size.shape)
         if np.ndim(self._grid.at_node["grains__weight"]) == 1:
             if np.ndim(self._grid.at_node["grains_classes__size"]) != 1:
                 raise ValueError(
@@ -829,7 +805,7 @@ class SoilGrading(Component):
         erosion="landslide__erosion",
         deposition="landslide__deposition",
         proportions="bed_grains__proportions",
-    ):
+        bedrock_porosity=0.01):
         """Update the sediment mass according to information on elevation change from an external source.
         By default, this procedure is built to work with the output fields from the BedrockLandslider component
         describing elevation change from landslides.
@@ -842,7 +818,8 @@ class SoilGrading(Component):
             Deposition (dz) at node
         proportions : array (float)
             Proportional weight of each grain class in the bed layer
-
+        bedrock_porosity : float
+            Porosity of the bedrock layer
         """
 
         # Make sure the inputs format is valid
@@ -856,15 +833,19 @@ class SoilGrading(Component):
             grains_weight = grains_weight[:, np.newaxis]
 
         # Get the total eroded/desposited mass in kg/m2
-        erosion_mass = erosion * self._soil_density * (1 - self._phi)
+        total_soil_erosion_mass = erosion * self._soil_density * (1 - self._phi)
         deposition_mass = deposition * self._soil_density * (1 - self._phi)
 
-        erosion_mass = erosion_mass[:, np.newaxis]
+        # Copy the total eroded mass (will be updated later)
+        total_bedrock_erosion_mass = erosion * self._soil_density * (1 - bedrock_porosity)
+
+        # Expand axis
+        total_soil_erosion_mass = total_soil_erosion_mass[:, np.newaxis]
         deposition_mass = deposition_mass[:, np.newaxis]
 
         # Store the mass of eroded bedrock.
         # The mass of soil will be removed later.
-        bedrock_out_mass_per_class = np.sum(proportions[:, :] * erosion_mass, 0)
+        bedrock_out_mass_per_class = np.sum(proportions[:, :] * total_bedrock_erosion_mass, 0)
 
         # Store the mass of eroded soil.
         # Here the mass will be added later.
@@ -886,8 +867,8 @@ class SoilGrading(Component):
                                          out=np.zeros_like(b))
 
             # Partitioning the eroded soil mass across grain classes
-            soil_erosion_mass = erosion_mass[non_zero_erosion_indices, :]
-            soil_erosion_mass_per_class = grains_fractions * soil_erosion_mass
+            total_soil_erosion_mass = total_soil_erosion_mass[non_zero_erosion_indices, :]
+            soil_erosion_mass_per_class = grains_fractions * total_soil_erosion_mass
 
             # Avoid negative mass
             soil_erosion_mass_per_class = np.min(
