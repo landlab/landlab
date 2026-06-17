@@ -8,21 +8,20 @@ Unit tests for the WildfireGenerator Landlab component.
 
 """
 
-
 import numpy as np
 import pytest
 from numpy import testing
 
-from landlab import FieldError, RasterModelGrid
+from landlab import FieldError
+from landlab import RasterModelGrid
 from landlab.components import WildfireGenerator
-
 
 # =============================================================================
 # Helpers
 # =============================================================================
 
-def _make_grid(nrows=5, ncols=5, spacing=1.0, fuel_val=0.0,
-               topo_val=0.0, da_val=0.0):
+
+def _make_grid(nrows=5, ncols=5, spacing=1.0, fuel_val=0.0, topo_val=0.0, da_val=0.0):
     """Return a minimal RasterModelGrid with all required fields."""
     mg = RasterModelGrid((nrows, ncols), xy_spacing=spacing)
     z = mg.add_zeros("topographic__elevation", at="node")
@@ -37,6 +36,7 @@ def _make_grid(nrows=5, ncols=5, spacing=1.0, fuel_val=0.0,
 # =============================================================================
 # __init__ — required field checks
 # =============================================================================
+
 
 def test_missing_fuel_availability():
     """WildfireGenerator should raise FieldError when fuel_availability is absent."""
@@ -59,6 +59,7 @@ def test_missing_drainage_area_raises():
 # =============================================================================
 # __init__ — parameter validation
 # =============================================================================
+
 
 def test_aridity_below_zero_raises():
     mg = _make_grid()
@@ -124,7 +125,9 @@ def test_negative_fuel_raises():
     """fuel_availability field containing negative values should raise ValueError."""
     mg = _make_grid()
     mg.at_node["fuel_availability"][5] = -0.1
-    with pytest.raises(ValueError, match="fuel_availability cannot contain negative values"):
+    with pytest.raises(
+        ValueError, match="fuel_availability cannot contain negative values"
+    ):
         WildfireGenerator(mg)
 
 
@@ -132,7 +135,9 @@ def test_fuel_exceeds_max_vegetation_raises():
     """fuel_availability > max_vegetation should raise ValueError."""
     mg = _make_grid(fuel_val=0.5)
     mg.at_node["fuel_availability"][5] = 1.5
-    with pytest.raises(ValueError, match="fuel_availability contains values exceeding max_vegetation"):
+    with pytest.raises(
+        ValueError, match="fuel_availability contains values exceeding max_vegetation"
+    ):
         WildfireGenerator(mg, max_vegetation=1.0)
 
 
@@ -140,18 +145,20 @@ def test_fuel_exceeds_max_vegetation_raises():
 # __init__ — output field initialisation
 # =============================================================================
 
+
 def test_last_fire_time_initialised_to_neg_inf():
     """last_fire_time should be -inf at all nodes after initialisation."""
     mg = _make_grid()
     wg = WildfireGenerator(mg)
-    assert np.all(wg._last_fire_time == -np.inf), (
-        "last_fire_time should be -inf everywhere before any fire"
-    )
+    assert np.all(
+        wg._last_fire_time == -np.inf
+    ), "last_fire_time should be -inf everywhere before any fire"
 
 
 # =============================================================================
 # __init__ — field aliasing
 # =============================================================================
+
 
 def test_vegetation_field_linked_to_grid():
     """_vegetation must share memory with grid's fuel_availability field."""
@@ -163,6 +170,7 @@ def test_vegetation_field_linked_to_grid():
 # =============================================================================
 # Properties
 # =============================================================================
+
 
 def test_potential_fires_property():
     mg = _make_grid()
@@ -209,7 +217,7 @@ def test_rivers_mask_based_on_minimum_river_threshold():
     mg.at_node["drainage_area"][20] = 3e5  # above default threshold (2e5)
     mg.at_node["drainage_area"][21] = 1e5  # below threshold
     wg = WildfireGenerator(mg)
-    assert wg._rivers[20] == True   # noqa: E712  (np.True_ is not True but == True)
+    assert wg._rivers[20] == True  # noqa: E712  (np.True_ is not True but == True)
     assert wg._rivers[21] == False  # noqa: E712
 
 
@@ -226,7 +234,9 @@ def test_fire_sizes_all_positive():
     mg = _make_grid(nrows=9, ncols=9, spacing=100, fuel_val=0.8)
     wg = WildfireGenerator(mg, potential_fires=50, aridity=0.7, seed=42)
     wg.run_one_step(1)
-    assert all(s > 0 for s in wg.fire_sizes), "All recorded fire sizes should be positive"
+    assert all(
+        s > 0 for s in wg.fire_sizes
+    ), "All recorded fire sizes should be positive"
 
 
 def test_burned_nodes_property_length_matches_log():
@@ -294,15 +304,16 @@ def test_last_step_fires_excludes_previous_years():
 # _get_regrowth_params
 # =============================================================================
 
+
 @pytest.mark.parametrize(
     "aridity, expected_t, expected_e",
     [
-        (0.05, 5.4, 0.42),   # Trees + shrubs
-        (0.2,  8.0, 0.29),   # Dense shrubs
-        (0.4,  12.4, 0.18),  # Dense shrubs high end
-        (0.6,  15.0, 0.15),  # Sparse shrubs
-        (0.9,  18.5, 0.12),  # Sparse shrubs high end
-        (1.0,  18.5, 0.12),  # Boundary value aridity == 1
+        (0.05, 5.4, 0.42),  # Trees + shrubs
+        (0.2, 8.0, 0.29),  # Dense shrubs
+        (0.4, 12.4, 0.18),  # Dense shrubs high end
+        (0.6, 15.0, 0.15),  # Sparse shrubs
+        (0.9, 18.5, 0.12),  # Sparse shrubs high end
+        (1.0, 18.5, 0.12),  # Boundary value aridity == 1
     ],
 )
 def test_get_regrowth_params(aridity, expected_t, expected_e):
@@ -318,14 +329,15 @@ def test_get_regrowth_params(aridity, expected_t, expected_e):
 # _get_aridity_weights
 # =============================================================================
 
+
 @pytest.mark.parametrize(
     "aridity, exp_fw, exp_aw",
     [
         (0.05, 0.5, 0.5),
-        (0.2,  0.5, 0.5),
-        (0.6,  0.8, 0.2),
-        (0.9,  0.9, 0.1),
-        (1.0,  0.9, 0.1),
+        (0.2, 0.5, 0.5),
+        (0.6, 0.8, 0.2),
+        (0.9, 0.9, 0.1),
+        (1.0, 0.9, 0.1),
     ],
 )
 def test_get_aridity_weights(aridity, exp_fw, exp_aw):
@@ -343,14 +355,15 @@ def test_aridity_weights_sum_to_one():
         mg = _make_grid(nrows=9, ncols=9, topo_val=100)
         wg = WildfireGenerator(mg, aridity=aridity)
         fw, aw = wg._get_aridity_weights()
-        assert fw + aw == pytest.approx(1.0), (
-            f"Weights don't sum to 1 for aridity={aridity}: {fw} + {aw}"
-        )
+        assert fw + aw == pytest.approx(
+            1.0
+        ), f"Weights don't sum to 1 for aridity={aridity}: {fw} + {aw}"
 
 
 # =============================================================================
 # _calc_severity
 # =============================================================================
+
 
 def test_calc_severity_range():
     """_calc_severity should always return a value in [0, 1]."""
@@ -372,16 +385,16 @@ def test_calc_severity_rounded():
 
 def test_calc_severity_increases_with_aridity():
     """Higher aridity should produce higher mean severity (power-law relationship)."""
-    mg_low  = _make_grid(nrows=9, ncols=9, topo_val=100)
+    mg_low = _make_grid(nrows=9, ncols=9, topo_val=100)
     mg_high = _make_grid(nrows=9, ncols=9, topo_val=100)
-    wf_low  = WildfireGenerator(mg_low,  aridity=0.1)
+    wf_low = WildfireGenerator(mg_low, aridity=0.1)
     wf_high = WildfireGenerator(mg_high, aridity=0.9)
     np.random.seed(0)
-    sev_low  = [wf_low._calc_severity()  for _ in range(500)]
+    sev_low = [wf_low._calc_severity() for _ in range(500)]
     sev_high = [wf_high._calc_severity() for _ in range(500)]
-    assert np.mean(sev_high) > np.mean(sev_low), (
-        "Higher aridity should produce higher mean severity"
-    )
+    assert np.mean(sev_high) > np.mean(
+        sev_low
+    ), "Higher aridity should produce higher mean severity"
 
 
 def test_calc_severity_at_zero_aridity_near_zero():
@@ -406,6 +419,7 @@ def test_calc_severity_at_unit_aridity_near_one():
 # _regrow_vegetation
 # =============================================================================
 
+
 def test_regrow_vegetation_changing_dt():
     """_regrow_vegetation growth increment should match the analytic formula for each dt."""
     mg = _make_grid(nrows=5, ncols=5)
@@ -424,9 +438,9 @@ def test_regrow_vegetation_increases_values():
     wg = WildfireGenerator(mg, aridity=0.5)
     veg_before = wg._vegetation.copy()
     wg._regrow_vegetation(dt=1)
-    assert np.all(wg._vegetation >= veg_before), (
-        "Vegetation should not decrease after regrowth"
-    )
+    assert np.all(
+        wg._vegetation >= veg_before
+    ), "Vegetation should not decrease after regrowth"
 
 
 def test_regrow_vegetation_capped_at_max():
@@ -434,9 +448,9 @@ def test_regrow_vegetation_capped_at_max():
     mg = _make_grid(nrows=9, ncols=9, topo_val=100, fuel_val=1.0)
     wg = WildfireGenerator(mg, aridity=0.5)
     wg._regrow_vegetation(dt=1)
-    assert np.all(wg._vegetation <= wg._max_vegetation), (
-        "Vegetation exceeded max_vegetation after regrowth"
-    )
+    assert np.all(
+        wg._vegetation <= wg._max_vegetation
+    ), "Vegetation exceeded max_vegetation after regrowth"
 
 
 def test_regrow_vegetation_recovers_over_time():
@@ -445,9 +459,9 @@ def test_regrow_vegetation_recovers_over_time():
     wg = WildfireGenerator(mg, aridity=0.05)  # fastest regrowth bin
     for _ in range(500):
         wg._regrow_vegetation(dt=1)
-    assert np.all(wg._vegetation > 0.9), (
-        "Vegetation should recover close to max_vegetation after many regrowth steps"
-    )
+    assert np.all(
+        wg._vegetation > 0.9
+    ), "Vegetation should recover close to max_vegetation after many regrowth steps"
 
 
 def test_regrow_vegetation_zero_dt_no_change():
@@ -466,14 +480,15 @@ def test_regrow_vegetation_custom_max_vegetation():
     wg = WildfireGenerator(mg, max_vegetation=max_veg)
     for _ in range(200):
         wg._regrow_vegetation(dt=1)
-    assert np.all(wg._vegetation <= max_veg), (
-        f"Vegetation exceeded custom max_vegetation={max_veg}"
-    )
+    assert np.all(
+        wg._vegetation <= max_veg
+    ), f"Vegetation exceeded custom max_vegetation={max_veg}"
 
 
 # =============================================================================
 # _get_neighbors
 # =============================================================================
+
 
 def test_get_neighbors_returns_valid_nodes():
     """_get_neighbors should return only valid (non-negative) node indices for interior nodes."""
@@ -498,6 +513,7 @@ def test_get_neighbors_interior_node_count():
 # _fire
 # =============================================================================
 
+
 def test_fire_reduces_vegetation():
     """Burned nodes should have lower vegetation than before the fire."""
     np.random.seed(7)
@@ -507,9 +523,9 @@ def test_fire_reduces_vegetation():
     wg._fire(dt=1)
     if wg.fire_log:
         burned = wg.fire_log[0]["burned_nodes"]
-        assert np.all(wg._vegetation[burned] < 1.0), (
-            "Vegetation at burned nodes should be reduced below 1"
-        )
+        assert np.all(
+            wg._vegetation[burned] < 1.0
+        ), "Vegetation at burned nodes should be reduced below 1"
 
 
 def test_fire_does_not_cross_rivers():
@@ -536,9 +552,9 @@ def test_fire_ignition_skipped_on_river_center():
     wg = WildfireGenerator(mg, potential_fires=200, aridity=0.9, seed=0)
     wg._current_time = 1
     wg._fire(dt=1)
-    assert len(wg.fire_log) == 0, (
-        "No fires should be recorded when all core nodes are rivers"
-    )
+    assert (
+        len(wg.fire_log) == 0
+    ), "No fires should be recorded when all core nodes are rivers"
 
 
 def test_fire_pct_vegetation_removed_in_valid_range():
@@ -549,7 +565,9 @@ def test_fire_pct_vegetation_removed_in_valid_range():
     wg.run_one_step(1)
     for r in wg.fire_log:
         pct = r["pct of vegetation removed"]
-        assert 0.0 <= pct <= 100.0, f"pct_of_vegetation_removed={pct} is outside [0, 100]"
+        assert (
+            0.0 <= pct <= 100.0
+        ), f"pct_of_vegetation_removed={pct} is outside [0, 100]"
 
 
 def test_fire_size_equals_core_cell_area_sum():
@@ -563,8 +581,10 @@ def test_fire_size_equals_core_cell_area_sum():
     for r in wg.fire_log:
         expected_km2 = mg.cell_area_at_node[r["burned_nodes"]].sum() / 1e6
         testing.assert_allclose(
-            r["fire_size (km2)"], expected_km2, rtol=1e-10,
-            err_msg="fire_size does not match sum of cell areas / 1e6"
+            r["fire_size (km2)"],
+            expected_km2,
+            rtol=1e-10,
+            err_msg="fire_size does not match sum of cell areas / 1e6",
         )
 
 
@@ -575,9 +595,9 @@ def test_last_fire_time_updated_at_burned_nodes():
     wg.run_one_step(1)
     for r in wg.fire_log:
         for node in r["burned_nodes"]:
-            assert wg._last_fire_time[node] == wg._current_time, (
-                f"last_fire_time at burned node {node} not updated to current_time"
-            )
+            assert (
+                wg._last_fire_time[node] == wg._current_time
+            ), f"last_fire_time at burned node {node} not updated to current_time"
 
 
 def test_last_fire_time_unchanged_at_unburned_nodes():
@@ -588,9 +608,9 @@ def test_last_fire_time_unchanged_at_unburned_nodes():
     burned_all = {n for r in wg.fire_log for n in r["burned_nodes"]}
     unburned = [n for n in mg.core_nodes if n not in burned_all]
     if unburned:
-        assert np.all(wg._last_fire_time[unburned] == -np.inf), (
-            "last_fire_time should remain -inf at unburned nodes"
-        )
+        assert np.all(
+            wg._last_fire_time[unburned] == -np.inf
+        ), "last_fire_time should remain -inf at unburned nodes"
 
 
 def test_fire_log_record_contains_required_keys():
@@ -608,9 +628,9 @@ def test_fire_log_record_contains_required_keys():
         "pct of vegetation removed",
     }
     for r in wg.fire_log:
-        assert required_keys.issubset(r.keys()), (
-            f"fire_log record is missing keys: {required_keys - r.keys()}"
-        )
+        assert required_keys.issubset(
+            r.keys()
+        ), f"fire_log record is missing keys: {required_keys - r.keys()}"
 
 
 def test_fire_log_aridity_matches_component_aridity():
@@ -626,6 +646,7 @@ def test_fire_log_aridity_matches_component_aridity():
 # =============================================================================
 # run_one_step — time tracking
 # =============================================================================
+
 
 def test_run_one_step_current_time_none_before_first_call():
     """_current_time should be None before any call to run_one_step."""
@@ -668,6 +689,7 @@ def test_run_one_step_explicit_current_time_overrides():
 # run_one_step — fire log and vegetation
 # =============================================================================
 
+
 def test_fire_frequency():
     """fire_log should contain exactly 17 records after one step with seed=5000."""
     np.random.seed(5000)
@@ -693,12 +715,23 @@ def test_fire_locations():
     wg.run_one_step(1)
 
     expected_locations = [
-        np.array([3.0, 1.0]), np.array([1.0, 1.0]), np.array([2.0, 1.0]),
-        np.array([3.0, 2.0]), np.array([1.0, 3.0]), np.array([1.0, 2.0]),
-        np.array([1.0, 1.0]), np.array([2.0, 2.0]), np.array([1.0, 2.0]),
-        np.array([2.0, 3.0]), np.array([2.0, 2.0]), np.array([2.0, 3.0]),
-        np.array([2.0, 3.0]), np.array([3.0, 2.0]), np.array([2.0, 2.0]),
-        np.array([3.0, 3.0]), np.array([1.0, 1.0]),
+        np.array([3.0, 1.0]),
+        np.array([1.0, 1.0]),
+        np.array([2.0, 1.0]),
+        np.array([3.0, 2.0]),
+        np.array([1.0, 3.0]),
+        np.array([1.0, 2.0]),
+        np.array([1.0, 1.0]),
+        np.array([2.0, 2.0]),
+        np.array([1.0, 2.0]),
+        np.array([2.0, 3.0]),
+        np.array([2.0, 2.0]),
+        np.array([2.0, 3.0]),
+        np.array([2.0, 3.0]),
+        np.array([3.0, 2.0]),
+        np.array([2.0, 2.0]),
+        np.array([3.0, 3.0]),
+        np.array([1.0, 1.0]),
     ]
     assert len(wg.ignition_nodes) == len(expected_locations)
     for actual, expected in zip(wg.ignition_nodes, expected_locations):
