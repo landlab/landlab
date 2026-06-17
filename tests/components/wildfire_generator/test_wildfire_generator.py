@@ -491,7 +491,7 @@ def test_regrow_vegetation_custom_max_vegetation():
 
 
 def test_get_neighbors_returns_valid_nodes():
-    """_get_neighbors should return only valid (non-negative) node indices 
+    """_get_neighbors should return only valid (non-negative) node indices
     for interior nodes."""
     mg = _make_grid(nrows=9, ncols=9, topo_val=100)
     wg = WildfireGenerator(mg)
