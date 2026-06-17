@@ -491,7 +491,8 @@ def test_regrow_vegetation_custom_max_vegetation():
 
 
 def test_get_neighbors_returns_valid_nodes():
-    """_get_neighbors should return only valid (non-negative) node indices for interior nodes."""
+    """_get_neighbors should return only valid (non-negative) node indices 
+    for interior nodes."""
     mg = _make_grid(nrows=9, ncols=9, topo_val=100)
     wg = WildfireGenerator(mg)
     interior_node = 40  # centre of 9×9
@@ -762,7 +763,7 @@ def test_run_one_step_fire_log_year_matches_current_time():
     """Every fire_log entry's year should equal the current_time when it was recorded."""
     mg = _make_grid(nrows=9, ncols=9, spacing=100, fuel_val=0.8)
     wg = WildfireGenerator(mg, potential_fires=30, aridity=0.7, seed=5)
-    for step in range(5):
+    for _step in range(5):
         wg.run_one_step(1)
     for r in wg.fire_log:
         assert isinstance(r["year"], (int, float)), "year field should be numeric"
