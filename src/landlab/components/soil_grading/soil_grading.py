@@ -741,6 +741,7 @@ class SoilGrading(Component):
                 self.g_state0,
                 np.sum(self.g_state0, 1)[:, np.newaxis],
                 where=self.g_state0 > 0,
+                out=np.zeros_like(self.g_state0),
             )
         else:
             proportions = self._create_2D_array_for_input_var(
@@ -841,6 +842,7 @@ class SoilGrading(Component):
 
         # Expand axis
         total_soil_erosion_mass = total_soil_erosion_mass[:, np.newaxis]
+        total_bedrock_erosion_mass = total_bedrock_erosion_mass[:, np.newaxis]
         deposition_mass = deposition_mass[:, np.newaxis]
 
         # Store the mass of eroded bedrock.
