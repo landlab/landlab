@@ -806,7 +806,8 @@ class SoilGrading(Component):
         erosion="landslide__erosion",
         deposition="landslide__deposition",
         proportions="bed_grains__proportions",
-        bedrock_porosity=0.01):
+        bedrock_porosity=0.01,
+        bedrock_density=None):
         """Update the sediment mass according to information on elevation change from an external source.
         By default, this procedure is built to work with the output fields from the BedrockLandslider component
         describing elevation change from landslides.
@@ -821,7 +822,12 @@ class SoilGrading(Component):
             Proportional weight of each grain class in the bed layer
         bedrock_porosity : float
             Porosity of the bedrock layer
+        bedrock_density : float
+            Density (kg/m3) of the bedrock layer
         """
+
+        if bedrock_density is None:
+            bedrock_density = np.copy(self._soil_density)
 
         # Make sure the inputs format is valid
         (erosion, deposition, proportions) = self._check_outsource_inputs(
@@ -833,25 +839,10 @@ class SoilGrading(Component):
         if np.ndim(grains_weight) == 1:
             grains_weight = grains_weight[:, np.newaxis]
 
-        # Get the total eroded/desposited mass in kg/m2
-        total_soil_erosion_mass = erosion * self._soil_density * (1 - self._phi)
-        deposition_mass = deposition * self._soil_density * (1 - self._phi)
-
-        # Copy the total eroded mass (will be updated later)
-        total_bedrock_erosion_mass = erosion * self._soil_density * (1 - bedrock_porosity)
-
-        # Expand axis
-        total_soil_erosion_mass = total_soil_erosion_mass[:, np.newaxis]
-        total_bedrock_erosion_mass = total_bedrock_erosion_mass[:, np.newaxis]
-        deposition_mass = deposition_mass[:, np.newaxis]
-
-        # Store the mass of eroded bedrock.
-        # The mass of soil will be removed later.
-        bedrock_out_mass_per_class = np.sum(proportions[:, :] * total_bedrock_erosion_mass, 0)
-
-        # Store the mass of eroded soil.
-        # Here the mass will be added later.
-        soil_out_mass_per_class = np.zeros_like(bedrock_out_mass_per_class)
+        # Expand axes
+        total_erosion_dz = erosion[:, np.newaxis]
+        total_bedrock_erosion_dz = erosion[:, np.newaxis]
+        deposition_dz = deposition[:, np.newaxis]
 
         # Operate only over nodes with action
         non_zero_erosion_indices = np.where(erosion > 0)[0]
@@ -859,7 +850,7 @@ class SoilGrading(Component):
 
         if np.any(non_zero_erosion_indices):
 
-            # Get the fraction of each grain class at node.
+            # Get the fraction of each grain class as in the soil layer
             a = np.sum(grains_weight[non_zero_erosion_indices, :], axis=1)[
                 :, np.newaxis
             ]
@@ -868,24 +859,44 @@ class SoilGrading(Component):
             grains_fractions = np.divide(b, a, where= a > _epsilon,
                                          out=np.zeros_like(b))
 
-            # Partitioning the eroded soil mass across grain classes
-            total_soil_erosion_mass = total_soil_erosion_mass[non_zero_erosion_indices, :]
-            soil_erosion_mass_per_class = grains_fractions * total_soil_erosion_mass
+            # Partitioning the eroded soil mass across existing grain classes based on their proportions
+            total_soil_erosion_dz = total_erosion_dz[non_zero_erosion_indices, :]
+            soil_erosion_dz_per_class = grains_fractions * total_soil_erosion_dz
+
+            # Covert mass to dz
+            grains_dzs = np.divide(grains_weight[non_zero_erosion_indices],
+                      self._soil_density * (1 - self._phi))
 
             # Avoid negative mass
-            soil_erosion_mass_per_class = np.min(
-                (grains_weight[non_zero_erosion_indices], soil_erosion_mass_per_class),
+            soil_erosion_dz_per_class = np.min(
+                (grains_dzs, soil_erosion_dz_per_class),
                 axis=0,
             )
+
+            # Convert dz to mass (per class)
+            soil_erosion_mass_per_class = self._soil_density * (1 - self._phi) * soil_erosion_dz_per_class
 
             # Update grains_weight field according to removed soil
             grains_weight[non_zero_erosion_indices, :] -= soil_erosion_mass_per_class
             grains_weight[non_zero_erosion_indices, :][grains_weight[non_zero_erosion_indices, :]<_epsilon]=0
 
-            # Update and partitioning the removed mass across despoisted grain classes
-            # Remove the soil mass from the bedrock vector and add it to the soil vector
-            bedrock_out_mass_per_class -= np.sum(soil_erosion_mass_per_class, 0)
-            soil_out_mass_per_class += np.sum(soil_erosion_mass_per_class, 0)
+            # Store the amount of eroded soil mass per class (sum across nodes)
+            # Here we end-up with an array in the size of n_classes
+            soil_out_mass_per_class = np.sum(soil_erosion_mass_per_class, 0)
+
+            # Reduce the eroded dz of the soil from the total (input).
+            # Here we deals with the remaining dz after eroding all the soil.
+            # The size of this array is the same as the number of nodes
+            total_erosion_dz[non_zero_erosion_indices,0] -= np.sum(soil_erosion_mass_per_class, 1)
+            total_erosion_dz[total_erosion_dz<0]=0 # for saftey.
+
+            # Partitioning the the remaining mass (after eroding soil)
+            # based on bedrock class proportions.
+            # We also convert dz to mass.
+            bedrock_out_mass_per_class = (np.sum(proportions[:, :] *  total_erosion_dz, 0) *
+                                        bedrock_density * (1 - bedrock_porosity))
+
+
 
         # Now we will collect all the removed mass and assume
         # it mixed fully before deposition.
@@ -893,7 +904,6 @@ class SoilGrading(Component):
 
         # Get the fraction of each sediment class for deposition
         tot_deposition_mass = np.sum(tot_out_mass_per_class)
-
         depoistion_ratios_per_class = np.divide(
             tot_out_mass_per_class,
             tot_deposition_mass,
@@ -901,7 +911,11 @@ class SoilGrading(Component):
             out=np.zeros_like(tot_out_mass_per_class),
         )
 
-        # Partitioning the deposited mass based on the dz input
+        deposition_mass = deposition * self._soil_density * (1 - self._phi)
+        deposition_mass = deposition_mass[:,np.newaxis]
+
+        # Partitioning the deposited mass (input) based on the proportios of
+        # eroded material calculated above (soil+bedrock).
         if np.any(non_zero_deposition_indices):
             depoistion_ratios_per_class[depoistion_ratios_per_class<_epsilon]=0
             grains_weight[non_zero_deposition_indices, :] +=(
