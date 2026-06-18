@@ -43,6 +43,8 @@ from .flow_director import FlowDirectorDINF
 from .flow_director import FlowDirectorMFD
 from .flow_director import FlowDirectorSteepest
 from .fracture_grid import FractureGridGenerator
+from .genveg import GenVeg
+from .genveg import VegParams
 from .gflex import gFlex
 from .gravel_bedrock_eroder import GravelBedrockEroder
 from .gravel_river_transporter import GravelRiverTransporter
@@ -99,7 +101,8 @@ from .stream_power import StreamPowerEroder
 from .stream_power import StreamPowerSmoothThresholdEroder
 from .taylor_nonlinear_hillslope_flux import TaylorNonLinearDiffuser
 from .tectonics import ListricKinematicExtender
-from .threshold_eroder import ThresholdEroder
+
+# from .threshold_eroder import ThresholdEroder
 from .tidal_flow import TidalFlowCalculator
 from .transport_length_diffusion import TransportLengthHillslopeDiffuser
 from .uniform_precip import PrecipitationDistribution
@@ -132,7 +135,7 @@ COMPONENTS = [
     Flexure,
     Flexure1D,
     FlowAccumulator,
-    PriorityFloodFlowRouter,
+    # PriorityFloodFlowRouter,
     FlowDirectorD8,
     FlowDirectorDINF,
     FlowDirectorMFD,
@@ -177,8 +180,8 @@ COMPONENTS = [
     SinkFillerBarnes,
     SoilMoisture,
     SoilInfiltrationGreenAmpt,
-    Space,
-    SpaceLargeScaleEroder,
+    # Space,
+    # SpaceLargeScaleEroder,
     SpatialPrecipitationDistribution,
     SpeciesEvolver,
     SteepnessFinder,
@@ -192,7 +195,7 @@ COMPONENTS = [
     TidalFlowCalculator,
     TransportLengthHillslopeDiffuser,
     TrickleDownProfiler,
-    ThresholdEroder,
+    # ThresholdEroder,
     VegCA,
     Vegetation,
 ]
