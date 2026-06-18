@@ -462,9 +462,6 @@ class WildfireGenerator(Component):
                             new_front.add(neighbor)
                 fire_front = new_front
 
-            if not burned:
-                continue
-
             changed_nodes = list(burned)
             veg_before = self._vegetation[changed_nodes].copy()
             self._vegetation[changed_nodes] *= 1 - severity_factor
