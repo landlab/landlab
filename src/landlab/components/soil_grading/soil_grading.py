@@ -887,7 +887,7 @@ class SoilGrading(Component):
             # Reduce the eroded dz of the soil from the total (input).
             # Here we deals with the remaining dz after eroding all the soil.
             # The size of this array is the same as the number of nodes
-            total_erosion_dz[non_zero_erosion_indices,0] -= np.sum(soil_erosion_mass_per_class, 1)
+            total_erosion_dz[non_zero_erosion_indices,0] -= np.sum(soil_erosion_dz_per_class, 1)
             total_erosion_dz[total_erosion_dz<0]=0 # for saftey.
 
             # Partitioning the the remaining mass (after eroding soil)
