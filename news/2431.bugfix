@@ -1,0 +1,5 @@
+Fixed a bug where instance attributes that cached references to grid field arrays
+could silently point to stale data if another component replaced the underlying
+array in the grid. Fixed in the following components:
+
+* `PriorityFloodFlowRouter`

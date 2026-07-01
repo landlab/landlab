@@ -356,6 +356,9 @@ def test_various_surface_values():
     topo_fd = fa3.surface_values
     assert_array_equal(topo_fd, np.reshape(topography, 4 * 5))
 
+    with pytest.raises(FieldError, match="foobar"):
+        PriorityFloodFlowRouter(mg2, flow_metric="D8", surface="foobar")
+
 
 # %%
 def test_flow_accumulator_properties():
