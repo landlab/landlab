@@ -19,10 +19,9 @@ from functools import partial
 import numpy as np
 
 from landlab import Component
-from landlab import FieldError
 from landlab import RasterModelGrid
+from landlab.field.errors import FieldError
 from landlab.grid.nodestatus import NodeStatus
-from landlab.utils.return_array import return_array_at_node
 
 from ...utils.suppress_output import suppress_output
 from .cfuncs import _D8_FlowAcc
@@ -389,8 +388,11 @@ class PriorityFloodFlowRouter(Component):
             )
 
         # save elevations as class properties.
+        if isinstance(surface, str) and surface not in self.grid.at_node:
+            raise FieldError(surface)
+        if not isinstance(surface, str):
+            surface = np.asarray(surface).reshape(-1)
         self._surface = surface
-        self._surface_values = return_array_at_node(grid, surface)
 
         node_cell_area = self._grid.cell_area_at_node.copy()
         node_cell_area[self._grid.closed_boundary_nodes] = 0.0
@@ -467,11 +469,6 @@ class PriorityFloodFlowRouter(Component):
 
         self.initialize_output_fields()
 
-        # Make aliases
-        if self._accumulate_flow:
-            self._drainage_area = self.grid.at_node["drainage_area"]
-            self._discharges = self.grid.at_node["surface_water__discharge"]
-        self._sort = self.grid.at_node["flow__upstream_node_order"]
         # if multiple flow algorithm is made, the dimensions of the slope
         # and receiver fields change (8 columns for all neighbors)
         if flow_metric in PMULTIPLE_FMs:
@@ -487,17 +484,8 @@ class PriorityFloodFlowRouter(Component):
             self.grid.at_node["flow__link_to_receiver_node"] = np.zeros(
                 (self.grid.number_of_nodes, 8)
             )
-        self._slope = self.grid.at_node["topographic__steepest_slope"]
-        self._rcvs = self.grid.at_node["flow__receiver_node"]
-        self._prps = self.grid.at_node["flow__receiver_proportions"]
-        self._recvr_link = self.grid.at_node["flow__link_to_receiver_node"]
 
         if self._separate_hill_flow:
-            if self._accumulate_flow_hill:
-                self._hill_drainage_area = self.grid.at_node["hill_drainage_area"]
-                self._hill_discharges = self.grid.at_node[
-                    "hill_surface_water__discharge"
-                ]
             if hill_flow_metric in PMULTIPLE_FMs:
                 self.grid.at_node["hill_topographic__steepest_slope"] = np.zeros(
                     (self.grid.number_of_nodes, 8)
@@ -508,9 +496,6 @@ class PriorityFloodFlowRouter(Component):
                 self.grid.at_node["hill_flow__receiver_proportions"] = np.zeros(
                     (self.grid.number_of_nodes, 8)
                 )
-            self._hill_slope = self.grid.at_node["hill_topographic__steepest_slope"]
-            self._hill_rcvs = self.grid.at_node["hill_flow__receiver_node"]
-            self._hill_prps = self.grid.at_node["hill_flow__receiver_proportions"]
 
         # Create properties specific to RichDEM
         self._create_richdem_properties()
@@ -532,16 +517,9 @@ class PriorityFloodFlowRouter(Component):
     @property
     def surface_values(self):
         """Values of the surface over which flow is directed."""
-        return self._surface_values
-
-    def _changed_surface(self):
-        """Check if the surface values have changed.
-
-        If the surface values are stored as a field, it is important to
-        check if they have changed since the component was instantiated.
-        """
         if isinstance(self._surface, str):
-            self._surface_values = return_array_at_node(self._grid, self._surface)
+            return self.grid.at_node[self._surface]
+        return self._surface
 
     @property
     def node_drainage_area(self):
@@ -556,7 +534,7 @@ class PriorityFloodFlowRouter(Component):
     def _create_richdem_properties(self):
         self._depression_free_dem = cp.deepcopy(
             self._richdem.rdarray(
-                self._surface_values.reshape(self.grid.shape),
+                self.surface_values.reshape(self.grid.shape),
                 no_data=-9999,
             )
         )
@@ -651,7 +629,7 @@ class PriorityFloodFlowRouter(Component):
             recvr_link[props_Pf <= 0] = -1
 
             slope_temp = (
-                self._surface_values.reshape(-1, 1) - self._surface_values[rcvrs]
+                self.surface_values.reshape(-1, 1) - self.surface_values[rcvrs]
             ) / (self.grid.dx * np.sqrt(self.grid.at_node["squared_length_adjacent"]))
 
             if flow_metric in PSINGLE_FMs:
@@ -670,31 +648,24 @@ class PriorityFloodFlowRouter(Component):
                 props_Pf[props_Pf[:, 0] != 1, :] = rc64_temp[props_Pf[:, 0] != 1, :]
                 props_Pf[props_Pf == 0] = -1
 
-            if hill_flow:
-                if flow_metric in PSINGLE_FMs:
-                    ij_at_max = range(len(rcvrs)), np.argmax(rcvrs, axis=1)
-                    self._hill_prps[:] = props_Pf[ij_at_max]
-                    self._hill_rcvs[:] = rcvrs[ij_at_max]
-                    self._hill_slope[:] = slope_temp[ij_at_max]
-                else:
-                    self._hill_prps[:] = props_Pf
-                    self._hill_rcvs[:] = rcvrs
-                    self._hill_slope[:] = slope_temp
-                    self._hill_slope[rcvrs == -1] = 0
-
+            prefix = "hill_" if hill_flow else ""
+            prps_name = f"{prefix}flow__receiver_proportions"
+            rcvs_name = f"{prefix}flow__receiver_node"
+            slope_name = f"{prefix}topographic__steepest_slope"
+            recvr_link_name = "flow__link_to_receiver_node"
+            if flow_metric in PSINGLE_FMs:
+                inds = range(len(rcvrs)), np.argmax(rcvrs, axis=1)
             else:
-                if flow_metric in PSINGLE_FMs:
-                    ij_at_max = range(len(rcvrs)), np.argmax(rcvrs, axis=1)
-                    self._prps[:] = props_Pf[ij_at_max]
-                    self._rcvs[:] = rcvrs[ij_at_max]
-                    self._slope[:] = slope_temp[ij_at_max]
-                    self._recvr_link[:] = recvr_link[ij_at_max]
-                else:
-                    self._prps[:] = props_Pf
-                    self._rcvs[:] = rcvrs
-                    self._slope[:] = slope_temp
-                    self._slope[rcvrs == -1] = 0
-                    self._recvr_link[:] = recvr_link
+                inds = slice(None)
+
+            self.grid.at_node[prps_name][:] = props_Pf[inds]
+            self.grid.at_node[rcvs_name][:] = rcvrs[inds]
+            self.grid.at_node[slope_name][:] = slope_temp[inds]
+
+            if not hill_flow:
+                self.grid.at_node[recvr_link_name][:] = recvr_link[inds]
+            if flow_metric not in PSINGLE_FMs:
+                self.grid.at_node[slope_name][rcvrs == -1] = 0
 
     def _FlowAcc_D8(self, hill_flow=False):
         """
@@ -726,7 +697,7 @@ class PriorityFloodFlowRouter(Component):
         receivers[np.nonzero(self._grid.status_at_node)] = -1
         steepest_slope = np.zeros((receivers.shape), dtype=float)
         el_dep_free = self._depression_free_dem.reshape(self.grid.number_of_nodes)
-        el_ori = self._surface_values
+        el_ori = self.surface_values
         dist = np.multiply(
             [1, 1, 1, 1, np.sqrt(2), np.sqrt(2), np.sqrt(2), np.sqrt(2)], dx
         )
@@ -759,13 +730,13 @@ class PriorityFloodFlowRouter(Component):
         if hill_flow:
             if self._accumulate_flow_hill:
                 do_FA = True
-                a = self._hill_drainage_area
-                q = self._hill_discharges
+                a = self.grid.at_node["hill_drainage_area"]
+                q = self.grid.at_node["hill_surface_water__discharge"]
         else:
             if self._accumulate_flow:
                 do_FA = True
-                a = self._drainage_area
-                q = self._discharges
+                a = self.grid.at_node["drainage_area"]
+                q = self.grid.at_node["surface_water__discharge"]
 
         if do_FA:
             if any(self.grid.at_node["water__unit_flux_in"] != 1):
@@ -782,7 +753,7 @@ class PriorityFloodFlowRouter(Component):
                 dis = np.full(self.grid.number_of_nodes, self._node_cell_area)
 
             da = np.array(self._node_cell_area)
-            stack_flip = np.flip(self._sort)
+            stack_flip = np.flip(self.grid.at_node["flow__upstream_node_order"])
             # Filter out donors giving to receivers being -1
             stack_flip = stack_flip[receivers[stack_flip] != -1]
 
@@ -798,20 +769,22 @@ class PriorityFloodFlowRouter(Component):
         # Restore depression free DEM
         # self._depression_free_dem[self._closed == 1] = -1
 
-        if hill_flow:
-            self._hill_prps[:] = 1
-            self._hill_rcvs[:] = receivers
-            self._hill_slope[:] = steepest_slope
-        else:
-            self._prps[:] = 1
-            self._rcvs[:] = receivers
-            self._slope[:] = steepest_slope
-            self._recvr_link[:] = recvr_link
+        prefix = "hill_" if hill_flow else ""
+        prps_name = f"{prefix}flow__receiver_proportions"
+        rcvs_name = f"{prefix}flow__receiver_node"
+        slope_name = f"{prefix}topographic__steepest_slope"
+        recvr_link_name = "flow__link_to_receiver_node"
+
+        self.grid.at_node[prps_name].fill(1)
+        self.grid.at_node[rcvs_name][:] = receivers
+        self.grid.at_node[slope_name][:] = steepest_slope
+        if not hill_flow:
+            self.grid.at_node[recvr_link_name][:] = recvr_link
 
     def remove_depressions(self, flow_metric="D8"):
         self._depression_free_dem = cp.deepcopy(
             self._richdem.rdarray(
-                self._surface_values.reshape(self.grid.shape),
+                self.surface_values.reshape(self.grid.shape),
                 no_data=-9999,
             )
         )
@@ -837,7 +810,8 @@ class PriorityFloodFlowRouter(Component):
                     self._depression_free_dem, in_place=True, topology=topology
                 )
 
-        self._sort[:] = np.argsort(
+        sort = self.grid.at_node["flow__upstream_node_order"]
+        sort[:] = np.argsort(
             np.array(self._depression_free_dem.reshape(self.grid.number_of_nodes))
         )
 
@@ -871,12 +845,10 @@ class PriorityFloodFlowRouter(Component):
         None.
 
         """
-        if not hill_flow:
-            a = self._drainage_area
-            q = self._discharges
-        else:
-            a = self._hill_drainage_area
-            q = self._hill_discharges
+        prefix = "hill_" if hill_flow else ""
+
+        area_name = f"{prefix}drainage_area"
+        discharge_name = f"{prefix}surface_water__discharge"
 
         # Create weight for flow accum: both open (status ==1) and closed
         # nodes (status ==4) will have zero weight
@@ -891,7 +863,7 @@ class PriorityFloodFlowRouter(Component):
         wg.geotransform = [0, 1, 0, 0, 0, -1]
 
         with self._suppress_output():
-            a[:] = np.array(
+            self.grid.at_node[area_name][:] = np.array(
                 self._richdem.FlowAccumFromProps(props=props_Pf, weights=wg).reshape(
                     self.grid.number_of_nodes
                 )
@@ -905,9 +877,11 @@ class PriorityFloodFlowRouter(Component):
             wg.geotransform = [0, 1, 0, 0, 0, -1]
             with self._suppress_output():
                 q_pf = self._richdem.FlowAccumFromProps(props=props_Pf, weights=wg)
-            q[:] = np.array(q_pf.reshape(self.grid.number_of_nodes))
+            self.grid.at_node[discharge_name][:] = np.array(
+                q_pf.reshape(self.grid.number_of_nodes)
+            )
         else:
-            q[:] = self._drainage_area
+            self.grid.at_node[discharge_name][:] = self.grid.at_node["drainage_area"]
 
     def update_hill_fdfa(self, update_depressions=False):
         if not self._separate_hill_flow:
