@@ -162,6 +162,31 @@ def _calc_shear_stress_coef(rho_w, mannings_n, g=_EARTH_GRAV):
 
     return rho_w * g * mannings_n ** (0.6) * (1 / _SEC_PER_YEAR) ** 0.6
 
+def _calc_shear_stress_coef_near_threshold(
+        rho_w,
+        d,
+        g=_EARTH_GRAV):
+    """
+    Calculate prefactor for:
+    tau, following Wickert & Schildgen (2019) equation 13:
+    n = d^(1/6) / (5.9*g^(1/2))
+
+    Assuming discharge is given in m^3/year
+
+    Parameters
+    ----------
+    d : float
+        median grain size at node
+    g : float
+        Gravity coefficient
+
+
+    Examples
+    --------
+    """
+
+    return _WICKERT_ROUGHNESS_FACTOR * d ** (1/6) * rho_w * (g ** 0.5)  * (1 / _SEC_PER_YEAR) ** 0.6
+
 
 def _calc_shear_stress(shear_stress_coef, discharge, width, slope, out=None):
     """Calculate shear stress using Manning's equation.
@@ -795,7 +820,7 @@ class ExtendedGravelBedrockEroder(Component):
         if is_multi_abrasion:
             self._classes_identity = 1
         elif self._n_classes > 1:
-            self._classes_identity = 2
+            self._classes_identity = 2    
 
     def _calc_gravity_coefficient_star(self):
         """
@@ -1317,6 +1342,9 @@ class ExtendedGravelBedrockEroder(Component):
         """
 
         self._calc_width()
+
+        self._update_shear_stress_coef()
+
         self._tau[:] = _calc_shear_stress(
             shear_stress_coef=self._shear_stress_coef,
             discharge=self._grid.at_node["surface_water__discharge"],
@@ -2119,6 +2147,17 @@ class ExtendedGravelBedrockEroder(Component):
                 median_size, tau_star_c_median, discharge, slope, g_star, SG, epsilon
             )
 
+
+    def _update_shear_stress_coef(self):
+
+        if not self._use_fixed_width:
+            self._shear_stress_coef = _calc_shear_stress_coef_near_threshold(
+                rho_w=self._rho_water,
+                d=self._grid.at_node['median_size__weight'],
+                g=_EARTH_GRAV
+            )
+
+    
     def _init_vars(self):
         """Initialize variables"""
         self._rock_abrasion_rate.fill(0.0)
