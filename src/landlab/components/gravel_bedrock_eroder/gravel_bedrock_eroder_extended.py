@@ -36,6 +36,7 @@ _WICKERT_ROUGHNESS_FACTOR = 0.17
 _POINT_FIVE = 0.5
 _THREE_BY_TWO = 3.0 / 2.0
 
+_WICKERT_MANNINGS_FACTOR = 5.9 * _EARTH_GRAV  ** 0.5
 
 def _calc_chan_width_fixed_width(coeff, expt, discharge, core_nodes, out=None):
     """Calculate channel width according to water discharge using empirical formula
@@ -184,8 +185,8 @@ def _calc_shear_stress_coef_near_threshold(
     Examples
     --------
     """
-
-    return _WICKERT_ROUGHNESS_FACTOR * d ** (1/6) * rho_w * (g ** 0.5)  * (1 / _SEC_PER_YEAR) ** 0.6
+    mannings_n = d ** (1/6) / _WICKERT_MANNINGS_FACTOR 
+    return  rho_w * g * mannings_n ** (0.6) * (1 / _SEC_PER_YEAR) ** 0.6
 
 
 def _calc_shear_stress(shear_stress_coef, discharge, width, slope, out=None):
@@ -2150,6 +2151,8 @@ class ExtendedGravelBedrockEroder(Component):
 
     def _update_shear_stress_coef(self):
 
+
+        #return
         if not self._use_fixed_width:
             self._shear_stress_coef = _calc_shear_stress_coef_near_threshold(
                 rho_w=self._rho_water,
