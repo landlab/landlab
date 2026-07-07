@@ -1363,7 +1363,6 @@ class ExtendedGravelBedrockEroder(Component):
         # print("tau", self._tau[self.grid.core_nodes])
         # print("taus", self._tau_star[self.grid.core_nodes])
         # print("tausc", self._tau_star_c[self.grid.core_nodes])
-        # print("exstr", self._excess_stress[self.grid.core_nodes])
 
         # Get sediment flux
         qs = self._calc_qs(excess_stress=self._excess_stress)
