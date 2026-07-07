@@ -186,11 +186,6 @@ class TidalFlowCalculator(Component):
         self._mean_sea_level = mean_sea_level
         self._min_depth = min_water_depth
 
-        # Make other data structures
-        self._water_depth_at_links = np.zeros(grid.number_of_links)
-        self._diffusion_coef_at_links = np.zeros(grid.number_of_links)
-        self._boundary_mean_water_surf_elev = np.zeros(grid.number_of_nodes)
-
     @property
     def roughness(self) -> NDArray:
         """Roughness coefficient (Manning's n)."""
@@ -302,25 +297,21 @@ class TidalFlowCalculator(Component):
 
     def run_one_step(self):
         """Calculate the tidal flow field and water-surface elevation."""
-
         # Tidal mean water depth  and water surface elevation at nodes
         # (Note: mean water surf elev only used for boundary conditions in
         # matrix construction; should be mean sea level)
         self._calc_effective_water_depth()
-        self._boundary_mean_water_surf_elev[:] = self._mean_sea_level
 
         # Map water depth to links
-        map_min_of_link_nodes_to_link(
-            self.grid,
-            self.grid.at_node["mean_water__depth"],
-            out=self._water_depth_at_links,
+        water_depth_at_links = map_min_of_link_nodes_to_link(
+            self.grid, self.grid.at_node["mean_water__depth"]
         )
 
         # Calculate velocity and diffusion coefficients on links
-        velocity_coef = self._water_depth_at_links**_FOUR_THIRDS / (
+        velocity_coef = water_depth_at_links**_FOUR_THIRDS / (
             (self.roughness**2) * self._scale_velocity
         )
-        self._diffusion_coef_at_links[:] = self._water_depth_at_links * velocity_coef
+        diffusion_coef_at_links = water_depth_at_links * velocity_coef
 
         # Calculate inundation / drainage rate at nodes
         tidal_inundation_rate = self.calc_tidal_inundation_rate()
@@ -333,8 +324,8 @@ class TidalFlowCalculator(Component):
         # mat, rhs = make_core_node_matrix_var_coef(
         mat, rhs = get_core_node_matrix(
             self.grid,
-            self._boundary_mean_water_surf_elev,
-            coef_at_link=self._diffusion_coef_at_links,
+            self._mean_sea_level,
+            coef_at_link=diffusion_coef_at_links,
         )
 
         rhs[:, 0] += self._grid_multiplier * tidal_inundation_rate[cores]

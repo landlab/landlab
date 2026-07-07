@@ -16,6 +16,7 @@ from landlab import RadialModelGrid
 from landlab import RasterModelGrid
 from landlab.components import TidalFlowCalculator
 from landlab.field.errors import FieldError
+from landlab.grid.mappers import map_min_of_link_nodes_to_link
 
 
 def test_constant_depth_deeper_than_tidal_amplitude():
@@ -186,7 +187,11 @@ def test_with_hex_grid():
     tfc = TidalFlowCalculator(grid, tidal_period=4.0e4)
     tfc.run_one_step()
 
-    q = grid.at_link["flood_tide_flow__velocity"] * tfc._water_depth_at_links
+    water_depth_at_links = map_min_of_link_nodes_to_link(
+        grid, grid.at_node["mean_water__depth"]
+    )
+
+    q = grid.at_link["flood_tide_flow__velocity"] * water_depth_at_links
     assert_array_almost_equal(q[3:7], [0.0002625, 0.0002625, 0.0002625, 0.0002625])
 
 
