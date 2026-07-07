@@ -4,14 +4,16 @@ Calculate cycle-averaged tidal flow field using approach of Mariotti (2018)
 """
 
 import numpy as np
+from numpy.typing import ArrayLike
+from numpy.typing import NDArray
 from scipy.sparse.linalg import spsolve
 
 from landlab import Component
 from landlab import HexModelGrid
 from landlab import RasterModelGrid
+from landlab.field.errors import FieldError
 from landlab.grid.mappers import map_min_of_link_nodes_to_link
 from landlab.utils import get_core_node_matrix
-from landlab.utils.return_array import return_array_at_link
 
 _FOUR_THIRDS = 4.0 / 3.0
 _M2_PERIOD = (12.0 + (25.2 / 60.0)) * 3600.0  # M2 tidal period, in seconds
@@ -174,12 +176,6 @@ class TidalFlowCalculator(Component):
         super().__init__(grid)
         self.initialize_output_fields()
 
-        # Get references to various fields, for convenience
-        self._elev = self.grid.at_node["topographic__elevation"]
-        self._water_depth = self.grid.at_node["mean_water__depth"]
-        self._flood_tide_vel = self.grid.at_link["flood_tide_flow__velocity"]
-        self._ebb_tide_vel = self.grid.at_link["ebb_tide_flow__velocity"]
-
         # Handle inputs
         self.roughness = roughness  # uses setter below
         self._tidal_range = tidal_range
@@ -196,13 +192,25 @@ class TidalFlowCalculator(Component):
         self._boundary_mean_water_surf_elev = np.zeros(grid.number_of_nodes)
 
     @property
-    def roughness(self):
+    def roughness(self) -> NDArray:
         """Roughness coefficient (Manning's n)."""
+        if isinstance(self._roughness, str):
+            return self.grid.at_link[self._roughness]
         return self._roughness
 
     @roughness.setter
-    def roughness(self, new_val):
-        self._roughness = return_array_at_link(self.grid, new_val)
+    def roughness(self, new_val: str | ArrayLike) -> None:
+        if isinstance(new_val, str):
+            if new_val not in self.grid.at_link:
+                raise FieldError(new_val)
+        else:
+            new_val = np.asarray(new_val, copy=True).reshape(-1)
+            if new_val.size not in (1, self.grid.number_of_links):
+                raise ValueError(
+                    "roughness must be a scalar or array of length n_links"
+                )
+
+        self._roughness = new_val
 
     @property
     def tidal_range(self):
@@ -254,11 +262,10 @@ class TidalFlowCalculator(Component):
         -----
         This calculates I in Mariotti (2018) using his equation (1).
         """
+        z = self.grid.at_node["topographic__elevation"]
         return (
             self._tidal_half_range
-            - np.maximum(
-                -self._tidal_half_range, np.minimum(self._elev, self._tidal_half_range)
-            )
+            - np.clip(z, -self._tidal_half_range, self._tidal_half_range)
         ) / self._tidal_half_period
 
     def _calc_effective_water_depth(self):
@@ -278,12 +285,20 @@ class TidalFlowCalculator(Component):
         >>> tfc._water_depth[6:9]
         array([0.275, 0.02 , 2.   ])
         """
-        high_tide_depth = (self.mean_sea_level + self._tidal_half_range) - self._elev
-        low_tide_depth = np.maximum(
-            (self.mean_sea_level - self._tidal_half_range) - self._elev, 0.0
+        z = self.grid.at_node["topographic__elevation"]
+
+        high_tide_depth = (self.mean_sea_level + self._tidal_half_range) - z
+        low_tide_depth = np.clip(
+            (self.mean_sea_level - self._tidal_half_range) - z,
+            a_min=0.0,
+            a_max=None,
         )
-        self._water_depth[:] = (high_tide_depth + low_tide_depth) / 2.0
-        self._water_depth[self._water_depth <= self._min_depth] = self._min_depth
+        np.clip(
+            (high_tide_depth + low_tide_depth) / 2.0,
+            a_min=self._min_depth,
+            a_max=None,
+            out=self.grid.at_node["mean_water__depth"],
+        )
 
     def run_one_step(self):
         """Calculate the tidal flow field and water-surface elevation."""
@@ -296,7 +311,9 @@ class TidalFlowCalculator(Component):
 
         # Map water depth to links
         map_min_of_link_nodes_to_link(
-            self.grid, self._water_depth, out=self._water_depth_at_links
+            self.grid,
+            self.grid.at_node["mean_water__depth"],
+            out=self._water_depth_at_links,
         )
 
         # Calculate velocity and diffusion coefficients on links
@@ -332,8 +349,9 @@ class TidalFlowCalculator(Component):
 
         # Calculate flow velocity field at links for flood tide, and assign
         # negative of the flood tide values to ebb tide
-        self._flood_tide_vel[self.grid.active_links] = (
+        flood_tide_vel = self.grid.at_link["flood_tide_flow__velocity"]
+        flood_tide_vel[self.grid.active_links] = (
             -velocity_coef[self.grid.active_links]
             * tidal_wse_grad[self.grid.active_links]
         )
-        self._ebb_tide_vel[:] = -self._flood_tide_vel
+        np.negative(flood_tide_vel, out=self.grid.at_link["ebb_tide_flow__velocity"])

@@ -5,7 +5,7 @@ Created on Sun Jul 12 10:22:59 2020
 @author: gtucker
 """
 
-import numpy as np
+import pytest
 from numpy.testing import assert_array_almost_equal
 from numpy.testing import assert_array_equal
 from numpy.testing import assert_equal
@@ -15,6 +15,7 @@ from landlab import HexModelGrid
 from landlab import RadialModelGrid
 from landlab import RasterModelGrid
 from landlab.components import TidalFlowCalculator
+from landlab.field.errors import FieldError
 
 
 def test_constant_depth_deeper_than_tidal_amplitude():
@@ -200,7 +201,7 @@ def test_getters_and_setters():
     tfc = TidalFlowCalculator(grid)
 
     tfc.roughness = 0.01
-    assert_array_equal(tfc.roughness, 0.01 + np.zeros(grid.number_of_links))
+    assert_array_equal(tfc.roughness, 0.01)
 
     tfc.tidal_range = 4.0
     assert_equal(tfc.tidal_range, 4.0)
@@ -212,3 +213,28 @@ def test_getters_and_setters():
 
     tfc.mean_sea_level = 1.0
     assert_equal(tfc.mean_sea_level, 1.0)
+
+
+def test_roughness():
+    grid = RasterModelGrid((3, 5))
+    grid.add_zeros("topographic__elevation", at="node")
+    tfc = TidalFlowCalculator(grid)
+
+    tfc.roughness = 0.01
+    assert_array_equal(tfc.roughness, 0.01)
+
+    tfc.roughness = grid.ones(at="link")
+    assert_array_equal(tfc.roughness, 1.0)
+
+    grid.add_full("roughness", 0.03, at="link")
+    tfc.roughness = "roughness"
+    assert_array_equal(tfc.roughness, 0.03)
+
+    with pytest.raises(
+        ValueError,
+        match="roughness must be a scalar or array of length n_links",
+    ):
+        tfc.roughness = grid.empty(at="node")
+
+    with pytest.raises(FieldError, match="'foobar'"):
+        tfc.roughness = "foobar"
