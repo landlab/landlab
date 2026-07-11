@@ -46,7 +46,7 @@ dependencies = [
   "py-richdem",
   "pyyaml",
   "pyshp != 2.3.0",
-  "requireit>=0.8.0",
+  "requireit>=0.9.0",
   "rich-click",
   "scipy",
   "statsmodels",
