@@ -106,6 +106,7 @@ from .uniform_precip import PrecipitationDistribution
 from .vegetation_dynamics import Vegetation
 from .weathering import ExponentialWeatherer
 from .weathering import ExponentialWeathererIntegrated
+from .wildfire_generator import WildfireGenerator
 
 COMPONENTS = [
     AdvectionSolverTVD,
@@ -195,6 +196,7 @@ COMPONENTS = [
     ThresholdEroder,
     VegCA,
     Vegetation,
+    WildfireGenerator,
 ]
 
 __all__ = [cls.__name__ for cls in COMPONENTS]
