@@ -376,9 +376,7 @@ class ShallowLandslider(Component):
             "group_properties": self._group_properties_df,
         }
 
-    def run_one_step(
-        self, dt: float | None = None, kde_input: dict | None = None
-    ):
+    def run_one_step(self, dt: float | None = None, kde_input: dict | None = None):
         """
         Execute one end-to-end landslide selection step.
 
