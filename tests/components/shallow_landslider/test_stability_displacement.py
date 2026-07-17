@@ -1,7 +1,6 @@
 # tests/helper_functions/test_stability_displacement.py
 
 import numpy as np
-import pytest
 
 from landlab import RasterModelGrid
 from landlab.components import ShallowLandslider
@@ -64,6 +63,32 @@ def test_factor_of_safety_matches_formula(monkeypatch):
     ) + (np.tan(phi_rad) / np.tan(slope))
 
     assert np.allclose(fos, expected, rtol=1e-6, atol=1e-9)
+
+
+def test_compute_stability_uses_configured_submerged_proportion(monkeypatch):
+    """The public pipeline forwards saturation to the factor-of-safety equation."""
+    mg = make_grid()
+    slope = np.full(mg.number_of_nodes, np.deg2rad(30.0))
+    monkeypatch.setattr(mg, "calc_slope_at_node", lambda **kwargs: slope)
+    monkeypatch.setattr(
+        mg, "calc_aspect_at_node", lambda **kwargs: np.zeros(mg.number_of_nodes)
+    )
+    comp = ShallowLandslider(
+        mg,
+        cohesion_eff=1000.0,
+        angle_int_frict=30.0,
+        submerged_soil_proportion=0.8,
+    )
+
+    comp._compute_stability()
+    expected = comp._factor_of_safety(
+        mg,
+        1000.0,
+        np.deg2rad(30.0),
+        submerged_soil_proportion=0.8,
+    )
+
+    assert np.allclose(comp.results["factor_of_safety"], expected, equal_nan=True)
 
 
 def test_critical_transient_acceleration(monkeypatch):

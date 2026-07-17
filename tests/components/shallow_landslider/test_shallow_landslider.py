@@ -45,7 +45,7 @@ def test_initialization_creates_optional_fields():
     mg = make_grid()
     assert "soil__depth" not in mg.at_node
 
-    comp = ShallowLandslider(
+    ShallowLandslider(
         mg,
         cohesion_eff=100,
         angle_int_frict=30,

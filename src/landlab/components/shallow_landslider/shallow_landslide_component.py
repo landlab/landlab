@@ -9,9 +9,6 @@ from __future__ import annotations
 import gc
 import logging
 from typing import Any
-from typing import Dict
-from typing import Optional
-from typing import Tuple
 
 import numpy as np
 import pandas as pd
@@ -376,9 +373,7 @@ class ShallowLandslider(Component):
             "group_properties": self._group_properties_df,
         }
 
-    def run_one_step(
-        self, dt: float | None = None, kde_input: dict | None = None
-    ):
+    def run_one_step(self, dt: float | None = None, kde_input: dict | None = None):
         """
         Execute one end-to-end landslide selection step.
 
@@ -420,7 +415,8 @@ class ShallowLandslider(Component):
 
                 if missing:
                     raise RuntimeError(
-                        f"Runout simulation requested, but flow routing fields are missing: {missing}. You must run the flow routing before enabling runout"
+                        "Runout simulation requested, but flow routing fields are "
+                        f"missing: {missing}. Run flow routing before enabling runout."
                     )
 
                 disp = self.grid.at_node["landslide__newmark_displacement"]
@@ -508,7 +504,10 @@ class ShallowLandslider(Component):
             )
 
             self._fos = self._factor_of_safety(
-                self.grid, self.cohesion_eff, self.angle_int_frict
+                self.grid,
+                self.cohesion_eff,
+                self.angle_int_frict,
+                submerged_soil_proportion=self.submerged_soil_proportion,
             )
             self.grid.at_node["landslide__factor_of_safety"] = self._fos
 
@@ -1817,7 +1816,7 @@ class ShallowLandslider(Component):
         """
         Write per-group probabilities into a 2-D array.
         """
-        for lab, info in group_probs.items():
+        for info in group_probs.values():
             if normalized and "normalized_probability" in info:
                 prob_arr[info["mask"]] = info["normalized_probability"]
             else:
@@ -2031,7 +2030,8 @@ class ShallowLandslider(Component):
             return float(np.clip(prop, 0.05, 0.50))
         else:
             raise ValueError(
-                "Invalid method. Choose 'empirical', 'statistical', 'risk_profile', 'adaptive', or 'conservative'."
+                "Invalid method. Choose 'empirical', 'statistical', "
+                "'risk_profile', 'adaptive', or 'conservative'."
             )
 
     def _generate_landslide_proportion_from_pga(
@@ -2053,7 +2053,6 @@ class ShallowLandslider(Component):
         unique_labels = np.unique(labeled_2d)
         unique_labels = unique_labels[unique_labels != 0]
         prob_2d = np.zeros_like(labeled_2d, dtype=np.float32)
-        group_probs = []
         metadata = {
             "group_data": [],
             "mean_h_pga": float(np.nanmean(h_arr)),
@@ -2222,8 +2221,6 @@ class ShallowLandslider(Component):
         )
 
         for iteration in range(max_iterations):
-            import time as _time
-
             t_iter = _time.perf_counter()
             unique_labels = np.unique(current_labels)
             unique_labels = unique_labels[unique_labels != 0]
@@ -2311,7 +2308,7 @@ class ShallowLandslider(Component):
         unique_labels=None,
     ) -> dict:
         """
-        Compute length/width for each labeled region using elevation or aspect-derived direction.
+        Compute length/width for each region using elevation or aspect direction.
         """
         elevation_grid = elevation_1d.reshape(grid.shape)
         slopes_grid = slopes_2d.reshape(grid.shape)
@@ -2345,7 +2342,7 @@ class ShallowLandslider(Component):
             "direction_method": [""] * len(labels),
         }
         relief_threshold = 2.0
-        for i, label_num in enumerate(unique_labels):
+        for label_num in unique_labels:
             if label_num == 0:
                 continue
             prop_idx = np.where(result_props["label"] == label_num)[0]

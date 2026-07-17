@@ -1,7 +1,6 @@
 # tests/helper_functions/test_regions_selection_split.py
 
 import numpy as np
-import pytest
 
 from landlab import RasterModelGrid
 from landlab.components import ShallowLandslider
