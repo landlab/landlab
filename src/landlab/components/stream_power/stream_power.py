@@ -1,12 +1,47 @@
 import numpy as np
+from requireit import require_between
+from requireit import require_none
+from requireit import require_nonnegative
+from requireit import require_not_none
+from requireit import require_one_of
 
 from landlab import Component
-from landlab import MissingKeyError
 from landlab.utils.return_array import return_array_at_node
 
 from ..depression_finder.lake_mapper import _FLOODED
 from .cfuncs import brent_method_erode_fixed_threshold
 from .cfuncs import brent_method_erode_variable_threshold
+
+
+def stream_power_exponents(m_sp: float, n_sp: float) -> tuple[float, float]:
+    m_sp = require_nonnegative(m_sp, name="m_sp")
+    n_sp = require_nonnegative(n_sp, name="n_sp")
+
+    return (m_sp, n_sp)
+
+
+def total_stream_power_exponents(a_sp: float, c_sp: float) -> tuple[float, float]:
+    a_sp = require_nonnegative(a_sp, name="a_sp")
+    c_sp = require_nonnegative(c_sp, name="c_sp")
+    return (a_sp * c_sp, a_sp)
+
+
+def unit_stream_power_exponents(
+    a_sp: float, b_sp: float, c_sp: float
+) -> tuple[float, float]:
+    a_sp = require_nonnegative(a_sp, name="a_sp")
+    b_sp = require_between(b_sp, 0.0, 1.0, name="b_sp")
+    c_sp = require_nonnegative(c_sp, name="c_sp")
+    return (a_sp * c_sp * (1.0 - b_sp), a_sp)
+
+
+def shear_stress_stream_power_exponents(
+    a_sp: float, b_sp: float, c_sp: float
+) -> tuple[float, float]:
+    a_sp = require_nonnegative(a_sp, name="a_sp")
+    b_sp = require_between(b_sp, 0.0, 1.0, name="b_sp")
+    c_sp = require_nonnegative(c_sp, name="c_sp")
+    return (2.0 * a_sp * c_sp * (1.0 - b_sp) / 3.0, 2.0 * a_sp / 3.0)
 
 
 class StreamPowerEroder(Component):
@@ -178,7 +213,7 @@ class StreamPowerEroder(Component):
         a_sp=None,
         b_sp=None,
         c_sp=None,
-        channel_width_field=1.0,
+        channel_width_field=None,
         discharge_field="drainage_area",
         erode_flooded_nodes=True,
     ):
@@ -270,11 +305,6 @@ class StreamPowerEroder(Component):
 
         assert np.all(self._sp_crit >= 0.0)
 
-        if discharge_field == "drainage_area":
-            self._use_Q = False
-        else:
-            self._use_Q = True
-
         if channel_width_field is None:
             self._use_W = False
         else:
@@ -288,52 +318,37 @@ class StreamPowerEroder(Component):
         else:
             self._set_threshold = False
 
-        self._type = sp_type
+        sp_type = require_one_of(
+            sp_type, allowed=("set_mn", "Total", "Unit", "Shear_stress")
+        )
+
+        if channel_width_field is not None and sp_type == "Total":
+            raise ValueError("channel_width_field must be None if sp_type is 'Total'")
+
+        if sp_type in ("Unit", "Shear_stress"):
+            if channel_width_field is None:
+                b_sp = require_not_none(b_sp, name="b_sp")
+            b_sp = 0.0 if b_sp is None else b_sp
+
+        if sp_type in ("Unit", "Shear_stress", "Total"):
+            if discharge_field == "drainage_area":
+                c_sp = require_not_none(c_sp, name="c_sp")
+            c_sp = 1.0 if c_sp is None else c_sp
+
+        m_sp = _validate_m_sp(m_sp, sp_type=sp_type)
+        n_sp = _validate_n_sp(n_sp, sp_type=sp_type)
+        a_sp = _validate_a_sp(a_sp, sp_type=sp_type)
+        b_sp = _validate_b_sp(b_sp, sp_type=sp_type)
+        c_sp = _validate_c_sp(c_sp, sp_type=sp_type)
+
         if sp_type == "set_mn":
-            assert (float(m_sp) >= 0.0) and (
-                float(n_sp) >= 0.0
-            ), "m and n must be positive"
-            self._m = float(m_sp)
-            self._n = float(n_sp)
-            assert (
-                (a_sp is None) and (b_sp is None) and (c_sp is None)
-            ), "If sp_type is 'set_mn', do not pass values for a, b, or c!"
-        else:
-            assert sp_type in ("Total", "Unit", "Shear_stress"), (
-                "sp_type not recognised. It must be 'set_mn', 'Total', "
-                + "'Unit', or 'Shear_stress'."
-            )
-            assert (
-                m_sp == 0.5 and n_sp == 1.0
-            ), "Do not set m and n if sp_type is not 'set_mn'!"
-            assert float(a_sp) >= 0.0, "a must be positive"
-            self._a = float(a_sp)
-            if b_sp is not None:
-                assert float(b_sp) >= 0.0, "b must be positive"
-                self._b = float(b_sp)
-            else:
-                assert self._use_W, "b was not set"
-                self._b = 0.0
-            if c_sp is not None:
-                assert float(c_sp) >= 0.0, "c must be positive"
-                self._c = float(c_sp)
-            else:
-                assert self._use_Q, "c was not set"
-                self._c = 1.0
-            if self._type == "Total":
-                self._n = self._a
-                self._m = self._a * self._c  # ==_a if use_Q
-            elif self._type == "Unit":
-                self._n = self._a
-                self._m = self._a * self._c * (1.0 - self._b)
-                # ^ ==_a iff use_Q&use_W etc
-            elif self._type == "Shear_stress":
-                self._m = 2.0 * self._a * self._c * (1.0 - self._b) / 3.0
-                self._n = 2.0 * self._a / 3.0
-            else:
-                raise MissingKeyError(
-                    "Not enough information was provided on the exponents to use!"
-                )
+            self._m, self._n = stream_power_exponents(m_sp, n_sp)
+        elif sp_type == "Total":
+            self._m, self._n = total_stream_power_exponents(a_sp, c_sp)
+        elif sp_type == "Unit":
+            self._m, self._n = unit_stream_power_exponents(a_sp, b_sp, c_sp)
+        elif sp_type == "Shear_stress":
+            self._m, self._n = shear_stress_stream_power_exponents(a_sp, b_sp, c_sp)
 
         # m and n will always be set, but care needs to be taken to include Q
         # and W directly if appropriate
@@ -434,3 +449,39 @@ class StreamPowerEroder(Component):
                 self._n,
                 self._elevs,
             )
+
+
+def _validate_m_sp(m_sp: float | None, sp_type: str):
+    if sp_type != "set_mn" and m_sp != 0.5:
+        raise ValueError("m must not be set if sp_type is not 'set_mn'")
+    return m_sp
+
+
+def _validate_n_sp(n_sp: float | None, sp_type: str):
+    if sp_type != "set_mn" and n_sp != 1.0:
+        raise ValueError("n must not be set if sp_type is not 'set_mn'")
+    return n_sp
+
+
+def _validate_a_sp(a_sp: float | None, sp_type: str):
+    if sp_type in ("Unit", "Shear_stress", "Total"):
+        require_not_none(a_sp, name="a_sp")
+    elif sp_type == "set_mn":
+        require_none(a_sp, name="a_sp")
+    return a_sp
+
+
+def _validate_b_sp(b_sp: float | None, sp_type: str):
+    if sp_type in ("Unit", "Shear_stress"):
+        require_not_none(b_sp, name="b_sp")
+    elif sp_type in ("set_mn", "Total"):
+        require_none(b_sp, name="b_sp")
+    return b_sp
+
+
+def _validate_c_sp(c_sp: float | None, sp_type: str):
+    if sp_type in ("Unit", "Shear_stress", "Total"):
+        require_not_none(c_sp, name="c_sp")
+    elif sp_type == "set_mn":
+        require_none(c_sp, name="c_sp")
+    return c_sp
