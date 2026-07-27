@@ -423,7 +423,7 @@ class DepthDependentTaylorDiffuser(Component):
             # Test for the Courant condition and print warning if user intended
             # for it to be printed.
             if (
-                (self._dt_max < dt)
+                (self._dt_max < dt).any()
                 and (not self._dynamic_dt)
                 and (self._if_unstable != "pass")
             ):
