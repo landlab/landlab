@@ -418,8 +418,10 @@ class DepthDependentTaylorDiffuser(Component):
             # Calculate De Max
             de_max = self._K * self._soil_transport_decay_depth * courant_slope_term
             # Calculate longest stable timestep per link
-            dt_max_per_link = self._courant_factor * self._grid.length_of_link**2 / de_max
-            # Uses the lowest dt (in case of variable K) 
+            dt_max_per_link = (
+                self._courant_factor * self._grid.length_of_link**2 / de_max
+            )
+            # Uses the lowest dt (in case of variable K)
             self._dt_max = np.min(dt_max_per_link)
 
             # Test for the Courant condition and print warning if user intended
