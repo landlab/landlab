@@ -39,8 +39,7 @@ def convert_arc_flow_directions_to_landlab_node_ids(grid, flow_dir_arc):
     adjacent cells into which flow could travel. The valid output directions
     are powers of 2 starting from 2^0 (1) in the Eastern neighbor going
     clockwise to 2^7 (128) at Northeastern neighbor. For more information
-    refer 'https://pro.arcgis.com/en/pro-app/tool-reference/spatial-analyst/
-    how-flow-direction-works.htm'
+    refer ArcGIS Pro documentation on flow direction [1]_.
 
     Parameters
     ----------
@@ -55,6 +54,12 @@ def convert_arc_flow_directions_to_landlab_node_ids(grid, flow_dir_arc):
         downstream node at each node. Note that this array gives the
         receiver nodes only for the core nodes. For non-core
         nodes, a zero is used.
+
+    References
+    ----------
+    .. [1] ESRI. "How Flow Direction works."
+           https://doc.esri.com/en/arcgis-pro/latest/tool-reference/
+           spatial-analyst/how-flow-direction-works.html
     """
     r_arc_raw = np.log2(flow_dir_arc)
     r_arc_raw = r_arc_raw.astype("int")
