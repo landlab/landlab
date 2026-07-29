@@ -317,7 +317,7 @@ class DepthDependentTaylorDiffuser(Component):
         ----------
         grid: ModelGrid
             Landlab ModelGrid object
-        linear_diffusivity: float, ndarray of float, or str, optional, DEPRECATED
+        linear_diffusivity: float or ndarray of float, optional, DEPRECATED
             Hillslope diffusivity / decay depth, m/yr
             Default = 1.0
         slope_crit: float, optional
@@ -337,7 +337,7 @@ class DepthDependentTaylorDiffuser(Component):
             "raise", "warn")
         courant_factor : float, optional
             Courant factor for timestep calculation.
-        soil_transport_velocity : float, ndarray of float, or str, optional, default = 1.0
+        soil_transport_velocity : float or ndarray of float, optional, default = 1.0
             Velocity parameter for soil transport, m/yr. Diffusivity is the
             product of this parameter and soil_transport_decay_depth.
         """
@@ -361,7 +361,6 @@ class DepthDependentTaylorDiffuser(Component):
         self._dynamic_dt = dynamic_dt
         self._if_unstable = if_unstable
         self._courant_factor = courant_factor
-        self._shortest_link = np.amin(grid.length_of_link)  # for Courant
 
         # get reference to inputs
         self._elev = self._grid.at_node["topographic__elevation"]
@@ -405,7 +404,7 @@ class DepthDependentTaylorDiffuser(Component):
             # Test for time stepping courant condition
             # Test for time stepping courant condition
             courant_slope_term = 0.0
-            courant_s_over_scrit = self._slope / self._slope_crit
+            courant_s_over_scrit = self._slope.max() / self._slope_crit
             for i in range(0, 2 * self._nterms, 2):
                 courant_slope_term += courant_s_over_scrit**i
                 if np.any(np.isinf(courant_slope_term)):
@@ -427,7 +426,7 @@ class DepthDependentTaylorDiffuser(Component):
             # Test for the Courant condition and print warning if user intended
             # for it to be printed.
             if (
-                (self._dt_max < dt).any()
+                (self._dt_max < dt)
                 and (not self._dynamic_dt)
                 and (self._if_unstable != "pass")
             ):
