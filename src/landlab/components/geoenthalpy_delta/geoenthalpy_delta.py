@@ -281,10 +281,10 @@ class GeoEnthalpyDelta(Component):
         self.initialize_output_fields()
         self.initialize_optional_output_fields()
 
-        self._bedrock = grid.at_node["basement__elevation"]
+        self._basement = grid.at_node["basement__elevation"]
         self._thickness = grid.at_node["sediment__thickness"]
         self._topo = grid.at_node["topographic__elevation"]
-        self._topo[:] = self._bedrock + self._thickness
+        self._topo[:] = self._basement + self._thickness
 
         self._nrows, self._ncols = grid.shape
         self._dx = float(grid.dx)
@@ -355,7 +355,7 @@ class GeoEnthalpyDelta(Component):
             value returned by :meth:`calc_stable_time_step`.
         """
         H_xy = self._thickness.reshape(self._nrows, self._ncols).T.copy()
-        basement_xy = self._bedrock.reshape(self._nrows, self._ncols).T
+        basement_xy = self._basement.reshape(self._nrows, self._ncols).T
 
         qdens = self.sediment_influx / (
             np.count_nonzero(self._feeder_mask) * self._dy
@@ -381,5 +381,5 @@ class GeoEnthalpyDelta(Component):
         )
 
         self._thickness[:] = Hnew_xy.T.reshape(-1)
-        self._topo[:] = self._bedrock + self._thickness
+        self._topo[:] = self._basement + self._thickness
         self._time_elapsed += dt
