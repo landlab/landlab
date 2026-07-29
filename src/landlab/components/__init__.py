@@ -32,6 +32,7 @@ from .diffusion import LinearDiffuser
 from .dimensionless_discharge import DimensionlessDischarge
 from .discharge_diffuser import DischargeDiffuser
 from .drainage_density import DrainageDensity
+from .geoenthalpy_delta import GeoEnthalpyDelta # am i doing this right?
 from .erosion_deposition import ErosionDeposition
 from .erosion_deposition import SharedStreamPower
 from .fire_generator import FireGenerator
@@ -124,6 +125,7 @@ COMPONENTS = [
     DischargeDiffuser,
     DimensionlessDischarge,
     DrainageDensity,
+    GeoEnthalpyDelta, # new
     ErosionDeposition,
     ExponentialWeatherer,
     ExponentialWeathererIntegrated,
