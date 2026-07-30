@@ -1,0 +1,2 @@
+Fixed validation bugs in `StreamPowerEroder` and added public functions for
+computing stream power exponents, which can be passed directly via `sp_type="set_mn"`.
