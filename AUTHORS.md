@@ -36,7 +36,7 @@
 - [Jenny Knuth](https://github.com/jennyknuth)
 - [Berkan M](https://github.com/BerkM125)
 - [Jeffrey Keck](https://github.com/keckje)
-- [Amanda Manaster](https://github.com/amanaster2)
+- [Amanda Alvis](https://github.com/adalvis)
 - [Nathan Lyons](https://github.com/nathanlyons)
 - [Allison Pfeiffer](https://github.com/pfeiffea)
 - [Annie Thompson](https://github.com/anweiii)

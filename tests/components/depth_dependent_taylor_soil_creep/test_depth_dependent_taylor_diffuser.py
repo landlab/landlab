@@ -15,7 +15,8 @@ from landlab.components import ExponentialWeatherer
 
 
 @pytest.mark.slow
-def test_4x7_grid_vs_analytical_solution():
+@pytest.mark.parametrize("k", (0.01, np.full(45, 0.01)))
+def test_4x7_grid_vs_analytical_solution(k):
     """Test against known analytical solution."""
 
     # Create a 4-row by 7-column grid with 10 m spacing
@@ -36,7 +37,10 @@ def test_4x7_grid_vs_analytical_solution():
     )
 
     diffuser = DepthDependentTaylorDiffuser(
-        mg, linear_diffusivity=0.01, slope_crit=0.8, soil_transport_decay_depth=0.5
+        mg,
+        soil_transport_velocity=k,
+        slope_crit=0.8,
+        soil_transport_decay_depth=0.5,
     )
 
     # Get a reference to bedrock elevation field
