@@ -150,7 +150,7 @@ class GeoEnthalpyDelta(Component):
     >>> sea_level = -5.0
     >>> esd = GeoEnthalpyDelta(
     ...    grid,
-    ...    sediment_influx=0.5,
+    ...    sediment_flux=0.5,
     ...    feeder_width=1.0,
     ...    sea_level_start=sea_level,
     ...    sea_level_rise_rate=0.1,
@@ -169,7 +169,7 @@ class GeoEnthalpyDelta(Component):
     ...     esd.run_one_step(dt)
     ...
     >>> model_volume = np.sum(grid.at_node["sediment__thickness"]) * grid.dx * grid.dy
-    >>> expected_volume = esd.sediment_influx * nsteps * dt
+    >>> expected_volume = esd.sediment_flux * nsteps * dt
     >>> np.isclose(volume, expected, rtol=1e-6)
     True
 
@@ -222,7 +222,7 @@ class GeoEnthalpyDelta(Component):
     def __init__(
         self,
         grid,
-        sediment_influx=0.5,
+        sediment_flux=0.5,
         feeder_width=1.0,
         feeder_y_center=None,
         sea_level_start=0.0,
@@ -242,7 +242,7 @@ class GeoEnthalpyDelta(Component):
         Parameters
         ----------
         grid : RasterModelGrid
-        sediment_influx : float, optional
+        sediment_flux : float, optional
             Total volumetric sediment input rate delivered through the
             feeder (volume per time).
         feeder_width : float, optional
@@ -294,7 +294,7 @@ class GeoEnthalpyDelta(Component):
         if feeder_y_center is None:
             feeder_y_center = 0.5 * (y_of_row.min() + y_of_row.max())
         self._feeder_mask = (
-            np.abs(y_of_row - feeder_y_center) <= 0.5 * feeder_width + 1.0e-12
+            np.abs(y_of_row - feeder_y_center) <= 0.5 * feeder_width + 1.0
         )
         if not np.any(self._feeder_mask):
             raise ValueError(
@@ -302,7 +302,7 @@ class GeoEnthalpyDelta(Component):
                 "fall within the feeder."
             )
 
-        self.sediment_influx = sediment_influx
+        self.sediment_flux = sediment_flux
         self.sea_level_start = sea_level_start
         self.sea_level_rise_rate = sea_level_rise_rate
         self.topset_threshold_x = topset_threshold_x
@@ -329,7 +329,7 @@ class GeoEnthalpyDelta(Component):
 
     def calc_stable_time_step(self):
         """Calculate a Courant-Friedrichs-Lewy limited stable time step.
-
+        https://en.wikipedia.org/wiki/Courant%E2%80%93Friedrichs%E2%80%93Lewy_condition
         Returns
         -------
         float
@@ -341,11 +341,11 @@ class GeoEnthalpyDelta(Component):
             self.topset_diffusivity_y,
             self.foreset_diffusivity_x,
             self.foreset_diffusivity_y,
-            1.0e-12,
+            1.0,
         )
         return self.cfl / (2.0 * d_max * (1.0 / self._dx**2 + 1.0 / self._dy**2))
 
-    def run_one_step(self, dt):
+    def run_one_step(self, dt, **kwargs):
         """Advance the sediment diffusion model by one time step.
 
         Parameters
@@ -353,11 +353,18 @@ class GeoEnthalpyDelta(Component):
         dt : float
             Time step duration. For stability, ``dt`` should not exceed the
             value returned by :meth:`calc_stable_time_step`.
+        **kwargs 
+            This is abitrary but create a flexible pass in for _feeder_mask
         """
+        self._feeder_mask = kwargs["feeder_mask"] if "feeder_mask" in kwargs else self._feeder_mask
+        # if "feeder_mask" in kwargs:
+        #     print("Detected new feeder_mask")
+        # self._feeder_mask = feeder_mask
         H_xy = self._thickness.reshape(self._nrows, self._ncols).T.copy()
         basement_xy = self._basement.reshape(self._nrows, self._ncols).T
 
-        qdens = self.sediment_influx / (
+        
+        qdens = self.sediment_flux / (
             np.count_nonzero(self._feeder_mask) * self._dy
         )
 
