@@ -317,7 +317,7 @@ class DepthDependentTaylorDiffuser(Component):
         ----------
         grid: ModelGrid
             Landlab ModelGrid object
-        linear_diffusivity: float, optional, DEPRECATED
+        linear_diffusivity: float or ndarray of float, optional, DEPRECATED
             Hillslope diffusivity / decay depth, m/yr
             Default = 1.0
         slope_crit: float, optional
@@ -337,7 +337,7 @@ class DepthDependentTaylorDiffuser(Component):
             "raise", "warn")
         courant_factor : float, optional
             Courant factor for timestep calculation.
-        soil_transport_velocity : float, optional, default = 1.0
+        soil_transport_velocity : float or ndarray of float, optional, default = 1.0
             Velocity parameter for soil transport, m/yr. Diffusivity is the
             product of this parameter and soil_transport_decay_depth.
         """
@@ -361,7 +361,6 @@ class DepthDependentTaylorDiffuser(Component):
         self._dynamic_dt = dynamic_dt
         self._if_unstable = if_unstable
         self._courant_factor = courant_factor
-        self._shortest_link = np.amin(grid.length_of_link)  # for Courant
 
         # get reference to inputs
         self._elev = self._grid.at_node["topographic__elevation"]
@@ -417,8 +416,12 @@ class DepthDependentTaylorDiffuser(Component):
                     raise RuntimeError(message)
             # Calculate De Max
             de_max = self._K * self._soil_transport_decay_depth * courant_slope_term
-            # Calculate longest stable timestep
-            self._dt_max = self._courant_factor * self._shortest_link**2 / de_max
+            # Calculate longest stable timestep per link
+            dt_max_per_link = (
+                self._courant_factor * self._grid.length_of_link**2 / de_max
+            )
+            # Uses the lowest dt (in case of variable K)
+            self._dt_max = np.min(dt_max_per_link)
 
             # Test for the Courant condition and print warning if user intended
             # for it to be printed.
