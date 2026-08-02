@@ -1,0 +1,3 @@
+Add the :class:`~landlab.components.ShallowLandslider` component for
+coseismic shallow-landslide initiation, candidate selection, Newmark
+displacement, and optional runout on raster grids.

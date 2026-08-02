@@ -84,6 +84,7 @@ from .profiler import Profiler
 from .profiler import TrickleDownProfiler
 from .radiation import Radiation
 from .river_flow_dynamics import RiverFlowDynamics
+from .shallow_landslider import ShallowLandslider
 from .sink_fill import SinkFiller
 from .sink_fill import SinkFillerBarnes
 from .soil_moisture import SoilInfiltrationGreenAmpt
@@ -172,6 +173,7 @@ COMPONENTS = [
     SedimentPulserAtLinks,
     SedimentPulserEachParcel,
     SharedStreamPower,
+    ShallowLandslider,
     SimpleSubmarineDiffuser,
     SinkFiller,
     SinkFillerBarnes,
