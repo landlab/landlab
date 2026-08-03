@@ -1,0 +1,1 @@
+Added tutorial notebooks for the new {class}`~.GeoEnthalpyDelta` component: a basic radial-fan delta example, and an alluvial-fan example demonstrating a feeder location that changes over time.
