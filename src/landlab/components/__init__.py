@@ -32,7 +32,6 @@ from .diffusion import LinearDiffuser
 from .dimensionless_discharge import DimensionlessDischarge
 from .discharge_diffuser import DischargeDiffuser
 from .drainage_density import DrainageDensity
-from .geoenthalpy_delta import GeoEnthalpyDelta # am i doing this right?
 from .erosion_deposition import ErosionDeposition
 from .erosion_deposition import SharedStreamPower
 from .fire_generator import FireGenerator
@@ -44,6 +43,7 @@ from .flow_director import FlowDirectorDINF
 from .flow_director import FlowDirectorMFD
 from .flow_director import FlowDirectorSteepest
 from .fracture_grid import FractureGridGenerator
+from .geoenthalpy_delta import GeoEnthalpyDelta  # am i doing this right?
 from .gflex import gFlex
 from .gravel_bedrock_eroder import GravelBedrockEroder
 from .gravel_river_transporter import GravelRiverTransporter
@@ -125,7 +125,7 @@ COMPONENTS = [
     DischargeDiffuser,
     DimensionlessDischarge,
     DrainageDensity,
-    GeoEnthalpyDelta, # new
+    GeoEnthalpyDelta,  # new
     ErosionDeposition,
     ExponentialWeatherer,
     ExponentialWeathererIntegrated,
