@@ -334,6 +334,12 @@ class GeoEnthalpyDelta(Component):
         reference scale, at the cost of a more conservative (smaller)
         ``dt`` in that case.
 
+        If the stable time step returned by `calc_stable_time_step()` is smaller than the time step you want 
+        to advance by in your own project, subcycle: run several inner steps per outer step.  
+        Compute the number of inner steps as `n_inner = ceil(outer_dt / calculated_dt)`, 
+        then call `run_one_step` that many times, each with `dt = outer_dt / n_inner`, 
+        which is guaranteed to be `<= calculated_dt`.
+
         Returns
         -------
         float
