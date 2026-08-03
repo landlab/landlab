@@ -6,7 +6,8 @@ will account for an input (erodible) topography.
 
 import numpy as np
 
-from landlab import Component, RasterModelGrid
+from landlab import Component
+from landlab import RasterModelGrid
 
 
 def _enthalpy_diffusion_step(
@@ -103,8 +104,8 @@ class GeoEnthalpyDelta(Component):
     This component is a structured Landlab wrapper around the core physics
     of a manuscript on 2D GeoEnthalpy-Delta modeling.
 
-    Sediment is supplied through a feeder with assigned width and is transported as a nonlinear, 
-    slope-threshold diffusive flux. At every node the transport diffusivity and slope threshold 
+    Sediment is supplied through a feeder with assigned width and is transported as a nonlinear,
+    slope-threshold diffusive flux. At every node the transport diffusivity and slope threshold
     depend on whether that node is a "topset" (subaerial or shallow, ``eta >= Z``) or
     "foreset" (below sea level, ``eta < Z``) node, where ``eta`` is the land
     surface elevation and ``Z`` is the (possibly time varying) sea level.
@@ -134,35 +135,29 @@ class GeoEnthalpyDelta(Component):
     >>> from landlab.components import GeoEnthalpyDelta
     >>> nrows, ncols = 50, 50
     >>> dx = dy = 0.2
-    >>> grid = RasterModelGrid((nrows, ncols), xy_spacing=dx) # hummm no option for (dx,dy)?
+    >>> grid = RasterModelGrid((nrows, ncols), xy_spacing=dx)
     >>> x = grid.x_of_node.reshape(grid.shape)
-    >>> x
-    ... array([[0. , 0.2, 0.4, ..., 9.4, 9.6, 9.8],
-    ...   [0. , 0.2, 0.4, ..., 9.4, 9.6, 9.8],
-    ...   [0. , 0.2, 0.4, ..., 9.4, 9.6, 9.8],
-    ...   ...,
-    ...   [0. , 0.2, 0.4, ..., 9.4, 9.6, 9.8],
-    ...   [0. , 0.2, 0.4, ..., 9.4, 9.6, 9.8],
-    ...   [0. , 0.2, 0.4, ..., 9.4, 9.6, 9.8]], shape=(50, 50))
+    >>> x[0, 1], x[0, -1]
+    (0.2, 9.8)
     >>> basement = grid.add_zeros("basement__elevation", at="node")
     >>> basement[:] = (-x).reshape(-1)  # planar, non-erodible basement E(x) = -x
-    >>> basement
-    ... array([-0. , -0.2, -0.4, ..., -9.4, -9.6, -9.8], shape=(2500,))
+    >>> basement.min(), basement.max()
+    (-9.8, -0.0)
     >>> sea_level = -5.0
     >>> esd = GeoEnthalpyDelta(
-    ...    grid,
-    ...    sediment_flux=0.5,
-    ...    feeder_width=1.0,
-    ...    sea_level_start=sea_level,
-    ...    sea_level_rise_rate=0.1,
-    ...    topset_threshold_x=0.1,
-    ...    topset_threshold_y=0.1,
-    ...    foreset_threshold_x=2.0,
-    ...    foreset_threshold_y=2.0,
-    ...    topset_diffusivity_x=1.0,
-    ...    topset_diffusivity_y=1.0,
-    ...    foreset_diffusivity_x=1.0,
-    ...    foreset_diffusivity_y=1.0,
+    ...     grid,
+    ...     sediment_flux=0.5,
+    ...     feeder_width=1.0,
+    ...     sea_level_start=sea_level,
+    ...     sea_level_rise_rate=0.1,
+    ...     topset_threshold_x=0.1,
+    ...     topset_threshold_y=0.1,
+    ...     foreset_threshold_x=2.0,
+    ...     foreset_threshold_y=2.0,
+    ...     topset_diffusivity_x=1.0,
+    ...     topset_diffusivity_y=1.0,
+    ...     foreset_diffusivity_x=1.0,
+    ...     foreset_diffusivity_y=1.0,
     ... )
     >>> dt = esd.calc_stable_time_step()
     >>> nsteps = 50
@@ -171,16 +166,16 @@ class GeoEnthalpyDelta(Component):
     ...
     >>> model_volume = np.sum(grid.at_node["sediment__thickness"]) * grid.dx * grid.dy
     >>> expected_volume = esd.sediment_flux * nsteps * dt
-    >>> np.isclose(volume, expected, rtol=1e-6)
+    >>> np.isclose(model_volume, expected_volume, rtol=1e-6)
     True
 
     References
     ----------
     **Required Software Citation(s) Specific to this Component**
 
-    Lorenzo-Trueba, J., Anderson, W., Bui, V., and Voller, V. R.: 
-    GeoEnthalpy-Delta v1.0: an enthalpy-based model for coupled subaerial and 
-    subaqueous delta evolution with diagnostic moving boundaries, 
+    Lorenzo-Trueba, J., Anderson, W., Bui, V., and Voller, V. R.:
+    GeoEnthalpy-Delta v1.0: an enthalpy-based model for coupled subaerial and
+    subaqueous delta evolution with diagnostic moving boundaries,
     manuscript in preparation for Geoscientific Model Development.
 
     **Additional References**
@@ -191,7 +186,7 @@ class GeoEnthalpyDelta(Component):
 
     _name = "GeoEnthalpyDelta"
 
-    _unit_agnostic = True # unitless
+    _unit_agnostic = True  # unitless
 
     _info = {
         "basement__elevation": {
@@ -295,7 +290,7 @@ class GeoEnthalpyDelta(Component):
         if feeder_y_center is None:
             feeder_y_center = 0.5 * (y_of_row.min() + y_of_row.max())
         self._feeder_mask = (
-            np.abs(y_of_row - feeder_y_center) <= 0.5 * feeder_width + 1.0e-12 # floating point tolerance
+            np.abs(y_of_row - feeder_y_center) <= 0.5 * feeder_width + 1.0e-12
         )
         if not np.any(self._feeder_mask):
             raise ValueError(
@@ -374,9 +369,7 @@ class GeoEnthalpyDelta(Component):
         H_xy = self._thickness.reshape(self._nrows, self._ncols).T.copy()
         basement_xy = self._basement.reshape(self._nrows, self._ncols).T
 
-        qdens = self.sediment_flux / (
-            np.count_nonzero(self._feeder_mask) * self._dy
-        )
+        qdens = self.sediment_flux / (np.count_nonzero(self._feeder_mask) * self._dy)
 
         Hnew_xy = _enthalpy_diffusion_step(
             basement=basement_xy,
