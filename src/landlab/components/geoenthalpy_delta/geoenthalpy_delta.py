@@ -1,13 +1,12 @@
 """Landlab component for 2D enthalpy-based sediment diffusion transport.
-    This version v1.0 only deal with fixed basement.
-    Another iteration will account for input topography
+
+This version, v1.0, only deals with a fixed basement. A future version
+will account for an input (erodible) topography.
 """
 
 import numpy as np
 
-from landlab import Component
-
-from landlab import RasterModelGrid
+from landlab import Component, RasterModelGrid
 
 
 def _enthalpy_diffusion_step(
@@ -28,10 +27,12 @@ def _enthalpy_diffusion_step(
     dy,
     dt,
 ):
-    """Advance the thickness H by 1 step.
-    Users can use for loop instead of the program looping for them.
-    This is for the fexibility that people can modified the sediment inside the loop for
-    other project. Cheerios.
+    """Advance the sediment thickness ``H`` by one explicit time step.
+
+    This is a free function (rather than a method) so it can be called
+    directly, outside of a :class:`GeoEnthalpyDelta` instance, by users who
+    want to drive the same finite-volume update from their own loop (e.g.
+    to modify ``H`` between steps for a different project).
     """
     nx, ny = basement.shape
     eta = basement + H
@@ -294,7 +295,7 @@ class GeoEnthalpyDelta(Component):
         if feeder_y_center is None:
             feeder_y_center = 0.5 * (y_of_row.min() + y_of_row.max())
         self._feeder_mask = (
-            np.abs(y_of_row - feeder_y_center) <= 0.5 * feeder_width + 1.0
+            np.abs(y_of_row - feeder_y_center) <= 0.5 * feeder_width + 1.0e-12 # floating point tolerance
         )
         if not np.any(self._feeder_mask):
             raise ValueError(
@@ -330,6 +331,14 @@ class GeoEnthalpyDelta(Component):
     def calc_stable_time_step(self):
         """Calculate a Courant-Friedrichs-Lewy limited stable time step.
         https://en.wikipedia.org/wiki/Courant%E2%80%93Friedrichs%E2%80%93Lewy_condition
+
+        The candidate diffusivity is floored at 1.0, the paper's
+        beta-normalized reference topset diffusivity (Sect. 4.3, where
+        ``D_top^x = 1`` by construction). This keeps the estimate safe
+        even if all four diffusivities are configured below that
+        reference scale, at the cost of a more conservative (smaller)
+        ``dt`` in that case.
+
         Returns
         -------
         float
@@ -345,7 +354,7 @@ class GeoEnthalpyDelta(Component):
         )
         return self.cfl / (2.0 * d_max * (1.0 / self._dx**2 + 1.0 / self._dy**2))
 
-    def run_one_step(self, dt, **kwargs):
+    def run_one_step(self, dt, feeder_mask=None):
         """Advance the sediment diffusion model by one time step.
 
         Parameters
@@ -353,17 +362,18 @@ class GeoEnthalpyDelta(Component):
         dt : float
             Time step duration. For stability, ``dt`` should not exceed the
             value returned by :meth:`calc_stable_time_step`.
-        **kwargs 
-            This is abitrary but create a flexible pass in for _feeder_mask
+        feeder_mask : array_like of bool, optional
+            Per-row boolean mask (length equal to the number of grid rows)
+            overriding which rows act as the sediment feeder for this and
+            subsequent steps. Defaults to the mask most recently set (from
+            ``feeder_width``/``feeder_y_center`` at construction, or from
+            an earlier call to this method).
         """
-        self._feeder_mask = kwargs["feeder_mask"] if "feeder_mask" in kwargs else self._feeder_mask
-        # if "feeder_mask" in kwargs:
-        #     print("Detected new feeder_mask")
-        # self._feeder_mask = feeder_mask
+        if feeder_mask is not None:
+            self._feeder_mask = feeder_mask
         H_xy = self._thickness.reshape(self._nrows, self._ncols).T.copy()
         basement_xy = self._basement.reshape(self._nrows, self._ncols).T
 
-        
         qdens = self.sediment_flux / (
             np.count_nonzero(self._feeder_mask) * self._dy
         )
