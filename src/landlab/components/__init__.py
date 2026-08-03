@@ -43,10 +43,13 @@ from .flow_director import FlowDirectorDINF
 from .flow_director import FlowDirectorMFD
 from .flow_director import FlowDirectorSteepest
 from .fracture_grid import FractureGridGenerator
+
 <<<<<<< HEAD
 from .geoenthalpy_delta import GeoEnthalpyDelta
+
 =======
 from .geoenthalpy_delta import GeoEnthalpyDelta  # am i doing this right?
+
 >>>>>>> b0557586b18a52319f462b9d6c2c1e4b0fdcc410
 from .gflex import gFlex
 from .gravel_bedrock_eroder import GravelBedrockEroder
