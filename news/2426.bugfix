@@ -1,0 +1,1 @@
+Updated DepthDependentTaylorDiffuser to avoid error when working with a spatially variable K
