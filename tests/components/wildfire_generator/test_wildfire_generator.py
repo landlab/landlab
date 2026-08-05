@@ -569,11 +569,12 @@ def test_fire_reduces_vegetation():
     wg = WildfireGenerator(mg, potential_fires=200, aridity=0.9)
     wg._current_time = 1
     wg._fire(dt=1)
-    if wg.fire_log:
-        burned = wg.fire_log[0]["burned_nodes"]
-        assert np.all(
-            wg._vegetation[burned] < 1.0
-        ), "Vegetation at burned nodes should be reduced below 1"
+
+    assert wg.fire_log, "Expected at least one fire with high fuel/aridity/attempts"
+    burned = wg.fire_log[0]["burned_nodes"]
+    assert np.all(
+        wg._vegetation[burned] < 1.0
+    ), "Vegetation at burned nodes should be reduced below 1"
 
 
 def test_fire_does_not_cross_rivers():
@@ -586,10 +587,11 @@ def test_fire_does_not_cross_rivers():
     for t in range(20):
         wg._current_time = t
         wg._fire(dt=1)
-    if wg.fire_log:
-        all_burned = {n for r in wg.fire_log for n in r["burned_nodes"]}
-        for rn in river_nodes:
-            assert rn not in all_burned, f"River node {rn} should not be burned"
+
+    assert wg.fire_log, "Expected fires to ignite over 20 timesteps at these parameters"
+    all_burned = {n for r in wg.fire_log for n in r["burned_nodes"]}
+    for rn in river_nodes:
+        assert rn not in all_burned, f"River node {rn} should not be burned"
 
 
 def test_fire_pct_vegetation_removed_in_valid_range():
@@ -641,10 +643,13 @@ def test_last_fire_time_unchanged_at_unburned_nodes():
     wg.run_one_step(1)
     burned_all = {n for r in wg.fire_log for n in r["burned_nodes"]}
     unburned = [n for n in mg.core_nodes if n not in burned_all]
-    if unburned:
-        assert np.all(
-            wg._last_fire_time[unburned] == -np.inf
-        ), "last_fire_time should remain -inf at unburned nodes"
+
+    assert (
+        unburned
+    ), "Expected some core nodes to remain unburned with only 5 ignition attempts"
+    assert np.all(
+        wg._last_fire_time[unburned] == -np.inf
+    ), "last_fire_time should remain -inf at unburned nodes"
 
 
 def test_fire_log_record_contains_required_keys():
@@ -674,6 +679,25 @@ def test_fire_log_aridity_matches_component_aridity():
     wg.run_one_step(1)
     for r in wg.fire_log:
         assert r["aridity"] == 0.65
+
+
+def test_fire_revisits_already_burned_node_in_front(monkeypatch):
+    """Cover the 'node in burned' branch inside the fire-spread loop."""
+    mg = _make_grid(nrows=5, ncols=5, topo_val=0.0, fuel_val=1.0)
+    wg = WildfireGenerator(mg, potential_fires=1, aridity=0.9, seed=0)
+
+    fake_adjacency = {0: [1, 2], 1: [2], 2: [1]}
+    monkeypatch.setattr(wg, "_get_neighbors", lambda node: fake_adjacency.get(node, []))
+    monkeypatch.setattr(np.random, "choice", lambda arr: 0)
+    monkeypatch.setattr(np.random, "rand", lambda *a, **k: 0.0)
+    monkeypatch.setattr(np.random, "poisson", lambda *a, **k: 1)
+
+    wg._current_time = 1
+    wg._fire(dt=1.0)
+
+    assert len(wg.fire_log) == 1
+    burned = set(wg.fire_log[0]["burned_nodes"])
+    assert burned == {0, 1, 2}
 
 
 # =============================================================================
