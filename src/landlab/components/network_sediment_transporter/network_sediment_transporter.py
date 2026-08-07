@@ -535,10 +535,19 @@ class NetworkSedimentTransporter(Component):
             )
 
             # calculate active layer thickness (in units of m)
-            self._active_layer_thickness = (
-                0.515
-                * self._d_mean_active
-                * (3.09 * (taustar - 0.0549).clip(0.0, None) ** 0.56)
+            # -- Edited coefficient from 0.515 to 1.62 AND tau*c to
+            # Wilcock and Crowe value thanks to conversation w/Sam Kodama
+            # -- Edited to make the minimum active layer thickness = Dgm to
+            # reduce instabilities related to small numbers of active parcels in
+            # highly stable beds
+
+            self._active_layer_thickness = np.maximum(
+                self._d_mean_active,
+                (
+                    1.62
+                    * self._d_mean_active
+                    * (3.09 * (taustar - 0.036).clip(0.0, None) ** 0.56)
+                ),
             )
 
         elif self._active_layer_method == "GrainSizeDependent":
