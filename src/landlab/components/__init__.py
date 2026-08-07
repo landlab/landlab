@@ -86,6 +86,9 @@ from .radiation import Radiation
 from .river_flow_dynamics import RiverFlowDynamics
 from .sink_fill import SinkFiller
 from .sink_fill import SinkFillerBarnes
+from .snow import Meteorology
+from .snow import SnowDegreeDay
+from .snow import SnowEnergyBalance
 from .soil_moisture import SoilInfiltrationGreenAmpt
 from .soil_moisture import SoilMoisture
 from .space import Space
@@ -157,6 +160,7 @@ COMPONENTS = [
     Lithology,
     LossyFlowAccumulator,
     MassWastingRunout,
+    Meteorology,
     NetworkSedimentTransporter,
     NormalFault,
     OverlandFlow,
@@ -175,6 +179,8 @@ COMPONENTS = [
     SimpleSubmarineDiffuser,
     SinkFiller,
     SinkFillerBarnes,
+    SnowDegreeDay,
+    SnowEnergyBalance,
     SoilMoisture,
     SoilInfiltrationGreenAmpt,
     Space,
