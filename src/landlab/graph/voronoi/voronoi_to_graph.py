@@ -232,9 +232,31 @@ class VoronoiDelaunayToGraph(VoronoiDelaunay):
             }
         )
 
-        self.drop_corners(self.unbound_corners())
+        is_extra_link = self._is_extra_link()
+        self.drop_corners(
+            self.unbound_corners(is_extra_link), is_extra_link=is_extra_link
+        )
         self.drop_perimeter_faces()
         self.drop_perimeter_cells()
+        self._trim_faces_at_cell()
+
+    def _trim_faces_at_cell(self):
+        """Remove trailing columns that contain no valid face IDs as -1."""
+        print("running efficient code")
+        faces_at_cell = self._mesh["faces_at_cell"]
+        valid_columns = np.any(faces_at_cell.values != -1, axis=0)
+        valid_column_ids = np.flatnonzero(valid_columns)
+
+        if valid_column_ids.size == 0:
+            return
+
+        width = valid_column_ids[-1] + 1
+        if width < faces_at_cell.shape[1]:
+            trimmed = faces_at_cell.values[:, :width].copy()
+            self._mesh = self._mesh.drop_vars("faces_at_cell")
+            self._mesh["faces_at_cell"] = xr.DataArray(
+                trimmed, dims=("cell", "max_faces_per_cell")
+            )
 
     @staticmethod
     def _links_at_patch(nodes_at_link, nodes_at_patch, n_links_at_patch=None):
@@ -364,10 +386,13 @@ class VoronoiDelaunayToGraph(VoronoiDelaunay):
 
         return ~inside
 
-    def unbound_corners(self):
+    def unbound_corners(self, is_extra_link=None):
+        if is_extra_link is None:
+            is_extra_link = self._is_extra_link()
+
         faces_to_drop = np.where(
             (self.is_perimeter_face() & ~self.is_perimeter_link())
-            | (self._is_extra_link())
+            | is_extra_link
         )
 
         unbound_corners = self.corners_at_face[faces_to_drop].reshape((-1,))
@@ -380,7 +405,7 @@ class VoronoiDelaunayToGraph(VoronoiDelaunay):
 
         return corners
 
-    def drop_corners(self, corners):
+    def drop_corners(self, corners, is_extra_link=None):
         if len(corners) == 0:
             return
 
@@ -389,8 +414,10 @@ class VoronoiDelaunayToGraph(VoronoiDelaunay):
         self.drop_element(corners_to_drop, at="corner")
 
         # Remove bad links
+        if is_extra_link is None:
+            is_extra_link = self._is_extra_link()
         is_a_link = np.any(self._mesh["corners_at_face"].data != -1, axis=1)
-        is_a_link[np.where(self._is_extra_link())] = False
+        is_a_link[is_extra_link] = False
         self.drop_element(np.where(~is_a_link)[0], at="link")
 
         # Remove the bad patches
