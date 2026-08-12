@@ -242,7 +242,6 @@ class VoronoiDelaunayToGraph(VoronoiDelaunay):
 
     def _trim_faces_at_cell(self):
         """Remove trailing columns that contain no valid face IDs as -1."""
-        print("running efficient code")
         faces_at_cell = self._mesh["faces_at_cell"]
         valid_columns = np.any(faces_at_cell.values != -1, axis=0)
         valid_column_ids = np.flatnonzero(valid_columns)
@@ -391,8 +390,7 @@ class VoronoiDelaunayToGraph(VoronoiDelaunay):
             is_extra_link = self._is_extra_link()
 
         faces_to_drop = np.where(
-            (self.is_perimeter_face() & ~self.is_perimeter_link())
-            | is_extra_link
+            (self.is_perimeter_face() & ~self.is_perimeter_link()) | is_extra_link
         )
 
         unbound_corners = self.corners_at_face[faces_to_drop].reshape((-1,))
