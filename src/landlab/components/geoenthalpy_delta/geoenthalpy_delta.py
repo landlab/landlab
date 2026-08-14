@@ -364,15 +364,15 @@ class GeoEnthalpyDelta(Component):
             .reshape(self.grid.shape)
             .T.copy()
         )
-        basement_xy = self.grid.at_node["basement__elevation"].reshape(
-            self.grid.shape
-        ).T
+        basement_xy = (
+            self.grid.at_node["basement__elevation"].reshape(self.grid.shape).T
+        )
 
         # Internal loop for running with user input dt
         for _ in range(n_steps):
             H_xy = self._advance_substep(basement_xy, H_xy, substep_dt)
             self._time_elapsed += substep_dt
 
-        self.grid.at_node["topographic__elevation"][:] = (
-            self.grid.at_node["basement__elevation"] + H_xy.T.reshape(-1)
-        )
+        self.grid.at_node["topographic__elevation"][:] = self.grid.at_node[
+            "basement__elevation"
+        ] + H_xy.T.reshape(-1)
