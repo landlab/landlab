@@ -1,4 +1,5 @@
-"""Tests for the GeoEnthalpyDelta component.
+"""
+Unit tests for the GeoEnthalpyDelta component.
 
 These tests exercise the fixed-grid, enthalpy-style finite-volume update
 described in Lorenzo-Trueba et al., *GeoEnthalpy-Delta v1.0*: sediment
@@ -40,14 +41,14 @@ def test_fields_created_and_initial_topography():
     grid = make_grid()
     esd = GeoEnthalpyDelta(grid)
 
-    assert "sediment__thickness" in grid.at_node
+    assert "sediment__thickness" not in grid.at_node
     assert "topographic__elevation" in grid.at_node
-    assert_array_equal(grid.at_node["sediment__thickness"], 0.0)
+    assert_array_equal(esd.sediment_thickness, 0.0)
     assert_array_equal(
         grid.at_node["topographic__elevation"], grid.at_node["basement__elevation"]
     )
     assert esd.time_elapsed == 0.0
-    assert esd.sea_level == esd.sea_level_start
+    assert esd.sea_level == esd._sea_level_start
 
 
 def test_feeder_mask_matches_requested_width():
@@ -65,15 +66,13 @@ def test_calc_stable_time_step_matches_cfl_formula():
     grid = make_grid(dx=0.2, dy=0.2)
     esd = GeoEnthalpyDelta(
         grid,
-        topset_diffusivity_x=1.0,
-        topset_diffusivity_y=1.0,
-        foreset_diffusivity_x=3.0,
-        foreset_diffusivity_y=2.0,
+        topset_diffusivity=(1.0, 1.0),
+        foreset_diffusivity=(3.0, 2.0),
         cfl=0.4,
     )
     d_max = 3.0
     expected = 0.4 / (2.0 * d_max * (1.0 / 0.2**2 + 1.0 / 0.2**2))
-    assert esd.calc_stable_time_step() == pytest.approx(expected)
+    assert esd._calc_stable_time_step() == pytest.approx(expected)
 
 
 def test_mass_is_conserved():
@@ -84,18 +83,15 @@ def test_mass_is_conserved():
         sediment_flux=sediment_flux,
         feeder_width=1.0,
         sea_level_start=-5.0,
-        topset_threshold_x=0.25,
-        topset_threshold_y=0.1,
-        foreset_threshold_x=2.0,
-        foreset_threshold_y=2.0,
+        topset_threshold=(0.25, 0.1),
+        foreset_threshold=(2.0, 2.0),
     )
-    dt = esd.calc_stable_time_step()
     nsteps = 200
     for _ in range(nsteps):
-        esd.run_one_step(dt)
+        esd.run_one_step()
 
-    modeled_volume = np.sum(grid.at_node["sediment__thickness"]) * grid.dx * grid.dy
-    expected_volume = sediment_flux * nsteps * dt
+    modeled_volume = np.sum(esd.sediment_thickness) * grid.dx * grid.dy
+    expected_volume = sediment_flux * esd.time_elapsed
     assert modeled_volume == pytest.approx(expected_volume, rel=1e-6)
 
 
@@ -106,39 +102,43 @@ def test_thickness_stays_nonnegative():
         sediment_flux=0.5,
         feeder_width=1.0,
         sea_level_start=-5.0,
-        topset_threshold_x=0.25,
-        topset_threshold_y=0.1,
-        foreset_threshold_x=2.0,
-        foreset_threshold_y=2.0,
+        topset_threshold=(0.25, 0.1),
+        foreset_threshold=(2.0, 2.0),
     )
-    dt = esd.calc_stable_time_step()
     for _ in range(200):
-        esd.run_one_step(dt)
-        assert np.all(grid.at_node["sediment__thickness"] >= 0.0)
+        esd.run_one_step()
+        assert np.all(esd.sediment_thickness >= 0.0)
 
 
 def test_sea_level_rises_with_time():
     grid = make_grid()
     esd = GeoEnthalpyDelta(grid, sea_level_start=-5.0, sea_level_rise_rate=0.1)
-    dt = esd.calc_stable_time_step()
     for _ in range(10):
-        esd.run_one_step(dt)
+        esd.run_one_step()
     assert esd.sea_level == pytest.approx(-5.0 + 0.1 * esd.time_elapsed)
 
 
-def test_run_one_step_feeder_mask_override_persists():
-    grid = make_grid(nrows=20, ncols=30)
-    esd = GeoEnthalpyDelta(grid, sediment_flux=0.5, feeder_width=1.0)
-    dt = esd.calc_stable_time_step()
+def test_run_one_step_dt_defaults_to_stable_time_step():
+    grid = make_grid()
+    esd = GeoEnthalpyDelta(grid)
+    esd.run_one_step()
+    assert esd.time_elapsed == pytest.approx(esd._calc_stable_time_step())
 
-    default_mask = esd._feeder_mask.copy()
-    custom_mask = np.zeros_like(default_mask)
-    custom_mask[5:8] = True
 
-    esd.run_one_step(dt, feeder_mask=custom_mask)
-    assert_array_equal(esd._feeder_mask, custom_mask)
+def test_run_one_step_subcycles_dt_larger_than_stable_limit():
+    n_substeps = 5
 
-    # The override should stick for later calls that don't pass a mask.
-    esd.run_one_step(dt)
-    assert_array_equal(esd._feeder_mask, custom_mask)
-    assert not np.array_equal(esd._feeder_mask, default_mask)
+    grid_direct = make_grid()
+    esd_direct = GeoEnthalpyDelta(grid_direct, sediment_flux=0.5, feeder_width=1.0)
+    stable_dt = esd_direct._calc_stable_time_step()
+    esd_direct.run_one_step(dt=n_substeps * stable_dt)
+
+    grid_manual = make_grid()
+    esd_manual = GeoEnthalpyDelta(grid_manual, sediment_flux=0.5, feeder_width=1.0)
+    for _ in range(n_substeps):
+        esd_manual.run_one_step()
+
+    assert esd_direct.time_elapsed == pytest.approx(esd_manual.time_elapsed)
+    np.testing.assert_allclose(
+        esd_direct.sediment_thickness, esd_manual.sediment_thickness, atol=1e-12
+    )
