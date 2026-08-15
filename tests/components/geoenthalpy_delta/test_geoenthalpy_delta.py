@@ -87,12 +87,22 @@ def test_fields_created_and_initial_topography():
 
     assert "sediment__thickness" not in grid.at_node
     assert "topographic__elevation" in grid.at_node
-    assert_array_equal(esd.sediment_thickness, 0.0)
+    assert_array_equal(esd.calc_sediment_thickness(), 0.0)
     assert_array_equal(
         grid.at_node["topographic__elevation"], grid.at_node["basement__elevation"]
     )
     assert esd.time_elapsed == 0.0
     assert esd.sea_level == esd._sea_level_start
+
+
+def test_calc_sediment_thickness_clips_at_zero():
+    grid = make_grid()
+    esd = GeoEnthalpyDelta(grid)
+
+    # Simulate another component pushing the basement above the topography.
+    grid.at_node["basement__elevation"] += 1.0
+
+    assert np.all(esd.calc_sediment_thickness() == 0.0)
 
 
 def test_feeder_mask_matches_requested_width():
@@ -134,7 +144,7 @@ def test_mass_is_conserved():
     for _ in range(nsteps):
         esd.run_one_step()
 
-    modeled_volume = np.sum(esd.sediment_thickness) * grid.dx * grid.dy
+    modeled_volume = np.sum(esd.calc_sediment_thickness()) * grid.dx * grid.dy
     expected_volume = sediment_flux * esd.time_elapsed
     assert modeled_volume == pytest.approx(expected_volume, rel=1e-6)
 
@@ -151,7 +161,7 @@ def test_thickness_stays_nonnegative():
     )
     for _ in range(200):
         esd.run_one_step()
-        assert np.all(esd.sediment_thickness >= 0.0)
+        assert np.all(esd.calc_sediment_thickness() >= 0.0)
 
 
 def test_sea_level_rises_with_time():
@@ -184,5 +194,7 @@ def test_run_one_step_subcycles_dt_larger_than_stable_limit():
 
     assert esd_direct.time_elapsed == pytest.approx(esd_manual.time_elapsed)
     np.testing.assert_allclose(
-        esd_direct.sediment_thickness, esd_manual.sediment_thickness, atol=1e-12
+        esd_direct.calc_sediment_thickness(),
+        esd_manual.calc_sediment_thickness(),
+        atol=1e-12,
     )

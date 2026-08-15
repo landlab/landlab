@@ -32,7 +32,7 @@ class GeoEnthalpyDelta(Component):
     The land surface elevation is the sum of a fixed, non-erodible
     ``basement__elevation`` and a mobile sediment thickness ``H``:
     ``eta = eta_b + H``. Rather than tracking ``H`` as its own field, it is
-    exposed as the derived :attr:`sediment_thickness` property,
+    exposed through :meth:`calc_sediment_thickness`, which calculates
     ``topographic__elevation - basement__elevation``.
 
     Lateral (grid-y) fluxes between neighboring nodes are calculated first,
@@ -77,7 +77,7 @@ class GeoEnthalpyDelta(Component):
     >>> for _ in range(nsteps):
     ...     esd.run_one_step()  # dt chosen automatically for CFL stability
     ...
-    >>> model_volume = np.sum(esd.sediment_thickness) * grid.dx * grid.dy
+    >>> model_volume = np.sum(esd.calc_sediment_thickness()) * grid.dx * grid.dy
     >>> expected_volume = esd.sediment_flux * esd.time_elapsed
     >>> np.isclose(model_volume, expected_volume, rtol=1e-6)
     True
@@ -116,7 +116,7 @@ class GeoEnthalpyDelta(Component):
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "Land surface elevation (basement__elevation + sediment thickness)",
+            "doc": "Land surface topographic elevation",
         },
     }
 
@@ -248,18 +248,26 @@ class GeoEnthalpyDelta(Component):
         """Sea level elevation at the current model time."""
         return self._sea_level_start + self._sea_level_rise_rate * self._time_elapsed
 
-    @property
-    def sediment_thickness(self):
-        """Thickness of the mobile sediment deposit at each node.
+    def calc_sediment_thickness(self):
+        """Calculate the thickness of the mobile sediment deposit at each node.
 
         Calculated as ``topographic__elevation - basement__elevation``
         rather than tracked as its own field, so it is always consistent
         with the two elevation fields even if another component modifies
-        them between calls to :meth:`run_one_step`.
+        them between calls to :meth:`run_one_step`. Clipped at zero in case
+        ``basement__elevation`` is above ``topographic__elevation``, which
+        can only happen if another component has moved one of the two
+        fields since this component last ran.
+
+        Returns
+        -------
+        ndarray
+            Sediment thickness at each node.
         """
-        return (
+        return np.maximum(
             self.grid.at_node["topographic__elevation"]
-            - self.grid.at_node["basement__elevation"]
+            - self.grid.at_node["basement__elevation"],
+            0.0,
         )
 
     def _calc_stable_time_step(self):
