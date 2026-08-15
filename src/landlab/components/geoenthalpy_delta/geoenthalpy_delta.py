@@ -215,8 +215,7 @@ class GeoEnthalpyDelta(Component):
         self.initialize_output_fields()
 
         self._basement = (
-            grid.at_node["topographic__elevation"]
-            - grid.at_node["sediment__thickness"]
+            grid.at_node["topographic__elevation"] - grid.at_node["sediment__thickness"]
         )
 
         require_nonnegative(topset_threshold, name="topset_threshold")
@@ -378,9 +377,7 @@ class GeoEnthalpyDelta(Component):
             self.grid.at_node["sediment__thickness"].reshape(self.grid.shape).T.copy()
         )
         basement_xy = self._basement.reshape(self.grid.shape).T
-        influx_xy = (
-            self.grid.at_node["sediment__influx"].reshape(self.grid.shape).T
-        )
+        influx_xy = self.grid.at_node["sediment__influx"].reshape(self.grid.shape).T
 
         # Internal loop for running with user input dt
         for _ in range(n_steps):
