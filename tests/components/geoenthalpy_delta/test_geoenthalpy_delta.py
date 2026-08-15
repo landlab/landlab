@@ -10,6 +10,7 @@ feeder-mask construction, and the CFL-limited stable time step.
 import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
+from requireit import ValidationError
 
 from landlab import HexModelGrid
 from landlab import RasterModelGrid
@@ -17,7 +18,7 @@ from landlab.components import GeoEnthalpyDelta
 
 
 def make_grid(nrows=20, ncols=30, dx=0.5, dy=0.5):
-    grid = RasterModelGrid((nrows, ncols), xy_spacing=(dx, dy))
+    grid = RasterModelGrid((nrows, ncols), xy_spacing=(dx))
     x = grid.x_of_node.reshape(grid.shape)
     basement = grid.add_zeros("basement__elevation", at="node")
     basement[:] = (-x).reshape(-1)
@@ -35,6 +36,49 @@ def test_feeder_width_smaller_than_spacing_raises():
     grid = make_grid()
     with pytest.raises(ValueError):
         GeoEnthalpyDelta(grid, feeder_width=1.0e-6)
+
+
+def test_feeder_width_must_be_positive():
+    grid = make_grid()
+    with pytest.raises(ValidationError):
+        GeoEnthalpyDelta(grid, feeder_width=0.0)
+
+
+def test_sediment_flux_must_be_nonnegative():
+    grid = make_grid()
+    with pytest.raises(ValidationError):
+        GeoEnthalpyDelta(grid, sediment_flux=-1.0)
+
+
+def test_thresholds_must_be_nonnegative():
+    grid = make_grid()
+    with pytest.raises(ValidationError):
+        GeoEnthalpyDelta(grid, topset_threshold=(-0.1, 0.0))
+    with pytest.raises(ValidationError):
+        GeoEnthalpyDelta(grid, foreset_threshold=(0.0, -2.0))
+
+
+def test_diffusivities_must_be_positive():
+    grid = make_grid()
+    with pytest.raises(ValidationError):
+        GeoEnthalpyDelta(grid, topset_diffusivity=(0.0, 1.0))
+    with pytest.raises(ValidationError):
+        GeoEnthalpyDelta(grid, foreset_diffusivity=(1.0, 0.0))
+
+
+def test_cfl_must_be_in_zero_one_interval():
+    grid = make_grid()
+    with pytest.raises(ValidationError):
+        GeoEnthalpyDelta(grid, cfl=0.0)
+    with pytest.raises(ValidationError):
+        GeoEnthalpyDelta(grid, cfl=1.1)
+
+
+def test_sediment_flux_setter_validates():
+    grid = make_grid()
+    esd = GeoEnthalpyDelta(grid)
+    with pytest.raises(ValidationError):
+        esd.sediment_flux = -1.0
 
 
 def test_fields_created_and_initial_topography():

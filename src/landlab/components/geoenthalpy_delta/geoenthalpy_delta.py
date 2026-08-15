@@ -7,6 +7,9 @@ will account for an input (erodible) topography.
 import math
 
 import numpy as np
+from requireit import require_between
+from requireit import require_nonnegative
+from requireit import require_positive
 
 from landlab import Component
 from landlab import RasterModelGrid
@@ -138,10 +141,10 @@ class GeoEnthalpyDelta(Component):
         grid : RasterModelGrid
         sediment_flux : float, optional
             Total volumetric sediment input rate delivered through the
-            feeder (volume per time).
+            feeder (volume per time). Must be non-negative.
         feeder_width : float, optional
             Width, in grid-y units, of the sediment feeder positioned along
-            the grid's west (minimum-x) edge.
+            the grid's west (minimum-x) edge. Must be positive.
         feeder_y_center : float, optional
             Center, in grid-y coordinates, of the feeder. Defaults to the
             midpoint of the grid's y-extent.
@@ -152,18 +155,21 @@ class GeoEnthalpyDelta(Component):
         topset_threshold : (float, float), optional
             Critical slope thresholds, in the grid-x and grid-y directions
             respectively, above which topset (subaerial) transport occurs.
+            Must be non-negative.
         foreset_threshold : (float, float), optional
             Critical slope thresholds, in the grid-x and grid-y directions
             respectively, above which foreset (subaqueous) transport occurs.
+            Must be non-negative.
         topset_diffusivity : (float, float), optional
             Diffusivities for topset transport, in the grid-x and grid-y
-            directions respectively.
+            directions respectively. Must be positive.
         foreset_diffusivity : (float, float), optional
             Diffusivities for foreset transport, in the grid-x and grid-y
-            directions respectively.
+            directions respectively. Must be positive.
         cfl : float, optional
-            Courant-Friedrichs-Lewy stability factor (0, 1] used to pick a
-            stable time step automatically in :meth:`run_one_step`.
+            Courant-Friedrichs-Lewy stability factor used to pick a stable
+            time step automatically in :meth:`run_one_step`. Must be in
+            the interval (0, 1].
         """
         if not isinstance(grid, RasterModelGrid):
             raise TypeError(
@@ -178,6 +184,8 @@ class GeoEnthalpyDelta(Component):
 
         grid.at_node["topographic__elevation"][:] = grid.at_node["basement__elevation"]
 
+        feeder_width = require_positive(feeder_width, name="feeder_width")
+
         y_of_row = grid.y_of_node.reshape(grid.shape)[:, 0]
         if feeder_y_center is None:
             feeder_y_center = 0.5 * (y_of_row.min() + y_of_row.max())
@@ -190,14 +198,30 @@ class GeoEnthalpyDelta(Component):
                 "fall within the feeder."
             )
 
-        self._sediment_flux = sediment_flux
+        self._sediment_flux = require_nonnegative(sediment_flux, name="sediment_flux")
         self._sea_level_start = sea_level_start
         self._sea_level_rise_rate = sea_level_rise_rate
-        self._topset_threshold = topset_threshold
-        self._foreset_threshold = foreset_threshold
-        self._topset_diffusivity = topset_diffusivity
-        self._foreset_diffusivity = foreset_diffusivity
-        self._cfl = cfl
+
+        topset_threshold = require_nonnegative(
+            topset_threshold, name="topset_threshold"
+        )
+        foreset_threshold = require_nonnegative(
+            foreset_threshold, name="foreset_threshold"
+        )
+        topset_diffusivity = require_positive(
+            topset_diffusivity, name="topset_diffusivity"
+        )
+        foreset_diffusivity = require_positive(
+            foreset_diffusivity, name="foreset_diffusivity"
+        )
+        self._topset_threshold = tuple(float(v) for v in topset_threshold)
+        self._foreset_threshold = tuple(float(v) for v in foreset_threshold)
+        self._topset_diffusivity = tuple(float(v) for v in topset_diffusivity)
+        self._foreset_diffusivity = tuple(float(v) for v in foreset_diffusivity)
+
+        self._cfl = require_between(
+            cfl, 0.0, 1.0, inclusive_min=False, inclusive_max=True, name="cfl"
+        )
 
         self._time_elapsed = 0.0
 
@@ -212,7 +236,7 @@ class GeoEnthalpyDelta(Component):
 
     @sediment_flux.setter
     def sediment_flux(self, sediment_flux):
-        self._sediment_flux = sediment_flux
+        self._sediment_flux = require_nonnegative(sediment_flux, name="sediment_flux")
 
     @property
     def time_elapsed(self):
