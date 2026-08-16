@@ -85,8 +85,8 @@ def test_fields_created_and_initial_topography():
     grid = make_grid()
     esd = GeoEnthalpyDelta(grid)
 
-    assert "sediment__thickness" in grid.at_node
-    assert_array_equal(grid.at_node["sediment__thickness"], 0.0)
+    assert "sediment__thickness" not in grid.at_node
+    assert_array_equal(esd.sediment_thickness, 0.0)
     assert esd.time_elapsed == 0.0
     assert esd.sea_level == grid.at_grid["sea_level__elevation"]
 
@@ -94,14 +94,12 @@ def test_fields_created_and_initial_topography():
 def test_basement_is_computed_from_initial_topo_and_thickness():
     grid = make_grid()
     grid.at_node["topographic__elevation"][:] += 0.3
-    grid.add_field("sediment__thickness", np.full(grid.number_of_nodes, 0.3), at="node")
 
-    esd = GeoEnthalpyDelta(grid)
+    esd = GeoEnthalpyDelta(grid, sediment_thickness=0.3)
 
-    expected_basement = (
-        grid.at_node["topographic__elevation"] - grid.at_node["sediment__thickness"]
-    )
+    expected_basement = grid.at_node["topographic__elevation"] - 0.3
     assert_array_equal(esd._basement, expected_basement)
+    assert_array_equal(esd.sediment_thickness, 0.3)
 
 
 def test_basement_stays_fixed_across_steps():
@@ -117,7 +115,7 @@ def test_basement_stays_fixed_across_steps():
 
     assert_array_equal(esd._basement, basement_before)
     np.testing.assert_allclose(
-        grid.at_node["topographic__elevation"] - grid.at_node["sediment__thickness"],
+        grid.at_node["topographic__elevation"] - esd.sediment_thickness,
         basement_before,
         atol=1e-12,
     )
@@ -133,10 +131,70 @@ def test_influx_only_enters_at_specified_west_boundary_nodes():
     )
     esd.run_one_step()
 
-    thickness_xy = grid.at_node["sediment__thickness"].reshape(grid.shape)
+    thickness_xy = esd.sediment_thickness.reshape(grid.shape)
     assert thickness_xy[3, 0] > 0.0
     other_rows = np.arange(grid.shape[0]) != 3
     assert np.all(thickness_xy[other_rows, 0] == 0.0)
+
+
+def test_calc_lateral_flux_below_threshold_is_zero():
+    grid = make_grid(dx=1.0, sea_level=100.0)
+    esd = GeoEnthalpyDelta(grid, foreset_threshold=0.5, foreset_diffusivity=3.0)
+    eta = np.array([[0.2, 0.0]])  # |slope| = 0.2 < threshold 0.5
+    qy = esd._calc_lateral_flux(eta)
+    assert_array_equal(qy, 0.0)
+
+
+def test_calc_lateral_flux_above_threshold_matches_formula():
+    grid = make_grid(dx=1.0, sea_level=100.0)
+    esd = GeoEnthalpyDelta(grid, foreset_threshold=0.5, foreset_diffusivity=3.0)
+    eta = np.array([[2.0, 0.0]])  # slope = 2.0, above threshold
+    qy = esd._calc_lateral_flux(eta)
+    assert qy[0, 0] == 0.0  # outer y-faces carry no flux
+    assert qy[0, 2] == 0.0
+    assert qy[0, 1] == pytest.approx(3.0 * (2.0 - 0.5))
+
+
+def test_limit_lateral_flux_caps_outflow_to_available_thickness():
+    grid = make_grid(dx=1.0)
+    esd = GeoEnthalpyDelta(grid)
+    thickness = np.array([[0.2, 5.0]])  # node 0 can only supply 0.2 in dt=1.0
+    qy = np.array([[0.0, 5.0, 0.0]])  # candidate flux leaving node 0 is 5.0
+    limited = esd._limit_lateral_flux(qy, thickness, dt=1.0)
+    assert limited[0, 1] == pytest.approx(0.2)
+
+
+def test_calc_downstream_flux_limited_by_diffusive_capacity():
+    grid = make_grid(dx=1.0, sea_level=100.0)
+    esd = GeoEnthalpyDelta(grid, foreset_threshold=0.5, foreset_diffusivity=2.0)
+    eta = np.array([[3.0], [0.0]])
+    thickness = np.array([[10.0], [10.0]])  # plenty of sediment, not the constraint
+    qy = np.zeros((2, 2))
+    influx = np.array([[1.0], [0.0]])
+    qx = esd._calc_downstream_flux(eta, thickness, qy, influx, dt=1.0)
+    assert qx[0, 0] == pytest.approx(1.0)  # from influx
+    assert qx[1, 0] == pytest.approx(2.0 * (3.0 - 0.5))  # diffusive capacity
+    assert qx[2, 0] == 0.0  # east domain boundary
+
+
+def test_apply_conservative_update_matches_flux_divergence():
+    grid = make_grid(dx=1.0)
+    esd = GeoEnthalpyDelta(grid)
+    thickness = np.array([[1.0]])
+    qx = np.array([[2.0], [0.5]])
+    qy = np.array([[0.3, 0.1]])
+    new_thickness = esd._apply_conservative_update(thickness, qx, qy, dt=1.0)
+    assert new_thickness[0, 0] == pytest.approx(1.0 + (2.0 - 0.5) + (0.3 - 0.1))
+
+
+def test_apply_conservative_update_clips_at_zero():
+    grid = make_grid(dx=1.0)
+    esd = GeoEnthalpyDelta(grid)
+    thickness = np.array([[0.1]])
+    qx = np.array([[0.0], [5.0]])  # large outflow, more than available
+    qy = np.array([[0.0, 0.0]])
+    new_thickness = esd._apply_conservative_update(thickness, qx, qy, dt=1.0)
+    assert new_thickness[0, 0] == 0.0
 
 
 def test_calc_stable_time_step_matches_cfl_formula():
@@ -164,7 +222,7 @@ def test_mass_is_conserved():
     for _ in range(nsteps):
         esd.run_one_step()
 
-    modeled_volume = np.sum(grid.at_node["sediment__thickness"]) * grid.dx * grid.dy
+    modeled_volume = np.sum(esd.sediment_thickness) * grid.dx * grid.dy
     expected_volume = np.sum(grid.at_node["sediment__influx"]) * esd.time_elapsed
     assert modeled_volume == pytest.approx(expected_volume, rel=1e-6)
 
@@ -179,7 +237,7 @@ def test_thickness_stays_nonnegative():
     )
     for _ in range(200):
         esd.run_one_step()
-        assert np.all(grid.at_node["sediment__thickness"] >= 0.0)
+        assert np.all(esd.sediment_thickness >= 0.0)
 
 
 def test_sea_level_is_read_from_grid_field():
@@ -233,7 +291,7 @@ def test_run_one_step_subcycles_dt_larger_than_stable_limit():
 
     assert esd_direct.time_elapsed == pytest.approx(esd_manual.time_elapsed)
     np.testing.assert_allclose(
-        grid_direct.at_node["sediment__thickness"],
-        grid_manual.at_node["sediment__thickness"],
+        esd_direct.sediment_thickness,
+        esd_manual.sediment_thickness,
         atol=1e-12,
     )

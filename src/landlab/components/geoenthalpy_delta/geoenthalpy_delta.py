@@ -36,10 +36,14 @@ class GeoEnthalpyDelta(Component):
 
     The land surface elevation ``eta`` (``topographic__elevation``) is the
     sum of a fixed, non-erodible basement elevation ``eta_b`` and a mobile
-    ``sediment__thickness`` ``H``: ``eta = eta_b + H``. The basement is not
-    a field; it is computed once at construction as
-    ``topographic__elevation - sediment__thickness`` and held fixed
-    internally for the lifetime of the component.
+    sediment thickness ``H``: ``eta = eta_b + H``. Neither the basement nor
+    the sediment thickness is a field; both are tracked internally and
+    held fixed or updated, respectively, only by this component, so
+    another component sharing the grid can't corrupt them. The basement is
+    computed once at construction as
+    ``topographic__elevation - sediment_thickness`` (see
+    :attr:`sediment_thickness` to read the current thickness) and
+    held fixed for the lifetime of the component.
 
     Lateral (grid-y) fluxes between neighboring nodes are calculated first,
     limited so that no node can lose more sediment than it holds. Downstream
@@ -70,7 +74,7 @@ class GeoEnthalpyDelta(Component):
     >>> sea_level = grid.add_field("sea_level__elevation", -5.0, at="grid")
     >>> influx = grid.add_zeros("sediment__influx", at="node")
     >>> influx.reshape(grid.shape)[20:25, 0] = 0.1  # feeder on the west edge
-    >>> esd = GeoEnthalpyDelta(
+    >>> component = GeoEnthalpyDelta(
     ...     grid,
     ...     topset_threshold=(0.1, 0.1),
     ...     foreset_threshold=(2.0, 2.0),
@@ -79,11 +83,11 @@ class GeoEnthalpyDelta(Component):
     ... )
     >>> nsteps = 50
     >>> for _ in range(nsteps):
-    ...     esd.run_one_step()  # dt chosen automatically for CFL stability
-    ...     esd.sea_level += 0.1  # sea level rises by 0.1 per step, set externally
+    ...     component.run_one_step()  # dt chosen automatically for CFL stability
+    ...     component.sea_level += 0.1  # sea level rises by 0.1/step, set externally
     ...
-    >>> model_volume = np.sum(grid.at_node["sediment__thickness"]) * grid.dx * grid.dy
-    >>> expected_volume = np.sum(influx) * esd.time_elapsed
+    >>> model_volume = np.sum(component.sediment_thickness) * grid.dx * grid.dy
+    >>> expected_volume = np.sum(influx) * component.time_elapsed
     >>> np.isclose(model_volume, expected_volume, rtol=1e-6)
     True
 
@@ -115,14 +119,6 @@ class GeoEnthalpyDelta(Component):
             "mapping": "node",
             "doc": "Land surface topographic elevation",
         },
-        "sediment__thickness": {
-            "dtype": float,
-            "intent": "out",
-            "optional": False,
-            "units": "-",
-            "mapping": "node",
-            "doc": "Thickness of the mobile sediment deposit",
-        },
         "sea_level__elevation": {
             "dtype": float,
             "intent": "in",
@@ -146,6 +142,7 @@ class GeoEnthalpyDelta(Component):
     def __init__(
         self,
         grid,
+        sediment_thickness=0.0,
         topset_threshold=0.0,
         foreset_threshold=2.0,
         topset_diffusivity=1.0,
@@ -156,16 +153,17 @@ class GeoEnthalpyDelta(Component):
 
         ``topographic__elevation``, ``sea_level__elevation``, and
         ``sediment__influx`` must already exist on the grid before this
-        component is constructed. ``sediment__thickness`` is optional; if
-        not supplied, it defaults to zero everywhere. The component has no
-        ``basement__elevation`` field: a fixed, non-erodible basement is
-        computed once at construction as
-        ``topographic__elevation - sediment__thickness`` and held
+        component is constructed. The component has no
+        ``basement__elevation`` or ``sediment__thickness`` field: instead,
+        it tracks a fixed, non-erodible basement and the mobile sediment
+        thickness internally (see :attr:`sediment_thickness`), so
+        neither can be corrupted by another component writing to a shared
+        grid field. The basement is computed once at construction as
+        ``topographic__elevation - sediment_thickness`` and held
         internally, never updated afterward. This means the initial
-        ``topographic__elevation`` you supply (e.g. from a DEM) is only
-        ever the basement if ``sediment__thickness`` is zero; if you seed
-        a nonzero initial thickness, ``topographic__elevation`` should
-        already include it.
+        ``topographic__elevation`` you supply (e.g. from a DEM) should
+        already include any sediment thickness you pass in via
+        *sediment_thickness*.
 
         Sea level and sediment supply are both external forcing:
 
@@ -182,6 +180,9 @@ class GeoEnthalpyDelta(Component):
         Parameters
         ----------
         grid : RasterModelGrid
+        sediment_thickness : float or array_like, optional
+            Initial sediment thickness at each node. A scalar applies
+            everywhere. Must be non-negative.
         topset_threshold : float or (float, float), optional
             Critical slope thresholds, in the grid-x and grid-y directions
             respectively, above which topset (subaerial) transport occurs.
@@ -212,11 +213,13 @@ class GeoEnthalpyDelta(Component):
 
         super().__init__(grid)
 
-        self.initialize_output_fields()
-
-        self._basement = (
-            grid.at_node["topographic__elevation"] - grid.at_node["sediment__thickness"]
+        sediment_thickness = require_nonnegative(
+            sediment_thickness, name="sediment_thickness"
         )
+        self._thickness = np.broadcast_to(
+            sediment_thickness, (grid.number_of_nodes,)
+        ).astype(float)
+        self._basement = grid.at_node["topographic__elevation"] - self._thickness
 
         require_nonnegative(topset_threshold, name="topset_threshold")
         require_nonnegative(foreset_threshold, name="foreset_threshold")
@@ -253,6 +256,15 @@ class GeoEnthalpyDelta(Component):
     def sea_level(self, sea_level):
         self.grid.at_grid["sea_level__elevation"] = float(sea_level)
 
+    @property
+    def sediment_thickness(self):
+        """Thickness of the mobile sediment deposit at each node.
+
+        Tracked internally rather than as a field, so it can't be
+        corrupted by another component writing to a shared grid field.
+        """
+        return self._thickness
+
     def _calc_stable_time_step(self):
         """Calculate a Courant-Friedrichs-Lewy limited stable time step.
         https://en.wikipedia.org/wiki/Courant%E2%80%93Friedrichs%E2%80%93Lewy_condition
@@ -275,6 +287,77 @@ class GeoEnthalpyDelta(Component):
             2.0 * d_max * (1.0 / self.grid.dx**2 + 1.0 / self.grid.dy**2)
         )
 
+    def _calc_lateral_flux(self, eta):
+        """Calculate candidate signed lateral (grid-y) flux, positive in +y."""
+        Ctop_y = self._topset_threshold[1]
+        Cfore_y = self._foreset_threshold[1]
+        Dtop_y = self._topset_diffusivity[1]
+        Dfore_y = self._foreset_diffusivity[1]
+        Z = self.sea_level
+
+        nx, ny = eta.shape
+        qy = np.zeros((nx, ny + 1))
+
+        slope = (eta[:, :-1] - eta[:, 1:]) / self.grid.dy
+        donor_top = np.where(slope >= 0.0, eta[:, :-1] >= Z, eta[:, 1:] >= Z)
+        D = np.where(donor_top, Dtop_y, Dfore_y)
+        C = np.where(donor_top, Ctop_y, Cfore_y)
+        excess = np.abs(slope) - C
+        qy[:, 1:-1] = np.where(
+            excess > 0.0, np.where(slope >= 0.0, D * excess, -D * excess), 0.0
+        )
+        return qy
+
+    def _limit_lateral_flux(self, qy, thickness, dt):
+        """Limit lateral flux so no node loses more sediment than it holds."""
+        tiny = 1.0e-30
+        out_rate = np.where(
+            qy[:, :-1] < 0.0, -qy[:, :-1] / self.grid.dy, 0.0
+        ) + np.where(qy[:, 1:] > 0.0, qy[:, 1:] / self.grid.dy, 0.0)
+        f = (thickness / dt) / (out_rate + tiny)
+        fac_y = np.where(out_rate > 0.0, np.clip(f, 0.0, 1.0), 1.0)
+        face = qy[:, 1:-1]
+        limited = qy.copy()
+        limited[:, 1:-1] = np.where(
+            face >= 0.0, fac_y[:, :-1] * face, fac_y[:, 1:] * face
+        )
+        return limited
+
+    def _calc_downstream_flux(self, eta, thickness, qy, influx, dt):
+        """Calculate downstream (grid-x) flux node-by-node from west to east.
+
+        qx[i + 1] depends on qx[i], so the loop over grid-x rows is
+        inherently sequential, but each row is vectorized over grid-y.
+        """
+        Ctop_x = self._topset_threshold[0]
+        Cfore_x = self._foreset_threshold[0]
+        Dtop_x = self._topset_diffusivity[0]
+        Dfore_x = self._foreset_diffusivity[0]
+        Z = self.sea_level
+
+        nx, ny = eta.shape
+        qx = np.zeros((nx + 1, ny))
+        qx[0, :] = influx[0, :] / self.grid.dy
+
+        for i in range(nx - 1):
+            slope = (eta[i, :] - eta[i + 1, :]) / self.grid.dx
+            donor_top = eta[i, :] >= Z
+            D = np.where(donor_top, Dtop_x, Dfore_x)
+            C = np.where(donor_top, Ctop_x, Cfore_x)
+            candidate = np.where(slope > C, D * (slope - C), 0.0)
+            lateral_net = (qy[i, :-1] - qy[i, 1:]) / self.grid.dy
+            available = qx[i, :] + self.grid.dx * (thickness[i, :] / dt + lateral_net)
+            qx[i + 1, :] = np.minimum(candidate, np.maximum(available, 0.0))
+
+        return qx
+
+    def _apply_conservative_update(self, thickness, qx, qy, dt):
+        """Update sediment thickness from the net flux divergence at each node."""
+        rate = (qx[:-1, :] - qx[1:, :]) / self.grid.dx + (
+            qy[:, :-1] - qy[:, 1:]
+        ) / self.grid.dy
+        return np.maximum(thickness + dt * rate, 0.0)
+
     def _advance_substep(self, basement, thickness, influx, dt):
         """Advance sediment thickness ``thickness`` by one explicit time step.
 
@@ -296,59 +379,11 @@ class GeoEnthalpyDelta(Component):
         ndarray
             The updated sediment thickness, in (x, y) grid order.
         """
-        H = thickness
-        qdens = influx[0, :] / self.grid.dy
-        Z = self.sea_level
-        Ctop_x, Ctop_y = self._topset_threshold
-        Cfore_x, Cfore_y = self._foreset_threshold
-        Dtop_x, Dtop_y = self._topset_diffusivity
-        Dfore_x, Dfore_y = self._foreset_diffusivity
-
-        nx, ny = basement.shape
-        eta = basement + H
-        qx = np.zeros((nx + 1, ny))
-        qy = np.zeros((nx, ny + 1))
-
-        qx[0, :] = qdens
-
-        # Candidate signed lateral fluxes, positive in +y.
-        slope = (eta[:, :-1] - eta[:, 1:]) / self.grid.dy
-        donor_top = np.where(slope >= 0.0, eta[:, :-1] >= Z, eta[:, 1:] >= Z)
-        D = np.where(donor_top, Dtop_y, Dfore_y)
-        C = np.where(donor_top, Ctop_y, Cfore_y)
-        excess = np.abs(slope) - C
-        qy[:, 1:-1] = np.where(
-            excess > 0.0, np.where(slope >= 0.0, D * excess, -D * excess), 0.0
-        )
-
-        # Lateral donor limiter.
-        tiny = 1.0e-30
-        out_rate = np.where(
-            qy[:, :-1] < 0.0, -qy[:, :-1] / self.grid.dy, 0.0
-        ) + np.where(qy[:, 1:] > 0.0, qy[:, 1:] / self.grid.dy, 0.0)
-        f = (H / dt) / (out_rate + tiny)
-        fac_y = np.where(out_rate > 0.0, np.clip(f, 0.0, 1.0), 1.0)
-        face = qy[:, 1:-1]
-        qy[:, 1:-1] = np.where(face >= 0.0, fac_y[:, :-1] * face, fac_y[:, 1:] * face)
-
-        # Sequential downstream limiter, including incoming and lateral flux.
-        # qx[i + 1] depends on qx[i], so the loop over grid-x rows is
-        # inherently sequential, but each row is vectorized over grid-y.
-        for i in range(nx - 1):
-            slope = (eta[i, :] - eta[i + 1, :]) / self.grid.dx
-            donor_top = eta[i, :] >= Z
-            D = np.where(donor_top, Dtop_x, Dfore_x)
-            C = np.where(donor_top, Ctop_x, Cfore_x)
-            candidate = np.where(slope > C, D * (slope - C), 0.0)
-            lateral_net = (qy[i, :-1] - qy[i, 1:]) / self.grid.dy
-            available = qx[i, :] + self.grid.dx * (H[i, :] / dt + lateral_net)
-            qx[i + 1, :] = np.minimum(candidate, np.maximum(available, 0.0))
-
-        # Conservative update. Basement is fixed and H is clipped only at zero.
-        rate = (qx[:-1, :] - qx[1:, :]) / self.grid.dx + (
-            qy[:, :-1] - qy[:, 1:]
-        ) / self.grid.dy
-        return np.maximum(H + dt * rate, 0.0)
+        eta = basement + thickness
+        qy = self._calc_lateral_flux(eta)
+        qy = self._limit_lateral_flux(qy, thickness, dt)
+        qx = self._calc_downstream_flux(eta, thickness, qy, influx, dt)
+        return self._apply_conservative_update(thickness, qx, qy, dt)
 
     def run_one_step(self, dt=None):
         """Advance the sediment diffusion model by a time step ``dt``.
@@ -371,11 +406,9 @@ class GeoEnthalpyDelta(Component):
         n_steps = math.ceil(dt / stable_dt)
         substep_dt = dt / n_steps
 
-        # _advance_substep takes 2D arrays, so reshape the flat node fields
-        # into explicit H_xy, basement_xy parameters.
-        H_xy = (
-            self.grid.at_node["sediment__thickness"].reshape(self.grid.shape).T.copy()
-        )
+        # _advance_substep takes 2D arrays, so reshape the flat internal
+        # state into explicit H_xy, basement_xy parameters.
+        H_xy = self._thickness.reshape(self.grid.shape).T.copy()
         basement_xy = self._basement.reshape(self.grid.shape).T
         influx_xy = self.grid.at_node["sediment__influx"].reshape(self.grid.shape).T
 
@@ -384,6 +417,7 @@ class GeoEnthalpyDelta(Component):
             H_xy = self._advance_substep(basement_xy, H_xy, influx_xy, substep_dt)
             self._time_elapsed += substep_dt
 
-        thickness = H_xy.T.reshape(-1)
-        self.grid.at_node["sediment__thickness"][:] = thickness
-        self.grid.at_node["topographic__elevation"][:] = self._basement + thickness
+        self._thickness = H_xy.T.reshape(-1)
+        self.grid.at_node["topographic__elevation"][:] = (
+            self._basement + self._thickness
+        )
