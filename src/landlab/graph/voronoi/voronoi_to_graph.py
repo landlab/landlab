@@ -353,7 +353,7 @@ class VoronoiDelaunayToGraph(VoronoiDelaunay):
         # order perimeter nodes as a single closed ring
         start = next(iter(adj))
         ring = [start]
-        prev, cur = -1, start
+        prev, cur = None, start
         while True:
             n1, n2 = adj[cur]
             nxt = n1 if n1 != prev else n2
@@ -361,6 +361,19 @@ class VoronoiDelaunayToGraph(VoronoiDelaunay):
                 break
             ring.append(nxt)
             prev, cur = cur, nxt
+
+        if len(ring) != len(adj):
+            warnings.warn(
+                "Invalid perimeter_links:\n"
+                "Perimeter links must form one closed boundary loop.\n"
+                "Perimeter links appear to form multiple disconnected loops.\n"
+                "Links outside the boundary defined by perimeter_links "
+                "may not be fully removed.",
+                UserWarning,
+                stacklevel=2,
+            )
+
+            return np.zeros(len(non_perimeter_links), dtype=bool)
 
         # check if midpoints of links are within the ring
         polygon = Path(np.column_stack([self.x_of_node[ring], self.y_of_node[ring]]))
