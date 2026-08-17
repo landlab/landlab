@@ -451,9 +451,7 @@ class GeoEnthalpyDelta(Component):
         # between calls is picked up as a shift in basement, while our
         # tracked thickness is left untouched.
         old_thickness = self._thickness.reshape(self.grid.shape)
-        elevation = self.grid.at_node["topographic__elevation"].reshape(
-            self.grid.shape
-        )
+        elevation = self.grid.at_node["topographic__elevation"].reshape(self.grid.shape)
         basement = elevation - old_thickness
         influx = self.grid.at_node["sediment__influx"].reshape(self.grid.shape)
         require_nonnegative(influx, name="sediment__influx")
