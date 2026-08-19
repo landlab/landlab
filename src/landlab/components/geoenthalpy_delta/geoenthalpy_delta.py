@@ -20,6 +20,19 @@ def _normalize_as_xy(value):
     return tuple(float(v) for v in np.broadcast_to(value, (2,)))
 
 
+def _validate_boundary_conditions(grid):
+    if np.any(grid.status_at_node != grid.BC_NODE_IS_CORE):
+        raise ValueError(
+            "GeoEnthalpyDelta computes sediment transport at every node, "
+            "including the grid's perimeter, and does not honor any "
+            "boundary condition: every node must have status "
+            "BC_NODE_IS_CORE. Found one or more nodes with a different "
+            "status (e.g. fixed value, fixed gradient, or closed) in "
+            "status_at_node; set every node to core before calling "
+            "run_one_step."
+        )
+
+
 class GeoEnthalpyDelta(Component):
     """
     Simulate 2D sediment diffusion, transport, and deposition using an
@@ -62,11 +75,11 @@ class GeoEnthalpyDelta(Component):
     this component requires a :class:`~.RasterModelGrid`.
 
     Every node, including those on the grid's perimeter, is part of the
-    active transport domain; no distinction is made based on
-    ``status_at_node``, except that construction raises a ``ValueError``
-    if any node is closed (``BC_NODE_IS_CLOSED``), since this component
-    would otherwise silently compute transport there anyway. No flux
-    crosses the grid's outer edges: sediment can only enter through
+    active transport domain, so :meth:`run_one_step` requires every node
+    to have status ``BC_NODE_IS_CORE`` and raises a ``ValueError``
+    otherwise, since this component would otherwise silently compute
+    transport on nodes the grid says are fixed, closed, or looped. No
+    flux crosses the grid's outer edges: sediment can only enter through
     ``sediment__influx`` and never leaves the domain.
 
     Examples
@@ -77,6 +90,7 @@ class GeoEnthalpyDelta(Component):
     >>> nrows, ncols = 50, 50
     >>> dx = dy = 0.2
     >>> grid = RasterModelGrid((nrows, ncols), xy_spacing=dx)
+    >>> grid.status_at_node[:] = grid.BC_NODE_IS_CORE
     >>> x = grid.x_of_node.reshape(grid.shape)
     >>> x[0, 1], x[0, -1]
     (0.2, 9.8)
@@ -177,9 +191,13 @@ class GeoEnthalpyDelta(Component):
         *sediment_thickness*.
 
         This component transports sediment at every node, including the
-        grid's perimeter, and raises ``ValueError`` if the grid has any
-        closed nodes (``status_at_node == grid.BC_NODE_IS_CLOSED``); no
-        other ``status_at_node`` distinction is honored.
+        grid's perimeter. Every call to :meth:`run_one_step` requires
+        every node to have status ``BC_NODE_IS_CORE``
+        (``grid.status_at_node[:] = grid.BC_NODE_IS_CORE`` on a default
+        grid) and raises ``ValueError`` otherwise; boundary conditions
+        are checked there rather than here, since they may not be
+        finalized yet at construction time and can change between
+        calls.
 
         Sea level and sediment supply are both external forcing:
 
@@ -227,15 +245,6 @@ class GeoEnthalpyDelta(Component):
                 "GeoEnthalpyDelta requires a RasterModelGrid because "
                 "its explicit finite-volume scheme assumes a uniform, "
                 "structured (x, y) grid."
-            )
-
-        if np.any(grid.status_at_node == grid.BC_NODE_IS_CLOSED):
-            raise ValueError(
-                "GeoEnthalpyDelta computes sediment transport at every "
-                "node, including the grid's perimeter, and does not honor "
-                "closed boundary nodes. The grid has one or more closed "
-                "nodes in status_at_node; open them before constructing "
-                "the component."
             )
 
         super().__init__(grid)
@@ -435,6 +444,7 @@ class GeoEnthalpyDelta(Component):
             Time step duration. If not given, a single CFL-stable substep
             is taken. Must be positive and finite.
         """
+        _validate_boundary_conditions(self.grid)
         stable_dt = self._calc_stable_time_step()
         if dt is None:
             dt = stable_dt

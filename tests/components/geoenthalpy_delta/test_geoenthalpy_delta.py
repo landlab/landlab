@@ -20,7 +20,8 @@ from landlab.field.errors import FieldError
 
 
 def make_grid(nrows=20, ncols=30, dx=0.5, dy=0.5, sea_level=0.0):
-    grid = RasterModelGrid((nrows, ncols), xy_spacing=(dx))
+    grid = RasterModelGrid((nrows, ncols), xy_spacing=(dx, dy))
+    grid.status_at_node[:] = grid.BC_NODE_IS_CORE
     x = grid.x_of_node.reshape(grid.shape)
     topo = grid.add_zeros("topographic__elevation", at="node")
     topo[:] = (-x).reshape(-1)
@@ -60,16 +61,31 @@ def test_missing_topographic_elevation_field_raises():
 def test_closed_boundary_nodes_raise():
     grid = make_grid()
     grid.status_at_node[0] = grid.BC_NODE_IS_CLOSED
+    esd = GeoEnthalpyDelta(grid)
     with pytest.raises(ValueError):
-        GeoEnthalpyDelta(grid)
+        esd.run_one_step()
 
 
-def test_default_fixed_value_boundary_is_accepted():
-    # RasterModelGrid's default perimeter status (FIXED_VALUE) should not
-    # be rejected, since this component doesn't honor it either way.
-    grid = make_grid()
+def test_default_fixed_value_boundary_raises():
+    # RasterModelGrid's default perimeter status is FIXED_VALUE, not
+    # CORE, and every node must be core for run_one_step to proceed.
+    grid = RasterModelGrid((20, 30), xy_spacing=0.5)
+    topo = grid.add_zeros("topographic__elevation", at="node")
+    topo[:] = -grid.x_of_node
+    grid.add_zeros("sediment__influx", at="node")
+    grid.add_field("sea_level__elevation", 0.0, at="grid")
     assert np.any(grid.status_at_node == grid.BC_NODE_IS_FIXED_VALUE)
-    GeoEnthalpyDelta(grid)  # should not raise
+
+    esd = GeoEnthalpyDelta(grid)
+    with pytest.raises(ValueError):
+        esd.run_one_step()
+
+
+def test_all_core_boundary_is_accepted():
+    grid = make_grid()
+    assert np.all(grid.status_at_node == grid.BC_NODE_IS_CORE)
+    esd = GeoEnthalpyDelta(grid)
+    esd.run_one_step()  # should not raise
 
 
 def test_thresholds_must_be_nonnegative():
@@ -175,7 +191,7 @@ def test_influx_only_enters_at_specified_west_boundary_nodes():
 
 
 def test_calc_lateral_flux_below_threshold_is_zero():
-    grid = make_grid(dx=1.0, sea_level=100.0)
+    grid = make_grid(dx=1.0, dy=1.0, sea_level=100.0)
     esd = GeoEnthalpyDelta(grid, foreset_threshold=0.5, foreset_diffusivity=3.0)
     eta = np.array([[0.2], [0.0]])  # |slope| = 0.2 < threshold 0.5
     qy = esd._calc_lateral_flux(eta)
@@ -183,7 +199,7 @@ def test_calc_lateral_flux_below_threshold_is_zero():
 
 
 def test_calc_lateral_flux_above_threshold_matches_formula():
-    grid = make_grid(dx=1.0, sea_level=100.0)
+    grid = make_grid(dx=1.0, dy=1.0, sea_level=100.0)
     esd = GeoEnthalpyDelta(grid, foreset_threshold=0.5, foreset_diffusivity=3.0)
     eta = np.array([[2.0], [0.0]])  # slope = 2.0, above threshold
     qy = esd._calc_lateral_flux(eta)
@@ -193,7 +209,7 @@ def test_calc_lateral_flux_above_threshold_matches_formula():
 
 
 def test_limit_lateral_flux_caps_outflow_to_available_thickness():
-    grid = make_grid(dx=1.0)
+    grid = make_grid(dx=1.0, dy=1.0)
     esd = GeoEnthalpyDelta(grid)
     thickness = np.array([[0.2], [5.0]])  # node 0 can only supply 0.2 in dt=1.0
     qy = np.array([[0.0], [5.0], [0.0]])  # candidate flux leaving node 0 is 5.0
@@ -202,7 +218,7 @@ def test_limit_lateral_flux_caps_outflow_to_available_thickness():
 
 
 def test_calc_downstream_flux_limited_by_diffusive_capacity():
-    grid = make_grid(dx=1.0, sea_level=100.0)
+    grid = make_grid(dx=1.0, dy=1.0, sea_level=100.0)
     esd = GeoEnthalpyDelta(grid, foreset_threshold=0.5, foreset_diffusivity=2.0)
     eta = np.array([[3.0, 0.0]])
     thickness = np.array([[10.0, 10.0]])  # plenty of sediment, not the constraint
@@ -214,7 +230,7 @@ def test_calc_downstream_flux_limited_by_diffusive_capacity():
 
 
 def test_advance_substep_mixes_influx_into_thickness_at_any_node():
-    grid = make_grid(dx=1.0, sea_level=100.0)
+    grid = make_grid(dx=1.0, dy=1.0, sea_level=100.0)
     esd = GeoEnthalpyDelta(grid, foreset_threshold=100.0, foreset_diffusivity=1.0)
     basement = np.zeros((3, 3))
     thickness = np.zeros((3, 3))
@@ -231,7 +247,7 @@ def test_advance_substep_mixes_influx_into_thickness_at_any_node():
 
 
 def test_apply_conservative_update_matches_flux_divergence():
-    grid = make_grid(dx=1.0)
+    grid = make_grid(dx=1.0, dy=1.0)
     esd = GeoEnthalpyDelta(grid)
     thickness = np.array([[1.0]])
     qx = np.array([[2.0, 0.5]])
@@ -241,7 +257,7 @@ def test_apply_conservative_update_matches_flux_divergence():
 
 
 def test_apply_conservative_update_clips_at_zero():
-    grid = make_grid(dx=1.0)
+    grid = make_grid(dx=1.0, dy=1.0)
     esd = GeoEnthalpyDelta(grid)
     thickness = np.array([[0.1]])
     qx = np.array([[0.0, 5.0]])  # large outflow, more than available
@@ -263,8 +279,40 @@ def test_calc_stable_time_step_matches_cfl_formula():
     assert esd._calc_stable_time_step() == pytest.approx(expected)
 
 
+def test_calc_stable_time_step_matches_cfl_formula_with_dx_ne_dy():
+    grid = make_grid(dx=0.2, dy=0.4)  # non-even spacing
+    assert grid.dx != grid.dy
+    esd = GeoEnthalpyDelta(
+        grid,
+        topset_diffusivity=(1.0, 1.0),
+        foreset_diffusivity=(3.0, 2.0),
+        cfl=0.4,
+    )
+    d_max = 3.0
+    expected = 0.4 / (2.0 * d_max * (1.0 / 0.2**2 + 1.0 / 0.4**2))
+    assert esd._calc_stable_time_step() == pytest.approx(expected)
+
+
 def test_mass_is_conserved():
     grid = make_grid(nrows=20, ncols=40, dx=0.2, dy=0.2, sea_level=-5.0)
+    set_west_boundary_influx(grid, total_flux=0.5, width=1.0)
+    esd = GeoEnthalpyDelta(
+        grid,
+        topset_threshold=(0.25, 0.1),
+        foreset_threshold=(2.0, 2.0),
+    )
+    nsteps = 200
+    for _ in range(nsteps):
+        esd.run_one_step()
+
+    modeled_volume = np.sum(esd.sediment_thickness) * grid.dx * grid.dy
+    expected_volume = np.sum(grid.at_node["sediment__influx"]) * esd.time_elapsed
+    assert modeled_volume == pytest.approx(expected_volume, rel=1e-6)
+
+
+def test_mass_is_conserved_with_dx_ne_dy():
+    grid = make_grid(nrows=20, ncols=40, dx=0.2, dy=0.4, sea_level=-5.0)
+    assert grid.dx != grid.dy
     set_west_boundary_influx(grid, total_flux=0.5, width=1.0)
     esd = GeoEnthalpyDelta(
         grid,
