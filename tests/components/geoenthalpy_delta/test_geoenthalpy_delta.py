@@ -30,16 +30,15 @@ def make_grid(nrows=20, ncols=30, dx=0.5, dy=0.5, sea_level=0.0):
     return grid
 
 
-def set_west_boundary_influx(grid, total_flux, width, y_center=None):
+def set_west_boundary_influx(grid, total_flux, width):
     """Populate sediment__influx at west-boundary nodes.
 
-    Mimics the component's old feeder_width/feeder_y_center semantics:
-    total_flux is spread evenly over the west-boundary nodes within
-    width of y_center (grid's y-midpoint by default).
+    Mimics the component's old feeder_width semantics: total_flux is
+    spread evenly over the west-boundary nodes within width of the
+    grid's y-midpoint.
     """
     y_of_row = grid.y_of_node.reshape(grid.shape)[:, 0]
-    if y_center is None:
-        y_center = 0.5 * (y_of_row.min() + y_of_row.max())
+    y_center = 0.5 * (y_of_row.min() + y_of_row.max())
     mask = np.abs(y_of_row - y_center) <= 0.5 * width + 1.0e-12
     influx_xy = grid.at_node["sediment__influx"].reshape(grid.shape)
     influx_xy[mask, 0] = total_flux / np.count_nonzero(mask)
