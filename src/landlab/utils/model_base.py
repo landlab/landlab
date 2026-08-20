@@ -1,16 +1,6 @@
 #! /usr/bin/env python
 # coding: utf-8
 
-# NOTE: SEE ABOUT USING PYTHON CHAIN_MAP IN PYTHON COLLECTIONS
-#
-# from collections import ChainMap
-# a = {"x": 1, "y": 2}
-# b = {"y": 20, "z": 30}
-# c = ChainMap(a, b)
-# c["x"]   # 1
-# c["y"]   # 2
-# c["z"]   # 30
-
 # # Base class for a grid-based Landlab model
 #
 # This code defines LandlabModel, a Python class that is designed to make it easier
@@ -18,7 +8,7 @@
 # a class that inherits from LandlabModel and adds the functionality needed to
 # implement their model. LandlabModel provides code to handle formatted user input,
 # in the form of either a Python dictionary or the name of a yaml-format input
-# file (given as a string). The LandlabModel __init__() method will combine the 
+# file (given as a string). The LandlabModel __init__() method will combine the
 # user inputs with a set of default parameter values defined in the derived
 # class header (for parameters whose value has not been specified by the user).
 # For model execution, the user simply needs to override the built-in update()
@@ -53,6 +43,7 @@ def verify_input_file_and_load_params(input_file: str) -> dict:
     -------
     dict containing parameter names and values
     """
+
     from landlab import load_params
 
     try:
@@ -91,7 +82,6 @@ def merge_user_and_default_params(user_params: dict, default_params: dict) -> No
     {'RasterModelGrid': []}
     """
     for k in default_params.keys():
-        # if k in default_params:
         if k not in user_params.keys():
             user_params[k] = default_params[k]
         elif (
@@ -102,9 +92,7 @@ def merge_user_and_default_params(user_params: dict, default_params: dict) -> No
             merge_user_and_default_params(user_params[k], default_params[k])
 
 
-def get_or_create_node_field(
-    grid, name: str, dtype: str = "float64"
-) -> np.ndarray:
+def get_or_create_node_field(grid, name: str, dtype: str = "float64") -> np.ndarray:
     """
     Get handle to a grid field if it exists, otherwise create it.
 
@@ -120,6 +108,18 @@ def get_or_create_node_field(
     Returns
     -------
     ndarray : the field as an array
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> g = RasterModelGrid((3, 3))
+    >>> f = g.add_field("field1", np.arange(9), at="node")
+    >>> get_or_create_node_field(g, "field1")
+    array([0, 1, 2, 3, 4, 5, 6, 7, 8])
+    >>> get_or_create_node_field(g, "field2")
+    array([0., 0., 0., 0., 0., 0., 0., 0., 0.])
+    >>> "field2" in g.at_node.keys()
+    True
     """
     try:
         return grid.at_node[name]
@@ -195,17 +195,24 @@ def _get_pause_time_list_and_next(time_info, clock_dict, no_first_pause=False):
     -------
     list : list of simulation times at which to pause for a given action
     float : the next time at which to pause
+
+    Examples
+    --------
+    >>> cldict = {"start": 0.0, "step": 1.0, "stop": 4.0}
+    >>> _get_pause_time_list_and_next(1.0, cldict)
+        ([1.0, 2.0, 3.0, 4.0], 0.0)
+    >>> _get_pause_time_list_and_next(1.0, cldict, no_first_pause=True)
+    ([2.0, 3.0, 4.0], 1.0)
+    >>> _get_pause_time_list_and_next([0.0, 0.5, 2.0, 4.0], cldict)
+    ([0.5, 2.0, 4.0], 0.0)
     """
     if isinstance(time_info, float) or isinstance(time_info, int):
         start = clock_dict["start"]
         if no_first_pause:
             start += time_info
-        pause_times = list(
-            np.arange(start, clock_dict["stop"] + 2 * time_info, time_info)
-        )
+        pause_times = list(np.arange(start, clock_dict["stop"] + time_info, time_info))
     elif isinstance(time_info, list):
         pause_times = time_info.copy()
-        pause_times.append(clock_dict["stop"] + 1.0)
     else:
         print("time_info must be of type float or list, not", type(time_info))
         raise (TypeError)
@@ -216,7 +223,7 @@ def _get_pause_time_list_and_next(time_info, clock_dict, no_first_pause=False):
 class LandlabModel:
     """
     Base class for a generic Landlab grid-based model.
-    
+
     Examples
     --------
     >>> from landlab.utils import LandlabModel
@@ -343,8 +350,8 @@ class LandlabModel:
         from landlab.io.native_landlab import load_grid
 
         if grid_params["source"] == "create":
-            #print("Create here...")
-            #print(grid_params["create_grid"])
+            # print("Create here...")
+            # print(grid_params["create_grid"])
             self.grid = create_grid(grid_params, section="create_grid")
         elif grid_params["source"] == "file":
             self.grid = load_grid(grid_params["grid_file_name"])
@@ -479,7 +486,7 @@ class LandlabModel:
     def update(self, dt: float) -> None:
         """
         Advance the model by one time step of duration dt.
-        
+
         The derived class should override this function.
         """
         self.current_time += dt
@@ -533,6 +540,8 @@ if __name__ == "__main__":
     the defaults defined above in the class header.
     """
     if len(sys.argv) > 1:
+        from landlab import load_params
+
         params = load_params(sys.argv[1])
         sim = LandlabModel(params)
     else:
