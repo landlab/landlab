@@ -1,5 +1,4 @@
 #! /usr/bin/env python
-# coding: utf-8
 
 # # Base class for a grid-based Landlab model
 #
@@ -47,7 +46,7 @@ def verify_input_file_and_load_params(input_file: str) -> dict:
     from landlab import load_params
 
     try:
-        f = open(input_file, "r")
+        f = open(input_file)
         f.close()
         params = load_params(input_file)
         return params
@@ -149,9 +148,9 @@ def read_arrays_from_files(params):
     >>> np.save("test3", 1.5 * np.arange(3).reshape((3, 1)))
     >>> p = {
     ...     "a": 123,
-    ...     "b": {"c": 456, "d": {"_filepath" : "test1.npy"}},
-    ...     "e": {"_filepath" : "test2.npy"},
-    ...     "f": {"_filepath" : "test3.npy"}
+    ...     "b": {"c": 456, "d": {"_filepath": "test1.npy"}},
+    ...     "e": {"_filepath": "test2.npy"},
+    ...     "f": {"_filepath": "test3.npy"},
     ... }
     >>> p = read_arrays_from_files(p)
     >>> p["b"]["d"]
@@ -230,12 +229,10 @@ class LandlabModel:
     >>> class MyModel(LandlabModel):
     ...     def __init__(self, params):
     ...         super().__init__(params=params)
+    ...
     >>> p = {"grid": {"source": "create"}}
     >>> p["grid"]["create_grid"] = {
-    ...     "RasterModelGrid": {
-    ...         "shape": (4, 5),
-    ...         "xy_spacing": 2.0
-    ...     }
+    ...     "RasterModelGrid": {"shape": (4, 5), "xy_spacing": 2.0}
     ... }
     >>> model = MyModel(params=p)
     >>> model.grid.shape
@@ -321,10 +318,7 @@ class LandlabModel:
         --------
         >>> p = {"grid": {"source": "create"}}
         >>> p["grid"]["create_grid"] = {
-        ...     "RasterModelGrid": {
-        ...         "shape": (4, 5),
-        ...         "xy_spacing": 2.0
-        ...     }
+        ...     "RasterModelGrid": {"shape": (4, 5), "xy_spacing": 2.0}
         ... }
         >>> sim = LandlabModel(params=p)
         >>> sim.grid.shape
@@ -346,7 +340,8 @@ class LandlabModel:
         >>> assert_raises(ValueError, LandlabModel, p)
         grid_object must be a Landlab grid.
         """
-        from landlab import ModelGrid, create_grid
+        from landlab import ModelGrid
+        from landlab import create_grid
         from landlab.io.native_landlab import load_grid
 
         if grid_params["source"] == "create":
