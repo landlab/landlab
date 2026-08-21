@@ -1362,6 +1362,35 @@ mapping = 'node'
 optional = false
 units = '-'
 
+[components.GeoEnthalpyDelta]
+name = 'landlab.components.geoenthalpy_delta.geoenthalpy_delta.GeoEnthalpyDelta'
+unit_agnostic = true
+summary = 'Simulate 2D sediment diffusion, transport, and deposition using an'
+
+[components.GeoEnthalpyDelta.info.sea_level__elevation]
+doc = 'Sea level elevation'
+dtype = 'float64'
+intent = 'in'
+mapping = 'grid'
+optional = false
+units = '-'
+
+[components.GeoEnthalpyDelta.info.sediment__influx]
+doc = 'Sediment flux (volume per unit time of sediment entering each node)'
+dtype = 'float64'
+intent = 'in'
+mapping = 'node'
+optional = false
+units = '-'
+
+[components.GeoEnthalpyDelta.info.topographic__elevation]
+doc = 'Land surface topographic elevation'
+dtype = 'float64'
+intent = 'inout'
+mapping = 'node'
+optional = false
+units = '-'
+
 [components.GravelBedrockEroder]
 name = 'landlab.components.gravel_bedrock_eroder.gravel_bedrock_eroder.GravelBedrockEroder'
 unit_agnostic = true
@@ -4765,6 +4794,7 @@ provided_by = []
 desc = 'Sea level elevation'
 used_by = [
   'landlab.components.carbonate.carbonate_producer.CarbonateProducer',
+  'landlab.components.geoenthalpy_delta.geoenthalpy_delta.GeoEnthalpyDelta',
   'landlab.components.marine_sediment_transport.simple_submarine_diffuser.SimpleSubmarineDiffuser',
 ]
 provided_by = []
@@ -4813,7 +4843,9 @@ provided_by = [
 
 [fields.sediment__influx]
 desc = 'Sediment flux (volume per unit time of sediment entering each node)'
-used_by = []
+used_by = [
+  'landlab.components.geoenthalpy_delta.geoenthalpy_delta.GeoEnthalpyDelta',
+]
 provided_by = [
   'landlab.components.erosion_deposition.erosion_deposition.ErosionDeposition',
   'landlab.components.lateral_erosion.lateral_erosion.LateralEroder',
@@ -5250,6 +5282,7 @@ used_by = [
   'landlab.components.flow_director.flow_director_dinf.FlowDirectorDINF',
   'landlab.components.flow_director.flow_director_mfd.FlowDirectorMFD',
   'landlab.components.flow_director.flow_director_steepest.FlowDirectorSteepest',
+  'landlab.components.geoenthalpy_delta.geoenthalpy_delta.GeoEnthalpyDelta',
   'landlab.components.gravel_bedrock_eroder.gravel_bedrock_eroder.GravelBedrockEroder',
   'landlab.components.gravel_river_transporter.gravel_river_transporter.GravelRiverTransporter',
   'landlab.components.groundwater.dupuit_percolator.GroundwaterDupuitPercolator',
@@ -5299,6 +5332,7 @@ provided_by = [
   'landlab.components.dimensionless_discharge.dimensionless_discharge.DimensionlessDischarge',
   'landlab.components.discharge_diffuser.diffuse_by_discharge.DischargeDiffuser',
   'landlab.components.erosion_deposition.erosion_deposition.ErosionDeposition',
+  'landlab.components.geoenthalpy_delta.geoenthalpy_delta.GeoEnthalpyDelta',
   'landlab.components.gflex.flexure.gFlex',
   'landlab.components.gravel_bedrock_eroder.gravel_bedrock_eroder.GravelBedrockEroder',
   'landlab.components.gravel_river_transporter.gravel_river_transporter.GravelRiverTransporter',
