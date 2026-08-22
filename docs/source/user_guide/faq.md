@@ -161,7 +161,6 @@ Tell us about your issue, and we'll be in touch.
 
 There are a few ways to follow Landlab developments. You can
 
-- follow Landlab on [Twitter](https://mobile.twitter.com/landlabtoolkit)  @landlabtoolkit,
 - "watch" Landlab's GitHub repository,
 - file a pull request or an issue at [https://github.com/landlab/landlab](https://github.com/landlab/landlab),
 

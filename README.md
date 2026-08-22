@@ -128,11 +128,6 @@ The recommended way to contact the Landlab team is with a
   the most appropriate member of the core Landlab team. We will work to clarify
   your question and revise the documentation so that it is clear for the next user.
 
-Keep in touch with the latest *landlab* news by following us on [Twitter](https://twitter.com/landlabtoolkit).
-
-During workshops and clinics, we sometimes use the
-[Landlab Slack channel](https://landlab.slack.com).
-
 <!-- end-contact -->
 
 [citation guidelines]: https://landlab.csdms.io/about/citing.html
