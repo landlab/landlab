@@ -1,5 +1,3 @@
-import copy
-
 import numpy as np
 
 from landlab import Component
@@ -16,7 +14,7 @@ def _assert_method_is_valid(method):
 class Radiation(Component):
     """Compute 1D and 2D daily incident shortwave radiation.
 
-    Landlab component that computes 1D and 2D daily extraterrestiral, clear-sky,
+    Landlab component that computes 1D and 2D daily extraterrestrial, clear-sky,
     incident shortwave, net shortwave, longwave, and net radiation. This code also
     computes relative incidence shortwave radiation compared to a flat surface
     calculated at noon.
@@ -32,13 +30,13 @@ class Radiation(Component):
     Standardization of Reference Evapotranspiration Task Committee final report.
     American Society of Civil Engineers (ASCE), Reston
 
-    Allen, R.G., 1996. Assessing integrity of weather data for  reference
-    evapotranspiration estimation. J. Irrig. Drain.  Eng., ASCE 122 (2), 97-106.
+    Allen, R.G., 1996. Assessing integrity of weather data for reference
+    evapotranspiration estimation. J. Irrig. Drain. Eng., ASCE 122 (2), 97-106.
 
     Flores-Cervantes, J.H., E. Istanbulluoglu, E.R. Vivoni, and R.L. Bras (2014).
-    A geomorphic perspective on terrain-modulate organization of vegetation productivity:
-    Analysis in two semiarid grassland ecosystems in Southwestern United States.
-    Ecohydrol., 7: 242-257. doi: 10.1002/eco.1333.
+    A geomorphic perspective on terrain-modulated organization of vegetation
+    productivity: Analysis in two semiarid grassland ecosystems in Southwestern
+    United States. Ecohydrol., 7: 242-257. doi: 10.1002/eco.1333.
 
     .. codeauthor:: Sai Nudurupati & Erkan Istanbulluoglu & Berkan Mertan
 
@@ -87,7 +85,6 @@ class Radiation(Component):
     **Required Software Citation(s) Specific to this Component**
 
     None Listed
-
 
     """
 
@@ -187,23 +184,24 @@ class Radiation(Component):
         method: {'Grid'}, optional
             Currently, only default is available.
         cloudiness: float, optional
-            Cloudiness.
+            Cloudiness, must be between 0 and 1.
         latitude: float, optional
-            Latitude (radians).
+            Latitude (degrees), must be between -90 and 90.
         albedo: float, optional
-            Albedo.
+            Albedo, must be between 0 and 1.
         kt: float, optional
-            Regional coefficient applied to actual KT coefficient (0.15-0.2). Default is 0.15
+            Regional coefficient applied to actual KT coefficient (0.15-0.2).
+            Default is 0.17.
         clearsky_turbidity: float, optional
             Clear sky turbidity.
         opt_airmass: float, optional
             Optical air mass.
         max_daily_temp: float, optional
-            Maximum daily temperature (Celsius)
-        min_daily_Temp: float, optional
-            Minimum daily temperature (Celsius)
+            Maximum daily temperature (Celsius).
+        min_daily_temp: float, optional
+            Minimum daily temperature (Celsius).
         current_time: float
-              Current time (years).
+            Current time (years).
         """
         super().__init__(grid)
 
@@ -211,11 +209,12 @@ class Radiation(Component):
         self._hour = 12
 
         self._method = method
-        self._N = cloudiness
-        self._latitude = self._validate_latitude(latitude)
-        self._a = self._validate_albedo(albedo)
 
-        self._kt = kt
+        self._N  = self._validate_cloudiness(cloudiness)
+        self._latitude = self._validate_latitude(latitude)
+        self._a  = self._validate_albedo(albedo)
+
+        self._kt = self._validate_kt(kt)
 
         self._n = clearsky_turbidity
         self._m = opt_airmass
@@ -231,24 +230,20 @@ class Radiation(Component):
             self._grid.add_zeros("Aspect", at="cell", units="radians")
 
         self._nodal_values = self._grid["node"]
-        self._cell_values = self._grid["cell"]
+        self._cell_values  = self._grid["cell"]
 
         self._slope, self._aspect = grid.calculate_slope_aspect_at_nodes_burrough(
             vals="topographic__elevation"
         )
 
-        self._cell_values["Slope"] = self._slope
+        self._cell_values["Slope"]  = self._slope
         self._cell_values["Aspect"] = self._aspect
 
-        self._gridCopy = copy.deepcopy(self._grid)
-        self._gridCopy.add_field(
-            "radiation_status_at_node", self._grid.status_at_node, at="node"
-        )
         self._cellular_status = map_node_to_cell(
-            self._gridCopy, "radiation_status_at_node"
+            self._grid, self._grid.status_at_node
         )
         self._closed_elevations = (
-            self._cellular_status == self._gridCopy.BC_NODE_IS_CLOSED
+            self._cellular_status == self._grid.BC_NODE_IS_CLOSED
         )
 
         self._Tmin, self._Tmax = self._validate_temperature_range(
@@ -257,7 +252,7 @@ class Radiation(Component):
 
     def run_one_step(self, dt=None):
         if dt is None:
-            dt = 1.0 / 365.0
+            dt = 1.0 / 365.0  ## default to one day in fractional years
         self.current_time += dt
         self.update()
 
@@ -271,28 +266,30 @@ class Radiation(Component):
             raise ValueError("albedo must be between 0 and 1")
         return albedo
 
-    def _process_field(self, field, field_name):
-        if isinstance(field, np.ndarray) and np.shape(field) == np.shape(
-            self._grid.at_node["topographic__elevation"]
-        ):
-            self._gridCopy.add_field(field_name, field, at="node")
-            return map_node_to_cell(self._gridCopy, field_name)
+    def _validate_cloudiness(self, cloudiness):
+        if cloudiness < 0.0 or cloudiness > 1.0:
+            raise ValueError("cloudiness must be between 0 and 1")
+        return cloudiness
 
-        return field
+    def _validate_kt(self, kt):
+        if kt < 0.15 or kt > 0.20:
+            import warnings
+            warnings.warn(
+                f"kt value {kt} is outside the recommended range of 0.15-0.20",
+                UserWarning,
+            )
+        return kt
 
     def _validate_temperature_range(self, min_temp, max_temp):
         if np.any(min_temp is None) or np.any(max_temp is None):
             raise ValueError("Tmin and Tmax are required fields")
         if np.any(min_temp > max_temp):
             raise ValueError("Tmin must be less than Tmax")
-
-        min_temp = self._process_field(min_temp, "min_temperature")
-        max_temp = self._process_field(max_temp, "max_temperature")
-
         return min_temp, max_temp
 
     @property
     def day_of_year(self):
+        # Julian Day - ASCE-EWRI Task Committee Report, Jan-2005 - Eqn 25, (52)
         return (self.current_time - np.floor(self.current_time)) * 365
 
     @property
@@ -305,6 +302,8 @@ class Radiation(Component):
 
     @property
     def actual_vapor_pressure(self):
+        # Actual Vapor Pressure - ASCE-EWRI Task Committee Report,
+        # Jan-2005 - Eqn 8, (38)
         return 0.6108 * np.exp((17.27 * self._Tmin) / (237.7 + self._Tmin))
 
     def update(self):
@@ -313,29 +312,25 @@ class Radiation(Component):
         This method looks to the properties ``current_time`` and
         ``hour`` and uses their values in updating fields.
         """
-
         self._validate_existing_parameters()
 
         self._t = self._hour
 
-        # Julian Day - ASCE-EWRI Task Committee Report, Jan-2005 - Eqn 25, (52)
-        self._julian = (self.current_time - np.floor(self.current_time)) * 365
+        self._julian = self.day_of_year
 
-        # Actual Vapor Pressure - ASCE-EWRI Task Committee Report,
-        # Jan-2005 - Eqn 8, (38)
-        self._ea = 0.6108 * np.exp((17.27 * self._Tmin) / (237.7 + self._Tmin))
+        self._ea = self.actual_vapor_pressure
 
-        # Solar Declination Angle - ASCE-EWRI Task Committee Report,
-        # Jan-2005 - Eqn 24,(51)
+        ## Solar Declination Angle - ASCE-EWRI Task Committee Report,
+        ## Jan-2005 - Eqn 24, (51)
         self._sdecl = 0.409 * np.sin(((np.pi / 180.0) * self._julian) - 1.39)
 
-        # Inverse Relative Distance Factor - ASCE-EWRI Task Committee Report,
-        # Jan-2005 - Eqn 23,(50)
+        ## Inverse Relative Distance Factor - ASCE-EWRI Task Committee Report,
+        ## Jan-2005 - Eqn 23, (50)
         self._dr = 1 + (0.033 * np.cos(np.pi / 180.0 * self._julian))
 
         self._ratio_flat_surface_calc()
 
-        # Extraterrestrial radmodel.docx - ASCE-EWRI (2005), Eqn (21)
+        ## Extraterrestrial radiation - ASCE-EWRI (2005), Eqn (21)
         self._Rext = (
             11.57
             * (24.0 / np.pi)
@@ -343,9 +338,11 @@ class Radiation(Component):
             * self._dr
             * (
                 (self._ws * np.sin(self._phi) * np.sin(self._sdecl))
-                + (np.cos(self._phi) * np.cos(self._sdecl) * (np.sin(self._ws)))
+                + (np.cos(self._phi) * np.cos(self._sdecl) * np.sin(self._ws))
             )
         )
+
+        self._Rext = 0.0 if np.isnan(self._Rext) else self._Rext
 
         self._rcs2valid = True
         if self._m is not None:
@@ -355,37 +352,37 @@ class Radiation(Component):
         else:
             self._rcs2valid = False
 
-        # Clear-sky Solar Radiation - ASCE-EWRI (2005), Eqn 19
+        ## Clear-sky Solar Radiation - ASCE-EWRI (2005), Eqn 19
         self._Rcs1 = self._Rext * (0.75 + 2 * (10**-5) * self._elevation)
 
-        # Rcs1, is set to Rcs2 for empirical method, Rcs for accurate method
+        ## Rcs1 is set to Rcs2 for empirical method, Rcs for accurate method
         if self._n is not None and self._m is not None and self._rcs2valid:
             self._Rc = self._Rcs2
         else:
             self._Rc = self._Rcs1
 
-        # KT adjustment factor for incoming short-wave calculations
+        ## KT adjustment factor for incoming short-wave calculations
         self._Po = 101.325
 
-        # Local atmospheric pressure ASCE-EWRI (2005), Eqn (34)
+        ## Local atmospheric pressure - ASCE-EWRI (2005), Eqn (34)
         self._P = self._Po * ((293 - 0.0065 * self._elevation) / 293) ** 5.26
 
-        # non-constant KT (adjustment coefficient) - Based on Allen (1995)
+        ## Non-constant KT adjustment coefficient - Based on Allen (1995)
         self._KT = self._kt * (self._P / self._Po) ** 0.5
 
-        # Incoming shortwave radiation cannot exceed clear-sky radiation
+        ## Incoming shortwave radiation cannot exceed clear-sky radiation
         self._Rs = np.minimum(
             self._KT * self._Rext * np.sqrt(self._Tmax - self._Tmin), self._Rc
         )
 
-        # Net shortwave Radiation - ASCE-EWRI (2005), Eqn (43)
+        ## Net shortwave Radiation - ASCE-EWRI (2005), Eqn (43)
         self._Rns = self._Rs * (1 - self._a)
 
-        # Relative Cloudiness - ASCE-EWRI (2005), Eqn (18)
-        self._u = 1.35 * (self._Rs / self._Rc) - 0.35
-        self._u = np.clip(self._u, 0.05, 1.0)
+        ## Relative Cloudiness - ASCE-EWRI (2005), Eqn (18),
+        ## clipped to physical bounds [0.05, 1.0]
+        self._u = np.clip(1.35 * (self._Rs / self._Rc) - 0.35, 0.05, 1.0)
 
-        # Net Longwave Radiation - ASCE-EWRI (2005), Eqn (17) in W/M^2
+        ## Net Longwave Radiation - ASCE-EWRI (2005), Eqn (17) in W/m^2
         self._Rnl = (
             5.67
             * (10**-8)
@@ -395,45 +392,44 @@ class Radiation(Component):
             * self._u
         )
 
-        # Load spatially distributed ratio to flat surface function values
+        self._radf[np.isnan(self._radf)] = 0.0
+
+        ## Load spatially distributed ratio to flat surface values
         self._cell_values["radiation__ratio_to_flat_surface"] = self._radf
 
-        self._radf[np.isnan(self._radf)] = 0.0
-        self._Rext = 0.0 if np.isnan(self._Rext) else self._Rext
-
-        # Net Radiation - ASCE-EWRI (2005), Eqn 15
+        ## Extraterrestrial flux
         np.multiply(
             self._Rext,
             self._cell_values["radiation__ratio_to_flat_surface"],
             out=self._cell_values["radiation__extraterrestrial_flux"],
         )
 
-        # Clearsky flux
+        ## Clearsky flux
         np.multiply(
             self._Rc,
             self._cell_values["radiation__ratio_to_flat_surface"],
             out=self._cell_values["radiation__clearsky_flux"],
         )
 
-        # Incoming shortwave flux
+        ## Incoming shortwave flux
         np.multiply(
             self._Rs,
             self._cell_values["radiation__ratio_to_flat_surface"],
             out=self._cell_values["radiation__incoming_shortwave_flux"],
         )
 
-        # Net shortwave flux
+        ## Net shortwave flux
         np.multiply(
             self._Rns,
             self._cell_values["radiation__ratio_to_flat_surface"],
             out=self._cell_values["radiation__net_shortwave_flux"],
         )
 
-        # Net longwave flux
+        ## Net longwave flux
         self._Rnl[self._closed_elevations] = 0.0
         self._cell_values["radiation__net_longwave_flux"] = self._Rnl
 
-        # Net radiation flux is net shortwave - net longwave
+        ## Net radiation flux is net shortwave minus net longwave
         np.subtract(
             self._cell_values["radiation__net_shortwave_flux"],
             self._cell_values["radiation__net_longwave_flux"],
@@ -441,7 +437,7 @@ class Radiation(Component):
         )
 
     def _ratio_flat_surface_calc(self):
-        """generate radiation__ratio_to_flat_surface field
+        """Generate radiation__ratio_to_flat_surface field.
 
         This method looks to the slope, aspect values across
         the grid provided to the component, then runs calculations
@@ -449,50 +445,47 @@ class Radiation(Component):
         spatially distributed field of flat surface to sloped surface
         ratios / factors.
         """
-
-        # self._elevation, elevation of surface above sea level
-        self._elevation = self._nodal_values["topographic__elevation"]
-
-        # Handle invalid values (closed nodes are not invalid)
-        if np.any(
-            (self._elevation < 0.0)
-            & (self._grid.status_at_node != self._grid.BC_NODE_IS_CLOSED)
-        ):
-            raise ValueError(
-                "No negative (< 0.0) values allowed in an above sea level elevation field."
-            )
-
         self._elevation = map_node_to_cell(self._grid, "topographic__elevation")
 
-        self._phi = np.radians(self._latitude)
+        invalid_elevation = (
+            (self._elevation < 0.0) & (~self._closed_elevations)
+        )
+
+        if np.any(invalid_elevation):
+            raise ValueError(
+                "No negative (< 0.0) values allowed in elevation field "
+                "at non-closed cell locations."
+            )
+
+        self._elevation[self._closed_elevations] = 0.0
+
+        self._phi    = np.radians(self._latitude)
         self._sinLat = np.sin(self._phi)
         self._cosLat = np.cos(self._phi)
 
         self._tau = (self._t + 12.0) * np.pi / 12.0
 
-        self._alpha = np.arcsin(
+        self._solar_altitude = np.arcsin(
             np.sin(self._sdecl) * self._sinLat
             + (np.cos(self._sdecl) * self._cosLat * np.cos(self._tau))
         )
 
-        if self._alpha <= 0.25:
-            self._alpha = 0.25
+        self._solar_altitude = np.maximum(self._solar_altitude, 0.25)
 
-        self._cosSA = np.cos(self._alpha)
-        self._sinSA = np.sin(self._alpha)
+        self._cosSA = np.cos(self._solar_altitude)
+        self._sinSA = np.sin(self._solar_altitude)
 
-        if self._cosSA <= 0.0001:
-            self._cosSA = 0.0001
+        self._cosSA = np.maximum(self._cosSA, 0.0001)
 
-        # Sunset Hour Angle - ASCE-EWRI (2005), Eqn (59)
+        ## Sunset Hour Angle - ASCE-EWRI (2005), Eqn (59)
         self._ws = np.arccos(-np.tan(self._sdecl) * np.tan(self._phi))
 
-        # Sun's Azimuth calculation code
-        F = np.tan(self._alpha) * np.tan(self._phi) - (
+        ## Sun's Azimuth calculation
+        F = np.tan(self._solar_altitude) * np.tan(self._phi) - (
             np.sin(self._sdecl) / (self._cosSA * self._cosLat)
         )
 
-        # Clip azimuth within these bounds
+        ## Clip azimuth within physical bounds
         F = np.clip(F, -0.99999, 0.99999)
 
         if self._t < 12.0:
@@ -500,24 +493,23 @@ class Radiation(Component):
         else:
             self._phisun = np.pi + np.arccos(F)
 
-        self._flat = np.sin(self._alpha)
+        self._flat = np.sin(self._solar_altitude)
 
-        # Solar angle of incidence, multiplying this with incoming radiation
-        # gives radiation on sloped surface see Flores-Cervantes, J.H. (2012)
+        ## Solar angle of incidence on sloped surface
+        ## see Flores-Cervantes, J.H. (2012)
         self._sloped = np.cos(self._slope) * self._sinSA + np.sin(
             self._slope
         ) * self._cosSA * np.cos(self._phisun - self._aspect)
 
         self._sloped[self._sloped <= 0.0] = 0.0
 
-        # Ratio of cosine of solar incidence angle of sloped surface to that
-        # of a flat surface
+        ## Ratio of cosine of solar incidence angle of sloped to flat surface
         self._radf = self._sloped / self._flat
 
         self._radf[self._radf <= 0.0] = 0.0
-        self._radf[self._radf > 6.0] = 6.0
+        self._radf[self._radf > 6.0]  = 6.0
 
-        # Closed nodes will be omitted from spatially distributed ratio calculations
+        ## Closed nodes omitted from spatially distributed ratio calculations
         self._radf[self._closed_elevations] = 0.0
 
     def _validate_existing_parameters(self):
