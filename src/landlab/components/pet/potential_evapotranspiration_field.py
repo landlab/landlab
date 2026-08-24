@@ -1,5 +1,3 @@
-import copy
-
 import numpy as np
 
 from landlab import Component
@@ -38,11 +36,11 @@ class PotentialEvapotranspiration(Component):
     ...     [3.0, 4.0, 4.0, 3.0],
     ...     [4.0, 4.0, 4.0, 4.0],
     ... ]
-    >>> PET = PotentialEvapotranspiration(grid, latitude=40.0)
+    >>> PET = PotentialEvapotranspiration(grid)
     >>> PET.name
     'PotentialEvapotranspiration'
     >>> sorted(PET.output_var_names)
-     ['surface__potential_evapotranspiration_rate']
+    ['surface__potential_evapotranspiration_rate']
     >>> sorted(PET.units)
     [('surface__potential_evapotranspiration_rate', 'mm')]
     >>> PET.grid.number_of_node_rows
@@ -54,7 +52,6 @@ class PotentialEvapotranspiration(Component):
     >>> pet_rate = grid.at_cell["surface__potential_evapotranspiration_rate"]
     >>> np.allclose(pet_rate, 0.0)
     True
-    >>> PET._current_time = 0.5
     >>> PET.update()
     >>> np.allclose(pet_rate, 0.0)
     False
@@ -87,6 +84,14 @@ class PotentialEvapotranspiration(Component):
     _unit_agnostic = False
 
     _info = {
+        "topographic__elevation": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation",
+        },
         "surface__potential_evapotranspiration_rate": {
             "dtype": float,
             "intent": "out",
@@ -94,7 +99,7 @@ class PotentialEvapotranspiration(Component):
             "units": "mm",
             "mapping": "cell",
             "doc": "potential sum of evaporation and potential transpiration",
-        }
+        },
     }
 
     def __init__(
@@ -103,32 +108,29 @@ class PotentialEvapotranspiration(Component):
         method="PriestleyTaylor",
         priestley_taylor_const=1.26,
         relative_humidity=0.65,
-        albedo=0.6,
         air_density=None,
         latent_heat_of_vaporization=28.34,
         psychometric_const=0.066,
         LAI=2.88,
         stefan_boltzmann_const=0.0000000567,
         solar_const=1366.67,
-        latitude=34.0,
         elevation_of_measurement=300,
         adjustment_coeff=0.18,
         lt=0.0,
         nd=365.0,
         MeanTmaxF=12.0,
         delta_d=5.0,
-        current_time=0.5,
         Tmin=10,
         Tmax=25,
-        Tavg=17.5,
+        Tavg=None,
         Rl=100,
         Zm=2.0,
         Zd=0.084,
         Zo=0.012,
-        Zveg=None,
+        Zveg=0.12,
         Vwind=3.12,
         temperatures=None,
-        radiation=None,
+        radiation=300,
     ):
         """
         Parameters
@@ -140,68 +142,59 @@ class PotentialEvapotranspiration(Component):
         priestley_taylor_constant: float, optional
             Alpha used in Priestley Taylor method.
         relative_humidity: float, optional
-            Relative humidity factor used to determine real Priestley Taylor constant
-        albedo: float, optional
-            Albedo.
+            Relative humidity factor used to determine real Priestley Taylor constant.
         air_density: float, field, optional
             Single value or spatially distributed air densities in kg/m^3.
+            If None, air density is calculated from elevation and temperature.
         latent_heat_of_vaporization: float, optional
             Latent heat of vaporization for water Pwhv (Wd/(m*mm^2)).
         psychometric_const: float, optional
             Psychometric constant (kPa (deg C)^-1).
         LAI: float, field, optional
-            LAI used for Penman Monteith equation
+            LAI used for Penman Monteith equation.
         stefan_boltzmann_const: float, optional
             Stefan Boltzmann's constant (W/(m^2K^-4)).
         solar_const: float, optional
             Solar constant (W/m^2).
-        latitude: float, optional
-            Latitude (radians).
         elevation_of_measurement: float, optional
             Elevation at which measurement was taken (m).
         adjustment_coeff: float, optional
-            adjustment coeff to predict Rs from air temperature (deg C)^-0.5.
+            Adjustment coeff to predict Rs from air temperature (deg C)^-0.5.
         lt: float, optional
-            lag between peak TmaxF and solar forcing (days).
+            Lag between peak TmaxF and solar forcing (days).
         nd: float, optional
             Number of days in year (days).
         MeanTmaxF: float, optional
             Mean annual rate of TmaxF (mm/d).
         delta_d: float, optional
             Calibrated difference between max & min daily TmaxF (mm/d).
-        current_time: float, required only for 'Cosine' method
-            Current time (Years)
         Tmin: float, required for 'Priestley Taylor' method
-            Minimum temperature of the day (deg C)
+            Minimum temperature of the day (deg C).
         Tmax: float, required for 'Priestley Taylor' method
-            Maximum temperature of the day (deg C)
-        Tavg: float, required for 'Priestley Taylor' method
-            methods
-            Average temperature of the day (deg C)
+            Maximum temperature of the day (deg C).
+        Tavg: float, optional
+            Average temperature of the day (deg C).
+            If None, calculated as (Tmin + Tmax) / 2.
         Rl: float, optional
-            Stomatal wall resistance in s/m, set by default to 100s/m
+            Stomatal wall resistance in s/m, set by default to 100s/m.
         Zm: float, optional
-            Elevation / height at which wind speed is recorded
+            Elevation / height at which wind speed is recorded.
         Zd: float, optional
-            Zero plane displacement height
+            Zero plane displacement height.
         Zo: float, optional
-            Roughness length
+            Roughness length.
         Zveg: float, optional
-            Vegetation height, used if other Z variables are default
+            Vegetation height, used if other Z variables are default.
         Vwind: float, optional
-            Wind speed / velocity
+            Wind speed / velocity.
         temperatures: float, field, optional
-            Spatially distributed temperatures (deg C) to apply to PET grid/fields as a whole
-        radiation float, optional
-            User-provided net radiation field, if not given net radiation will be
-            computed internally (W/m^2)
+            Spatially distributed temperatures (deg C) to apply to PET
+            grid/fields as a whole.
+        radiation: float, optional
+            User-provided net radiation field, if not given net radiation will
+            be computed internally (W/m^2).
         """
         super().__init__(grid)
-
-        # Grid copy is used for node to cell mapping operations
-        self._gridCopy = copy.deepcopy(self._grid)
-
-        self._current_time = current_time
 
         self._zm = Zm
         self._zd = Zd
@@ -210,17 +203,17 @@ class PotentialEvapotranspiration(Component):
         self._vz = Vwind
         self._rl = Rl
 
-        self._user_radiation = radiation
+        self._Rn = radiation
         self._method = method
-        # For Priestley Taylor
+
+        ## For Priestley Taylor
         self._alpha = priestley_taylor_const
-        self._a = albedo
+        self._user_pa = air_density
         self._pa = air_density
         self._pwhv = latent_heat_of_vaporization
         self._y = psychometric_const
         self._sigma = stefan_boltzmann_const
         self._Gsc = solar_const
-        self._latitude = latitude
         self._Krs = adjustment_coeff
         self._LT = lt
         self._LAI = self._validate_lai(LAI)
@@ -235,40 +228,19 @@ class PotentialEvapotranspiration(Component):
 
         self.Tmin, self.Tmax = self._validate_temperature_range(Tmin, Tmax)
 
-        # If user provides Tmin/Tmax and not Tavg, calculate Tavg
-        if not isinstance(Tavg, np.ndarray) and Tavg == 17.5:
+        if Tavg is None:
             self.Tavg = (self._Tmin + self._Tmax) / 2
         else:
             self.Tavg = Tavg
 
-        # Import Radiation to instantiate an internal radiation component
-        from landlab.components import Radiation
-
-        if "topographic__elevation" not in self._gridCopy.at_node.keys():
-            self._gridCopy.add_zeros("topographic__elevation", at="node")
-
-        # Internal radiation component
-        self._etpRad = Radiation(
-            self._gridCopy,
-            method="Grid",
-            latitude=self._latitude,
-            current_time=self._current_time,
-            albedo=self._a,
-            max_daily_temp=self._Tmax,
-            min_daily_temp=self._Tmin,
-        )
+        if "topographic__elevation" not in self._grid.at_node.keys():
+            self._grid.add_zeros("topographic__elevation", at="node")
 
         self._cell_values = self._grid["cell"]
 
-        # Omit closed nodes from PET calculations
-        self._gridCopy = copy.deepcopy(self._grid)
-        self._gridCopy.add_field(
-            "pet_status_at_node", self._grid.status_at_node, at="node"
-        )
-        self._cellular_status = map_node_to_cell(self._gridCopy, "pet_status_at_node")
-        self._closed_elevations = (
-            self._cellular_status == self._gridCopy.BC_NODE_IS_CLOSED
-        )
+        ## Omit closed nodes from PET calculations
+        self._cellular_status = map_node_to_cell(self._grid, self._grid.status_at_node)
+        self._closed_elevations = self._cellular_status == self._grid.BC_NODE_IS_CLOSED
 
         self._UpdateRad()
 
@@ -278,11 +250,11 @@ class PotentialEvapotranspiration(Component):
 
         radiation float, optional user-provided net radiation field.
         """
-        return self._user_radiation
+        return self._Rn
 
     @radiation.setter
     def radiation(self, radiation):
-        self._user_radiation = radiation
+        self._Rn = radiation
 
     @property
     def Tmin(self):
@@ -311,8 +283,7 @@ class PotentialEvapotranspiration(Component):
     @property
     def Tavg(self):
         """Average temperature of the day (deg C)
-        Tavg: float, required for 'Priestley Taylor'
-        methods.
+        Tavg: float, required for 'Priestley Taylor' methods.
         """
         return self._Tavg
 
@@ -327,15 +298,12 @@ class PotentialEvapotranspiration(Component):
     @grid.setter
     def grid(self, grid):
         self._grid = grid
-        self._gridCopy = grid
-        self._etpRad._grid = self._gridCopy
 
-    def _process_field(self, field, field_name):
+    def _process_field(self, field):
         if isinstance(field, np.ndarray) and np.shape(field) == np.shape(
             self._grid.at_node["topographic__elevation"]
         ):
-            self._gridCopy.add_field(field_name, field, at="node")
-            return map_node_to_cell(self._gridCopy, field_name)
+            return map_node_to_cell(self._grid, field)
 
         return field
 
@@ -345,28 +313,41 @@ class PotentialEvapotranspiration(Component):
         if np.any(min_temp > max_temp):
             raise ValueError("Tmin must be less than Tmax")
 
-        min_temp = self._process_field(min_temp, "min_temperature")
-        max_temp = self._process_field(max_temp, "max_temperature")
+        min_temp = self._process_field(min_temp)
+        max_temp = self._process_field(max_temp)
 
         return min_temp, max_temp
 
     def _validate_lai(self, lai):
-        return self._process_field(lai, "leaf_area_index")
+        lai = self._process_field(lai)
 
-    # Function used to adjust field/variable values that would raise errors
+        if isinstance(lai, np.ndarray):
+            if np.any(lai < 0):
+                raise ValueError("LAI must be non-negative")
+            ## Replace zero values to avoid division by zero in _PenmanMonteith
+            lai = np.where(lai == 0, np.finfo(float).tiny, lai)
+        else:
+            if lai < 0:
+                raise ValueError("LAI must be non-negative")
+            if lai == 0:
+                lai = np.finfo(float).tiny
+
+        return lai
+
     def _fix_values(self, field, error_value, fixed_value):
         if isinstance(field, np.ndarray):
             if np.any(field == error_value):
                 field[field == error_value] = fixed_value
-
         elif field == error_value:
             field = fixed_value
+        return field
 
     def update(self):
         """Update fields with current conditions.
 
-        If the 'PenmanMonteith' method is used, this method looks to the properties of
-        ``Tmin``, ``Tavg``, ``Zveg``, and all the other Penman / vegetation factors.
+        If the 'PenmanMonteith' method is used, this method looks to the
+        properties of ``Tmin``, ``Tavg``, ``Zveg``, and all the other
+        Penman / vegetation factors.
 
         If the 'PriestleyTaylor' method is used, this method looks to the
         values of the ``Tmin``, ``Tmax``, and ``Tavg`` properties.
@@ -375,7 +356,6 @@ class PotentialEvapotranspiration(Component):
         the ``radiation`` (considered radiation field) and
         ``latent_heat_of_vaporization`` properties.
         """
-
         self._UpdateRad()
 
         if self._method == "PriestleyTaylor":
@@ -396,24 +376,24 @@ class PotentialEvapotranspiration(Component):
 
     def _PriestleyTaylor(self):
         self._ETp = np.maximum(
-            self._inp_alpha
+            self._alpha
             * (self._delta / (self._delta + self._y))
-            * (self._input_rad / self._pwhv),
+            * ((self._input_rad - self._G) / self._pwhv),
             0,
         )
         return self._ETp
 
-    # Penman Monteith method
     def _PenmanMonteith(self):
         self._deltaTerm = self._delta * (self._input_rad - self._G)
-        # LAIa is 50% of the LAI
-        # rl is stomatal resistance of the cell wall
+
+        ## LAIa is 50% of the LAI
+        ## rl is stomatal resistance of the cell wall
         self._LAIa = self._LAI * 0.5
         self._rs = self._rl / self._LAIa
 
-        self._fix_values(self._vz, 0, 1.0)
+        self._vz = self._fix_values(self._vz, 0, 1.0)
 
-        # Ensure that wind measurements are done above the vegetation canopy
+        ## Ensure wind measurements are done above the vegetation canopy
         if self._is_zveg_defined and np.any((self._zm - self._zveg) <= 0):
             raise ValueError(
                 f"Elevation of wind speed observation, Zm ({self._zm}) must exceed"
@@ -421,15 +401,15 @@ class PotentialEvapotranspiration(Component):
                 " If wind was measured at a local station, use a logarithmic wind"
                 " profile to estimate wind speed above canopy height."
             )
-        # If user didn't provide Zveg, ensure that wind measurements are done
-        # above the zero-plane displacement height
+        ## If user did not provide Zveg, ensure wind measurements are done
+        ## above the zero-plane displacement height
         elif np.any((self._zm - self._zd) <= 0):
             raise ValueError(
                 f"Elevation of wind speed observation, Zm ({self._zm}) must exceed"
                 f" the zero-plane displacement height, {self._zd}."
             )
 
-        # Aerodynamic resistance
+        ## Aerodynamic resistance
         self._ra = (np.log((self._zm - self._zd) / self._zo)) ** 2 / (
             self._k**2 * self._vz
         )
@@ -441,14 +421,10 @@ class PotentialEvapotranspiration(Component):
 
         return self._ETp
 
-    # Net Rad equivalent PE method
     def _NetRadEqPE(self):
         self._E = self._input_rad / self._pwhv
-
         return self._E
 
-    # Called before every PET update, ensures internal
-    # calculations use user-updated variables
     def _UpdateRad(self):
         self._Tmin, self._Tmax = self._validate_temperature_range(
             self._Tmin, self._Tmax
@@ -456,63 +432,49 @@ class PotentialEvapotranspiration(Component):
 
         self._LAI = self._validate_lai(self._LAI)
 
-        # Update internal radiation component variables
-        self._etpRad._current_time = self._current_time
-        self._etpRad._Tmax = self._Tmax
-        self._etpRad._Tmin = self._Tmin
-        self._etpRad._a = self._a
+        self._input_rad = self._Rn
 
-        self._etpRad._latitude = self._latitude
-
-        self._etpRad.update()
-
-        self._input_rad = (
-            self._etpRad._cell_values["radiation__net_flux"]
-            if np.all(self._user_radiation is None)
-            else self._user_radiation
-        )
-
-        # Ground heat flux, 10% of net rad
+        ## Ground heat flux, 10% of net rad
         self._G = self._input_rad * 0.1
 
-        self._inp_alpha = self._alpha
-
-        if not isinstance(self._Tavg, np.ndarray) and self._Tavg == 17.5:
+        ## Tavg is set correctly in __init__, only recalculate if
+        ## Tmin/Tmax were updated externally by checking if Tavg is None
+        if self._Tavg is None:
             self._Tavg = (self._Tmax + self._Tmin) / 2
 
         self._inp_temp = self._Tavg
         if self._temperatures is not None:
             self._inp_temp = self._temperatures
 
-        # Saturation Vapor Pressure - ASCE-EWRI Task Committee Report,
-        # Jan-2005 - Eqn 6, (37)
+        ## Saturation Vapor Pressure - ASCE-EWRI Task Committee Report,
+        ## Jan-2005 - Eqn 6, (37)
         self._es = 0.6108 * np.exp((17.27 * self._inp_temp) / (237.7 + self._inp_temp))
 
-        # Actual Vapor Pressure - ASCE-EWRI Task Committee Report,
-        # Jan-2005 - Eqn 8, (38)
+        ## Actual Vapor Pressure - ASCE-EWRI Task Committee Report,
+        ## Jan-2005 - Eqn 8, (38)
         self._ea = (
             0.6108
             * np.exp((17.27 * self._Tmin) / (237.7 + self._Tmin))
             * self._relative_humidity
         )
 
-        # Slope of Saturation Vapor Pressure - ASCE-EWRI Task Committee Report,
-        # Jan-2005 - Eqn 5, (36)
+        ## Slope of Saturation Vapor Pressure - ASCE-EWRI Task Committee Report,
+        ## Jan-2005 - Eqn 5, (36)
         self._delta = (4098.0 * self._es) / ((237.3 + self._inp_temp) ** 2.0)
 
-        # Checks if user-provided vegetation variables are spatially distributed
+        ## Checks if user-provided vegetation variables are spatially distributed
         is_zveg_field = isinstance(self._zveg, np.ndarray)
         is_zo_field = isinstance(self._zo, np.ndarray)
         is_zd_field = isinstance(self._zd, np.ndarray)
 
-        # Used in Penman method
+        ## Used in Penman method
         self._is_zveg_defined = (self._zveg is not None) if not is_zveg_field else True
         is_zo_default = (self._zo == 0.012) if not is_zo_field else False
         is_zd_default = (self._zd == 0.084) if not is_zd_field else False
 
         cell_sz = self._grid["cell"].size
 
-        # Assert proper dimensions for these fields, all sizes must match grid cell dimensions
+        ## Assert proper dimensions for spatial fields
         if is_zveg_field and self._zveg.size != cell_sz:
             raise ValueError(
                 "Zveg field dimensions must match grid dimensions, Zveg size was"
@@ -535,12 +497,16 @@ class PotentialEvapotranspiration(Component):
             self._zd = self._zveg * 0.7
             self._zo = self._zveg * 0.1
 
-        # von karman constant for air and clear water,
-        # should be smaller for sediment-laden flows
+        ## Von Karman constant for air and clear water
         self._k = 0.4
 
-        if self._pa is None:
-            self._pa = 3.47 * self._etpRad._P / (273.3 + self._inp_temp)
-            self._pa *= 1000
+        ## Always recalculate air density if user did not provide it
+        ## so it updates correctly when temperature changes
+        if self._user_pa is None:
+            self._elevation = map_node_to_cell(self._grid, "topographic__elevation")
+            pressure = 101.325 * ((293 - 0.0065 * self._elevation) / 293) ** 5.26
+            self._pa = 3.47 * pressure / (273.3 + self._inp_temp) * 1000
+        else:
+            self._pa = self._user_pa
 
         self._ca = 1.22
