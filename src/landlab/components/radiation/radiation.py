@@ -210,9 +210,9 @@ class Radiation(Component):
 
         self._method = method
 
-        self._N  = self._validate_cloudiness(cloudiness)
+        self._N = self._validate_cloudiness(cloudiness)
         self._latitude = self._validate_latitude(latitude)
-        self._a  = self._validate_albedo(albedo)
+        self._a = self._validate_albedo(albedo)
 
         self._kt = self._validate_kt(kt)
 
@@ -230,21 +230,17 @@ class Radiation(Component):
             self._grid.add_zeros("Aspect", at="cell", units="radians")
 
         self._nodal_values = self._grid["node"]
-        self._cell_values  = self._grid["cell"]
+        self._cell_values = self._grid["cell"]
 
         self._slope, self._aspect = grid.calculate_slope_aspect_at_nodes_burrough(
             vals="topographic__elevation"
         )
 
-        self._cell_values["Slope"]  = self._slope
+        self._cell_values["Slope"] = self._slope
         self._cell_values["Aspect"] = self._aspect
 
-        self._cellular_status = map_node_to_cell(
-            self._grid, self._grid.status_at_node
-        )
-        self._closed_elevations = (
-            self._cellular_status == self._grid.BC_NODE_IS_CLOSED
-        )
+        self._cellular_status = map_node_to_cell(self._grid, self._grid.status_at_node)
+        self._closed_elevations = self._cellular_status == self._grid.BC_NODE_IS_CLOSED
 
         self._Tmin, self._Tmax = self._validate_temperature_range(
             min_daily_temp, max_daily_temp
@@ -274,6 +270,7 @@ class Radiation(Component):
     def _validate_kt(self, kt):
         if kt < 0.15 or kt > 0.20:
             import warnings
+
             warnings.warn(
                 f"kt value {kt} is outside the recommended range of 0.15-0.20",
                 UserWarning,
@@ -447,9 +444,7 @@ class Radiation(Component):
         """
         self._elevation = map_node_to_cell(self._grid, "topographic__elevation")
 
-        invalid_elevation = (
-            (self._elevation < 0.0) & (~self._closed_elevations)
-        )
+        invalid_elevation = (self._elevation < 0.0) & (~self._closed_elevations)
 
         if np.any(invalid_elevation):
             raise ValueError(
@@ -459,7 +454,7 @@ class Radiation(Component):
 
         self._elevation[self._closed_elevations] = 0.0
 
-        self._phi    = np.radians(self._latitude)
+        self._phi = np.radians(self._latitude)
         self._sinLat = np.sin(self._phi)
         self._cosLat = np.cos(self._phi)
 
@@ -507,7 +502,7 @@ class Radiation(Component):
         self._radf = self._sloped / self._flat
 
         self._radf[self._radf <= 0.0] = 0.0
-        self._radf[self._radf > 6.0]  = 6.0
+        self._radf[self._radf > 6.0] = 6.0
 
         ## Closed nodes omitted from spatially distributed ratio calculations
         self._radf[self._closed_elevations] = 0.0

@@ -389,7 +389,7 @@ class PotentialEvapotranspiration(Component):
         ## LAIa is 50% of the LAI
         ## rl is stomatal resistance of the cell wall
         self._LAIa = self._LAI * 0.5
-        self._rs   = self._rl / self._LAIa
+        self._rs = self._rl / self._LAIa
 
         self._vz = self._fix_values(self._vz, 0, 1.0)
 
@@ -417,7 +417,7 @@ class PotentialEvapotranspiration(Component):
         self._vaporTerm = self._ca * self._pa * (self._es - self._ea) / self._ra
 
         self._denom = self._pwhv * (self._delta + self._y * (1 + self._rs / self._ra))
-        self._ETp   = (self._deltaTerm + self._vaporTerm) / self._denom
+        self._ETp = (self._deltaTerm + self._vaporTerm) / self._denom
 
         return self._ETp
 
@@ -448,9 +448,7 @@ class PotentialEvapotranspiration(Component):
 
         ## Saturation Vapor Pressure - ASCE-EWRI Task Committee Report,
         ## Jan-2005 - Eqn 6, (37)
-        self._es = 0.6108 * np.exp(
-            (17.27 * self._inp_temp) / (237.7 + self._inp_temp)
-        )
+        self._es = 0.6108 * np.exp((17.27 * self._inp_temp) / (237.7 + self._inp_temp))
 
         ## Actual Vapor Pressure - ASCE-EWRI Task Committee Report,
         ## Jan-2005 - Eqn 8, (38)
@@ -466,8 +464,8 @@ class PotentialEvapotranspiration(Component):
 
         ## Checks if user-provided vegetation variables are spatially distributed
         is_zveg_field = isinstance(self._zveg, np.ndarray)
-        is_zo_field   = isinstance(self._zo,   np.ndarray)
-        is_zd_field   = isinstance(self._zd,   np.ndarray)
+        is_zo_field = isinstance(self._zo, np.ndarray)
+        is_zd_field = isinstance(self._zd, np.ndarray)
 
         ## Used in Penman method
         self._is_zveg_defined = (self._zveg is not None) if not is_zveg_field else True
@@ -505,11 +503,9 @@ class PotentialEvapotranspiration(Component):
         ## Always recalculate air density if user did not provide it
         ## so it updates correctly when temperature changes
         if self._user_pa is None:
-            self._elevation = map_node_to_cell(
-                self._grid, "topographic__elevation"
-            )
-            pressure  = 101.325 * ((293 - 0.0065 * self._elevation) / 293) ** 5.26
-            self._pa  = 3.47 * pressure / (273.3 + self._inp_temp) * 1000
+            self._elevation = map_node_to_cell(self._grid, "topographic__elevation")
+            pressure = 101.325 * ((293 - 0.0065 * self._elevation) / 293) ** 5.26
+            self._pa = 3.47 * pressure / (273.3 + self._inp_temp) * 1000
         else:
             self._pa = self._user_pa
 
