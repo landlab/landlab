@@ -5,10 +5,10 @@ netcdf4==1.7.4
 numpy==2.4.2
 pandas==3.0.0
 py-richdem==2.2.0rc2
-pyshp==3.0.3
+pyshp==3.1.6
 pyyaml==6.0.3
-requireit==0.8.0
-rich-click==1.9.7
+requireit==0.11.0
+rich-click==1.9.8
 scipy==1.17.0
 statsmodels==0.14.6
 xarray==2026.1.0

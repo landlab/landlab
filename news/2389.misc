@@ -1,0 +1,2 @@
+Fixed several broken documentation links and adjusted the docs linkcheck
+configuration to ignore known-flaky links.

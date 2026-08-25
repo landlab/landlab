@@ -16,7 +16,9 @@ import rich_click as click
 
 from landlab import FramedVoronoiGrid
 from landlab import HexModelGrid
+from landlab import IcosphereGlobalGrid
 from landlab import ModelGrid
+from landlab import NetworkModelGrid
 from landlab import RadialModelGrid
 from landlab import RasterModelGrid
 from landlab import VoronoiDelaunayGrid
@@ -27,12 +29,14 @@ from .authors import AuthorsSubprocessError
 from .authors import GitLog
 
 GRIDS = [
+    FramedVoronoiGrid,
+    HexModelGrid,
+    IcosphereGlobalGrid,
     ModelGrid,
+    NetworkModelGrid,
+    RadialModelGrid,
     RasterModelGrid,
     VoronoiDelaunayGrid,
-    HexModelGrid,
-    RadialModelGrid,
-    FramedVoronoiGrid,
 ]
 
 CATEGORIES = {

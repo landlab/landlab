@@ -1,6 +1,9 @@
 name: Test
 
 on:
+  push:
+    branches:
+      - master
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
@@ -22,22 +25,22 @@ concurrency:
 jobs:
   build-sdist:
     name: Build source distribution
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.draft == false }}
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Build sdist
         run: pipx run build --sdist
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: build-sdist
           path: ${{ github.workspace }}/dist/*.tar.gz
 
   build-wheels:
     name: Build wheels on ${{ matrix.cibw-only }}
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.draft == false }}
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -60,7 +63,7 @@ jobs:
           - { os: windows-2022, cibw-only: cp314-win_amd64 }
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/build-bdist/
         env:
           CIBW_ENVIRONMENT: >-
@@ -83,7 +86,7 @@ jobs:
         pytest-marker: ["slow", "not slow"]
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/run-tests/
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
@@ -106,7 +109,7 @@ jobs:
         pytest-marker: ["slow", "not slow"]
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/run-notebooks/
         env:
           OPENTOPOGRAPHY_API_KEY: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
@@ -126,7 +129,7 @@ jobs:
         shell: bash -l {0}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Use Python 3.12
         uses: actions/setup-python@v6
         with:
@@ -149,13 +152,13 @@ jobs:
         shell: bash -l {0}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Use Python 3.14
         uses: actions/setup-python@v6
         with:
           python-version: '3.14'
 
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v8
         name: Download build artifact
         with:
           pattern: notebooks-*
@@ -174,7 +177,7 @@ jobs:
 
       - name: Upload static files as artifact
         id: deployment
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5
         with:
           path: build/html/
 
@@ -193,7 +196,7 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
   publish:
     needs:

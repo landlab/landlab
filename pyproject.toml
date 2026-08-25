@@ -46,7 +46,7 @@ dependencies = [
   "py-richdem",
   "pyyaml",
   "pyshp != 2.3.0",
-  "requireit>=0.8.0",
+  "requireit>=0.11.0",
   "rich-click",
   "scipy",
   "scikit-image",
@@ -67,7 +67,7 @@ dev = ["nox"]
 testing = [
   "coverage",
   "hypothesis",
-  "pytest",
+  "pytest>=9.0.3",
   "pytest-datadir",
   "pytest-xdist",
 ]
