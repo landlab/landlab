@@ -21,19 +21,14 @@ Landlab utilities
 
 import errno
 import importlib
+import importlib.resources as importlib_resources
 import inspect
 import os
 import pathlib
 import re
 import shutil
-import sys
 
 import numpy as np
-
-if sys.version_info >= (3, 12):  # pragma: no cover (PY12+)
-    import importlib.resources as importlib_resources
-else:  # pragma: no cover (<PY312)
-    import importlib_resources
 
 SIZEOF_INT = np.dtype(int).itemsize
 
