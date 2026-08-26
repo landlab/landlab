@@ -12,6 +12,8 @@ def make_grid(shape=(6, 6), spacing=10.0):
     z[:] = np.arange(z.size)
     soil = mg.add_zeros("soil__depth", at="node")
     soil[:] = 1.0
+    mg.add_zeros("earthquake__horizontal_pga", at="node")
+    mg.add_zeros("earthquake__vertical_pga", at="node")
     return mg
 
 
@@ -70,24 +72,6 @@ def test_probabilistic_group_selection_reproducible():
 
     assert np.array_equal(sel1, sel2)
     assert meta1["proportion_calculated"] == meta2["proportion_calculated"]
-
-
-def test_generate_landslide_proportion_from_pga_shapes():
-    mg = make_grid()
-    comp = ShallowLandslider(mg, cohesion_eff=10, angle_int_frict=30)
-
-    labeled = np.zeros(mg.shape, dtype=int)
-    labeled[1:3, 1:3] = 1
-
-    h = np.ones(mg.number_of_nodes) * 0.2
-    v = np.ones(mg.number_of_nodes) * 0.1
-
-    probs, prop, meta = comp._generate_landslide_proportion_from_pga(
-        labeled, np.ones_like(labeled), h_pga_1d=h, v_pga_1d=v
-    )
-
-    assert probs.shape == labeled.shape
-    assert 0 <= prop <= 1.0
 
 
 class FakeKDE:

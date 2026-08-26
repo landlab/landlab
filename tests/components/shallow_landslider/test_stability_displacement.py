@@ -10,6 +10,8 @@ def make_grid(n=5, spacing=10.0):
     mg = RasterModelGrid((n, n), xy_spacing=spacing)
     mg.add_ones("topographic__elevation", at="node")
     mg.add_ones("soil__depth", at="node")
+    mg.add_zeros("earthquake__horizontal_pga", at="node")
+    mg.add_zeros("earthquake__vertical_pga", at="node")
     return mg
 
 
@@ -42,7 +44,6 @@ def test_factor_of_safety_matches_formula(monkeypatch):
         cohesion_eff=coh,
         angle_int_frict=30.0,
         submerged_soil_proportion=sub,
-        update_soil=False,
     )
 
     fos = comp._factor_of_safety(
@@ -159,7 +160,6 @@ def test_newmark_displacement_and_masking():
         mg,
         cohesion_eff=10,
         angle_int_frict=30,
-        compute_displacement=True,
     )
 
     # construct simple labels
@@ -180,22 +180,20 @@ def test_newmark_displacement_and_masking():
     assert np.allclose(disp[active_idx], 0.5 * 2.0 * 9.0)
 
 
-def test_newmark_displacement_threshold_behavior():
+def test_run_one_step_computes_newmark_displacement_with_dt():
     mg = make_grid()
     comp = ShallowLandslider(
         mg,
         cohesion_eff=10,
         angle_int_frict=30,
-        compute_displacement=True,
-        displacement_threshold=5.0,
     )
 
-    comp.run_one_step()
-    disp = mg.at_node["landslide__newmark_displacement"]
+    comp.run_one_step(dt=3.0)
+    disp = comp.results["newmark"]
 
-    # All high displacement nodes must exceed threshold
+    # All reported displacement nodes have positive displacement.
     for idx in comp._high_disp_nodes:
-        assert disp[idx] > 5.0
+        assert disp[idx] > 0.0
 
 
 def test_critical_acceleration_sets_boundary_to_zero(monkeypatch):
