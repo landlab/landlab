@@ -19,7 +19,6 @@ from scipy.ndimage import gaussian_filter as _gaussian_filter
 from scipy.ndimage import generate_binary_structure as _generate_binary_structure
 from scipy.ndimage import label as _label
 from scipy.special import expit as _expit
-from skimage.measure import regionprops as _regionprops
 
 from landlab.core.model_component import Component
 
@@ -38,6 +37,97 @@ def _log_stage(name: str):
         raise
     else:
         logger.info("[DONE] %s — %.1fs", name, _time.perf_counter() - t0)
+
+
+class _RegionProperties:
+    """Subset of ``skimage.measure.regionprops`` used by this component."""
+
+    def __init__(self, labels: np.ndarray, label: int, region_slice: tuple[slice, ...]):
+        self.label = label
+        self._labels = labels
+        self._slice = region_slice
+        self._coords = None
+        self._inertia_tensor = None
+        self._inertia_tensor_eigvals = None
+
+    @property
+    def bbox(self) -> tuple[int, int, int, int]:
+        return (
+            self._slice[0].start,
+            self._slice[1].start,
+            self._slice[0].stop,
+            self._slice[1].stop,
+        )
+
+    @property
+    def coords(self) -> np.ndarray:
+        if self._coords is None:
+            local_coords = np.argwhere(self._labels[self._slice] == self.label)
+            self._coords = local_coords + np.array(
+                [self._slice[0].start, self._slice[1].start]
+            )
+        return self._coords
+
+    @property
+    def area(self) -> float:
+        return float(len(self.coords))
+
+    @property
+    def centroid(self) -> tuple[float, float]:
+        return tuple(self.coords.mean(axis=0))
+
+    @property
+    def inertia_tensor(self) -> np.ndarray:
+        if self._inertia_tensor is None:
+            centered = self.coords.astype(float) - self.coords.mean(axis=0)
+            variance_row, variance_col = np.mean(centered**2, axis=0)
+            covariance = np.mean(centered[:, 0] * centered[:, 1])
+            self._inertia_tensor = np.array(
+                [[variance_col, -covariance], [-covariance, variance_row]]
+            )
+        return self._inertia_tensor
+
+    @property
+    def inertia_tensor_eigvals(self) -> np.ndarray:
+        if self._inertia_tensor_eigvals is None:
+            eigvals = np.linalg.eigvalsh(self.inertia_tensor)
+            self._inertia_tensor_eigvals = np.clip(eigvals[::-1], 0.0, None)
+        return self._inertia_tensor_eigvals
+
+    @property
+    def axis_major_length(self) -> float:
+        return float(4.0 * np.sqrt(self.inertia_tensor_eigvals[0]))
+
+    @property
+    def axis_minor_length(self) -> float:
+        return float(4.0 * np.sqrt(self.inertia_tensor_eigvals[-1]))
+
+    @property
+    def orientation(self) -> float:
+        a, b, _, c = self.inertia_tensor.flat
+        if a == c:
+            return np.pi / 4.0 if b < 0 else -np.pi / 4.0
+        return float(0.5 * np.arctan2(-2.0 * b, c - a))
+
+    @property
+    def eccentricity(self) -> float:
+        major, minor = self.inertia_tensor_eigvals
+        if major == 0.0:
+            return 0.0
+        return float(np.sqrt(1.0 - minor / major))
+
+
+def _regionprops(labels: np.ndarray) -> list[_RegionProperties]:
+    """Return properties for each nonzero region in a 2-D label array."""
+    labels = np.asarray(labels)
+    if labels.ndim != 2:
+        raise ValueError("Region properties require a 2-D label array")
+
+    regions = []
+    for label, region_slice in enumerate(_nd.find_objects(labels), start=1):
+        if region_slice is not None:
+            regions.append(_RegionProperties(labels, label, region_slice))
+    return regions
 
 
 class ShallowLandslider(Component):
@@ -1015,7 +1105,7 @@ class ShallowLandslider(Component):
             props["bbox_width"][i] = (max_col - min_col) * self.grid.dx
             props["bbox_area"][i] = props["bbox_height"][i] * props["bbox_width"][i]
 
-            # Region geometry (reuse skimage-provided axes/orientation)
+            # Region geometry from second moments of the region coordinates.
             # Scale axes by dx to approximate physical lengths
             # (keeps behavior consistent with earlier approach using pixel geometry)
             props["major_axis_length"][i] = r.axis_major_length * self.grid.dx

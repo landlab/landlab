@@ -4,6 +4,9 @@ import numpy as np
 
 from landlab import RasterModelGrid
 from landlab.components import ShallowLandslider
+from landlab.components.shallow_landslider.shallow_landslide_component import (
+    _regionprops,
+)
 
 
 def make_grid(shape=(6, 6), spacing=10.0):
@@ -15,6 +18,22 @@ def make_grid(shape=(6, 6), spacing=10.0):
     mg.add_zeros("earthquake__horizontal_pga", at="node")
     mg.add_zeros("earthquake__vertical_pga", at="node")
     return mg
+
+
+def test_regionprops_matches_expected_geometry():
+    labels = np.zeros((5, 6), dtype=int)
+    labels[1:3, 2:5] = 2
+
+    (region,) = _regionprops(labels)
+
+    assert region.label == 2
+    assert region.bbox == (1, 2, 3, 5)
+    assert region.area == 6.0
+    assert np.allclose(region.centroid, (1.5, 3.0))
+    assert np.isclose(region.axis_major_length, 4.0 * np.sqrt(2.0 / 3.0))
+    assert np.isclose(region.axis_minor_length, 2.0)
+    assert np.isclose(region.orientation, np.pi / 2.0)
+    assert np.isclose(region.eccentricity, np.sqrt(5.0 / 8.0))
 
 
 def test_calculate_regions_connectivity(monkeypatch):
