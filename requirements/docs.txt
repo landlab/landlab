@@ -2,7 +2,7 @@ furo==2025.12.19
 ipython==9.16.1
 myst-parser==5.1.0
 nbsphinx==0.9.8
-numpy==2.4.4
+numpy==2.5.2
 sphinx-copybutton==0.5.2
 sphinx-inline-tabs==2025.12.21.14
 sphinx-jinja==2.0.2
