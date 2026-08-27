@@ -1,6 +1,6 @@
 furo==2025.12.19
 ipython==9.16.1
-myst-parser==5.0.0
+myst-parser==5.1.0
 nbsphinx==0.9.8
 numpy==2.4.4
 sphinx-copybutton==0.5.2
