@@ -1,4 +1,4 @@
-# tests/helper_functions/test_stability_displacement.py
+# Tests for shallow-landslide stability calculations.
 
 import numpy as np
 
@@ -152,48 +152,6 @@ def test_critical_transient_acceleration(monkeypatch):
     assert np.allclose(ac, a_c_simple, rtol=1e-6)
     assert np.allclose(aslip, a_s)
     assert np.allclose(adiff, a_s - a_c_simple)
-
-
-def test_newmark_displacement_and_masking():
-    mg = make_grid()
-    comp = ShallowLandslider(
-        mg,
-        cohesion_eff=10,
-        angle_int_frict=30,
-    )
-
-    # construct simple labels
-    labels = np.zeros(mg.shape, dtype=int)
-    labels[2:4, 2:4] = 1
-    diff = np.zeros(mg.number_of_nodes)
-    active_idx = np.where(labels.ravel() == 1)[0]
-    diff[active_idx] = 2.0  # m/s2
-
-    disp = comp._calculate_newmark_displacement(
-        a_difference_1d=diff,
-        selected_labels_2d=labels,
-        time_shaking_2d=np.ones(mg.shape) * 3.0,
-    )
-
-    unlabeled = np.where(labels.ravel() == 0)[0]
-    assert np.all(np.isnan(disp[unlabeled]))
-    assert np.allclose(disp[active_idx], 0.5 * 2.0 * 9.0)
-
-
-def test_run_one_step_computes_newmark_displacement_with_dt():
-    mg = make_grid()
-    comp = ShallowLandslider(
-        mg,
-        cohesion_eff=10,
-        angle_int_frict=30,
-    )
-
-    comp.run_one_step(dt=3.0)
-    disp = comp.results["newmark"]
-
-    # All reported displacement nodes have positive displacement.
-    for idx in comp._high_disp_nodes:
-        assert disp[idx] > 0.0
 
 
 def test_critical_acceleration_sets_boundary_to_zero(monkeypatch):

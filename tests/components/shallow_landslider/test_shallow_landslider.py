@@ -63,13 +63,6 @@ def test_run_one_step_without_measured_width_data():
     assert "landslide__selected_labels" in mg.at_node
 
 
-def test_probabilistic_selection_sets_a_proportion():
-    mg = make_grid()
-    comp = ShallowLandslider(mg, cohesion_eff=25.0, angle_int_frict=27.0)
-    comp.run_one_step()
-    assert comp._selected_proportion is not None
-
-
 def test_results_property_contains_expected_keys():
     mg = make_grid()
     comp = ShallowLandslider(mg, cohesion_eff=25.0, angle_int_frict=27.0)
@@ -85,7 +78,6 @@ def test_results_property_contains_expected_keys():
         "labels",
         "aspect_labels",
         "selected_labels",
-        "group_properties",
     ]:
         assert key in r
 

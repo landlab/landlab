@@ -125,23 +125,6 @@ def test_recursive_split_wide_regions_splits():
     assert new_labels.max() > 1
 
 
-def test_calculate_region_properties_area_and_bbox():
-    mg = make_grid()
-    comp = ShallowLandslider(mg, cohesion_eff=10, angle_int_frict=30)
-
-    labels = np.zeros(mg.shape, dtype=int)
-    labels[1:4, 2:5] = 3
-
-    slopes = np.ones(mg.number_of_nodes) * 12
-    aspect = np.ones(mg.shape) * 45
-
-    df, working = comp._calculate_region_properties(labels, slopes, aspect, min_size=1)
-    assert 3 in df.index
-    assert df.loc[3, "area"] > 0
-    assert df.loc[3, "bbox_width"] > 0
-    assert df.loc[3, "bbox_height"] > 0
-
-
 def test_recursive_split_converges_early():
     mg = make_grid()
     comp = ShallowLandslider(mg, cohesion_eff=10, angle_int_frict=30)
