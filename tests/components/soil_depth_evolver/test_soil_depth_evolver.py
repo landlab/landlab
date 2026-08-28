@@ -6,9 +6,10 @@ Created on Wed Aug 26 11:59:54 2026
 
 import numpy as np
 import pytest
+
 from landlab import RasterModelGrid
-from landlab.components import TaylorNonLinearDiffuser
 from landlab.components import SoilDepthEvolver
+from landlab.components import TaylorNonLinearDiffuser
 
 
 class DummyDiffuser:
