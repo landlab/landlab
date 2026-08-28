@@ -12,7 +12,7 @@ class SoilDepthEvolver(Component):
     """
     Evolve soil depth through soil production and hillslope transport.
 
-    SoilProductionAndTransporter couples depth-dependent soil production
+    SoilDepthEvolver couples depth-dependent soil production
     with an externally supplied Landlab hillslope-transport component.
     The component tracks changes in soil thickness through time while
     allowing the user to choose the transport formulation independently.
@@ -46,9 +46,20 @@ class SoilDepthEvolver(Component):
     The hillslope-transport component is supplied externally rather than
     constructed internally. This allows different compatible Landlab
     transport components to be used without modifying
-    SoilProductionAndTransporter. The supplied component must operate on
+    SoilDepthEvolver. The supplied component must operate on
     the same grid, update ``topographic__elevation``, and provide a
     ``run_one_step(dt)`` method.
+    
+    ## Notes
+
+    This component was developed in support of the RESET (Recurring Soil
+    Evacuation in Topographic Hollows) modeling framework, which couples
+    soil production, hillslope transport, and slope-stability modeling to
+    investigate soil infilling and shallow-landslide recurrence in
+    topographic hollows of the Oregon Coast Range. The associated manuscript
+    is currently under review at *Journal of Geophysical Research: Earth
+    Surface*.
+
 
     Examples
     --------
