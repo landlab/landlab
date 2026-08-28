@@ -7,9 +7,8 @@ Created on Wed Aug 26 11:59:54 2026
 
 import numpy as np
 import pytest
-
 from landlab import RasterModelGrid
-
+from landlab.components import TaylorNonLinearDiffuser
 from landlab.components import SoilDepthEvolver
 
 
@@ -79,7 +78,7 @@ def test_negative_soil_production_rate_raises(grid):
 
     diffuser = DummyDiffuser(grid)
 
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         SoilDepthEvolver(
             grid,
             diffuser=diffuser,
@@ -92,7 +91,7 @@ def test_zero_decay_depth_raises(grid):
 
     diffuser = DummyDiffuser(grid)
 
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         SoilDepthEvolver(
             grid,
             diffuser=diffuser,
@@ -105,7 +104,7 @@ def test_zero_rock_density_raises(grid):
 
     diffuser = DummyDiffuser(grid)
 
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         SoilDepthEvolver(
             grid,
             diffuser=diffuser,
@@ -118,7 +117,7 @@ def test_zero_soil_density_raises(grid):
 
     diffuser = DummyDiffuser(grid)
 
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         SoilDepthEvolver(
             grid,
             diffuser=diffuser,
@@ -401,9 +400,6 @@ def test_two_timesteps_use_previous_soil_depth(grid):
         second["production_rate"]
         < first["production_rate"]
     )
-
-from landlab.components import TaylorNonLinearDiffuser
-
 
 def test_with_taylor_nonlinear_diffuser():
     """SoilDepthEvolver should run with a real Landlab diffuser."""
