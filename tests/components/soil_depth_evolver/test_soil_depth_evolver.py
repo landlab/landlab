@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Created on Wed Aug 26 11:59:54 2026
 
@@ -202,9 +201,7 @@ def test_soil_production_decreases_with_depth():
 
     production_rate = result["production_rate"]
 
-    assert np.all(
-        np.diff(production_rate) < 0.0
-    )
+    assert np.all(np.diff(production_rate) < 0.0)
 
 
 def test_soil_production_equation(grid):
@@ -223,11 +220,7 @@ def test_soil_production_equation(grid):
 
     result = component.run_one_step(1.0)
 
-    expected = (
-        (2000.0 / 1600.0)
-        * 0.0003
-        * np.exp(-0.5 / 0.5)
-    )
+    expected = (2000.0 / 1600.0) * 0.0003 * np.exp(-0.5 / 0.5)
 
     np.testing.assert_allclose(
         result["production_rate"],
@@ -335,11 +328,7 @@ def test_exhausted_soil_retains_new_production(grid):
 
     result = component.run_one_step(1.0)
 
-    expected_production = (
-        (2000.0 / 1600.0)
-        * 0.001
-        * np.exp(-0.5 / 0.5)
-    )
+    expected_production = (2000.0 / 1600.0) * 0.001 * np.exp(-0.5 / 0.5)
 
     np.testing.assert_allclose(
         result["soil_depth"],
@@ -385,21 +374,14 @@ def test_two_timesteps_use_previous_soil_depth(grid):
 
     first = component.run_one_step(1.0)
 
-    depth_after_first = first[
-        "soil_depth"
-    ].copy()
+    depth_after_first = first["soil_depth"].copy()
 
     second = component.run_one_step(1.0)
 
-    assert np.all(
-        second["soil_depth"]
-        > depth_after_first
-    )
+    assert np.all(second["soil_depth"] > depth_after_first)
 
-    assert np.all(
-        second["production_rate"]
-        < first["production_rate"]
-    )
+    assert np.all(second["production_rate"] < first["production_rate"])
+
 
 def test_with_taylor_nonlinear_diffuser():
     """SoilDepthEvolver should run with a real Landlab diffuser."""
@@ -442,14 +424,8 @@ def test_with_taylor_nonlinear_diffuser():
 
     assert component.current_time == 1.0
 
-    assert result["soil_depth"].shape == (
-        grid.number_of_nodes,
-    )
+    assert result["soil_depth"].shape == (grid.number_of_nodes,)
 
-    assert np.all(
-        np.isfinite(result["soil_depth"])
-    )
+    assert np.all(np.isfinite(result["soil_depth"]))
 
-    assert np.all(
-        result["soil_depth"] >= 0.0
-    )
+    assert np.all(result["soil_depth"] >= 0.0)
