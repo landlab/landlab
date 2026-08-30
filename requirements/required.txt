@@ -3,7 +3,7 @@ matplotlib==3.11.1
 netcdf4==1.7.4
 numpy==2.5.2
 pandas==3.0.5
-py-richdem==2.2.0rc2
+py-richdem==2.2.0rc3
 pyshp==3.1.6
 pyyaml==6.0.3
 requireit==0.11.0
