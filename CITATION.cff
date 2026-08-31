@@ -67,8 +67,9 @@ authors:
     family-names: Manaster
     given-names: Amanda
   -
-    family-names: Abby
-    given-names: Langston
+    family-names: Langston
+    given-names: Abby
+    orcid: "https://orcid.org/0000-0003-1630-8838"
   -
     family-names: Thyng
     given-names: Kristen
@@ -77,7 +78,96 @@ authors:
     family-names: Rengers
     given-names: Francis
     orcid: "https://orcid.org/0000-0002-1825-0943"
+  -
+    family-names: Pfeiffer
+    given-names: Allison
+    orcid: "https://orcid.org/0000-0002-3974-132X"
+  -
+    family-names: Wickert
+    given-names: Andy
+    orcid: "https://orcid.org/0000-0002-9545-3365"
+  -
+    family-names: Thompson
+    given-names: Annie
+  -
+    family-names: Campforts
+    given-names: Benjamin
+    orcid: "https://orcid.org/0000-0001-5699-6714"
+  -
+    family-names: Mertan
+    given-names: Berkan
+  -
+    family-names: Sheehan
+    given-names: Christopher
+    orcid: "https://orcid.org/0000-0001-5697-8081"
+  -
+    family-names: Ward
+    given-names: Dylan
+    orcid: "https://orcid.org/0000-0002-5741-7830"
+  -
+    family-names: Hariharan
+    given-names: Jay
+    orcid: "https://orcid.org/0000-0002-1343-193X"
+  -
+    family-names: Keck
+    given-names: Jeffrey
+    orcid: "https://orcid.org/0000-0002-0646-8574"
+  -
+    family-names: Wolpert
+    given-names: Josh
+    orcid: "https://orcid.org/0000-0002-4924-401X"
+  -
+    family-names: David
+    given-names: Juan
+  -
+    family-names: Roberge
+    given-names: Laurent
+    orcid: "https://orcid.org/0000-0002-8792-0904"
+  -
+    family-names: Almeida
+    given-names: Matheus
+  -
+    family-names: Ahammad
+    given-names: Muneer
+    orcid: "https://orcid.org/0000-0002-3995-6507"
+  -
+    family-names: Lundell
+    given-names: Sarah
+  -
+    family-names: Lenard
+    given-names: Sebastien
+    orcid: "https://orcid.org/0000-0003-3358-7197"
+  -
+    family-names: Ahrendt
+    given-names: Shelby
+    orcid: "https://orcid.org/0000-0002-3678-5087"
+  -
+    family-names: Heister
+    given-names: Timo
+    orcid: "https://orcid.org/0000-0002-8137-3903"
+  -
+    family-names: Bui
+    given-names: Viet
+    orcid: "https://orcid.org/0009-0006-7372-9048"
+  -
+    family-names: Bangerth
+    given-names: Wolfgang
+    orcid: "https://orcid.org/0000-0003-2311-9402"
+  -
+    family-names: Monsalve
+    given-names: Angel
+    orcid: "https://orcid.org/0000-0002-7369-1602"
+  -
+    family-names: Douglas
+    given-names: Daniel
+    orcid: "https://orcid.org/0000-0002-7871-018X"
+  -
+    family-names: Gan
+    given-names: Tian
+    orcid: "https://orcid.org/0000-0003-3624-6910"
+
 title: "landlab"
+version: "2.11.0"
 identifiers:
   -
     type: doi
@@ -97,15 +187,11 @@ identifiers:
        January 2017, Volume 5, Issue 1
   -
     type: doi
-    value: 10.5281/zenodo.3776837
-    description: The versioned DOI for the version 2.0.1 of landlab.
-  -
-    type: doi
-    value: 10.5281/zenodo.595872
-    description: The concept DOI for the collection containing all versions of landlab.
+    value: 10.5281/zenodo.22182442
+    description: The versioned DOI for version 2.11.0 of landlab.
 repository-code: "https://github.com/landlab/landlab"
 url: "https://landlab.csdms.io"
-date-released: "2020-04-29"
+date-released: "2026-04-05"
 keywords:
   - "bmi"
   - "component modeling"
