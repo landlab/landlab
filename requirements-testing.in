@@ -3,6 +3,6 @@
 coverage
 flaky
 hypothesis
-pytest
 pytest-datadir
 pytest-xdist
+pytest>=9.0.3

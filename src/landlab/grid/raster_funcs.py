@@ -366,8 +366,8 @@ def line_to_grid_coords(c0, r0, c1, r1):
 
     # Flip endpoints if needed to have segment point to up/right
     if (dx + dy) < 0:
-        (c0, c1) = _swap(c0, c1)
-        (r0, r1) = _swap(r0, r1)
+        c0, c1 = _swap(c0, c1)
+        r0, r1 = _swap(r0, r1)
         dx = -dx
         dy = -dy
         flip_array = True

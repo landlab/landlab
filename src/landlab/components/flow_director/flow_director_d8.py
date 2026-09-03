@@ -165,7 +165,7 @@ class FlowDirectorD8(_FlowDirectorToOne):
         ----------
         grid : ModelGrid
             A grid of type RasterModelGrid.
-        surface : field name at node or array of length node, optional
+        surface : str or ndarray, optional
             The surface to direct flow across, default is field at node:
             topographic__elevation,.
         """

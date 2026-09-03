@@ -144,7 +144,7 @@ def test_xy_of_node_rect_horizontal(n_rows, n_cols):
 @pytest.mark.parametrize("n_cols", (2, 3))
 @pytest.mark.parametrize("n_rows", (1, 2, 3))
 def test_xy_of_node_lower_left(layout_graph, n_rows, n_cols):
-    (x_of_node, y_of_node) = layout_graph.xy_of_node((n_rows, n_cols))
+    x_of_node, y_of_node = layout_graph.xy_of_node((n_rows, n_cols))
 
     assert np.min(x_of_node) == approx(0.0)
     assert np.min(y_of_node) == approx(0.0)

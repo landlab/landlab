@@ -1,2 +1,0 @@
-Fixed one of the `NetworkSedimentTransporter` tests that was causing
-an error for newer versions of *numpy*.

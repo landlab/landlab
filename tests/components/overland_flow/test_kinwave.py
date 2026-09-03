@@ -9,7 +9,7 @@ import pytest
 from landlab import RasterModelGrid
 from landlab.components.overland_flow import KinwaveOverlandFlowModel
 
-(_SHAPE, _SPACING, _ORIGIN) = ((10, 10), (25, 25), (0.0, 0.0))
+_SHAPE, _SPACING, _ORIGIN = ((10, 10), (25, 25), (0.0, 0.0))
 _ARGS = (_SHAPE, _SPACING, _ORIGIN)
 
 

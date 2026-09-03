@@ -362,8 +362,7 @@ def test_as_list_of_tuples_mixed_types():
 
 
 def test_create_grid():
-    contents = StringIO(
-        """
+    contents = StringIO("""
 RasterModelGrid:
   args: [[3, 4]]
   xy_spacing: 2.0
@@ -373,8 +372,7 @@ RasterModelGrid:
       elevation:
         constant:
           value: 1.0
-"""
-    )
+""")
     expected = RasterModelGrid((3, 4), xy_spacing=2.0, xy_of_lower_left=(1, 2))
     actual = create_grid(contents)
     assert_array_almost_equal(expected.x_of_node, actual.x_of_node)
@@ -382,8 +380,7 @@ RasterModelGrid:
 
 
 def test_create_grid_multiple():
-    contents = StringIO(
-        """
+    contents = StringIO("""
 grids:
     - RasterModelGrid:
       - [3, 4]
@@ -397,8 +394,7 @@ grids:
       - args: [[3, 4]]
         xy_spacing: 2.0
         xy_of_lower_left: [1.0, 2.0]
-"""
-    )
+""")
     expected = RasterModelGrid((3, 4), xy_spacing=2.0, xy_of_lower_left=(1, 2))
     grids = create_grid(contents, section="grids")
     assert len(grids) == 3

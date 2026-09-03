@@ -186,12 +186,12 @@ class SimpleSubmarineDiffuser(LinearDiffuser):
 
         Parameters
         ----------
-        water_depth : float array
+        water_depth : ndarray of float
             Depth of water relative to mean sea level (m) (can be negative)
 
         Returns
         -------
-        df : float array
+        df : ndarray of float
             Weight factor ranging from 0 to 1.
         """
         if self._tidal_range > 0.0:
@@ -206,7 +206,7 @@ class SimpleSubmarineDiffuser(LinearDiffuser):
 
         Returns
         -------
-        k : float array
+        k : ndarray of float
             Diffusion coefficient, m2/y
         """
         sea_level = self.grid.at_grid["sea_level__elevation"]

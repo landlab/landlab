@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Structure to store data over time for SpeciesEvolver."""
+
 from collections import OrderedDict
 
 import numpy as np

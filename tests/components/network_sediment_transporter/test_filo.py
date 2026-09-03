@@ -97,6 +97,13 @@ def test_first_in_last_out():
         last_in_parcel, :
     ]
 
+    # The "OUT_OF_NETWORK" link = -2, so we'll edit those link indices
+    # for the following calculation, recognizing them as downstream
+
+    link_of_last_in_parcel[link_of_last_in_parcel == nst.OUT_OF_NETWORK] = (
+        np.max(nmg_constant_slope.number_of_links) + 2
+    )
+
     First_in_lags_behind = np.greater_equal(
         link_of_last_in_parcel, link_of_first_in_parcel
     )

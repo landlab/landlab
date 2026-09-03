@@ -1,2 +1,0 @@
-Removed the broken `default_fixed_links` keyword parameter from the `OverlandFlow`
-component.
