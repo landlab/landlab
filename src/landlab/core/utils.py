@@ -48,11 +48,15 @@ def require_id_array(
 
     Parameters
     ----------
-    values : ndarray
+    array : ndarray
         The array to be validated.
     shape : tuple of int, str, or None, optional
         The required shape. Integers specify exact sizes, while ``None`` or
         strings act as wildcards and allow any size for that dimension.
+    max_id : int, optional
+        Maximum allowable index.
+    bad_value : int, optional
+        Allowed value to indicate a bad index.
     name : str, optional
         Variable name used in error messages.
 
