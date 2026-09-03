@@ -29,8 +29,50 @@ import re
 import shutil
 
 import numpy as np
+from numpy.typing import ArrayLike
+from requireit import require_array
+from requireit import require_between
 
 SIZEOF_INT = np.dtype(int).itemsize
+
+
+def require_id_array(
+    array: ArrayLike,
+    *,
+    shape: tuple[int | str | None, ...] | None = None,
+    max_id: int | None = None,
+    bad_value: int | None = -1,
+    name: str | None = None,
+) -> ArrayLike:
+    """Validate that an array can be used as an ID array.
+
+    Parameters
+    ----------
+    values : ndarray
+        The array to be validated.
+    shape : tuple of int, str, or None, optional
+        The required shape. Integers specify exact sizes, while ``None`` or
+        strings act as wildcards and allow any size for that dimension.
+    name : str, optional
+        Variable name used in error messages.
+
+    Returns
+    -------
+    array : ndarray
+        The validated array.
+    """
+    name = name or "array"
+
+    _array = np.asarray(array)
+
+    require_array(_array, shape=shape, dtype=np.integer, name=name)
+
+    if bad_value is None:
+        require_between(_array, a_min=0, a_max=max_id, name=name)
+    else:
+        require_between(_array[_array != bad_value], a_min=0, a_max=max_id, name=name)
+
+    return array
 
 
 class ExampleData:
