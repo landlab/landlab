@@ -21,10 +21,10 @@ def test_require_id_array_not_integer(array):
         require_id_array(array)
 
 
-def test_require_id_array_with_bad_value():
-    require_id_array([-2, 1, 2, 3], bad_value=-2)
+def test_require_id_array_with_bad_id():
+    require_id_array([-2, 1, 2, 3], bad_id=-2)
     with pytest.raises(ValidationError, match="^array must"):
-        require_id_array([-1, 1, 2, 3], bad_value=None)
+        require_id_array([-1, 1, 2, 3], bad_id=None)
 
 
 def test_require_id_array_with_name():

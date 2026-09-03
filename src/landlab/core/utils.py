@@ -41,25 +41,29 @@ def require_id_array(
     *,
     shape: tuple[int | str | None, ...] | None = None,
     max_id: int | None = None,
-    bad_value: int | None = -1,
+    bad_id: int | None = -1,
     name: str | None = None,
 ) -> ArrayLike:
     """Validate that an array can be used as an ID array.
 
     Parameters
     ----------
-    values : ndarray
-        The array to be validated.
+    array : array_like of int
+        Array of element IDs to validate.
     shape : tuple of int, str, or None, optional
-        The required shape. Integers specify exact sizes, while ``None`` or
-        strings act as wildcards and allow any size for that dimension.
+        Required array shape.
+    max_id : int, optional
+        Inclusive maximum valid ID.
+    bad_id : int or None, optional
+        Value used to represent an invalid ID. If ``None``, all IDs must be
+        nonnegative. Default is ``-1``.
     name : str, optional
         Variable name used in error messages.
 
     Returns
     -------
-    array : ndarray
-        The validated array.
+    array_like
+        The original input, unchanged.
     """
     name = name or "array"
 
@@ -67,10 +71,10 @@ def require_id_array(
 
     require_array(_array, shape=shape, dtype=np.integer, name=name)
 
-    if bad_value is None:
+    if bad_id is None:
         require_between(_array, a_min=0, a_max=max_id, name=name)
     else:
-        require_between(_array[_array != bad_value], a_min=0, a_max=max_id, name=name)
+        require_between(_array[_array != bad_id], a_min=0, a_max=max_id, name=name)
 
     return array
 
