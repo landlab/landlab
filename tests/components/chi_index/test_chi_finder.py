@@ -35,5 +35,7 @@ def test_functions_with_Hex():
     fa = FlowAccumulator(mg)
     fa.run_one_step()
 
-    ch = ChiFinder(mg, min_drainage_area=1.0, reference_concavity=1.0)
+    with pytest.warns(UserWarning, match="primarily supported for RasterModelGrid"):
+        ch = ChiFinder(mg, min_drainage_area=1.0, reference_concavity=1.0)
+
     ch.calculate_chi()

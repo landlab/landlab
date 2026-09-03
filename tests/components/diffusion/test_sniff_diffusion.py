@@ -91,6 +91,15 @@ def test_diffusion_with_resolve_on_patches():
         )
 
 
+def test_link_diffusivity_requires_raster_grid():
+    grid = HexModelGrid((5, 5))
+    grid.add_ones("topographic__elevation", at="node")
+    k = grid.add_ones("diffusivity", at="link")
+
+    with pytest.raises(TypeError, match="RasterModelGrid"):
+        LinearDiffuser(grid, linear_diffusivity=k, method="simple")
+
+
 def test_diffusion():
     dt = 1.0
     time_to_run = 3.0
