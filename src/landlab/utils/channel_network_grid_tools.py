@@ -279,9 +279,10 @@ def map_nmg_links_to_rmg_coincident_nodes(
     link_nodes : np array
         head and tail node of each link
     remove_duplicates : bool
-        if True, when two or more links are coincident with the same node,
-        the node is assigned to the link with the largest drainage area. If False,
-        the node is assigned to each coincident link. The default is False.
+        if True, when two or more links are coincident with the same node, which
+        can occur at stream junctions, the node is assigned to the link with the
+        largest drainage area. If False, the node is assigned to each coincident
+        link. The default is False.
 
     Returns
     -------
