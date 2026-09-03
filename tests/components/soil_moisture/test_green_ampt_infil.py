@@ -9,7 +9,7 @@ import numpy as np
 from landlab import RasterModelGrid
 from landlab.components.soil_moisture import SoilInfiltrationGreenAmpt
 
-(_SHAPE, _SPACING, _ORIGIN) = ((10, 10), (25, 25), (0.0, 0.0))
+_SHAPE, _SPACING, _ORIGIN = ((10, 10), (25, 25), (0.0, 0.0))
 _ARGS = (_SHAPE, _SPACING, _ORIGIN)
 
 

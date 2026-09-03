@@ -199,7 +199,7 @@ def get_core_node_matrix(grid, value_at_node, coef_at_link=None):
     if coef_at_link is not None:
         coef_at_link = np.broadcast_to(coef_at_link, grid.number_of_links)
 
-    (values, (row_inds, col_inds)) = get_matrix_entries(grid, coef_at_link=coef_at_link)
+    values, (row_inds, col_inds) = get_matrix_entries(grid, coef_at_link=coef_at_link)
 
     mat = csc_matrix(
         (values, (row_inds, col_inds)),

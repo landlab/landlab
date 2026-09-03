@@ -9,7 +9,6 @@ this class!! This is part of the NSF funded project investigating fault
 scarp degradation, Tucker, Hobley, McCoy.
 """
 
-
 import sys
 
 import numpy as np
@@ -59,7 +58,7 @@ class find_facets:
         self.ft_trace_node_ids = fault_trace_node_ids
         x = self.grid.node_x[fault_trace_node_ids]
         y = self.grid.node_y[fault_trace_node_ids]
-        (grad, offset) = np.polyfit(x, y, 1)
+        grad, offset = np.polyfit(x, y, 1)
         angle = np.arctan(grad)
         if grad >= 0.0:
             self.az = np.pi / 2.0 - angle
@@ -311,7 +310,7 @@ class find_facets:
             close_ft_nodes = np.less(ft_pt_distances_to_node, 5.0 * grid.dx)
             x = grid.node_x[self.ft_trace_node_ids[close_ft_nodes]]
             y = grid.node_y[self.ft_trace_node_ids[close_ft_nodes]]
-            (grad, offset) = np.polyfit(x, y, 1)
+            grad, offset = np.polyfit(x, y, 1)
             condition = np.equal(self.closest_ft_node[pcn], i)
             nodes_possible = pcn[condition]
             print(f"{nodes_possible.size} nodes")
@@ -447,7 +446,7 @@ class find_facets:
         for i in range(len(self.profile_x_facet_pts)):
             x = self.profile_x_facet_pts[i]
             z = self.profile_z_facet_pts[i]
-            (grad, offset) = np.polyfit(x, z, 1)
+            grad, offset = np.polyfit(x, z, 1)
             coeffs, residuals = np.polyfit(x, z, polynomial_degree, full=True)[:2]
             rsqd = 1.0 - residuals / (z.size * z.var())
             # differentiate the coeffs to get slope:

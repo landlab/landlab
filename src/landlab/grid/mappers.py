@@ -87,7 +87,7 @@ def map_link_head_node_to_link(grid, var_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : array or field name
+    var_name : ndarray or str
         Values defined at nodes.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
@@ -143,7 +143,7 @@ def map_link_tail_node_to_link(grid, var_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : array or field name
+    var_name : ndarray or str
         Values defined at nodes.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
@@ -198,7 +198,7 @@ def map_min_of_link_nodes_to_link(grid, var_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : array or field name
+    var_name : ndarray or str
         Values defined at nodes.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
@@ -263,7 +263,7 @@ def map_max_of_link_nodes_to_link(grid, var_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : array or field name
+    var_name : ndarray or str
         Values defined at nodes.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
@@ -328,7 +328,7 @@ def map_mean_of_link_nodes_to_link(grid, var_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : array or field name
+    var_name : ndarray or str
         Values defined at nodes.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
@@ -384,10 +384,10 @@ def map_value_at_min_node_to_link(grid, control_name, value_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    control_name : array or field name
+    control_name : ndarray or str
         Name of field defined at nodes or a node array that dictates which end
         of the link to draw values from.
-    value_name : array or field name
+    value_name : ndarray or str
         Name of field defined at nodes or  node array from which values are
         drawn, based on control_name.
     out : ndarray, optional
@@ -459,10 +459,10 @@ def map_value_at_max_node_to_link(grid, control_name, value_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    control_name : array or field name
+    control_name : ndarray or str
         Name of field defined at nodes or a node array that dictates which end
         of the link to draw values from.
-    value_name : array or field name
+    value_name : ndarray or str
         Name of field defined at nodes or  node array from which values are
         drawn, based on control_name.
     out : ndarray, optional
@@ -533,7 +533,7 @@ def map_node_to_cell(grid, var_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : array or field name
+    var_name : ndarray or str
         Values defined at nodes.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
@@ -586,7 +586,7 @@ def map_min_of_node_links_to_node(grid, var_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : array or field name
+    var_name : ndarray or str
         Values defined at links.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
@@ -647,7 +647,7 @@ def map_max_of_node_links_to_node(grid, var_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : array or field name
+    var_name : ndarray or str
         Values defined at links.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
@@ -710,7 +710,7 @@ def map_upwind_node_link_max_to_node(grid, var_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : array or field name
+    var_name : ndarray or str
         Values defined at links.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
@@ -789,7 +789,7 @@ def map_downwind_node_link_max_to_node(grid, var_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : array or field name
+    var_name : ndarray or str
         Values defined at links.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
@@ -869,7 +869,7 @@ def map_upwind_node_link_mean_to_node(grid, var_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : array or field name
+    var_name : ndarray or str
         Values defined at links.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
@@ -954,7 +954,7 @@ def map_downwind_node_link_mean_to_node(grid, var_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : array or field name
+    var_name : ndarray or str
         Values defined at links.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
@@ -1039,10 +1039,10 @@ def map_value_at_upwind_node_link_max_to_node(grid, control_name, value_name, ou
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    control_name : array or field name
+    control_name : ndarray or str
         Values defined at nodes that dictate which end of the link to
         draw values from.
-    value_name : array or field name
+    value_name : ndarray or str
         Values defined at nodes from which values are drawn, based on
         control_name.
     out : ndarray, optional
@@ -1134,10 +1134,10 @@ def map_value_at_downwind_node_link_max_to_node(
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    control_name : array or field name
+    control_name : ndarray or str
         Values defined at nodes that dictate which end of the link to
         draw values from.
-    value_name : array or field name
+    value_name : ndarray or str
         Values defined at nodes from which values are drawn, based on
         control_name.
     out : ndarray, optional
@@ -1220,7 +1220,7 @@ def map_mean_of_patch_nodes_to_patch(
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : array or field name
+    var_name : ndarray or str
         Values defined at nodes.
     ignore_closed_nodes : bool
         If True, do not incorporate closed nodes into calc. If all nodes are
@@ -1296,7 +1296,7 @@ def map_max_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True, ou
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : array or field name
+    var_name : ndarray or str
         Values defined at nodes.
     ignore_closed_nodes : bool
         If True, do not incorporate closed nodes into calc. If all nodes are
@@ -1372,7 +1372,7 @@ def map_min_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True, ou
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : array or field name
+    var_name : ndarray or str
         Values defined at nodes.
     ignore_closed_nodes : bool
         If True, do not incorporate closed nodes into calc. If all nodes are
@@ -1452,18 +1452,18 @@ def map_link_vector_sum_to_patch(grid, var_name, ignore_inactive_links=True, out
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : array or field name
+    var_name : ndarray or str
         Values defined at links.
     ignore_inactive_links : bool
         If True, do not incorporate inactive links into calc. If all links are
         inactive at a patch, record zero if out is None or leave the existing
         value if out.
-    out : len-2 list of npatches-long arrays, optional
+    out : list of ndarray, optional
         Buffer to place mapped values into or ``None`` to create a new array.
 
     Returns
     -------
-    len-2 list of arrays
+    list of ndarray
         [x_component_of_link_vals_at_patch, y_component_of_link_vals_at_patch].
 
     Examples
@@ -1630,11 +1630,11 @@ def map_node_to_link_linear_upwind(grid, v, u, out=None):
     ----------
     grid : ModelGrid
         A *Landlab* grid.
-    v : (n_nodes,), ndarray
+    v : ndarray
         Values at grid nodes.
-    u : (n_links,) ndarray
+    u : ndarray
         Values at grid links.
-    out : (n_links,) ndarray, optional
+    out : ndarray, optional
         If provided, place calculated values in this array. Otherwise, create a
         new array.
 
@@ -1700,11 +1700,11 @@ def map_node_to_link_lax_wendroff(grid, v, c, out=None):
     ----------
     grid : ModelGrid
         A *Landlab* grid.
-    v : (n_nodes,) ndarray
+    v : ndarray
         Values at grid nodes.
-    c : float or (n_links,) ndarray
+    c : float or ndarray
         Courant number to use at links.
-    out : (n_links,) ndarray, optional
+    out : ndarray, optional
         If provided, place calculated values in this array. Otherwise, create a
         new array.
 

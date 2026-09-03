@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """SpeciesEvolver tests."""
+
 from collections import Counter
 
 import numpy as np

@@ -12,6 +12,7 @@ runs:
       uses: actions/setup-python@v5
       with:
         python-version: ${{ inputs.python-version }}
+        allow-prereleases: true
 
     - uses: actions/download-artifact@v4
       name: Download build artifacts
@@ -21,7 +22,7 @@ runs:
         path: ${{ github.workspace }}/dist
 
     - name: Test
-      shell: bash -l {0}
+      shell: bash
       run: |
         pip install nox
         nox --verbose -s ${{ inputs.nox-session }} \

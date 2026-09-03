@@ -1,0 +1,1 @@
+Added a new component, {class}`~.GeoEnthalpyDelta`, that models 2D coupled subaerial and subaqueous delta evolution using a fixed-grid, enthalpy-based formulation with thresholded, slope-driven sediment transport and diagnostic alluvial–bedrock, shoreline, and delta-toe boundaries.

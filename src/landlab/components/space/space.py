@@ -267,9 +267,9 @@ class Space(_GeneralizedErosionDeposition):
         ----------
         grid : ModelGrid
             Landlab ModelGrid object
-        K_sed : float, field name, or array
+        K_sed : float, str, or ndarray
             Erodibility for sediment (units vary).
-        K_br : float, field name, or array
+        K_br : float, str, or ndarray
             Erodibility for bedrock (units vary).
         F_f : float
             Fraction of permanently suspendable fines in bedrock [-].
@@ -283,11 +283,11 @@ class Space(_GeneralizedErosionDeposition):
             Drainage area exponent (units vary)
         n_sp : float
             Slope exponent (units vary)
-        sp_crit_sed : float, field name, or array
+        sp_crit_sed : float, str, or ndarray
             Critical stream power to erode sediment [E/(TL^2)]
-        sp_crit_br : float, field name, or array
+        sp_crit_br : float, str, or ndarray
             Critical stream power to erode rock [E/(TL^2)]
-        discharge_field : float, field name, or array
+        discharge_field : float, str, or ndarray
             Discharge [L^2/T]. The default is to use the grid field
             'surface_water__discharge', which is simply drainage area
             multiplied by the default rainfall rate (1 m/yr). To use custom

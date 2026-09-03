@@ -10,6 +10,7 @@ import numpy as np
 import pytest
 
 from landlab import RasterModelGrid
+from landlab.data_record.data_record import DataRecord
 
 grid = RasterModelGrid((3, 3))
 shape = (3, 3)
@@ -17,6 +18,23 @@ my_items2 = {
     "grid_element": np.array(("node", "link"), dtype=str),
     "element_id": np.array([1, 3]),
 }
+
+
+def test_add_to_empty():
+    data_record = DataRecord(
+        grid=grid,
+        items={
+            "grid_element": np.asarray([], dtype=np.intp),
+            "element_id": np.asarray([], dtype=np.intp),
+        },
+    )
+    data_record.add_item(
+        new_item={
+            "grid_element": np.array(["node", "node"]),
+            "element_id": np.array([4, 4]),
+        },
+    )
+    assert data_record.number_of_items == 2
 
 
 def test_dr_item_name(dr_item):

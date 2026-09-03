@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Tests for Record of SpeciesEvolver."""
+
 from collections import OrderedDict
 
 import numpy as np

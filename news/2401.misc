@@ -1,0 +1,2 @@
+Refactored `DataRecord.add_item` to simplify internal logic and improve
+handling of item and time dimensions.

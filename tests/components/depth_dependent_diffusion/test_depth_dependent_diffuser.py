@@ -4,6 +4,7 @@ Created on Fri Mar  3 10:39:32 2017
 
 @author: gtucker
 """
+
 import pytest
 from numpy.testing import assert_equal
 

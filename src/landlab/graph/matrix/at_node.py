@@ -26,7 +26,7 @@ def get_links(nodes_at_link, sort=True):
 
     >>> import numpy as np
     >>> nodes_at_link = np.array([[2, 3], [3, 4], [2, 0], [3, 1], [4, 1], [0, 1]])
-    >>> (links_at_node, link_dirs_at_node, offset_to_node) = get_links(nodes_at_link)
+    >>> links_at_node, link_dirs_at_node, offset_to_node = get_links(nodes_at_link)
     >>> links_at_node
     array([2, 5, 3, 4, 5, 0, 2, 0, 1, 3, 1, 4])
     >>> link_dirs_at_node
@@ -40,7 +40,7 @@ def get_links(nodes_at_link, sort=True):
     link_dirs_at_node = sorted % 2
     link_dirs_at_node[link_dirs_at_node == 0] = -1
 
-    (_, links_per_node) = np.unique(nodes_at_link, return_counts=True)
+    _, links_per_node = np.unique(nodes_at_link, return_counts=True)
 
     offset_to_node = np.empty(len(links_per_node) + 1, dtype=int)
     offset_to_node[0] = 0

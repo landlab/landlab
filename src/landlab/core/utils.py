@@ -18,21 +18,17 @@ Landlab utilities
     ~anticlockwise_argsort_points
     ~get_categories_from_grid_methods
 """
+
 import errno
 import importlib
+import importlib.resources as importlib_resources
 import inspect
 import os
 import pathlib
 import re
 import shutil
-import sys
 
 import numpy as np
-
-if sys.version_info >= (3, 12):  # pragma: no cover (PY12+)
-    import importlib.resources as importlib_resources
-else:  # pragma: no cover (<PY312)
-    import importlib_resources
 
 SIZEOF_INT = np.dtype(int).itemsize
 
@@ -336,7 +332,7 @@ def add_module_functions_to_class(cls, module, pattern=None, exclude=None):
 
     *Note* if both pattern and exclude are provided both conditions must be met.
     """
-    (module, _) = os.path.splitext(os.path.basename(module))
+    module, _ = os.path.splitext(os.path.basename(module))
 
     mod = importlib.import_module("." + module, package="landlab.grid")
 

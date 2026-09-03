@@ -95,7 +95,7 @@ Landlab can easily interact with DEM data output by ESRI's ArcGIS software. In t
 
 ```python
 watershed_dem = "Square_TestBasin.asc"
-(rmg, z) = read_esri_ascii(watershed_dem, name="topographic__elevation")
+rmg, z = read_esri_ascii(watershed_dem, name="topographic__elevation")
 ```
 
 In this example, the watershed DEM is read in by the `read_esri_ascii()` method, and the elevation data from the DEM is automatically assigned to the Landlab data field `topographic__elevation`, for use by the components.
@@ -220,9 +220,7 @@ This is the simplest method, and is used when a constant precipitation intensity
 ```python
 elapsed_time = 0.0
 model_run_time = 86400.0
-of = OverlandFlow(
-    rmg, steep_slopes=True, rainfall_intensity=1.38889 * (10**-6)
-)  # m/s
+of = OverlandFlow(rmg, steep_slopes=True, rainfall_intensity=1.38889 * (10**-6))  # m/s
 ```
 
 #### Single storm event

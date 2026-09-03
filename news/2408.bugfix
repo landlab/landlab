@@ -1,0 +1,1 @@
+Fixed errors in `NetworkSedimentTransporter` handling of: 1) parcel velocity and 2) mean grain size calculations, which will make parcel transport accurately reflect fluxes calculated via Wilcock and Crowe (2003).

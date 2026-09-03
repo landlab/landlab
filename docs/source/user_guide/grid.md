@@ -198,9 +198,7 @@ that prevents accidentally overwriting an existing field.
 ```python
 >>> import numpy as np
 >>> elevs_in = np.random.rand(mg.number_of_nodes)
->>> mg.add_field(
-...     "elevation", elevs_in, at="node", units="m", copy=True, clobber=True
-... )
+>>> mg.add_field("elevation", elevs_in, at="node", units="m", copy=True, clobber=True)
 ```
 
 Fields can store data at nodes, cells, links, faces, patches, junctions, and corners (though the
@@ -579,7 +577,7 @@ Use the *name* keyword to add the elevation to a field in the imported grid.
 
 ```python
 >>> from landlab.io import read_esri_ascii
->>> (mg, z) = read_esri_ascii("myARCoutput.txt", name="topographic__elevation")
+>>> mg, z = read_esri_ascii("myARCoutput.txt", name="topographic__elevation")
 >>> mg.at_node.keys()
 ['topographic__elevation']
 ```

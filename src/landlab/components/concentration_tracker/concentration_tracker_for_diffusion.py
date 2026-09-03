@@ -248,13 +248,13 @@ class ConcentrationTrackerForDiffusion(Component):
         ----------
         grid: ModelGrid
             Landlab ModelGrid object
-        concentration_initial: float, array, or str, optional
+        concentration_initial: float, ndarray, or str, optional
             Initial concentration in soil/sediment as either a scalar, array,
             or the name of an existing node field, -/m^3.
-        concentration_in_bedrock: float, array, or str, optional
+        concentration_in_bedrock: float, ndarray, or str, optional
             Concentration in bedrock as either a scalar, array, or the name
             of an existing node field, -/m^3.
-        concentration_from_weathering: float or array, optional
+        concentration_from_weathering: float or ndarray, optional
             Concentration generated during the weathering process, -/m^3.
             Defaults to ``None``, which causes all weathered bedrock to retain its
             original parent material concentration (`concentration_in_bedrock`)
@@ -343,7 +343,7 @@ class ConcentrationTrackerForDiffusion(Component):
 
         Parameters
         ----------
-        dt: float (time)
+        dt: float
             The imposed timestep.
         """
 
@@ -409,7 +409,7 @@ class ConcentrationTrackerForDiffusion(Component):
 
         Parameters
         ----------
-        dt: float (time)
+        dt: float
             The imposed timestep.
         """
 
