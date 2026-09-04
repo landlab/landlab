@@ -165,7 +165,7 @@ class FlowDirectorD8(_FlowDirectorToOne):
         ----------
         grid : ModelGrid
             A grid of type RasterModelGrid.
-        surface : field name at node or array of length node, optional
+        surface : str or ndarray, optional
             The surface to direct flow across, default is field at node:
             topographic__elevation,.
         """
@@ -250,7 +250,7 @@ class FlowDirectorD8(_FlowDirectorToOne):
             grid=self._grid,
             baselevel_nodes=baselevel_nodes,
         )
-        # Save the four ouputs of this component.
+        # Save the four outputs of this component.
         self._grid["node"]["flow__receiver_node"][:] = receiver
         self._grid["node"]["topographic__steepest_slope"][:] = steepest_slope
         self._grid["node"]["flow__link_to_receiver_node"][:] = recvr_link

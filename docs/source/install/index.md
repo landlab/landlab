@@ -16,4 +16,5 @@
 
 environments
 update_uninstall
+openmp
 ```

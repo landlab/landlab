@@ -18,23 +18,65 @@ Landlab utilities
     ~anticlockwise_argsort_points
     ~get_categories_from_grid_methods
 """
+
 import errno
 import importlib
+import importlib.resources as importlib_resources
 import inspect
 import os
 import pathlib
 import re
 import shutil
-import sys
 
 import numpy as np
-
-if sys.version_info >= (3, 12):  # pragma: no cover (PY12+)
-    import importlib.resources as importlib_resources
-else:  # pragma: no cover (<PY312)
-    import importlib_resources
+from numpy.typing import ArrayLike
+from requireit import require_array
+from requireit import require_between
 
 SIZEOF_INT = np.dtype(int).itemsize
+
+
+def require_id_array(
+    array: ArrayLike,
+    *,
+    shape: tuple[int | str | None, ...] | None = None,
+    max_id: int | None = None,
+    bad_id: int | None = -1,
+    name: str | None = None,
+) -> ArrayLike:
+    """Validate that an array can be used as an ID array.
+
+    Parameters
+    ----------
+    array : array_like of int
+        Array of element IDs to validate.
+    shape : tuple of int, str, or None, optional
+        Required array shape.
+    max_id : int, optional
+        Inclusive maximum valid ID.
+    bad_id : int or None, optional
+        Value used to represent an invalid ID. If ``None``, all IDs must be
+        nonnegative. Default is ``-1``.
+    name : str, optional
+        Variable name used in error messages.
+
+    Returns
+    -------
+    array_like
+        The original input, unchanged.
+    """
+    name = name or "array"
+
+    _array = np.asarray(array)
+
+    require_array(_array, shape=shape, dtype=np.integer, name=name)
+
+    if bad_id is None:
+        require_between(_array, a_min=0, a_max=max_id, name=name)
+    else:
+        require_between(_array[_array != bad_id], a_min=0, a_max=max_id, name=name)
+
+    return array
 
 
 class ExampleData:
@@ -336,7 +378,7 @@ def add_module_functions_to_class(cls, module, pattern=None, exclude=None):
 
     *Note* if both pattern and exclude are provided both conditions must be met.
     """
-    (module, _) = os.path.splitext(os.path.basename(module))
+    module, _ = os.path.splitext(os.path.basename(module))
 
     mod = importlib.import_module("." + module, package="landlab.grid")
 
@@ -596,7 +638,7 @@ def get_categories_from_grid_methods(grid_type):
     """Create a dict of category:[method_names] for a LL grid type.
 
     Looks in the final line of the docstrings
-    of class methods and properties for a catgory declaration, "LLCATS: ".
+    of class methods and properties for a category declaration, "LLCATS: ".
     It then creates and returns a dict with keys found as categories and
     values that are lists of the names of methods that have that category.
 
@@ -617,7 +659,7 @@ def get_categories_from_grid_methods(grid_type):
         - MAP : methods to map from one element type to another
         - BC : methods to interact with BCs
         - SURF : methods for surface analysis (slope, aspect, hillshade)
-        - SUBSET : methods to indentify part of the grid based on conditions
+        - SUBSET : methods to identify part of the grid based on conditions
         - CONN : method describing the connectivity of one element to another
           (i.e., 'links_at_node')
         - MEAS : method describing a quantity defined on an element (i.e.,

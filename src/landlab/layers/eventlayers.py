@@ -17,7 +17,7 @@ def _deposit_or_erode(layers, n_layers, dz):
 
     This means that if only erosion occurs, the array elements in the row with
     the index ``n_layers - 1`` will be set to zero and thickness will be
-    removed from lower layers. Note that lower layers have smaller row indicies
+    removed from lower layers. Note that lower layers have smaller row indices
     as the bottom of the layer stack has row index zero.
 
     If deposition occurs, the array elements in the row with index
@@ -460,7 +460,7 @@ class EventLayers:
     represents a event. Thus they are likely the most appropriate tool to use
     if the user is interested in chronostratigraphy. If erosion occurs, a new
     layer with zero thickness is created. Thus, EventLayers may not be the most
-    memory efficent layers datastructure.
+    memory efficient layers datastructure.
 
     EventLayers exists in contrast to the MaterialLayers object which does not
     make a new layer if only erosion occurs and if the attributes of the new

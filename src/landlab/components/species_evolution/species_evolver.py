@@ -11,6 +11,7 @@ SpeciesEvolver. The simulated life evolves following customizable processes.
 
 Component written by Nathan Lyons beginning August 2017.
 """
+
 from collections import OrderedDict
 
 import numpy as np
@@ -295,7 +296,7 @@ class SpeciesEvolver(Component):
         Each row is data of a model time step. The time of the step is recorded
         in the `time` column. `taxa` is the count of taxa extant at a time.
         Additional columns can be added and updated by SpeciesEvolver objects
-        during the component ``run_one_step`` method. See documention of Taxon
+        during the component ``run_one_step`` method. See documentation of Taxon
         objects for an explanation of these columns.
 
         The DataFrame is created from a dictionary associated with a

@@ -40,8 +40,8 @@ def count_repeated_values(values):
 
     If *x* contains a repeated value, the first element contains all unique
     values along with their indices. For repeated values, return indices to
-    their first occurance. The second element contains values and indices to
-    values occuring two or more times.
+    their first occurrance. The second element contains values and indices to
+    values occurring two or more times.
 
     >>> counts = count_repeated_values(np.array([20, 30, 40, 30, 30], dtype=int))
     >>> len(counts)
@@ -62,12 +62,12 @@ def count_repeated_values(values):
     """
     counts = []
 
-    (unique_values, unique_inds) = np.unique(values, return_index=True)
+    unique_values, unique_inds = np.unique(values, return_index=True)
     x_inds = np.arange(len(values), dtype=int)
     while len(unique_values) > 0:
         counts.append((unique_values, x_inds[unique_inds]))
         values = np.delete(values, unique_inds)
         x_inds = np.delete(x_inds, unique_inds)
-        (unique_values, unique_inds) = np.unique(values, return_index=True)
+        unique_values, unique_inds = np.unique(values, return_index=True)
 
     return counts

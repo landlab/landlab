@@ -184,7 +184,7 @@ def active_face_count(shape):
 
     Total number of active faces in a structured grid with dimensions,
     *shape*. Each cell has four faces, and shared faces only count once.
-    An active face is one that has a corresponing active link.
+    An active face is one that has a corresponding active link.
 
     >>> from landlab.utils.structured_grid import active_face_count
     >>> active_face_count((3, 4))
@@ -361,7 +361,7 @@ def node_coords(shape, *args):
     Examples
     --------
     >>> from landlab.utils.structured_grid import node_coords
-    >>> (cols, rows) = node_coords((3, 2))
+    >>> cols, rows = node_coords((3, 2))
     >>> rows
     array([0.,  0.,  1.,  1.,  2.,  2.])
     >>> cols
@@ -386,7 +386,7 @@ def node_coords(shape, *args):
     row_y = np.arange(shape[0]) * spacing[0] + origin[0]
     col_x = np.arange(shape[1]) * spacing[1] + origin[1]
 
-    (node_x, node_y) = np.meshgrid(col_x, row_y)
+    node_x, node_y = np.meshgrid(col_x, row_y)
 
     node_x.shape = (node_count_,)
     node_y.shape = (node_count_,)
@@ -538,9 +538,9 @@ def active_links(shape, node_status_array=None, link_nodes=None):
         node_status_array = status_at_node(shape)
 
     if link_nodes is None:
-        (link_from_node, link_to_node) = node_index_at_link_ends(shape)
+        link_from_node, link_to_node = node_index_at_link_ends(shape)
     else:
-        (link_from_node, link_to_node) = link_nodes
+        link_from_node, link_to_node = link_nodes
 
     from_node_status = node_status_array[link_from_node]
     to_node_status = node_status_array[link_to_node]
@@ -590,14 +590,14 @@ def active_inlinks2(shape, node_status=None):
 
     Parameters
     ----------
-    shape : 2-element tuple of ints
+    shape : tuple of int
         Number of rows and columns in the grid
-    node_status (optional) : numpy array of bool (x # of nodes)
+    node_status : ndarray of bool, optional
         False where node is a closed boundary; True elsewhere
 
     Returns
     -------
-    2d numpy array of int (2 x number of grid nodes)
+    ndarray of int
         Link ID of incoming links to each node
 
     Examples
@@ -641,14 +641,14 @@ def active_outlinks2(shape, node_status=None):
 
     Parameters
     ----------
-    shape : 2-element tuple of ints
+    shape : tuple of int
         Number of rows and columns in the grid
-    node_status (optional) : numpy array of bool (x # of nodes)
+    node_status: ndarray of bool, optional
         False where node is a closed boundary; True elsewhere
 
     Returns
     -------
-    2d numpy array of int (2 x number of grid nodes)
+    ndarray of int
         Link ID of outgoing links from each node
 
     Examples
@@ -731,14 +731,14 @@ def vertical_inactive_link_mask(shape, node_status):
 
     Parameters
     ----------
-    shape : 2-element tuple of ints
+    shape : tuple of int
         Number of rows and columns in the grid
-    node_status : numpy array of bool (x # of nodes)
+    node_status : ndarray of bool
         False where node is a closed boundary; True elsewhere
 
     Returns
     -------
-    (NR-1,NC-2) array of bool (NR=# of rows, NC=# of columns)
+    ndarray of bool
         Flags indicating whether the corresponding vertical link is inactive
 
     Examples
@@ -812,14 +812,14 @@ def vertical_active_link_ids2(shape, node_status=None):
 
     Parameters
     ----------
-    shape : 2-element tuple of int
+    shape : tuple of int
         number of rows and columns in grid
-    node_status (optional) : 1d numpy array (x number of nodes) of bool
+    node_status : ndarray of bool, optional
         False where node is a closed boundary, True otherwise
 
     Returns
     -------
-    2d numpy array of int
+    ndarray of int
         Link IDs of vertical active links, not including vertical links on the
         left and right grid edges. If a vertical link is inactive, its ID is
         given as -1.
@@ -886,14 +886,14 @@ def horizontal_active_link_ids2(shape, node_status=None):
 
     Parameters
     ----------
-    shape : 2-element tuple of int
+    shape : tuple of int
         number of rows and columns in grid
-    node_status (optional) : 1d numpy array (x number of nodes) of bool
+    node_status: ndarray of bool, optional
         False where node is a closed boundary, True otherwise
 
     Returns
     -------
-    2d numpy array of int
+    ndarray of int
         Link IDs of horizontal active links, not including horizontal links on
         top and bottom grid edges. If a horizontal link is inactive, its ID is
         given as -1.
@@ -1043,14 +1043,14 @@ def active_south_links2(shape, node_status=None):
 
     Parameters
     ----------
-    shape : 2-element tuple of int
+    shape : tuple of int
         number of rows and columns in grid
-    node_status (optional) : 1d numpy array of bool
+    node_status: ndarray of bool, optional
         False where node is a closed boundary, True otherwise
 
     Returns
     -------
-    2d numpy array of int
+    ndarray of int
         Link ID of active link connecting to a node from the south, or -1
 
     Examples
@@ -1249,16 +1249,16 @@ def setup_active_outlink_matrix2(shape, node_status=None, return_count=True):
 
     Parameters
     ----------
-    shape : tuple
+    shape : tuple of int
         Shape of the structured grid
     node_status : array_like, optional
         Status of each node in the grid.
-    return_count : boolean, optional
+    return_count : bool, optional
         If `True`, also return an array of active link counts per node.
 
     Returns
     -------
-    links : (2, N) ndarray
+    links : ndarray
         Active link IDs for each node.
     count : ndarray
         Number of active links per node.
@@ -1301,16 +1301,16 @@ def setup_active_inlink_matrix(shape, node_status=None, return_count=True):
 
     Parameters
     ----------
-    shape : tuple
+    shape : tuple of int
         Shape of the structured grid
     node_status : array_like, optional
         Status of each node in the grid.
-    return_count : boolean, optional
+    return_count : bool, optional
         If `True`, also return an array of active link counts per node.
 
     Returns
     -------
-    links : (2, N) ndarray
+    links : ndarray
         Active link IDs for each node.
     count : ndarray
         Number of active links per node.
@@ -1353,16 +1353,16 @@ def setup_active_inlink_matrix2(shape, node_status=None, return_count=True):
 
     Parameters
     ----------
-    shape : tuple
+    shape : tuple of int
         Shape of the structured grid
     node_status : array_like, optional
         Status of each node in the grid.
-    return_count : boolean, optional
+    return_count : bool, optional
         If `True`, also return an array of active link counts per node.
 
     Returns
     -------
-    links : (2, N) ndarray
+    links : ndarray
         Active link IDs for each node.
     count : ndarray
         Number of active links per node.
@@ -1404,7 +1404,7 @@ def node_index_with_halo(shape, halo_indices=BAD_INDEX_VALUE):
 
     ids = np.empty(shape_with_halo, dtype=int)
 
-    (interiors, boundaries) = (
+    interiors, boundaries = (
         interior_nodes(shape_with_halo),
         perimeter_nodes(shape_with_halo),
     )
@@ -1775,9 +1775,9 @@ def nodes_around_points_on_unit_grid(shape, coords, mode="raise"):
     array([4, 7, 8, 5])
     """
     if isinstance(coords[0], np.ndarray):
-        (rows, cols) = (as_id_array(coords[0]), as_id_array(coords[1]))
+        rows, cols = (as_id_array(coords[0]), as_id_array(coords[1]))
     else:
-        (rows, cols) = (int(coords[0]), int(coords[1]))
+        rows, cols = (int(coords[0]), int(coords[1]))
 
     return as_id_array(
         np.ravel_multi_index(

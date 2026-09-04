@@ -107,11 +107,11 @@ def subside_point_load(load, loc, coords, params=None, out=None):
     >>> params = dict(eet=65000.0, youngs=7e10)
     >>> load = 1e9
 
-    Define a unifrom rectilinear grid.
+    Define a uniform rectilinear grid.
 
     >>> x = np.arange(0, 10000, 100.0)
     >>> y = np.arange(0, 5000, 100.0)
-    >>> (x, y) = np.meshgrid(x, y)
+    >>> x, y = np.meshgrid(x, y)
     >>> x.shape = (x.size,)
     >>> y.shape = (y.size,)
 
@@ -119,7 +119,7 @@ def subside_point_load(load, loc, coords, params=None, out=None):
 
     >>> x = np.arange(0, 10000, 1000.0)
     >>> y = np.arange(0, 5000, 1000.0)
-    >>> (x, y) = np.meshgrid(x, y)
+    >>> x, y = np.meshgrid(x, y)
     >>> x.shape = (x.size,)
     >>> y.shape = (y.size,)
     >>> dz = subside_point_load(load, (5000.0, 2500.0), (x, y), params=params)

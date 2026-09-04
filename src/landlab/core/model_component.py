@@ -394,7 +394,7 @@ class Component:
         values_per_element: int (optional)
             On occasion, it is necessary to create a field that is of size
             (n_grid_elements, values_per_element) instead of the default size
-            (n_grid_elements,). Use this keyword argument to acomplish this
+            (n_grid_elements,). Use this keyword argument to accomplish this
             task.
         """
         for name in self._info.keys():

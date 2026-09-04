@@ -29,13 +29,18 @@ def grid():
 @pytest.mark.parametrize("solver", ["basic", "adaptive"])
 @pytest.mark.parametrize("v_s", [1.5])
 @pytest.mark.parametrize("dt", [2])
-def test_mass_conserve_all_closed_ErosionDeposition(grid, solver, v_s, dt):
+@pytest.mark.parametrize("smooth_threshold", [True, False])
+def test_mass_conserve_all_closed_ErosionDeposition(
+    grid, solver, v_s, dt, smooth_threshold
+):
     z_init = grid.at_node["topographic__elevation"].copy()
 
     fa = FlowAccumulator(grid)
     fa.run_one_step()
 
-    ed = ErosionDeposition(grid, solver=solver, v_s=v_s)
+    ed = ErosionDeposition(
+        grid, solver=solver, v_s=v_s, smooth_threshold=smooth_threshold
+    )
     ed.run_one_step(dt)
 
     dz = z_init - grid.at_node["topographic__elevation"]

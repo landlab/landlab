@@ -4,6 +4,7 @@ Created on Thu Jun 29 11:02:28 2017
 
 @author: njlyons
 """
+
 from matplotlib.backend_bases import Event
 from matplotlib.pyplot import gcf
 from numpy.testing import assert_equal

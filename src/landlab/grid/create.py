@@ -35,17 +35,9 @@ _SYNTHETIC_FIELD_CONSTRUCTORS = {
 class Error(Exception):
     """Base class for exceptions from this module."""
 
-    pass
-
 
 class BadGridTypeError(Error):
     """Raise this error for a bad grid type."""
-
-    def __init__(self, grid_type):
-        self._type = str(grid_type)  # TODO: not tested.
-
-    def __str__(self):
-        return self._type  # TODO: not tested.
 
 
 def grid_from_dict(grid_type, params):

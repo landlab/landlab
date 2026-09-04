@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 """Unit tests for landlab.io.netcdf module."""
+
 import numpy as np
 import pytest
 import xarray as xr

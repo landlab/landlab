@@ -170,7 +170,7 @@ class SedimentPulserEachParcel(SedimentPulserBase):
             return self._parcels
 
         variables, items = self._sediment_pulse_dataframe(
-            time,  # create variabels and and items needed to create the data record
+            time,  # create variables and and items needed to create the data record
             PulseDF,
         )
 
@@ -224,7 +224,7 @@ class SedimentPulserEachParcel(SedimentPulserBase):
 
             if the optional columns are not included in PulseDF, those parameters
             are assumed uniform across the basin, constant with time and equal
-            to the corrisponding class variables.
+            to the corresponding class variables.
 
         Returns
         -------
@@ -285,7 +285,7 @@ class SedimentPulserEachParcel(SedimentPulserBase):
         grid_element = ["link"] * np.size(element_id)
         grid_element = np.expand_dims(grid_element, axis=1)
 
-        # time of arrivial (time instance called)
+        # time of arrival (time instance called)
         time_arrival_in_link = np.full(np.shape(element_id), time, dtype=float)
 
         # All parcels in pulse are in the active layer (1) rather than subsurface (0)

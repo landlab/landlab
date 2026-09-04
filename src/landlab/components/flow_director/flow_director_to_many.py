@@ -6,6 +6,7 @@ FlowDirectors.
 Provides the _FlowDirectorToMany component which makes sure all model
 grid fields are set up correctly.
 """
+
 import numpy as np
 
 from landlab.components.flow_director.flow_director import _FlowDirector
@@ -119,7 +120,7 @@ class _FlowDirectorToMany(_FlowDirector):
         super().__init__(grid, surface)
         self._to_n_receivers = "many"
 
-        # set the number of recievers, proportions, and receiver links with the
+        # set the number of receivers, proportions, and receiver links with the
         # right size.
         self.initialize_output_fields(values_per_element=self._max_receivers)
         self._receivers = grid.at_node["flow__receiver_node"]
@@ -139,7 +140,7 @@ class _FlowDirectorToMany(_FlowDirector):
 
     @property
     def proportions_of_flow(self):
-        """Return the proportions of flow going to recievers."""
+        """Return the proportions of flow going to receivers."""
         return self._grid["node"]["flow__receiver_proportions"]
 
 

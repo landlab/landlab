@@ -20,12 +20,11 @@ def fill_links_at_patch(
     cdef int row
     cdef int link
     cdef int patch
-    cdef int col
 
     for row in prange(n_rows - 1, nogil=True, schedule="static"):
         link = row * links_per_row + n_cols
         patch = row * patches_per_row
-        for col in range(n_cols - 1):
+        for _ in range(n_cols - 1):
             links_at_patch[patch, 0] = link
             links_at_patch[patch, 1] = link + n_cols - 1
             links_at_patch[patch, 2] = link - 1

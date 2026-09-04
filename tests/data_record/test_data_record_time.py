@@ -10,6 +10,7 @@ import numpy as np
 import pytest
 
 from landlab import RasterModelGrid
+from landlab.data_record.data_record import _find_time
 
 grid = RasterModelGrid((3, 3))
 shape = (3, 3)
@@ -71,3 +72,12 @@ def test_get_data(dr_time):
 def test_set_data(dr_time):
     dr_time.set_data(time=[0.0], data_variable="mean_elevation", new_value=105.0)
     assert dr_time.dataset["mean_elevation"].values[0] == 105.0
+
+
+def test_find_time_with_ints():
+    assert _find_time(3, [1, 2, 3, 10]) == 2
+
+
+def test_find_time_with_multiple_matches():
+    with pytest.raises(IndexError, match="time matches more than one"):
+        _find_time(3, [1, 3, 2, 3, 10])

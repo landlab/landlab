@@ -23,6 +23,7 @@ https://github.com/RondaStrauch/pub_strauch_etal_esurf/blob/master/LandslideComp
 +----------+-------------------------------------------------------------------+
 
 """
+
 import copy
 from collections import Counter
 
@@ -38,22 +39,27 @@ def convert_arc_flow_directions_to_landlab_node_ids(grid, flow_dir_arc):
     adjacent cells into which flow could travel. The valid output directions
     are powers of 2 starting from 2^0 (1) in the Eastern neighbor going
     clockwise to 2^7 (128) at Northeastern neighbor. For more information
-    refer 'https://pro.arcgis.com/en/pro-app/tool-reference/spatial-analyst/
-    how-flow-direction-works.htm'
+    refer ArcGIS Pro documentation on flow direction [1]_.
 
     Parameters
     ----------
     grid: RasterModelGrid
         A grid.
-    flow_dir_arc: ndarray of int, shape (n_nodes, )
+    flow_dir_arc: ndarray of int
         flow directions derived from ESRII ArcGIS.
 
     Returns
     -------
-    receiver_nodes: ndarray of int, shape (n_nodes, )
+    receiver_nodes: ndarray of int
         downstream node at each node. Note that this array gives the
         receiver nodes only for the core nodes. For non-core
         nodes, a zero is used.
+
+    References
+    ----------
+    .. [1] ESRI. "How Flow Direction works."
+           https://doc.esri.com/en/arcgis-pro/latest/tool-reference/
+           spatial-analyst/how-flow-direction-works.html
     """
     r_arc_raw = np.log2(flow_dir_arc)
     r_arc_raw = r_arc_raw.astype("int")
@@ -118,20 +124,20 @@ def track_source(grid, hsd_ids, flow_directions=None):
     ----------
     grid: RasterModelGrid
         A grid.
-    hsd_ids: ndarray of int, shape (n_nodes, )
+    hsd_ids: ndarray of int
         array that maps the nodes of the grid to, possibly coarser,
         Hydrologic Source Domain (HSD) grid ids.
-    flow_directions: ndarray of int, shape (n_nodes, ), optional.
+    flow_directions: ndarray of int, optional.
         downstream node at each node. Alternatively, this data can be
         provided as a nodal field 'flow__receiver_node' on the grid.
 
     Returns
     -------
-    (hsd_upstr, flow_accum): (dictionary, ndarray of shape (n_nodes))
+    (hsd_upstr, flow_accum):
         'hsd_upstr' maps each grid node to corresponding
         contributing upstream hsd_ids. hsd_upstr.keys() will return
         node_ids of the grid. hsd_upstr.values() will return lists of
-        all upstream contributing hsd_ids, including repitions of hsd_ids,
+        all upstream contributing hsd_ids, including repititions of hsd_ids,
         at corresponding node_ids.
         'flow_accum' is an array of the number of upstream contributing
         nodes at each node.
@@ -239,13 +245,13 @@ def find_unique_upstream_hsd_ids_and_fractions(hsd_upstr):
 
     Parameters
     ----------
-    hsd_upstr: dictionary
+    hsd_upstr: dict
         'hsd_upstr' maps each MD grid node to corresponding
         contributing upstream HSD ids.
 
     Returns
     -------
-    (unique_ids, fractions): (dictionary, dictionary)
+    (unique_ids, fractions):
         Tuple of data. 'unique_ids' maps each MD node with all upstream HSD
         ids without repitition. 'fractions' maps each MD node with the
         fractions of contributions of the corresponding upstream HSD ids in

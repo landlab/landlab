@@ -30,7 +30,7 @@ class ExponentialWeathererIntegrated(Component):
     bedrock weathered and the thickness of soil produced. The solution
     accounts for the reduction in rate over the timestep due to the
     increasing depth. This enables accuracy over arbitrarily large
-    timesteps, and better compatiblity with the `run_one_step()`
+    timesteps, and better compatibility  with the `run_one_step()`
     interface.
 
     Compared to :class:`~.ExponentialWeatherer`, upon which it is based...
@@ -39,7 +39,7 @@ class ExponentialWeathererIntegrated(Component):
       new return fields for the weathered thickness and soil produced
       thickness.
     - Density adjustments are needed inside the integral and the
-      density ratio is intialized on instantiation. The default value
+      density ratio is initialized on instantiation. The default value
       of 1.0 assumes no change in density.
     - Returns both weathered depth of bedrock and produced depth of
       soil over the timestep.
@@ -50,7 +50,7 @@ class ExponentialWeathererIntegrated(Component):
     applications may want to integrate soil depth and weathering in
     different sequences among other processes.
 
-    - SHOULD maintain drop-in compatiblity with the plain
+    - SHOULD maintain drop-in compatibility  with the plain
       :class:`~.ExponentialWeatherer`, just import and instantiate this one instead
       and existing code should work with no side effects other than the creation of the
       two additional (zeros) output fields.

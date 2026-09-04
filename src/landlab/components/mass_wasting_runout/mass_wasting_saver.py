@@ -1,6 +1,6 @@
 class MassWastingSaver:
     """This class is instantiated and called by MassWastingRunout. It saves
-    MWR model ouput. It is only called in MassWastingRunout if save = True"""
+    MWR model output. It is only called in MassWastingRunout if save = True"""
 
     def __init__(self, MassWastingRunout):
         self.MWR = MassWastingRunout
@@ -22,7 +22,7 @@ class MassWastingSaver:
         )  # the total volume [m3] of the mobilized runout material
         # dictionaries, that save the entire model grid field each model iteration
         # for all fields listed below
-        # usefull for creating movies of how the flow and terrain evolve
+        # useful for creating movies of how the flow and terrain evolve
         self.runout_evo_maps = {}  # runout material + topographic__elevation
         self.topo_evo_maps = {}  # topographic__elevation
         self.att_r = {}  # attribute value

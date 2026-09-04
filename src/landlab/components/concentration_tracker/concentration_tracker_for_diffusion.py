@@ -248,13 +248,13 @@ class ConcentrationTrackerForDiffusion(Component):
         ----------
         grid: ModelGrid
             Landlab ModelGrid object
-        concentration_initial: float, array, or str, optional
+        concentration_initial: float, ndarray, or str, optional
             Initial concentration in soil/sediment as either a scalar, array,
             or the name of an existing node field, -/m^3.
-        concentration_in_bedrock: float, array, or str, optional
+        concentration_in_bedrock: float, ndarray, or str, optional
             Concentration in bedrock as either a scalar, array, or the name
             of an existing node field, -/m^3.
-        concentration_from_weathering: float or array, optional
+        concentration_from_weathering: float or ndarray, optional
             Concentration generated during the weathering process, -/m^3.
             Defaults to ``None``, which causes all weathered bedrock to retain its
             original parent material concentration (`concentration_in_bedrock`)
@@ -343,7 +343,7 @@ class ConcentrationTrackerForDiffusion(Component):
 
         Parameters
         ----------
-        dt: float (time)
+        dt: float
             The imposed timestep.
         """
 
@@ -366,24 +366,31 @@ class ConcentrationTrackerForDiffusion(Component):
         # Calculate other components of mass balance equation
         is_soil = self._soil__depth > 0.0
 
-        old_depth_over_new = np.divide(
-            self._soil__depth_old, self._soil__depth, where=is_soil
+        old_depth_over_new = np.zeros_like(self._soil__depth)
+        np.divide(
+            self._soil__depth_old,
+            self._soil__depth,
+            where=is_soil,
+            out=old_depth_over_new,
         )
-        old_depth_over_new[~is_soil] = 0.0
 
-        dt_over_depth = np.divide(dt, self._soil__depth, where=is_soil)
-        dt_over_depth[~is_soil] = 0.0
+        dt_over_depth = np.zeros_like(self._soil__depth)
+        np.divide(dt, self._soil__depth, where=is_soil, out=dt_over_depth)
 
         conc_local = conc_old * old_depth_over_new
-        conc_from_weathering = np.divide(
-            self._conc_w * self._soil_prod_rate * dt, self._soil__depth, where=is_soil
+
+        conc_from_weathering = np.zeros_like(self._soil__depth)
+        np.divide(
+            self._conc_w * self._soil_prod_rate * dt,
+            self._soil__depth,
+            where=is_soil,
+            out=conc_from_weathering,
         )
 
         # Calculate concentration
         self._concentration[:] = (
             conc_local + conc_from_weathering + dt_over_depth * (-dqconc_dx)
         )
-
         self._concentration[~is_soil] = 0.0
 
     def start_tracking(self):
@@ -402,7 +409,7 @@ class ConcentrationTrackerForDiffusion(Component):
 
         Parameters
         ----------
-        dt: float (time)
+        dt: float
             The imposed timestep.
         """
 

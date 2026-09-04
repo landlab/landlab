@@ -8,6 +8,7 @@ Mapping functions unique to hex grids
 
     ~map_link_vector_components_to_node_hex
 """
+
 import enum
 
 import numpy as np

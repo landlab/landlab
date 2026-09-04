@@ -245,18 +245,16 @@ class VoronoiDelaunayToGraph(VoronoiDelaunay):
         return np.any(self.corners_at_face == -1, axis=1)
 
     def is_perimeter_cell(self):
-        from .ext.voronoi import id_array_contains
+        """Check for invalid cells that are on the perimeter.
 
-        is_perimeter_cell = np.empty(len(self.n_corners_at_cell), dtype=bool)
-        id_array_contains(
-            self.corners_at_cell,
-            self.n_corners_at_cell,
-            -1,
-            is_perimeter_cell.view(dtype=np.uint8),
+        Sometimes cells on the perimeter of a graph structure are invalid
+        for landlab's purposes. These are cells with missing corners or
+        are unbounded.
+        """
+        is_missing_corner = jaggedarray.padded_row_contains(
+            self.corners_at_cell, self.n_corners_at_cell, value=-1
         )
-        is_perimeter_cell |= self.n_corners_at_cell < 3
-
-        return is_perimeter_cell
+        return is_missing_corner | (self.n_corners_at_cell < 3)
 
     def is_perimeter_link(self):
         if self._perimeter_links is not None:

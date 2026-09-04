@@ -390,7 +390,7 @@ class PrecipitationDistribution(Component):
 
         Returns
         -------
-        array
+        ndarray
             containing several sub-arrays of events [start, finish, intensity]
         """
 
@@ -508,7 +508,7 @@ class PrecipitationDistribution(Component):
             (storm_duration, interstorm_duration)
 
         When each tuple pair is yielded, the grid scalar field 'rainfall__flux'
-        is updated with the rainfall rate occuring during storm_duration.
+        is updated with the rainfall rate occurring during storm_duration.
 
         This generator method is designed for direct equivalence with the
         spatially resolved generators found elsewhere in Landlab.
@@ -626,11 +626,11 @@ class PrecipitationDistribution(Component):
         while not tobreak:
             # we always start with a storm, so:
             try:
-                (storm_dur, storm_int) = next(othergen)
+                storm_dur, storm_int = next(othergen)
             except StopIteration:
                 break  # stop dead. We terminated at a good place
             try:
-                (interstorm_dur, _) = next(othergen)
+                interstorm_dur, _ = next(othergen)
             except StopIteration:
                 tobreak = True
                 interstorm_dur = 0.0

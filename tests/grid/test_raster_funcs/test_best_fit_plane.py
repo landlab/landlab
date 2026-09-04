@@ -19,22 +19,22 @@ def test_best_fit_with_bad_args():
 
 def test_best_fit_plane_in_xy():
     """Best fit plane is the xy-plane."""
-    (x, y, z) = (
+    x, y, z = (
         np.array([0.0, 1.0, 1.0]),
         np.array([0.0, 0.0, 1.0]),
         np.array([0.0, 0.0, 0.0]),
     )
-    (slope, aspect) = rfuncs.calculate_slope_aspect_bfp(x, y, z)
+    slope, aspect = rfuncs.calculate_slope_aspect_bfp(x, y, z)
 
     assert slope == 0.0
     assert aspect == 90.0
 
-    (x, y, z) = (
+    x, y, z = (
         np.array([0.0, 1.0, 1.0, 0.0]),
         np.array([0.0, 0.0, 1.0, 1.0]),
         np.array([0.0, 0.0, 0.0, 0.0]),
     )
-    (slope, aspect) = rfuncs.calculate_slope_aspect_bfp(x, y, z)
+    slope, aspect = rfuncs.calculate_slope_aspect_bfp(x, y, z)
 
     assert slope == 0.0
     assert aspect == 90.0
@@ -42,12 +42,12 @@ def test_best_fit_plane_in_xy():
 
 def test_best_fit_plane_in_xz():
     """Best fit plane is the xz-plane."""
-    (x, y, z) = (
+    x, y, z = (
         np.array([0.0, 1.0, 1.0]),
         np.array([0.0, 0.0, 0.0]),
         np.array([0.0, 0.0, 1.0]),
     )
-    (slope, aspect) = rfuncs.calculate_slope_aspect_bfp(x, y, z)
+    slope, aspect = rfuncs.calculate_slope_aspect_bfp(x, y, z)
 
     assert slope == 90.0
     assert aspect == 0.0
@@ -55,12 +55,12 @@ def test_best_fit_plane_in_xz():
 
 def test_best_fit_plane_in_yz():
     """Best fit plane is the yz-plane."""
-    (x, y, z) = (
+    x, y, z = (
         np.array([0.0, 0.0, 0.0]),
         np.array([0.0, 1.0, 1.0]),
         np.array([0.0, 0.0, 1.0]),
     )
-    (slope, aspect) = rfuncs.calculate_slope_aspect_bfp(x, y, z)
+    slope, aspect = rfuncs.calculate_slope_aspect_bfp(x, y, z)
 
     assert slope == 90.0
     assert aspect == 90.0

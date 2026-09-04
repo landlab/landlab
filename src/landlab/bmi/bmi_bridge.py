@@ -247,11 +247,7 @@ def wrap_as_bmi(cls):
         raise TypeError("class must inherit from Component")
 
     class BmiWrapper(Bmi):
-        __doc__ = """
-        Basic Modeling Interface for the {name} component.
-        """.format(
-            name=cls.__name__
-        ).strip()
+        __doc__ = f"Basic Modeling Interface for the {cls.__name__} component."
 
         _cls = cls
 
@@ -551,7 +547,7 @@ def wrap_as_bmi(cls):
 
         def get_grid_z(self, grid, z):
             raise NotImplementedError("get_grid_z")
-            # Only should be implemented for presently non-existant 3D grids.
+            # Only should be implemented for presently non-existent 3D grids.
 
         def get_value_at_indices(self, name, dest, inds):
             at = self._info[name]["mapping"]

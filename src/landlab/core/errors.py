@@ -1,8 +1,6 @@
 class Error(Exception):
     """Base class for exceptions raised from this module."""
 
-    pass
-
 
 class MissingKeyError(Error):
     """Error to indicate a missing parameter key.
@@ -10,12 +8,6 @@ class MissingKeyError(Error):
     Raise this error if the parameter dictionary file does not contain a
     requested *key*.
     """
-
-    def __init__(self, key):
-        self._key = key
-
-    def __str__(self):
-        return self._key
 
 
 class ParameterValueError(Error):
@@ -25,16 +17,10 @@ class ParameterValueError(Error):
     expected type.
     """
 
-    def __init__(self, key, val, expected_type):
-        self._key = key
-        self._val = val
-        self._type = expected_type
-
-    def __str__(self):
-        return f"{self._key}: {self._val} is not of type {self._type}"
+    def __str__(self) -> str:
+        key, val, expected_type = self.args
+        return f"{key!r}: {val!r} is not of type {expected_type!r}"
 
 
 class ValidationError(Error):
     """Error to indicate that a validation has failed."""
-
-    pass

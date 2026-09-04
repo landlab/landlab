@@ -21,7 +21,7 @@ class _FlowDirector(Component):
 
     It also creates the following field used by all FlowDirectors.
 
-    -  Link array identifing if flow goes with (1) or against (-1) the link
+    -  Link array identifying if flow goes with (1) or against (-1) the link
        direction: *'flow__link_direction'*
 
     The primary method of this class, :func:`run_one_step` is not implemented.
@@ -89,7 +89,7 @@ class _FlowDirector(Component):
         if not self._is_raster:
             self._method = None
 
-        # save elevations as class properites.
+        # save elevations as class properties.
         self._surface = surface
         self._surface_values = return_array_at_node(grid, surface)
 

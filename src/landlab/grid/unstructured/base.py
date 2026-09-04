@@ -24,7 +24,7 @@ class BaseGrid:
 
     Parameters
     ----------
-    coord0, coord1, ... : sequence of array-like
+    coord0, coord1, ... : sequence of array_like
         Coordinates of grid nodes
     axis_name : sequence of strings, optional
         Names of coordinate axes
@@ -93,7 +93,7 @@ class BaseGrid:
 
         Parameters
         ----------
-        coord0, coord1, ... : sequence of array-like
+        coord0, coord1, ... : sequence of array_like
             Coordinates of grid nodes
         axis_name : sequence of strings, optional
             Names of coordinate axes
@@ -336,7 +336,7 @@ class BaseGrid:
 
         Parameters
         ----------
-        link : array-like, optional
+        link : array_like, optional
             Link IDs
 
         Examples
@@ -366,14 +366,14 @@ class BaseGrid:
 
         Parameters
         ----------
-        node0 : array-like
+        node0 : array_like
             Node ID of start
-        node1 : array-like
+        node1 : array_like
             Node ID of end
 
         Returns
         -------
-        array :
+        ndarray :
             Distances between nodes.
 
         Examples
@@ -404,12 +404,12 @@ class BaseGrid:
         ----------
         point : tuple
             Coordinates of point
-        node : array-like
+        node : array_like
             Node IDs
 
         Returns
         -------
-        array :
+        ndarray :
             Distances from point to node.
 
         Examples
@@ -435,12 +435,12 @@ class BaseGrid:
         ----------
         point : tuple
             Coordinates of point
-        node : array-like
+        node : array_like
             Node IDs
 
         Returns
         -------
-        array :
+        ndarray :
             Angles from point to node as radians.
 
         Examples
@@ -466,12 +466,12 @@ class BaseGrid:
         ----------
         point : tuple
             Coordinates of point
-        node : array-like
+        node : array_like
             Node IDs
 
         Returns
         -------
-        array :
+        ndarray :
             Azimuths from point to node.
 
         Examples
@@ -499,12 +499,12 @@ class BaseGrid:
         ----------
         point : tuple
             Coordinates of point
-        node : array-like
+        node : array_like
             Node IDs
 
         Returns
         -------
-        array :
+        ndarray :
             Vector from point to node.
 
         Examples

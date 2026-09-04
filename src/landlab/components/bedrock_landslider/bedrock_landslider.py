@@ -428,7 +428,7 @@ class BedrockLandslider(Component):
         flooded_nodes = np.nonzero(flood_status == _FLOODED)[0]
 
         # In the following section the location of critical nodes where
-        # landsldies are initatated is calcualted, unless these critical nodes
+        # landsldies are initatated is calculated, unless these critical nodes
         # are provided as critical_sliding_nodes
         if self._critical_sliding_nodes is None:
             # Calculate gradients

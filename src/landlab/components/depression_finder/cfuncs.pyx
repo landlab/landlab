@@ -121,9 +121,9 @@ cpdef find_lowest_node_on_lake_perimeter_c(
             print("Node ID: ", i)
             print("Node Elevation: ", elev[i])
             print("Node Flood Status: ", flood_status[i])
-            # print("Node Neigbors: ", node_nbrs[i])
+            # print("Node neighbors: ", node_nbrs[i])
             # print("Neighbor Elevations: ", elev[node_nbrs[i]])
-            # print("Neigbor Flood Status: ", flood_status[node_nbrs[i]])
+            # print("Neighbor Flood Status: ", flood_status[node_nbrs[i]])
         warning_message(
             """If you see no data values in any of the elevation terms
             this may because you have disconnected open nodes (which

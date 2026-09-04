@@ -1,3 +1,5 @@
+# This file was automatically generated with:
+#     nox -s build-index
 
 # Generated using `landlab index components`
 [components]
@@ -473,6 +475,75 @@ mapping = 'node'
 optional = false
 units = 'm'
 
+[components.ConcentrationTrackerForSpace]
+name = 'landlab.components.concentration_tracker.concentration_tracker_for_space.ConcentrationTrackerForSpace'
+unit_agnostic = true
+summary = 'This component tracks the concentration of any user-defined property of'
+
+[components.ConcentrationTrackerForSpace.info.bedrock__erosion_flux]
+doc = 'Bedrock erosion flux from bedrock to water column (depth eroded per unit time)'
+dtype = 'float64'
+intent = 'in'
+mapping = 'node'
+optional = false
+units = 'm/yr'
+
+[components.ConcentrationTrackerForSpace.info.bedrock_property__concentration]
+doc = 'Mass concentration of property per unit volume of bedrock'
+dtype = 'float64'
+intent = 'out'
+mapping = 'node'
+optional = false
+units = '-/m^3'
+
+[components.ConcentrationTrackerForSpace.info.sediment__deposition_flux]
+doc = 'Sediment deposition flux from water column to bed (depth deposited per unit time)'
+dtype = 'float64'
+intent = 'in'
+mapping = 'node'
+optional = false
+units = 'm/yr'
+
+[components.ConcentrationTrackerForSpace.info.sediment__erosion_flux]
+doc = 'Sediment erosion flux from bed to water column (depth eroded per unit time)'
+dtype = 'float64'
+intent = 'in'
+mapping = 'node'
+optional = false
+units = 'm/yr'
+
+[components.ConcentrationTrackerForSpace.info.sediment__outflux]
+doc = 'Sediment flux (volume per unit time of sediment leaving each node)'
+dtype = 'float64'
+intent = 'in'
+mapping = 'node'
+optional = false
+units = 'm^3/yr'
+
+[components.ConcentrationTrackerForSpace.info.sediment_property__concentration]
+doc = 'Mass concentration of property per unit volume of sediment'
+dtype = 'float64'
+intent = 'out'
+mapping = 'node'
+optional = false
+units = '-/m^3'
+
+[components.ConcentrationTrackerForSpace.info.soil__depth]
+doc = 'Depth of soil or weathered bedrock'
+dtype = 'float64'
+intent = 'in'
+mapping = 'node'
+optional = false
+units = 'm'
+
+[components.ConcentrationTrackerForSpace.info.topographic__elevation]
+doc = 'Land surface topographic elevation'
+dtype = 'float64'
+intent = 'in'
+mapping = 'node'
+optional = false
+units = 'm'
+
 [components.DepressionFinderAndRouter]
 name = 'landlab.components.depression_finder.lake_mapper.DepressionFinderAndRouter'
 unit_agnostic = true
@@ -876,7 +947,7 @@ units = '-'
 [components.ErosionDeposition]
 name = 'landlab.components.erosion_deposition.erosion_deposition.ErosionDeposition'
 unit_agnostic = true
-summary = 'Erosion-Deposition model in the style of Davy and Lague (2009). It uses a'
+summary = 'Erosion-Deposition model in the style of Davy and Lague (2009).'
 
 [components.ErosionDeposition.info.flow__link_to_receiver_node]
 doc = 'ID of link downstream of each node, which carries the discharge'
@@ -1358,6 +1429,35 @@ summary = 'Create a 2D grid with randomly generated fractures.'
 doc = 'presence (1) or absence (0) of fracture'
 dtype = 'int8'
 intent = 'out'
+mapping = 'node'
+optional = false
+units = '-'
+
+[components.GeoEnthalpyDelta]
+name = 'landlab.components.geoenthalpy_delta.geoenthalpy_delta.GeoEnthalpyDelta'
+unit_agnostic = true
+summary = 'Simulate 2D sediment diffusion, transport, and deposition using an'
+
+[components.GeoEnthalpyDelta.info.sea_level__elevation]
+doc = 'Sea level elevation'
+dtype = 'float64'
+intent = 'in'
+mapping = 'grid'
+optional = false
+units = '-'
+
+[components.GeoEnthalpyDelta.info.sediment__influx]
+doc = 'Sediment flux (volume per unit time of sediment entering each node)'
+dtype = 'float64'
+intent = 'in'
+mapping = 'node'
+optional = false
+units = '-'
+
+[components.GeoEnthalpyDelta.info.topographic__elevation]
+doc = 'Land surface topographic elevation'
+dtype = 'float64'
+intent = 'inout'
 mapping = 'node'
 optional = false
 units = '-'
@@ -2349,7 +2449,7 @@ optional = false
 units = '-'
 
 [components.MassWastingRunout.info.mass__wasting_id]
-doc = 'interger or float id of each mass wasting area is assigned                 to all nodes representing the mass wasting area.'
+doc = 'integer or float id of each mass wasting area is assigned                 to all nodes representing the mass wasting area.'
 dtype = 'int64'
 intent = 'in'
 mapping = 'node'
@@ -2472,7 +2572,7 @@ doc = 'Volumetric discharge of surface water'
 dtype = 'float64'
 intent = 'out'
 mapping = 'link'
-optional = false
+optional = true
 units = 'm3/s'
 
 [components.OverlandFlow.info.topographic__elevation]
@@ -2488,7 +2588,7 @@ doc = 'Downstream gradient of the water surface.'
 dtype = 'float64'
 intent = 'out'
 mapping = 'link'
-optional = false
+optional = true
 units = '-'
 
 [components.OverlandFlowBates]
@@ -2754,7 +2854,7 @@ optional = true
 units = '-'
 
 [components.PriorityFloodFlowRouter.info.squared_length_adjacent]
-doc = 'Length to adjacent nodes, squared (calcualted in advance to save time during calculation'
+doc = 'Length to adjacent nodes, squared (calculated in advance to save time during calculation'
 dtype = 'float64'
 intent = 'out'
 mapping = 'node'
@@ -2860,6 +2960,43 @@ optional = false
 units = 'None'
 
 [components.Radiation.info.topographic__elevation]
+doc = 'Land surface topographic elevation'
+dtype = 'float64'
+intent = 'in'
+mapping = 'node'
+optional = false
+units = 'm'
+
+[components.RiverFlowDynamics]
+name = 'landlab.components.river_flow_dynamics.river_flow_dynamics.RiverFlowDynamics'
+unit_agnostic = false
+summary = 'Simulate surface fluid flow based on Casulli and Cheng (1992).'
+
+[components.RiverFlowDynamics.info.surface_water__depth]
+doc = 'Depth of water on the surface'
+dtype = 'float64'
+intent = 'inout'
+mapping = 'node'
+optional = false
+units = 'm'
+
+[components.RiverFlowDynamics.info.surface_water__elevation]
+doc = 'Water surface elevation at time N'
+dtype = 'float64'
+intent = 'inout'
+mapping = 'node'
+optional = false
+units = 'm'
+
+[components.RiverFlowDynamics.info.surface_water__velocity]
+doc = 'Speed of water flow above the surface'
+dtype = 'float64'
+intent = 'inout'
+mapping = 'link'
+optional = false
+units = 'm/s'
+
+[components.RiverFlowDynamics.info.topographic__elevation]
 doc = 'Land surface topographic elevation'
 dtype = 'float64'
 intent = 'in'
@@ -2985,6 +3122,75 @@ summary = 'Send a pulse of parcels to specific links in a channel network'
 name = 'landlab.components.network_sediment_transporter.sediment_pulser_each_parcel.SedimentPulserEachParcel'
 unit_agnostic = false
 summary = 'Send pulses of sediment to specific point locations within the channel'
+
+[components.SharedStreamPower]
+name = 'landlab.components.erosion_deposition.shared_stream_power.SharedStreamPower'
+unit_agnostic = true
+summary = 'Shared Stream Power Model in the style of Hergarten (2021).'
+
+[components.SharedStreamPower.info.flow__link_to_receiver_node]
+doc = 'ID of link downstream of each node, which carries the discharge'
+dtype = 'int64'
+intent = 'in'
+mapping = 'node'
+optional = false
+units = '-'
+
+[components.SharedStreamPower.info.flow__receiver_node]
+doc = 'Node array of receivers (node that receives flow from current node)'
+dtype = 'int64'
+intent = 'in'
+mapping = 'node'
+optional = false
+units = '-'
+
+[components.SharedStreamPower.info.flow__upstream_node_order]
+doc = 'Node array containing downstream-to-upstream ordered list of node IDs'
+dtype = 'int64'
+intent = 'in'
+mapping = 'node'
+optional = false
+units = '-'
+
+[components.SharedStreamPower.info.sediment__influx]
+doc = 'Sediment flux (volume per unit time of sediment entering each node)'
+dtype = 'float64'
+intent = 'out'
+mapping = 'node'
+optional = false
+units = 'm3/s'
+
+[components.SharedStreamPower.info.sediment__outflux]
+doc = 'Sediment flux (volume per unit time of sediment leaving each node)'
+dtype = 'float64'
+intent = 'out'
+mapping = 'node'
+optional = false
+units = 'm3/s'
+
+[components.SharedStreamPower.info.surface_water__discharge]
+doc = 'Volumetric discharge of surface water'
+dtype = 'float64'
+intent = 'in'
+mapping = 'node'
+optional = false
+units = 'm**2/s'
+
+[components.SharedStreamPower.info.topographic__elevation]
+doc = 'Land surface topographic elevation'
+dtype = 'float64'
+intent = 'inout'
+mapping = 'node'
+optional = false
+units = 'm'
+
+[components.SharedStreamPower.info.topographic__steepest_slope]
+doc = 'The steepest *downhill* slope'
+dtype = 'float64'
+intent = 'in'
+mapping = 'node'
+optional = false
+units = '-'
 
 [components.SimpleSubmarineDiffuser]
 name = 'landlab.components.marine_sediment_transport.simple_submarine_diffuser.SimpleSubmarineDiffuser'
@@ -3259,7 +3465,15 @@ units = '-'
 [components.SpaceLargeScaleEroder]
 name = 'landlab.components.space.space_large_scale_eroder.SpaceLargeScaleEroder'
 unit_agnostic = true
-summary = 'Stream Power with Alluvium Conservation and Entrainment (SPACE) large scale eroder'
+summary = 'Stream Power with Alluvium Conservation and Entrainment large scale eroder.'
+
+[components.SpaceLargeScaleEroder.info.bedrock__erosion_flux]
+doc = 'Bedrock erosion flux from bedrock to water column (depth eroded per unit time)'
+dtype = 'float64'
+intent = 'out'
+mapping = 'node'
+optional = false
+units = 'm/s'
 
 [components.SpaceLargeScaleEroder.info.flow__link_to_receiver_node]
 doc = 'ID of link downstream of each node, which carries the discharge'
@@ -3284,6 +3498,22 @@ intent = 'in'
 mapping = 'node'
 optional = false
 units = '-'
+
+[components.SpaceLargeScaleEroder.info.sediment__deposition_flux]
+doc = 'Sediment deposition flux from water column to bed (depth deposited per unit time)'
+dtype = 'float64'
+intent = 'out'
+mapping = 'node'
+optional = false
+units = 'm/s'
+
+[components.SpaceLargeScaleEroder.info.sediment__erosion_flux]
+doc = 'Sediment erosion flux from bed to water column (depth eroded per unit time)'
+dtype = 'float64'
+intent = 'out'
+mapping = 'node'
+optional = false
+units = 'm/s'
 
 [components.SpaceLargeScaleEroder.info.sediment__influx]
 doc = 'Sediment flux (volume per unit time of sediment entering each node)'
@@ -3894,43 +4124,6 @@ mapping = 'node'
 optional = false
 units = 'm'
 
-[components.river_flow_dynamics]
-name = 'landlab.components.river_flow_dynamics.river_flow_dynamics.river_flow_dynamics'
-unit_agnostic = false
-summary = 'Simulate surface fluid flow based on Casulli and Cheng (1992).'
-
-[components.river_flow_dynamics.info.surface_water__depth]
-doc = 'Depth of water on the surface'
-dtype = 'float64'
-intent = 'inout'
-mapping = 'node'
-optional = false
-units = 'm'
-
-[components.river_flow_dynamics.info.surface_water__elevation]
-doc = 'Water surface elevation at time N'
-dtype = 'float64'
-intent = 'inout'
-mapping = 'node'
-optional = false
-units = 'm'
-
-[components.river_flow_dynamics.info.surface_water__velocity]
-doc = 'Speed of water flow above the surface'
-dtype = 'float64'
-intent = 'inout'
-mapping = 'link'
-optional = false
-units = 'm/s'
-
-[components.river_flow_dynamics.info.topographic__elevation]
-doc = 'Land surface topographic elevation'
-dtype = 'float64'
-intent = 'in'
-mapping = 'node'
-optional = false
-units = 'm'
-
 # Generated using `landlab index fields`
 [fields]
 
@@ -4049,6 +4242,15 @@ provided_by = [
   'landlab.components.threshold_eroder.threshold_eroder.ThresholdEroder',
 ]
 
+[fields.bedrock__erosion_flux]
+desc = 'Bedrock erosion flux from bedrock to water column (depth eroded per unit time)'
+used_by = [
+  'landlab.components.concentration_tracker.concentration_tracker_for_space.ConcentrationTrackerForSpace',
+]
+provided_by = [
+  'landlab.components.space.space_large_scale_eroder.SpaceLargeScaleEroder',
+]
+
 [fields.bedrock__exposure_fraction]
 desc = 'fractional exposure of bedrock'
 used_by = []
@@ -4075,6 +4277,7 @@ desc = 'Mass concentration of property per unit volume of bedrock'
 used_by = []
 provided_by = [
   'landlab.components.concentration_tracker.concentration_tracker_for_diffusion.ConcentrationTrackerForDiffusion',
+  'landlab.components.concentration_tracker.concentration_tracker_for_space.ConcentrationTrackerForSpace',
 ]
 
 [fields.carbonate_production_rate]
@@ -4336,6 +4539,7 @@ used_by = [
   'landlab.components.chi_index.channel_chi.ChiFinder',
   'landlab.components.drainage_density.drainage_density.DrainageDensity',
   'landlab.components.erosion_deposition.erosion_deposition.ErosionDeposition',
+  'landlab.components.erosion_deposition.shared_stream_power.SharedStreamPower',
   'landlab.components.gravel_bedrock_eroder.gravel_bedrock_eroder.GravelBedrockEroder',
   'landlab.components.gravel_river_transporter.gravel_river_transporter.GravelRiverTransporter',
   'landlab.components.hack_calculator.hack_calculator.HackCalculator',
@@ -4376,6 +4580,7 @@ used_by = [
   'landlab.components.chi_index.channel_chi.ChiFinder',
   'landlab.components.drainage_density.drainage_density.DrainageDensity',
   'landlab.components.erosion_deposition.erosion_deposition.ErosionDeposition',
+  'landlab.components.erosion_deposition.shared_stream_power.SharedStreamPower',
   'landlab.components.gravel_bedrock_eroder.gravel_bedrock_eroder.GravelBedrockEroder',
   'landlab.components.gravel_river_transporter.gravel_river_transporter.GravelRiverTransporter',
   'landlab.components.hack_calculator.hack_calculator.HackCalculator',
@@ -4436,6 +4641,7 @@ used_by = [
   'landlab.components.chi_index.channel_chi.ChiFinder',
   'landlab.components.drainage_density.drainage_density.DrainageDensity',
   'landlab.components.erosion_deposition.erosion_deposition.ErosionDeposition',
+  'landlab.components.erosion_deposition.shared_stream_power.SharedStreamPower',
   'landlab.components.gravel_bedrock_eroder.gravel_bedrock_eroder.GravelBedrockEroder',
   'landlab.components.gravel_river_transporter.gravel_river_transporter.GravelRiverTransporter',
   'landlab.components.hack_calculator.hack_calculator.HackCalculator',
@@ -4641,7 +4847,7 @@ provided_by = [
 ]
 
 [fields.mass__wasting_id]
-desc = 'interger or float id of each mass wasting area is assigned                 to all nodes representing the mass wasting area.'
+desc = 'integer or float id of each mass wasting area is assigned                 to all nodes representing the mass wasting area.'
 used_by = [
   'landlab.components.mass_wasting_runout.mass_wasting_runout.MassWastingRunout',
 ]
@@ -4765,6 +4971,7 @@ provided_by = []
 desc = 'Sea level elevation'
 used_by = [
   'landlab.components.carbonate.carbonate_producer.CarbonateProducer',
+  'landlab.components.geoenthalpy_delta.geoenthalpy_delta.GeoEnthalpyDelta',
   'landlab.components.marine_sediment_transport.simple_submarine_diffuser.SimpleSubmarineDiffuser',
 ]
 provided_by = []
@@ -4774,6 +4981,15 @@ desc = 'Fraction of incoming sediment that is deposited on the node'
 used_by = []
 provided_by = [
   'landlab.components.transport_length_diffusion.transport_length_hillslope_diffusion.TransportLengthHillslopeDiffuser',
+]
+
+[fields.sediment__deposition_flux]
+desc = 'Sediment deposition flux from water column to bed (depth deposited per unit time)'
+used_by = [
+  'landlab.components.concentration_tracker.concentration_tracker_for_space.ConcentrationTrackerForSpace',
+]
+provided_by = [
+  'landlab.components.space.space_large_scale_eroder.SpaceLargeScaleEroder',
 ]
 
 [fields.sediment__deposition_rate]
@@ -4789,6 +5005,15 @@ used_by = [
   'landlab.components.discharge_diffuser.diffuse_by_discharge.DischargeDiffuser',
 ]
 provided_by = []
+
+[fields.sediment__erosion_flux]
+desc = 'Sediment erosion flux from bed to water column (depth eroded per unit time)'
+used_by = [
+  'landlab.components.concentration_tracker.concentration_tracker_for_space.ConcentrationTrackerForSpace',
+]
+provided_by = [
+  'landlab.components.space.space_large_scale_eroder.SpaceLargeScaleEroder',
+]
 
 [fields.sediment__erosion_rate]
 desc = 'Erosion rate on node'
@@ -4813,9 +5038,12 @@ provided_by = [
 
 [fields.sediment__influx]
 desc = 'Sediment flux (volume per unit time of sediment entering each node)'
-used_by = []
+used_by = [
+  'landlab.components.geoenthalpy_delta.geoenthalpy_delta.GeoEnthalpyDelta',
+]
 provided_by = [
   'landlab.components.erosion_deposition.erosion_deposition.ErosionDeposition',
+  'landlab.components.erosion_deposition.shared_stream_power.SharedStreamPower',
   'landlab.components.lateral_erosion.lateral_erosion.LateralEroder',
   'landlab.components.space.space.Space',
   'landlab.components.space.space_large_scale_eroder.SpaceLargeScaleEroder',
@@ -4823,9 +5051,12 @@ provided_by = [
 
 [fields.sediment__outflux]
 desc = 'Sediment flux (volume per unit time of sediment leaving each node)'
-used_by = []
+used_by = [
+  'landlab.components.concentration_tracker.concentration_tracker_for_space.ConcentrationTrackerForSpace',
+]
 provided_by = [
   'landlab.components.erosion_deposition.erosion_deposition.ErosionDeposition',
+  'landlab.components.erosion_deposition.shared_stream_power.SharedStreamPower',
   'landlab.components.space.space.Space',
   'landlab.components.space.space_large_scale_eroder.SpaceLargeScaleEroder',
 ]
@@ -4880,6 +5111,7 @@ desc = 'Mass concentration of property per unit volume of sediment'
 used_by = []
 provided_by = [
   'landlab.components.concentration_tracker.concentration_tracker_for_diffusion.ConcentrationTrackerForDiffusion',
+  'landlab.components.concentration_tracker.concentration_tracker_for_space.ConcentrationTrackerForSpace',
 ]
 
 [fields.slope_coefficient]
@@ -4908,6 +5140,7 @@ desc = 'Depth of soil or weathered bedrock'
 used_by = [
   'landlab.components.bedrock_landslider.bedrock_landslider.BedrockLandslider',
   'landlab.components.concentration_tracker.concentration_tracker_for_diffusion.ConcentrationTrackerForDiffusion',
+  'landlab.components.concentration_tracker.concentration_tracker_for_space.ConcentrationTrackerForSpace',
   'landlab.components.depth_dependent_diffusion.hillslope_depth_dependent_linear_flux.DepthDependentDiffuser',
   'landlab.components.depth_dependent_taylor_soil_creep.hillslope_depth_dependent_taylor_flux.DepthDependentTaylorDiffuser',
   'landlab.components.gravel_bedrock_eroder.gravel_bedrock_eroder.GravelBedrockEroder',
@@ -5060,7 +5293,7 @@ provided_by = [
 ]
 
 [fields.squared_length_adjacent]
-desc = 'Length to adjacent nodes, squared (calcualted in advance to save time during calculation'
+desc = 'Length to adjacent nodes, squared (calculated in advance to save time during calculation'
 used_by = []
 provided_by = [
   'landlab.components.priority_flood_flow_router.priority_flood_flow_router.PriorityFloodFlowRouter',
@@ -5120,7 +5353,7 @@ used_by = [
   'landlab.components.overland_flow.generate_overland_flow_Bates.OverlandFlowBates',
   'landlab.components.overland_flow.generate_overland_flow_deAlmeida.OverlandFlow',
   'landlab.components.overland_flow.kinematic_wave_rengers.KinematicWaveRengers',
-  'landlab.components.river_flow_dynamics.river_flow_dynamics.river_flow_dynamics',
+  'landlab.components.river_flow_dynamics.river_flow_dynamics.RiverFlowDynamics',
   'landlab.components.soil_moisture.infiltrate_soil_green_ampt.SoilInfiltrationGreenAmpt',
 ]
 provided_by = [
@@ -5131,7 +5364,7 @@ provided_by = [
   'landlab.components.overland_flow.kinematic_wave_rengers.KinematicWaveRengers',
   'landlab.components.overland_flow.linear_diffusion_overland_flow_router.LinearDiffusionOverlandFlowRouter',
   'landlab.components.potentiality_flowrouting.route_flow_by_boundary.PotentialityFlowRouter',
-  'landlab.components.river_flow_dynamics.river_flow_dynamics.river_flow_dynamics',
+  'landlab.components.river_flow_dynamics.river_flow_dynamics.RiverFlowDynamics',
   'landlab.components.soil_moisture.infiltrate_soil_green_ampt.SoilInfiltrationGreenAmpt',
 ]
 
@@ -5147,6 +5380,7 @@ desc = 'Volumetric discharge of surface water'
 used_by = [
   'landlab.components.detachment_ltd_erosion.generate_detachment_ltd_erosion.DetachmentLtdErosion',
   'landlab.components.erosion_deposition.erosion_deposition.ErosionDeposition',
+  'landlab.components.erosion_deposition.shared_stream_power.SharedStreamPower',
   'landlab.components.gravel_bedrock_eroder.gravel_bedrock_eroder.GravelBedrockEroder',
   'landlab.components.gravel_river_transporter.gravel_river_transporter.GravelRiverTransporter',
   'landlab.components.lake_fill.lake_fill_barnes.LakeMapperBarnes',
@@ -5175,10 +5409,10 @@ provided_by = [
 [fields.surface_water__elevation]
 desc = 'Water surface elevation at time N'
 used_by = [
-  'landlab.components.river_flow_dynamics.river_flow_dynamics.river_flow_dynamics',
+  'landlab.components.river_flow_dynamics.river_flow_dynamics.RiverFlowDynamics',
 ]
 provided_by = [
-  'landlab.components.river_flow_dynamics.river_flow_dynamics.river_flow_dynamics',
+  'landlab.components.river_flow_dynamics.river_flow_dynamics.RiverFlowDynamics',
 ]
 
 [fields.surface_water__specific_discharge]
@@ -5198,11 +5432,11 @@ provided_by = []
 [fields.surface_water__velocity]
 desc = 'Speed of water flow above the surface'
 used_by = [
-  'landlab.components.river_flow_dynamics.river_flow_dynamics.river_flow_dynamics',
+  'landlab.components.river_flow_dynamics.river_flow_dynamics.RiverFlowDynamics',
 ]
 provided_by = [
   'landlab.components.overland_flow.kinematic_wave_rengers.KinematicWaveRengers',
-  'landlab.components.river_flow_dynamics.river_flow_dynamics.river_flow_dynamics',
+  'landlab.components.river_flow_dynamics.river_flow_dynamics.RiverFlowDynamics',
 ]
 
 [fields.surface_water_inflow__discharge]
@@ -5235,6 +5469,7 @@ used_by = [
   'landlab.components.carbonate.carbonate_producer.CarbonateProducer',
   'landlab.components.chi_index.channel_chi.ChiFinder',
   'landlab.components.concentration_tracker.concentration_tracker_for_diffusion.ConcentrationTrackerForDiffusion',
+  'landlab.components.concentration_tracker.concentration_tracker_for_space.ConcentrationTrackerForSpace',
   'landlab.components.depression_finder.lake_mapper.DepressionFinderAndRouter',
   'landlab.components.depth_dependent_diffusion.hillslope_depth_dependent_linear_flux.DepthDependentDiffuser',
   'landlab.components.depth_dependent_taylor_soil_creep.hillslope_depth_dependent_taylor_flux.DepthDependentTaylorDiffuser',
@@ -5244,12 +5479,14 @@ used_by = [
   'landlab.components.dimensionless_discharge.dimensionless_discharge.DimensionlessDischarge',
   'landlab.components.discharge_diffuser.diffuse_by_discharge.DischargeDiffuser',
   'landlab.components.erosion_deposition.erosion_deposition.ErosionDeposition',
+  'landlab.components.erosion_deposition.shared_stream_power.SharedStreamPower',
   'landlab.components.flow_accum.flow_accumulator.FlowAccumulator',
   'landlab.components.flow_accum.lossy_flow_accumulator.LossyFlowAccumulator',
   'landlab.components.flow_director.flow_director_d8.FlowDirectorD8',
   'landlab.components.flow_director.flow_director_dinf.FlowDirectorDINF',
   'landlab.components.flow_director.flow_director_mfd.FlowDirectorMFD',
   'landlab.components.flow_director.flow_director_steepest.FlowDirectorSteepest',
+  'landlab.components.geoenthalpy_delta.geoenthalpy_delta.GeoEnthalpyDelta',
   'landlab.components.gravel_bedrock_eroder.gravel_bedrock_eroder.GravelBedrockEroder',
   'landlab.components.gravel_river_transporter.gravel_river_transporter.GravelRiverTransporter',
   'landlab.components.groundwater.dupuit_percolator.GroundwaterDupuitPercolator',
@@ -5270,7 +5507,7 @@ used_by = [
   'landlab.components.potentiality_flowrouting.route_flow_by_boundary.PotentialityFlowRouter',
   'landlab.components.priority_flood_flow_router.priority_flood_flow_router.PriorityFloodFlowRouter',
   'landlab.components.radiation.radiation.Radiation',
-  'landlab.components.river_flow_dynamics.river_flow_dynamics.river_flow_dynamics',
+  'landlab.components.river_flow_dynamics.river_flow_dynamics.RiverFlowDynamics',
   'landlab.components.sink_fill.fill_sinks.SinkFiller',
   'landlab.components.sink_fill.sink_fill_barnes.SinkFillerBarnes',
   'landlab.components.space.space.Space',
@@ -5299,6 +5536,8 @@ provided_by = [
   'landlab.components.dimensionless_discharge.dimensionless_discharge.DimensionlessDischarge',
   'landlab.components.discharge_diffuser.diffuse_by_discharge.DischargeDiffuser',
   'landlab.components.erosion_deposition.erosion_deposition.ErosionDeposition',
+  'landlab.components.erosion_deposition.shared_stream_power.SharedStreamPower',
+  'landlab.components.geoenthalpy_delta.geoenthalpy_delta.GeoEnthalpyDelta',
   'landlab.components.gflex.flexure.gFlex',
   'landlab.components.gravel_bedrock_eroder.gravel_bedrock_eroder.GravelBedrockEroder',
   'landlab.components.gravel_river_transporter.gravel_river_transporter.GravelRiverTransporter',
@@ -5361,6 +5600,7 @@ used_by = [
   'landlab.components.chi_index.channel_chi.ChiFinder',
   'landlab.components.drainage_density.drainage_density.DrainageDensity',
   'landlab.components.erosion_deposition.erosion_deposition.ErosionDeposition',
+  'landlab.components.erosion_deposition.shared_stream_power.SharedStreamPower',
   'landlab.components.gravel_bedrock_eroder.gravel_bedrock_eroder.GravelBedrockEroder',
   'landlab.components.gravel_river_transporter.gravel_river_transporter.GravelRiverTransporter',
   'landlab.components.lateral_erosion.lateral_erosion.LateralEroder',
@@ -7730,7 +7970,6 @@ info-link = [
   'landlab.grid.raster.RasterModelGrid.map_link_tail_node_to_link',
   'landlab.grid.raster.RasterModelGrid.map_link_vector_sum_to_patch',
   'landlab.grid.raster.RasterModelGrid.map_max_of_inlinks_to_node',
-  'landlab.grid.raster.RasterModelGrid.map_max_of_link_nodes_to_link',
   'landlab.grid.raster.RasterModelGrid.map_max_of_node_links_to_node',
   'landlab.grid.raster.RasterModelGrid.map_max_of_outlinks_to_node',
   'landlab.grid.raster.RasterModelGrid.map_mean_of_horizontal_active_links_to_node',
@@ -7796,7 +8035,6 @@ info-node = [
   'landlab.grid.raster.RasterModelGrid.map_link_head_node_to_link',
   'landlab.grid.raster.RasterModelGrid.map_link_tail_node_to_link',
   'landlab.grid.raster.RasterModelGrid.map_max_of_inlinks_to_node',
-  'landlab.grid.raster.RasterModelGrid.map_max_of_link_nodes_to_link',
   'landlab.grid.raster.RasterModelGrid.map_max_of_node_links_to_node',
   'landlab.grid.raster.RasterModelGrid.map_max_of_outlinks_to_node',
   'landlab.grid.raster.RasterModelGrid.map_max_of_patch_nodes_to_patch',
@@ -7875,7 +8113,6 @@ map = [
   'landlab.grid.raster.RasterModelGrid.map_link_tail_node_to_link',
   'landlab.grid.raster.RasterModelGrid.map_link_vector_sum_to_patch',
   'landlab.grid.raster.RasterModelGrid.map_max_of_inlinks_to_node',
-  'landlab.grid.raster.RasterModelGrid.map_max_of_link_nodes_to_link',
   'landlab.grid.raster.RasterModelGrid.map_max_of_node_links_to_node',
   'landlab.grid.raster.RasterModelGrid.map_max_of_outlinks_to_node',
   'landlab.grid.raster.RasterModelGrid.map_max_of_patch_nodes_to_patch',
@@ -8051,6 +8288,7 @@ uncategorized = [
   'landlab.grid.raster.RasterModelGrid.looped_neighbors_at_patch',
   'landlab.grid.raster.RasterModelGrid.map_link_vector_components_to_node',
   'landlab.grid.raster.RasterModelGrid.map_link_vector_components_to_node_raster',
+  'landlab.grid.raster.RasterModelGrid.map_max_of_link_nodes_to_link',
   'landlab.grid.raster.RasterModelGrid.map_node_to_link_lax_wendroff',
   'landlab.grid.raster.RasterModelGrid.map_node_to_link_linear_upwind',
   'landlab.grid.raster.RasterModelGrid.map_vectors_to_links',

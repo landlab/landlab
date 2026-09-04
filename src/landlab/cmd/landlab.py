@@ -16,7 +16,9 @@ import rich_click as click
 
 from landlab import FramedVoronoiGrid
 from landlab import HexModelGrid
+from landlab import IcosphereGlobalGrid
 from landlab import ModelGrid
+from landlab import NetworkModelGrid
 from landlab import RadialModelGrid
 from landlab import RasterModelGrid
 from landlab import VoronoiDelaunayGrid
@@ -27,12 +29,14 @@ from .authors import AuthorsSubprocessError
 from .authors import GitLog
 
 GRIDS = [
+    FramedVoronoiGrid,
+    HexModelGrid,
+    IcosphereGlobalGrid,
     ModelGrid,
+    NetworkModelGrid,
+    RadialModelGrid,
     RasterModelGrid,
     VoronoiDelaunayGrid,
-    HexModelGrid,
-    RadialModelGrid,
-    FramedVoronoiGrid,
 ]
 
 CATEGORIES = {
@@ -80,7 +84,7 @@ err = partial(click.secho, fg="red", file=sys.stderr)
     "--cd",
     default=".",
     type=click.Path(exists=True, file_okay=False, dir_okay=True, readable=True),
-    help="chage to directory, then execute",
+    help="change to directory, then execute",
 )
 @click.option(
     "-s",
@@ -340,9 +344,7 @@ def mailmap(ctx):
 
     if verbose and not silent:
         out(f"reading author list: {credits_file}")
-    print(
-        textwrap.dedent(
-            """
+    print(textwrap.dedent("""
             # Prevent git from showing duplicate names with commands like "git shortlog"
             # See the manpage of git-shortlog for details.
             # The syntax is:
@@ -357,9 +359,7 @@ def mailmap(ctx):
             #   git log --format="%aN <%aE>" | sort -u
             #
             # gives no duplicates.
-            """
-        ).lstrip()
-    )
+            """).lstrip())
     authors = AuthorList.from_toml(credits_file)
     for author in authors:
         good_name, good_email = author.name, author.email

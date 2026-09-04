@@ -33,7 +33,7 @@ def test_create_weatherer_and_change_rate():
 
 
 def test_basic_production_rate_func():
-    # This tests drop-in compatiblity with the existing ExponentialWeatherer component
+    # This tests drop-in compatibility  with the existing ExponentialWeatherer component
     mg = RasterModelGrid((5, 5))
     mg.add_zeros("soil__depth", at="node")
     mg.add_zeros("soil_production__rate", at="node")
@@ -44,7 +44,7 @@ def test_basic_production_rate_func():
 
 
 def test_run_step_no_dt():
-    # This tests drop-in compatiblity with the existing ExponentialWeatherer component
+    # This tests drop-in compatibility  with the existing ExponentialWeatherer component
     mg = RasterModelGrid((5, 5))
     mg.add_zeros("soil__depth", at="node")
     mg.add_zeros("soil_production__rate", at="node")
@@ -60,7 +60,7 @@ def test_run_step_no_dt():
     if not np.allclose(mg.at_node["soil_production__rate"][mg.core_nodes], 1.0):
         errors.append("error in basic production rate")
     # assert no error message has been registered, else print messages
-    assert not errors, "errors occured:\n{}".format("\n".join(errors))
+    assert not errors, "errors occurred :\n{}".format("\n".join(errors))
 
 
 def test_with_big_dt():
@@ -84,7 +84,7 @@ def test_with_big_dt():
     if not np.allclose(dt * mg.at_node["soil_production__rate"][mg.core_nodes], 1000.0):
         errors.append("error in basic euler integration")
     # assert no error message has been registered, else print messages
-    assert not errors, "errors occured:\n{}".format("\n".join(errors))
+    assert not errors, "errors occurred :\n{}".format("\n".join(errors))
 
 
 def test_density_contrast():
@@ -113,7 +113,7 @@ def test_density_contrast():
     if not np.allclose(dt * mg.at_node["soil_production__rate"][mg.core_nodes], 1000.0):
         errors.append("error in basic euler integration")
     # assert no error message has been registered, else print messages
-    assert not errors, "errors occured:\n{}".format("\n".join(errors))
+    assert not errors, "errors occurred :\n{}".format("\n".join(errors))
 
 
 def test_hex_grid():
@@ -141,4 +141,4 @@ def test_hex_grid():
     if not np.allclose(dt * mg.at_node["soil_production__rate"][mg.core_nodes], 1000.0):
         errors.append("error in basic euler integration")
     # assert no error message has been registered, else print messages
-    assert not errors, "errors occured:\n{}".format("\n".join(errors))
+    assert not errors, "errors occurred :\n{}".format("\n".join(errors))

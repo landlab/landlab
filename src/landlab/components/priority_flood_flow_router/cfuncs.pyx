@@ -26,7 +26,7 @@ cpdef _D8_flowDir(
     id_t [:] rec_link,
 ):
     """
-    Calcualte D8 flow dirs
+    Calculate D8 flow dirs
     """
     cdef int idx, i
 

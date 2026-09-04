@@ -31,7 +31,7 @@ class SpaceLargeScaleEroder(Component):
         `https://doi.org/10.5194/gmd-10-4577-2017
         <https://www.geosci-model-dev.net/10/4577/2017/>`_, 2017.
 
-    Unlike other some other fluvial erosion componets in Landlab, in this
+    Unlike other some other fluvial erosion components in Landlab, in this
     component (and class:`~landlab.components.ErosionDeposition`) no
     erosion occurs in depressions or in areas with adverse slopes. There is no
     ability to pass a keyword argument ``erode_flooded_nodes``.
@@ -44,9 +44,9 @@ class SpaceLargeScaleEroder(Component):
     .. note::
 
         In the current version, we do not provide an adaptive time stepper.
-        This will be addded in future versions of this component.
+        This will be added in future versions of this component.
 
-    For more explanation and examples, check out the correponding notebook of
+    For more explanation and examples, check out the corresponding notebook of
     this component.
 
     Examples
@@ -282,9 +282,9 @@ class SpaceLargeScaleEroder(Component):
         ----------
         grid : ModelGrid
             Landlab ModelGrid object
-        K_sed : float, array of float, or str, optional
+        K_sed : float, ndarray of float, or str, optional
             Erodibility for sediment (units vary) as either a number or a field name.
-        K_br : float, array of float, or str, optional
+        K_br : float, ndarray of float, or str, optional
             Erodibility for bedrock (units vary) as either a number or a field name.
         F_f : float, optional
             Fraction of permanently suspendable fines in bedrock [-].
@@ -300,11 +300,11 @@ class SpaceLargeScaleEroder(Component):
             Drainage area exponent (units vary).
         n_sp : float, optional
             Slope exponent (units vary).
-        sp_crit_sed : float, array of float, or str, optional
+        sp_crit_sed : float, ndarray of float, or str, optional
             Critical stream power to erode sediment [E/(TL^2)].
-        sp_crit_br : float, array of float, or str, optional
+        sp_crit_br : float, ndarray of float, or str, optional
             Critical stream power to erode rock [E/(TL^2)]
-        discharge_field : float, array of float, or str, optional
+        discharge_field : float, ndarray of float, or str, optional
             Discharge [L^2/T]. The default is to use the grid field
             'surface_water__discharge', which is simply drainage area
             multiplied by the default rainfall rate (1 m/yr). To use custom
@@ -478,7 +478,7 @@ class SpaceLargeScaleEroder(Component):
 
         H = self.grid.at_node["soil__depth"]
 
-        # if sp_crits are zero, then this colapses to correct all the time.
+        # if sp_crits are zero, then this collapses to correct all the time.
         if np.isclose(self._n_sp, 1.0):
             S_to_the_n = self._slope
         else:
@@ -514,7 +514,7 @@ class SpaceLargeScaleEroder(Component):
 
         # if the soil layer becomes exceptionally thick (e.g. because of
         # landslide derived sediment deposition(,) the algorithm will become
-        # unstable because np.exp(x) with x > 709 yeilds inf values.
+        # unstable because np.exp(x) with x > 709 yields inf values.
         # Therefore soil depth is temporqlly topped of at 200m and the remaining
         # values are added back after the space component has run
 
@@ -607,5 +607,5 @@ class SpaceLargeScaleEroder(Component):
         - V_leaving_riv (float): Volume of bedload sediment leaving the domain.
         """
 
-        (vol_SSY_riv, V_leaving_riv) = self.run_one_step_basic(dt)
+        vol_SSY_riv, V_leaving_riv = self.run_one_step_basic(dt)
         return vol_SSY_riv, V_leaving_riv

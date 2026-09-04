@@ -441,7 +441,7 @@ class GrainHill(CTSModel):
         >>> ns[[0, 3, 1, 6, 4, 9, 2]] = 8
         >>> ns[[8, 13, 11, 16, 14]] = 7
         >>> gh = GrainHill((3, 7), show_plots=False)  # grid size arbitrary here
-        >>> (elev, thickness) = gh.get_profile_and_soil_thickness(hg, ns)
+        >>> elev, thickness = gh.get_profile_and_soil_thickness(hg, ns)
         >>> elev
         array([0. , 2.5, 3. , 2.5, 0. ])
         >>> thickness

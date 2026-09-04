@@ -180,7 +180,7 @@ def _trace_fracture_through_grid_raster(m, start_xy, spacing):
     """Create a 2D fracture in a grid.
 
     Creates a "fracture" in a 2D grid, m, by setting cell values to unity
-    along the trace of the fracture (i.e., "drawing" a line throuh the
+    along the trace of the fracture (i.e., "drawing" a line through the
     grid).
 
     Parameters
@@ -326,9 +326,9 @@ class FractureGridGenerator(Component):
         # Add fractures to grid
         nfracs = (nr + nc) // frac_spacing
         for _ in range(nfracs):
-            (c, r) = _calc_fracture_starting_position_raster((nr, nc))
+            c, r = _calc_fracture_starting_position_raster((nr, nc))
             ang = _calc_fracture_orientation((c, r), (nr, nc))
-            (dx, dy) = _calc_fracture_step_sizes(ang)
+            dx, dy = _calc_fracture_step_sizes(ang)
 
             _trace_fracture_through_grid_raster(m, (c, r), (dx, dy))
 
@@ -352,7 +352,7 @@ class FractureGridGenerator(Component):
         # Add fractures to grid
         nfracs = (nr + nc) // frac_spacing
         for _ in range(nfracs):
-            (x, y, ang) = _calc_fracture_starting_position_and_angle_hex(
+            x, y, ang = _calc_fracture_starting_position_and_angle_hex(
                 (nr, nc),
                 is_horiz=(self._grid.orientation[0] == "h"),
                 spacing=self._grid.spacing,
