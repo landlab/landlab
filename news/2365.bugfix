@@ -1,0 +1,1 @@
+When a user provides load_params.py with a problematic input, a cryptic error message is returned. With this update, load_params determines why the input was problematic and returns a more informative message.
