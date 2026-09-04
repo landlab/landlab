@@ -189,4 +189,3 @@ def nmgrid_s(grid):
         "drainage_area"
     )
     return nmg_s
-
