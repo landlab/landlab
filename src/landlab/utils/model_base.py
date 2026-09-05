@@ -18,6 +18,7 @@
 #
 # *(Greg Tucker, University of Colorado Boulder)*
 #
+from typing import Any
 from typing import Self
 
 import numpy as np
@@ -164,14 +165,13 @@ class LandlabModel:
     --------
     >>> from landlab.utils import LandlabModel
     >>> class MyModel(LandlabModel):
-    ...     def __init__(self, params):
-    ...         super().__init__(params=params)
+    ...     pass
     ...
     >>> p = {"grid": {"source": "create"}}
     >>> p["grid"]["create_grid"] = {
     ...     "RasterModelGrid": {"shape": (4, 5), "xy_spacing": 2.0}
     ... }
-    >>> model = MyModel(params=p)
+    >>> model = MyModel.from_params(p)
     >>> model.grid.shape
     (4, 5)
     """
@@ -199,26 +199,23 @@ class LandlabModel:
         },
     }
 
-    def __init__(self, params: dict | None = None) -> dict:
-        """
-        Initialize the model.
+    def __init__(
+        self,
+        grid: ModelGrid,
+        *,
+        params: dict[str, Any],
+    ) -> None:
+        """Initialize the model.
 
         Parameters
         ----------
+        grid : ModelGrid
+            A Landlab `ModelGrid`.
         params : dict
             Dictionary containing names and values of model parameters
-        input_file : str
-            Name of yaml-format file containing names and values
-
-        Notes
-        -----
-        User should pass either params or input_file. If input_file is
-        passed, params will be ignored.
         """
-        self.params = {} if params is None else params
-        merge_user_and_default_params(self.params, self.DEFAULT_PARAMS)
-        read_arrays_from_files(self.params)
-        self.grid = setup_grid(self.params["grid"])
+        self.grid = grid
+        self.params = params
         self.setup_for_output(self.params)
         self.setup_run_control(self.params["clock"])
 
@@ -233,7 +230,17 @@ class LandlabModel:
         """
         with open(input_file) as fp:
             params = load_params(fp)
-        return LandlabModel(params=params)
+        return cls.from_params(params=params)
+
+    @classmethod
+    def from_params(cls, params: dict[str, Any] | None = None) -> Self:
+        params = {} if params is None else params
+
+        merge_user_and_default_params(params, cls.DEFAULT_PARAMS)
+        read_arrays_from_files(params)
+
+        grid = setup_grid(params["grid"])
+        return cls(grid, params=params)
 
     def setup_for_output(self, params: dict) -> None:
         """
