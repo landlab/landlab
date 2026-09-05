@@ -18,8 +18,11 @@
 #
 # *(Greg Tucker, University of Colorado Boulder)*
 #
+from typing import Self
 
 import numpy as np
+
+from landlab.core.model_parameter_loader import load_params
 
 
 def verify_input_file_and_load_params(input_file: str) -> dict:
@@ -249,6 +252,19 @@ class LandlabModel:
         self.setup_grid(self.params["grid"])
         self.setup_for_output(self.params)
         self.setup_run_control(self.params["clock"])
+
+    @classmethod
+    def from_file(cls, input_file: str) -> Self:
+        """Create a model from an input file.
+
+        Parameters
+        ----------
+        input_file : str
+            Name of yaml-format file containing names and values
+        """
+        with open(input_file) as fp:
+            params = load_params(fp)
+        return LandlabModel(params=params)
 
     def setup_grid(self, grid_params: dict) -> None:
         """Load or create the grid.
