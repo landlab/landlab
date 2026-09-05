@@ -25,36 +25,6 @@ import numpy as np
 from landlab.core.model_parameter_loader import load_params
 
 
-def verify_input_file_and_load_params(input_file: str) -> dict:
-    """
-    If the named file exists, read it and return a dict of parameters.
-    Otherwise, raise FileNotFoundError.
-
-    Note: this is meant to be a temporary fn because currently
-    load_params does not handle missing files gracefully. Once it does,
-    then this could simply be replaced by load_params.
-
-    Parameters
-    ----------
-    input_file : str
-        name of input file containing parameters in yaml format
-
-    Returns
-    -------
-    dict containing parameter names and values
-    """
-
-    from landlab import load_params
-
-    try:
-        f = open(input_file)
-        f.close()
-        params = load_params(input_file)
-        return params
-    except FileNotFoundError:
-        raise
-
-
 def merge_user_and_default_params(user_params: dict, default_params: dict) -> None:
     """
     Merge default parameters into the user-parameter dictionary, adding
@@ -228,7 +198,7 @@ class LandlabModel:
         },
     }
 
-    def __init__(self, params: dict = {}, input_file: str = "") -> dict:
+    def __init__(self, params: dict | None = None) -> dict:
         """
         Initialize the model.
 
@@ -244,9 +214,7 @@ class LandlabModel:
         User should pass either params or input_file. If input_file is
         passed, params will be ignored.
         """
-        if len(input_file) > 0:
-            params = verify_input_file_and_load_params(input_file)
-        self.params = params
+        self.params = {} if params is None else params
         merge_user_and_default_params(self.params, self.DEFAULT_PARAMS)
         read_arrays_from_files(self.params)
         self.setup_grid(self.params["grid"])
