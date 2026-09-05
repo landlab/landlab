@@ -22,6 +22,7 @@ from typing import Self
 
 import numpy as np
 
+from landlab import ModelGrid
 from landlab.core.model_parameter_loader import load_params
 
 
@@ -217,7 +218,7 @@ class LandlabModel:
         self.params = {} if params is None else params
         merge_user_and_default_params(self.params, self.DEFAULT_PARAMS)
         read_arrays_from_files(self.params)
-        self.setup_grid(self.params["grid"])
+        self.grid = setup_grid(self.params["grid"])
         self.setup_for_output(self.params)
         self.setup_run_control(self.params["clock"])
 
@@ -233,76 +234,6 @@ class LandlabModel:
         with open(input_file) as fp:
             params = load_params(fp)
         return LandlabModel(params=params)
-
-    def setup_grid(self, grid_params: dict) -> None:
-        """Load or create the grid.
-
-        Parameters
-        ----------
-        grid_params : dict
-            Dictionary containing parameters related grid setup.
-
-        Notes
-        -----
-        Must include an item "source" for which the valid values are
-        "create" (create a new grid), "file" (read a grid from file), or
-        "grid_object" (indicating that a grid object is included
-        directly in the parameter dictionary).
-
-        If "create", then there must be an item "create_grid" that
-        contains a dict in which the key is the name of the grid type
-        ("RasterModelGrid", "HexModelGrid") and the value is a dict
-        containing the names and values for the grid object's
-        parameters (such as a tuple for "shape", etc.)
-
-        If "file", then there must be an item "grid_file_name" that
-        contains the file name as a string.
-
-        If "grid_object", then there must be an item called "grid_object"
-        containing the grid object!
-
-        Examples
-        --------
-        >>> p = {"grid": {"source": "create"}}
-        >>> p["grid"]["create_grid"] = {
-        ...     "RasterModelGrid": {"shape": (4, 5), "xy_spacing": 2.0}
-        ... }
-        >>> sim = LandlabModel(params=p)
-        >>> sim.grid.shape
-        (4, 5)
-        >>> from landlab.io.native_landlab import save_grid
-        >>> save_grid(sim.grid, "test.grid", clobber=True)
-        >>> p = {"grid": {"source": "file", "grid_file_name": "test.grid"}}
-        >>> sim = LandlabModel(params=p)
-        >>> sim.grid.shape
-        (4, 5)
-        >>> from landlab import RasterModelGrid
-        >>> p = {"grid": {"source": "grid_object"}}
-        >>> p["grid"]["grid_object"] = RasterModelGrid((3, 3))
-        >>> sim = LandlabModel(params=p)
-        >>> sim.grid.shape
-        (3, 3)
-        >>> from numpy.testing import assert_raises
-        >>> p["grid"]["grid_object"] = "spam"
-        >>> assert_raises(ValueError, LandlabModel, p)
-        grid_object must be a Landlab grid.
-        """
-        from landlab import ModelGrid
-        from landlab import create_grid
-        from landlab.io.native_landlab import load_grid
-
-        if grid_params["source"] == "create":
-            # print("Create here...")
-            # print(grid_params["create_grid"])
-            self.grid = create_grid(grid_params, section="create_grid")
-        elif grid_params["source"] == "file":
-            self.grid = load_grid(grid_params["grid_file_name"])
-        elif grid_params["source"] == "grid_object":
-            if isinstance(grid_params["grid_object"], ModelGrid):
-                self.grid = grid_params["grid_object"]
-            else:
-                print("grid_object must be a Landlab grid.")
-                raise ValueError
 
     def setup_for_output(self, params: dict) -> None:
         """
@@ -471,3 +402,68 @@ class LandlabModel:
                     self.save_path, self.save_num, self.ndigits_for_save_files
                 )
                 self.next_save = self.save_times.pop(0)
+
+
+def setup_grid(params: dict) -> ModelGrid:
+    """Load or create the grid.
+
+    Parameters
+    ----------
+    params : dict
+        Dictionary containing parameters related grid setup.
+
+    Notes
+    -----
+    Must include an item "source" for which the valid values are
+    "create" (create a new grid), "file" (read a grid from file), or
+    "grid_object" (indicating that a grid object is included
+    directly in the parameter dictionary).
+
+    If "create", then there must be an item "create_grid" that
+    contains a dict in which the key is the name of the grid type
+    ("RasterModelGrid", "HexModelGrid") and the value is a dict
+    containing the names and values for the grid object's
+    parameters (such as a tuple for "shape", etc.)
+
+    If "file", then there must be an item "grid_file_name" that
+    contains the file name as a string.
+
+    If "grid_object", then there must be an item called "grid_object"
+    containing the grid object!
+
+    Examples
+    --------
+    >>> p = {"grid": {"source": "create"}}
+    >>> p["grid"]["create_grid"] = {
+    ...     "RasterModelGrid": {"shape": (4, 5), "xy_spacing": 2.0}
+    ... }
+    >>> grid = setup_grid(params=p)
+    >>> grid.shape
+    (4, 5)
+
+    >>> from landlab import RasterModelGrid
+    >>> p = {"grid": {"source": "grid_object"}}
+    >>> p["grid"]["grid_object"] = RasterModelGrid((3, 3))
+    >>> grid = setup_grid(params=p)
+    >>> grid.shape
+    (3, 3)
+    """
+    from requireit import require_one_of
+
+    from landlab import create_grid
+    from landlab.io.native_landlab import load_grid
+
+    source = require_one_of(
+        params["source"], allowed=("create", "file", "grid_object"), name="source"
+    )
+
+    if source == "create":
+        return create_grid(params, section="create_grid")
+
+    if source == "file":
+        return load_grid(params["grid_file_name"])
+
+    if source == "grid_object" and isinstance(params["grid_object"], ModelGrid):
+        return params["grid_object"]
+
+    raise ValueError("grid source must be one of 'create', 'file', or a grid instance")
