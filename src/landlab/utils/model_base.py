@@ -89,41 +89,6 @@ def merge_user_and_default_params(user_params: dict, default_params: dict) -> No
             merge_user_and_default_params(user_params[k], default_params[k])
 
 
-def get_or_create_node_field(grid, name: str, dtype: str = "float64") -> np.ndarray:
-    """
-    Get handle to a grid field if it exists, otherwise create it.
-
-    Parameters
-    ----------
-    grid : Landlab grid object
-        grid to operate on
-    name : str
-        name of field to get or create
-    dtype : str (default "float64")
-        data type for field if created
-
-    Returns
-    -------
-    ndarray : the field as an array
-
-    Examples
-    --------
-    >>> from landlab import RasterModelGrid
-    >>> g = RasterModelGrid((3, 3))
-    >>> f = g.add_field("field1", np.arange(9), at="node")
-    >>> get_or_create_node_field(g, "field1")
-    array([0, 1, 2, 3, 4, 5, 6, 7, 8])
-    >>> get_or_create_node_field(g, "field2")
-    array([0., 0., 0., 0., 0., 0., 0., 0., 0.])
-    >>> "field2" in g.at_node.keys()
-    True
-    """
-    try:
-        return grid.at_node[name]
-    except KeyError:
-        return grid.add_zeros(name, at="node", dtype=dtype, clobber=True)
-
-
 def read_arrays_from_files(params):
     """
     Given a parameter dictionary params, identify any items that are dictionaries
