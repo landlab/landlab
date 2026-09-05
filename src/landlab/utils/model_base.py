@@ -19,8 +19,6 @@
 # *(Greg Tucker, University of Colorado Boulder)*
 #
 
-import sys
-
 import numpy as np
 
 
@@ -524,21 +522,3 @@ class LandlabModel:
                     self.save_path, self.save_num, self.ndigits_for_save_files
                 )
                 self.next_save = self.save_times.pop(0)
-
-
-if __name__ == "__main__":
-    """Launch a run.
-
-    Optional command-line argument is the name of a yaml-format text file with
-    parameters. File should include sections for "grid_setup", "process",
-    "run_control", and "output". Each of these should have the format shown in
-    the defaults defined above in the class header.
-    """
-    if len(sys.argv) > 1:
-        from landlab import load_params
-
-        params = load_params(sys.argv[1])
-        sim = LandlabModel(params)
-    else:
-        sim = LandlabModel()  # use default params
-    sim.run()
