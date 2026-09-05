@@ -29,7 +29,7 @@ __all__ = [
     "get_watershed_nodes",
     "get_watershed_outlet",
     "get_watershed_masks",
-    "ModelBase",
+    "LandlabModel",
     "StablePriorityQueue",
     "return_array_at_node",
     "return_array_at_link",
