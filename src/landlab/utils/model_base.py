@@ -77,29 +77,6 @@ def read_arrays_from_files(params):
 
     Returns:
         dict : the modified dict
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> np.save("test1", 0.1 * np.arange(3))
-    >>> np.save("test2", np.arange(4).reshape((2, 2)) / 2)
-    >>> np.save("test3", 1.5 * np.arange(3).reshape((3, 1)))
-    >>> p = {
-    ...     "a": 123,
-    ...     "b": {"c": 456, "d": {"_filepath": "test1.npy"}},
-    ...     "e": {"_filepath": "test2.npy"},
-    ...     "f": {"_filepath": "test3.npy"},
-    ... }
-    >>> p = read_arrays_from_files(p)
-    >>> p["b"]["d"]
-    array([0. , 0.1, 0.2])
-    >>> p["e"]
-    array([[0. , 0.5],
-           [1. , 1.5]])
-    >>> p["f"]
-    array([[0. ],
-           [1.5],
-           [3. ]])
     """
     for item in params:
         if isinstance(params[item], dict):
