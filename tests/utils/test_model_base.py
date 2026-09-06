@@ -65,7 +65,8 @@ def test_model_from_params(model_params):
     assert model.grid.dx == 0.5
     assert model.grid.dy == 8.0
     assert model.grid.xy_of_lower_left == (-16.0, 32.0)
-    assert model.params is model_params
+    assert model.params == model_params
+    assert model.params is not model_params
 
 
 def test_model_from_params_uses_defaults():
