@@ -18,10 +18,15 @@
 #
 # *(Greg Tucker, University of Colorado Boulder)*
 #
+from collections.abc import Iterator
+from collections.abc import Sequence
+from itertools import count
 from typing import Any
 from typing import Self
 
 import numpy as np
+from requireit import require_positive
+from requireit import require_sorted
 
 from landlab.core.component_utils import iter_time_steps
 from landlab.core.model_parameter_loader import load_params
@@ -107,6 +112,31 @@ def resolve_array_filepaths(params: dict[str, Any]) -> dict[str, Any]:
         else:
             resolved[key] = value
     return resolved
+
+
+def _iter_pause_times(
+    schedule: float | Sequence[float],
+    *,
+    start: float = 0.0,
+    stop: float = np.inf,
+) -> Iterator[float]:
+    if isinstance(schedule, (float, int)):
+        require_positive(schedule, name="pause interval")
+        if not np.isfinite(schedule):
+            raise ValueError("pause interval must be finite")
+        for step in count():
+            next_pause = start + step * schedule
+            if next_pause > stop:
+                break
+            yield next_pause
+    else:
+        require_sorted(schedule, strict=True, name="schedule")
+        for next_pause in schedule:
+            if next_pause < start:
+                continue
+            if next_pause > stop:
+                break
+            yield next_pause
 
 
 def _get_pause_time_list_and_next(time_info, clock_dict, no_first_pause=False):
