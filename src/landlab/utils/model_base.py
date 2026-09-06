@@ -27,41 +27,56 @@ from landlab.core.model_parameter_loader import load_params
 from landlab.grid.base import ModelGrid
 
 
-def merge_user_and_default_params(user_params: dict, default_params: dict) -> None:
-    """
+def merge_params(
+    user: dict[str, Any],
+    *,
+    defaults: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Merge parameters with defaults, returning a new nested dictionary.
+
     Merge default parameters into the user-parameter dictionary, adding
-    defaults where user values are absent.
+    defaults where user values are absent. Nested dictionaries are merged
+    recursively, except for ``grid``, which is treated as a single value.
 
     Parameters
     ----------
-    user_params : dict
+    user : dict
         dict containing names and values of user-defined parameters
-    default_params : dict
+    defaults : dict, optional
         dict containing all parameter names and their default values
+
+    Returns
+    -------
+    merged : dict
+        The merged parameters.
 
     Examples
     --------
-    >>> u = {"a": 1, "d": {"da": 4}, "e": 5, "grid": {"RasterModelGrid": []}}
-    >>> d = {"a": 2, "b": 3, "d": {"db": 6}, "grid": {"HexModelGrid": []}}
-    >>> merge_user_and_default_params(u, d)
-    >>> u["a"]
-    1
-    >>> u["b"]
-    3
-    >>> u["d"]
-    {'da': 4, 'db': 6}
-    >>> u["grid"]
+    >>> user = {"a": 1, "d": {"da": 4}, "e": 5, "grid": {"RasterModelGrid": []}}
+    >>> defaults = {"a": 2, "b": 3, "d": {"db": 6}, "grid": {"HexModelGrid": []}}
+    >>> merged = merge_params(user, defaults=defaults)
+    >>> merged["a"] == user["a"]
+    True
+    >>> merged["b"] == defaults["b"]
+    True
+    >>> sorted(merged["d"].items())
+    [('da', 4), ('db', 6)]
+
+    >>> merged["grid"]
     {'RasterModelGrid': []}
     """
-    for k in default_params.keys():
-        if k not in user_params.keys():
-            user_params[k] = default_params[k]
-        elif (
-            isinstance(user_params[k], dict)
-            and isinstance(default_params[k], dict)
-            and k != "grid"
-        ):
-            merge_user_and_default_params(user_params[k], default_params[k])
+    defaults = {} if defaults is None else defaults
+
+    merged = {**defaults, **user}
+    for k, v in merged.items():
+        if isinstance(v, dict):
+            default_value = defaults.get(k)
+            if k == "grid" or not isinstance(default_value, dict):
+                default_value = None
+
+            merged[k] = merge_params(v, defaults=default_value)
+
+    return merged
 
 
 def read_arrays_from_files(params):
@@ -213,7 +228,7 @@ class LandlabModel:
     def from_params(cls, params: dict[str, Any] | None = None) -> Self:
         params = {} if params is None else params
 
-        merge_user_and_default_params(params, cls.DEFAULT_PARAMS)
+        params = merge_params(params, defaults=cls.DEFAULT_PARAMS)
         read_arrays_from_files(params)
 
         grid = setup_grid(params["grid"])
