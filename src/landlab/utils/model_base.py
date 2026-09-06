@@ -28,6 +28,7 @@ import numpy as np
 from requireit import require_positive
 from requireit import require_sorted
 
+from landlab.core.component_utils import iter_adaptive_time_steps
 from landlab.core.component_utils import iter_time_steps
 from landlab.core.model_parameter_loader import load_params
 from landlab.grid.base import ModelGrid
@@ -358,7 +359,7 @@ class LandlabModel:
             op_params["report_times"], start=clock["start"], stop=clock["stop"]
         )
 
-        if self._save_schedule.is_due():
+        if self._save_schedule.is_due(clock["start"]):
             self._save_schedule.advance()
 
         self.ndigits_for_save_files = 4
@@ -476,24 +477,12 @@ class LandlabModel:
         if dt is None:
             dt = self.dt
 
-        stop_time = run_duration + self.current_time
-        while self.current_time < stop_time:
-            next_pause = min(self.next_plot, self.next_save)
-            next_pause = min(next_pause, self.next_report)
-            next_pause = min(next_pause, stop_time)
-            self.update_until(next_pause, dt)
-            if self.current_time >= self.next_report:
-                self.report(self.current_time)
-                self.next_report = self.report_times.pop(0)
-            if self.current_time >= self.next_plot:
-                self.plot(self.current_time)
-                self.next_plot = self.plot_times.pop(0)
-            if self.current_time >= self.next_save:
-                self.save_num += 1
-                self.save_state(
-                    self.save_path, self.save_num, self.ndigits_for_save_files
-                )
-                self.next_save = self.save_times.pop(0)
+        self._run_scheduled_actions()
+        for time_until_pause in iter_adaptive_time_steps(
+            run_duration, calc_dt=self._time_to_next_pause
+        ):
+            self.update_until(self.current_time + time_until_pause, dt)
+            self._run_scheduled_actions()
 
     def _time_to_next_pause(self) -> float:
         return (
