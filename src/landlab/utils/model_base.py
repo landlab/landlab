@@ -23,6 +23,7 @@ from typing import Self
 
 import numpy as np
 
+from landlab.core.component_utils import iter_time_steps
 from landlab.core.model_parameter_loader import load_params
 from landlab.grid.base import ModelGrid
 
@@ -367,15 +368,17 @@ class LandlabModel:
 
         The derived class should override this function.
         """
-        self.current_time += dt
+        pass
 
     def update_until(self, update_to_time: float, dt: float) -> None:
         """Iterate up to given time, using time-step duration dt."""
-        remaining_time = update_to_time - self.current_time
-        while remaining_time > 0.0:
-            dt = min(dt, remaining_time)
-            self.update(dt)
-            remaining_time -= dt
+        duration = update_to_time - self.current_time
+        if duration <= 0.0:
+            return
+
+        for this_dt in iter_time_steps(duration, dt=dt):
+            self.update(this_dt)
+            self._current_time += this_dt
 
     def run(self, run_duration: float | None = None, dt: float | None = None) -> None:
         """Run the model for given duration, or self.run_duration if none
