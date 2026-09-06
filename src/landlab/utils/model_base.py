@@ -79,27 +79,33 @@ def merge_params(
     return merged
 
 
-def read_arrays_from_files(params):
-    """
-    Given a parameter dictionary params, identify any items that are dictionaries
-    with the key "_filepath" and replace the item with the contents of the
-    specified file path.
+def resolve_array_filepaths(params: dict[str, Any]) -> dict[str, Any]:
+    """Return new parameters with array filepath references resolved.
+
+    Dictionary values containing an ``"_filepath"`` key are replaced by
+    arrays loaded from the referenced files. Nested parameter dictionaries
+    are processed recursively.
 
     Parameters
     ----------
     params : dict
-        dict to analyze
+        Parameter dictionary that may contain array filepath references.
 
-    Returns:
-        dict : the modified dict
+    Returns
+    -------
+    resolved : dict
+        A new parameter dictionary containing the resolved arrays.
     """
-    for item in params:
-        if isinstance(params[item], dict):
-            if "_filepath" in params[item]:
-                params[item] = np.load(params[item]["_filepath"])
+    resolved = {}
+    for key, value in params.items():
+        if isinstance(value, dict):
+            if "_filepath" in value:
+                resolved[key] = np.load(value["_filepath"])
             else:
-                params[item] = read_arrays_from_files(params[item])
-    return params
+                resolved[key] = resolve_array_filepaths(value)
+        else:
+            resolved[key] = value
+    return resolved
 
 
 def _get_pause_time_list_and_next(time_info, clock_dict, no_first_pause=False):
@@ -229,7 +235,7 @@ class LandlabModel:
         params = {} if params is None else params
 
         params = merge_params(params, defaults=cls.DEFAULT_PARAMS)
-        read_arrays_from_files(params)
+        params = resolve_array_filepaths(params)
 
         grid = setup_grid(params["grid"])
         return cls(grid, params=params)

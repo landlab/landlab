@@ -9,7 +9,7 @@ from landlab import RasterModelGrid
 from landlab.io.native_landlab import save_grid
 from landlab.utils.model_base import LandlabModel
 from landlab.utils.model_base import merge_params
-from landlab.utils.model_base import read_arrays_from_files
+from landlab.utils.model_base import resolve_array_filepaths
 from landlab.utils.model_base import setup_grid
 
 
@@ -230,7 +230,7 @@ def test_setup_grid_rejects_non_grid_object():
         setup_grid({"source": "grid_object", "grid_object": object()})
 
 
-def test_read_arrays_from_files(tmp_path):
+def test_resolve_array_filepaths(tmp_path):
     expected_1d = np.arange(3) / 2
     expected_2d = np.arange(4).reshape((2, 2)) / 2
     expected_col = np.arange(10).reshape((-1, 1)) / 4
@@ -246,8 +246,13 @@ def test_read_arrays_from_files(tmp_path):
         "f": {"_filepath": "test3.npy"},
     }
     with chdir(tmp_path):
-        p = read_arrays_from_files(p)
+        actual = resolve_array_filepaths(p)
 
-    assert_array_equal(p["b"]["d"], expected_1d)
-    assert_array_equal(p["e"], expected_2d)
-    assert_array_equal(p["f"], expected_col)
+    assert actual is not p
+    assert actual["b"] is not p["b"]
+    assert p["b"]["d"] == {"_filepath": "test1.npy"}
+    assert p["e"] == {"_filepath": "test2.npy"}
+    assert p["f"] == {"_filepath": "test3.npy"}
+    assert_array_equal(actual["b"]["d"], expected_1d)
+    assert_array_equal(actual["e"], expected_2d)
+    assert_array_equal(actual["f"], expected_col)
