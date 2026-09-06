@@ -4,10 +4,12 @@ from typing import Literal
 import numpy as np
 from numpy.typing import ArrayLike
 from numpy.typing import NDArray
-from landlab import NetworkModelGrid, RasterModelGrid
+
+from landlab import NetworkModelGrid
+from landlab import RasterModelGrid
+from landlab.components.flow_director.flow_director_steepest import FlowDirectorSteepest
 from landlab.core.utils import require_id_array
 from landlab.utils.geometry.planar import find_nearest_node
-from landlab.components.flow_director.flow_director_steepest import FlowDirectorSteepest
 
 """
 A collection of tools for defining a channel network on a cellular-like ModelGrid
