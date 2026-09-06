@@ -346,25 +346,26 @@ class LandlabModel:
         or "vtk". The default is "grid".
         """
         op_params = params["output"]
-        clock_params = params["clock"]
+        clock = params["clock"]
 
-        self.plot_times, self.next_plot = _get_pause_time_list_and_next(
-            op_params["plot_times"], clock_params
+        self._plot_schedule = _PauseSchedule(
+            op_params["plot_times"], start=clock["start"], stop=clock["stop"]
         )
-        self.save_times, self.next_save = _get_pause_time_list_and_next(
-            op_params["save_times"], clock_params, no_first_pause=True
+        self._save_schedule = _PauseSchedule(
+            op_params["save_times"], start=clock["start"], stop=clock["stop"]
         )
-        self.report_times, self.next_report = _get_pause_time_list_and_next(
-            op_params["report_times"], clock_params
+        self._report_schedule = _PauseSchedule(
+            op_params["report_times"], start=clock["start"], stop=clock["stop"]
         )
 
-        self.ndigits_for_save_files = int(np.ceil(np.log10(len(self.save_times) + 1)))
+        if self._save_schedule.is_due():
+            self._save_schedule.advance()
+
+        self.ndigits_for_save_files = 4
         self.save_num = 0  # current save file frame number
         self.save_path = op_params["save_path"]
         if op_params["plot_to_file"]:
-            self.ndigits_for_plot_files = int(
-                np.ceil(np.log10(len(self.plot_times) + 1))
-            )
+            self.ndigits_for_plot_files = 4
             self.plot_num = 0  # current plot image frame number
         self.display_params = params
 
