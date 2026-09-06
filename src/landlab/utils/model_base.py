@@ -495,6 +495,16 @@ class LandlabModel:
                 )
                 self.next_save = self.save_times.pop(0)
 
+    def _time_to_next_pause(self) -> float:
+        return (
+            min(
+                self._plot_schedule.next_pause,
+                self._save_schedule.next_pause,
+                self._report_schedule.next_pause,
+            )
+            - self.current_time
+        )
+
 
 def setup_grid(params: dict) -> ModelGrid:
     """Load or create the grid.
