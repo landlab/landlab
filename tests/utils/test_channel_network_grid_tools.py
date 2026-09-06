@@ -785,18 +785,16 @@ class TestMinDistToNetwork:
         check_vals(mdn, mdn_e)
 
 
-class TestMapNMGLinksToRMGCoincidentNodes:
+class TestMapNetworkLinksToCoincidentNodes:
 
-    def test_map_nmg_links_to_rmg_coincident_nodes_1(self, grid, nmgrid_c):
+    def test_map_network_links_to_coincident_nodes_1(self, grid, nmgrid_c):
         """coarse-scale network model grid, remove duplicates"""
         link_nodes_c = gt.get_link_nodes(nmgrid_c)
-        nmg_link_to_rmg_coincident_nodes_mapper = (
-            gt.map_nmg_links_to_rmg_coincident_nodes(
-                grid, nmgrid_c, link_nodes_c, remove_duplicates=True
-            )
+        nmg_link_to_coincident_nodes_mapper = gt.map_network_links_to_coincident_nodes(
+            grid, nmgrid_c, link_nodes_c, remove_duplicates=True
         )
 
-        nmg_link_to_rmg_coincident_nodes_mapper_e = np.array(
+        nmg_link_to_coincident_nodes_mapper_e = np.array(
             [
                 [0.0, 3.0, 30.0, 0.0, 31.6227766, 2300.0],
                 [0.0, 10.0, 30.0, 10.0, 26.33648662, 2300.0],
@@ -810,25 +808,25 @@ class TestMapNMGLinksToRMGCoincidentNodes:
         )
 
         check_vals(
-            np.array(list(nmg_link_to_rmg_coincident_nodes_mapper.values())).T,
-            nmg_link_to_rmg_coincident_nodes_mapper_e,
+            np.array(list(nmg_link_to_coincident_nodes_mapper.values())).T,
+            nmg_link_to_coincident_nodes_mapper_e,
         )
 
         # check no duplicate nodes
         assert len(
-            np.unique(nmg_link_to_rmg_coincident_nodes_mapper["coincident_node"])
-        ) == len(nmg_link_to_rmg_coincident_nodes_mapper["coincident_node"])
+            np.unique(nmg_link_to_coincident_nodes_mapper["coincident_node"])
+        ) == len(nmg_link_to_coincident_nodes_mapper["coincident_node"])
 
-    def test_map_nmg_links_to_rmg_coincident_nodes_2(self, grid, nmgrid_c):
+    def test_map_network_links_to_coincident_nodes_2(self, grid, nmgrid_c):
         """coarse-scale network model grid, don't remove duplicate nodes"""
         link_nodes_c = gt.get_link_nodes(nmgrid_c)
-        nmg_link_to_rmg_coincident_nodes_mapper_dup = (
-            gt.map_nmg_links_to_rmg_coincident_nodes(
+        nmg_link_to_coincident_nodes_mapper_dup = (
+            gt.map_network_links_to_coincident_nodes(
                 grid, nmgrid_c, link_nodes_c, remove_duplicates=False
             )
         )
 
-        nmg_link_to_rmg_coincident_nodes_mapper_dup_e = np.array(
+        nmg_link_to_coincident_nodes_mapper_dup_e = np.array(
             [
                 [0.0, 3.0, 30.0, 0.0, 31.6227766, 2300.0],
                 [0.0, 10.0, 30.0, 10.0, 26.33648662, 2300.0],
@@ -844,25 +842,23 @@ class TestMapNMGLinksToRMGCoincidentNodes:
         )
 
         check_vals(
-            np.array(list(nmg_link_to_rmg_coincident_nodes_mapper_dup.values())).T,
-            nmg_link_to_rmg_coincident_nodes_mapper_dup_e,
+            np.array(list(nmg_link_to_coincident_nodes_mapper_dup.values())).T,
+            nmg_link_to_coincident_nodes_mapper_dup_e,
         )
 
         # check that duplicate nodes are included
         assert len(
-            np.unique(nmg_link_to_rmg_coincident_nodes_mapper_dup["coincident_node"])
-        ) != len(nmg_link_to_rmg_coincident_nodes_mapper_dup["coincident_node"])
+            np.unique(nmg_link_to_coincident_nodes_mapper_dup["coincident_node"])
+        ) != len(nmg_link_to_coincident_nodes_mapper_dup["coincident_node"])
 
-    def test_map_nmg_links_to_rmg_coincident_nodes_3(self, grid, nmgrid_f):
+    def test_map_network_links_to_coincident_nodes_3(self, grid, nmgrid_f):
         """fine-scale network model grid, remove duplicates"""
         link_nodes_f = gt.get_link_nodes(nmgrid_f)
-        nmg_link_to_rmg_coincident_nodes_mapper = (
-            gt.map_nmg_links_to_rmg_coincident_nodes(
-                grid, nmgrid_f, link_nodes_f, remove_duplicates=True
-            )
+        nmg_link_to_coincident_nodes_mapper = gt.map_network_links_to_coincident_nodes(
+            grid, nmgrid_f, link_nodes_f, remove_duplicates=True
         )
 
-        nmg_link_to_rmg_coincident_nodes_mapper_e = np.array(
+        nmg_link_to_coincident_nodes_mapper_e = np.array(
             [
                 [0, 3, 30.0, 0.0, 14.142136, 2750.0],
                 [0, 9, 20.0, 10.0, 7.063990, 2750.0],
@@ -873,25 +869,25 @@ class TestMapNMGLinksToRMGCoincidentNodes:
         )
 
         check_vals(
-            np.array(list(nmg_link_to_rmg_coincident_nodes_mapper.values())).T[:5],
-            nmg_link_to_rmg_coincident_nodes_mapper_e,
+            np.array(list(nmg_link_to_coincident_nodes_mapper.values())).T[:5],
+            nmg_link_to_coincident_nodes_mapper_e,
         )
 
         # check no duplicate nodes
         assert len(
-            np.unique(nmg_link_to_rmg_coincident_nodes_mapper["coincident_node"])
-        ) == len(nmg_link_to_rmg_coincident_nodes_mapper["coincident_node"])
+            np.unique(nmg_link_to_coincident_nodes_mapper["coincident_node"])
+        ) == len(nmg_link_to_coincident_nodes_mapper["coincident_node"])
 
-    def test_map_nmg_links_to_rmg_coincident_nodes_4(self, grid_up, nmgrid_c_up):
+    def test_map_network_links_to_coincident_nodes_4(self, grid_up, nmgrid_c_up):
         """upside down coarse-scale network model grid, remove duplicates"""
         link_nodes_c_up = gt.get_link_nodes(nmgrid_c_up)
-        nmg_link_to_rmg_coincident_nodes_mapper_up = (
-            gt.map_nmg_links_to_rmg_coincident_nodes(
+        nmg_link_to_coincident_nodes_mapper_up = (
+            gt.map_network_links_to_coincident_nodes(
                 grid_up, nmgrid_c_up, link_nodes_c_up, remove_duplicates=True
             )
         )
 
-        nmg_link_to_rmg_coincident_nodes_mapper_up_e = np.array(
+        nmg_link_to_coincident_nodes_mapper_up_e = np.array(
             [
                 [0.0, 31.0, 30.0, 40.0, 16.76491407, 1050.0],
                 [0.0, 24.0, 30.0, 30.0, 11.16914836, 1050.0],
@@ -905,25 +901,25 @@ class TestMapNMGLinksToRMGCoincidentNodes:
         )
 
         check_vals(
-            np.array(list(nmg_link_to_rmg_coincident_nodes_mapper_up.values())).T,
-            nmg_link_to_rmg_coincident_nodes_mapper_up_e,
+            np.array(list(nmg_link_to_coincident_nodes_mapper_up.values())).T,
+            nmg_link_to_coincident_nodes_mapper_up_e,
         )
 
         # check no duplicate nodes
         assert len(
-            np.unique(nmg_link_to_rmg_coincident_nodes_mapper_up["coincident_node"])
-        ) == len(nmg_link_to_rmg_coincident_nodes_mapper_up["coincident_node"])
+            np.unique(nmg_link_to_coincident_nodes_mapper_up["coincident_node"])
+        ) == len(nmg_link_to_coincident_nodes_mapper_up["coincident_node"])
 
-    def test_map_nmg_links_to_rmg_coincident_nodes_5(self, grid, nmgrid_s):
+    def test_map_network_links_to_coincident_nodes_5(self, grid, nmgrid_s):
         """single-channel-reach network model grid, remove duplicates"""
         link_nodes_s = gt.get_link_nodes(nmgrid_s)
-        nmg_link_to_rmg_coincident_nodes_mapper_s = (
-            gt.map_nmg_links_to_rmg_coincident_nodes(
+        nmg_link_to_coincident_nodes_mapper_s = (
+            gt.map_network_links_to_coincident_nodes(
                 grid, nmgrid_s, link_nodes_s, remove_duplicates=True
             )
         )
 
-        nmg_link_to_rmg_coincident_nodes_mapper_s_e = np.array(
+        nmg_link_to_coincident_nodes_mapper_s_e = np.array(
             [
                 [0.0, 3.0, 30.0, 0.0, 31.6227766, 2300.0],
                 [0.0, 10.0, 30.0, 10.0, 26.33648662, 2300.0],
@@ -933,25 +929,25 @@ class TestMapNMGLinksToRMGCoincidentNodes:
         )
 
         check_vals(
-            np.array(list(nmg_link_to_rmg_coincident_nodes_mapper_s.values())).T,
-            nmg_link_to_rmg_coincident_nodes_mapper_s_e,
+            np.array(list(nmg_link_to_coincident_nodes_mapper_s.values())).T,
+            nmg_link_to_coincident_nodes_mapper_s_e,
         )
 
         # check no duplicate nodes
         assert len(
-            np.unique(nmg_link_to_rmg_coincident_nodes_mapper_s["coincident_node"])
-        ) == len(nmg_link_to_rmg_coincident_nodes_mapper_s["coincident_node"])
+            np.unique(nmg_link_to_coincident_nodes_mapper_s["coincident_node"])
+        ) == len(nmg_link_to_coincident_nodes_mapper_s["coincident_node"])
 
-    def test_map_nmg_links_to_rmg_coincident_nodes_6(self, grid_up, nmgrid_s_up):
+    def test_map_network_links_to_coincident_nodes_6(self, grid_up, nmgrid_s_up):
         """upside down single-channel-reach network model grid, remove duplicates"""
         link_nodes_s_up = gt.get_link_nodes(nmgrid_s_up)
-        nmg_link_to_rmg_coincident_nodes_mapper_s_up = (
-            gt.map_nmg_links_to_rmg_coincident_nodes(
+        nmg_link_to_coincident_nodes_mapper_s_up = (
+            gt.map_network_links_to_coincident_nodes(
                 grid_up, nmgrid_s_up, link_nodes_s_up, remove_duplicates=True
             )
         )
 
-        nmg_link_to_rmg_coincident_nodes_mapper_s_up_e = np.array(
+        nmg_link_to_coincident_nodes_mapper_s_up_e = np.array(
             [
                 [0.0, 52.0, 30.0, 70.0, 31.6227766, 2300.0],
                 [0.0, 45.0, 30.0, 60.0, 26.33648662, 2300.0],
@@ -961,11 +957,11 @@ class TestMapNMGLinksToRMGCoincidentNodes:
         )
 
         check_vals(
-            np.array(list(nmg_link_to_rmg_coincident_nodes_mapper_s_up.values())).T,
-            nmg_link_to_rmg_coincident_nodes_mapper_s_up_e,
+            np.array(list(nmg_link_to_coincident_nodes_mapper_s_up.values())).T,
+            nmg_link_to_coincident_nodes_mapper_s_up_e,
         )
 
         # check no duplicate nodes
         assert len(
-            np.unique(nmg_link_to_rmg_coincident_nodes_mapper_s_up["coincident_node"])
-        ) == len(nmg_link_to_rmg_coincident_nodes_mapper_s_up["coincident_node"])
+            np.unique(nmg_link_to_coincident_nodes_mapper_s_up["coincident_node"])
+        ) == len(nmg_link_to_coincident_nodes_mapper_s_up["coincident_node"])
