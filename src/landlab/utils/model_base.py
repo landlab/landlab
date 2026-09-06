@@ -417,17 +417,15 @@ def setup_grid(params: dict) -> ModelGrid:
 
     Examples
     --------
-    >>> p = {"grid": {"source": "create"}}
-    >>> p["grid"]["create_grid"] = {
-    ...     "RasterModelGrid": {"shape": (4, 5), "xy_spacing": 2.0}
-    ... }
+    >>> p = {"source": "create"}
+    >>> p["create_grid"] = {"RasterModelGrid": {"shape": (4, 5), "xy_spacing": 2.0}}
     >>> grid = setup_grid(params=p)
     >>> grid.shape
     (4, 5)
 
     >>> from landlab import RasterModelGrid
-    >>> p = {"grid": {"source": "grid_object"}}
-    >>> p["grid"]["grid_object"] = RasterModelGrid((3, 3))
+    >>> p = {"source": "grid_object"}
+    >>> p["grid_object"] = RasterModelGrid((3, 3))
     >>> grid = setup_grid(params=p)
     >>> grid.shape
     (3, 3)
