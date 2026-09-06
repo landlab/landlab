@@ -241,6 +241,10 @@ class LandlabModel:
         grid = setup_grid(params["grid"])
         return cls(grid, params=params)
 
+    @property
+    def current_time(self) -> float:
+        return self._current_time
+
     def setup_for_output(self, params: dict) -> None:
         """
         Setup variables for control of plotting and saving.
