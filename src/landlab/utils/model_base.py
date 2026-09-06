@@ -114,6 +114,55 @@ def resolve_array_filepaths(params: dict[str, Any]) -> dict[str, Any]:
     return resolved
 
 
+class _PauseSchedule:
+    """Track the next pause in a sequence of times.
+
+    Parameters
+    ----------
+    schedule : float or sequence of float
+        Constant interval between pauses, or a sequence of absolute times
+        at which to pause.
+    start : float, optional
+        Earliest time in the schedule. For a constant interval, this is
+        also the first pause. Explicit times before ``start`` are skipped.
+    stop : float, optional
+        Latest time in the schedule. The stop time is included. With the
+        default of infinity, a constant-interval schedule is unbounded.
+
+    Examples
+    --------
+    >>> schedule = _PauseSchedule(1.0, start=0.0, stop=4.0)
+    >>> schedule.next_pause
+    0.0
+    >>> schedule.advance()
+    1.0
+    >>> schedule = _PauseSchedule([0.0, 0.5, 2.0, 4.0], start=0.5, stop=4.0)
+    >>> schedule.next_pause
+    0.5
+    """
+
+    def __init__(
+        self,
+        schedule: float | Sequence[float],
+        *,
+        start: float = 0.0,
+        stop: float = np.inf,
+    ) -> None:
+        self._times = _iter_pause_times(schedule=schedule, start=start, stop=stop)
+        self._next_pause = next(self._times, np.inf)
+
+    @property
+    def next_pause(self) -> float:
+        return self._next_pause
+
+    def is_due(self, time: float) -> bool:
+        return time >= self._next_pause
+
+    def advance(self) -> float:
+        self._next_pause = next(self._times, np.inf)
+        return self._next_pause
+
+
 def _iter_pause_times(
     schedule: float | Sequence[float],
     *,
