@@ -23,8 +23,8 @@ from typing import Self
 
 import numpy as np
 
-from landlab import ModelGrid
 from landlab.core.model_parameter_loader import load_params
+from landlab.grid.base import ModelGrid
 
 
 def merge_user_and_default_params(user_params: dict, default_params: dict) -> None:
@@ -163,7 +163,7 @@ class LandlabModel:
 
     Examples
     --------
-    >>> from landlab.utils import LandlabModel
+    >>> from landlab.utils.model_base import LandlabModel
     >>> class MyModel(LandlabModel):
     ...     pass
     ...
