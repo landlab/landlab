@@ -505,6 +505,20 @@ class LandlabModel:
             - self.current_time
         )
 
+    def _run_scheduled_actions(self) -> None:
+        if self._report_schedule.is_due(self.current_time):
+            self.report(self.current_time)
+            self._report_schedule.advance()
+
+        if self._plot_schedule.is_due(self.current_time):
+            self.plot(self.current_time)
+            self._plot_schedule.advance()
+
+        if self._save_schedule.is_due(self.current_time):
+            self.save_num += 1
+            self.save_state(self.save_path, self.save_num, self.ndigits_for_save_files)
+            self._save_schedule.advance()
+
 
 def setup_grid(params: dict) -> ModelGrid:
     """Load or create the grid.
