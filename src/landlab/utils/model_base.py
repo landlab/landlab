@@ -395,7 +395,7 @@ class LandlabModel:
         """
         self.run_duration = clock_params["stop"] - clock_params["start"]
         self.dt = clock_params["step"]
-        self.current_time = clock_params["start"]
+        self._current_time = clock_params["start"]
 
     def report(self, current_time: float) -> None:
         """Issue a text update on status."""
