@@ -8,6 +8,7 @@ from requireit import ValidationError
 from landlab import RasterModelGrid
 from landlab.io.native_landlab import save_grid
 from landlab.utils.model_base import LandlabModel
+from landlab.utils.model_base import merge_params
 from landlab.utils.model_base import read_arrays_from_files
 from landlab.utils.model_base import setup_grid
 
@@ -35,6 +36,72 @@ def model_params():
             "plot_to_file": False,
         },
     }
+
+
+def test_merge_params():
+    user = {"a": 1, "dict": {"user": 2}}
+    defaults = {"a": 0, "b": 3, "dict": {"default": 4}}
+
+    actual = merge_params(user, defaults=defaults)
+
+    assert actual == {
+        "a": 1,
+        "b": 3,
+        "dict": {"user": 2, "default": 4},
+    }
+
+
+def test_merge_params_copies_nested_dicts():
+    user = {
+        "user_only": {"nested": {"value": 1}},
+        "merged": {"user": {"value": 2}},
+    }
+    defaults = {
+        "default_only": {"nested": {"value": 3}},
+        "merged": {"default": {"value": 4}},
+    }
+
+    actual = merge_params(user, defaults=defaults)
+
+    assert actual == {
+        "user_only": {"nested": {"value": 1}},
+        "default_only": {"nested": {"value": 3}},
+        "merged": {"user": {"value": 2}, "default": {"value": 4}},
+    }
+    assert actual["user_only"] is not user["user_only"]
+    assert actual["user_only"]["nested"] is not user["user_only"]["nested"]
+    assert actual["default_only"] is not defaults["default_only"]
+    assert actual["default_only"]["nested"] is not defaults["default_only"]["nested"]
+    assert actual["merged"] is not user["merged"]
+    assert actual["merged"]["user"] is not user["merged"]["user"]
+    assert actual["merged"]["default"] is not defaults["merged"]["default"]
+
+
+def test_merge_params_does_not_merge_grid_dict():
+    user = {"grid": {"RasterModelGrid": {"shape": (3, 4)}}}
+    defaults = {"grid": {"HexModelGrid": {"shape": (5, 6)}}}
+
+    actual = merge_params(user, defaults=defaults)
+
+    assert actual["grid"] == user["grid"]
+    assert actual["grid"] is not user["grid"]
+    assert actual["grid"]["RasterModelGrid"] is not user["grid"]["RasterModelGrid"]
+
+
+def test_merge_params_preserves_grid_instance():
+    grid = RasterModelGrid((3, 4))
+
+    params = {"grid": {"source": "grid_object", "grid_object": grid}}
+    actual = merge_params(params)
+
+    assert actual["grid"]["grid_object"] is grid
+    assert actual["grid"] is not params["grid"]
+
+
+def test_merge_params_dict_overrides_non_dict_default():
+    actual = merge_params({"value": {"dict": 1}}, defaults={"value": 0})
+
+    assert actual == {"value": {"dict": 1}}
 
 
 def test_model_init_uses_in_memory_grid_and_params(model_params):
