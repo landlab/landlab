@@ -7,8 +7,108 @@ from requireit import ValidationError
 
 from landlab import RasterModelGrid
 from landlab.io.native_landlab import save_grid
+from landlab.utils.model_base import LandlabModel
 from landlab.utils.model_base import read_arrays_from_files
 from landlab.utils.model_base import setup_grid
+
+
+@pytest.fixture
+def model_params():
+    return {
+        "grid": {
+            "source": "create",
+            "create_grid": {
+                "RasterModelGrid": {
+                    "shape": (4, 5),
+                    "xy_spacing": (2.0, 4.0),
+                }
+            },
+        },
+        "clock": {"start": 1.0, "stop": 5.0, "step": 0.5},
+        "output": {
+            "plot_times": 10.0,
+            "save_times": 10.0,
+            "report_times": 10.0,
+            "save_path": "model-output",
+            "clobber": True,
+            "fields": None,
+            "plot_to_file": False,
+        },
+    }
+
+
+def test_model_init_uses_in_memory_grid_and_params(model_params):
+    model_params["clock"] = {"start": 0.0, "stop": 100.0, "step": 0.25}
+    model_params.pop("grid")
+
+    grid = RasterModelGrid((3, 4))
+
+    model = LandlabModel(grid, params=model_params)
+
+    assert model.grid is grid
+    assert model.params is model_params
+    assert model.current_time == 0.0
+    assert model.run_duration == 100.0
+    assert model.dt == 0.25
+
+
+def test_model_from_params(model_params):
+    model_params["grid"]["create_grid"]["RasterModelGrid"] = {
+        "shape": (40, 50),
+        "xy_spacing": (0.5, 8.0),
+        "xy_of_lower_left": (-16.0, 32.0),
+    }
+    model = LandlabModel.from_params(model_params)
+
+    assert isinstance(model.grid, RasterModelGrid)
+    assert model.grid.shape == (40, 50)
+    assert model.grid.dx == 0.5
+    assert model.grid.dy == 8.0
+    assert model.grid.xy_of_lower_left == (-16.0, 32.0)
+    assert model.params is model_params
+
+
+def test_model_from_params_uses_defaults():
+    model = LandlabModel.from_params()
+
+    assert isinstance(model.grid, RasterModelGrid)
+    assert model.grid.shape == (5, 5)
+    assert model.current_time == 0.0
+    assert model.run_duration == 2.0
+    assert model.dt == 1.0
+
+
+def test_model_from_params_returns_subclass(model_params):
+    class FrogModel(LandlabModel):
+        pass
+
+    assert isinstance(FrogModel.from_params(model_params), FrogModel)
+
+
+def test_model_from_file(tmp_path):
+    input_file = tmp_path / "model.yaml"
+    input_file.write_text("""
+grid:
+  source: create
+  create_grid:
+    RasterModelGrid:
+      shape: [3, 4]
+      xy_spacing: [2.0, 4.0]
+clock:
+  start: 2.0
+  stop: 8.0
+  step: 0.25
+""")
+
+    model = LandlabModel.from_file(input_file)
+
+    assert isinstance(model.grid, RasterModelGrid)
+    assert model.grid.shape == (3, 4)
+    assert model.grid.dx == 2.0
+    assert model.grid.dy == 4.0
+    assert model.current_time == 2.0
+    assert model.run_duration == 6.0
+    assert model.dt == 0.25
 
 
 def test_setup_grid_creates_grid():
