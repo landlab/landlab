@@ -4,7 +4,6 @@ from .add_halo import add_halo
 from .count_repeats import count_repeated_values
 from .matrix import get_core_node_at_node
 from .matrix import get_core_node_matrix
-from .model_base import LandlabModel
 from .return_array import return_array_at_link
 from .return_array import return_array_at_node
 from .source_tracking_algorithm import convert_arc_flow_directions_to_landlab_node_ids
@@ -29,7 +28,6 @@ __all__ = [
     "get_watershed_nodes",
     "get_watershed_outlet",
     "get_watershed_masks",
-    "LandlabModel",
     "StablePriorityQueue",
     "return_array_at_node",
     "return_array_at_link",
