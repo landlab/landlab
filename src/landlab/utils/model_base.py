@@ -20,11 +20,13 @@
 #
 from collections.abc import Iterator
 from collections.abc import Sequence
+from dataclasses import dataclass
 from itertools import count
 from typing import Any
 from typing import Self
 
 import numpy as np
+from requireit import require_less_than
 from requireit import require_positive
 from requireit import require_sorted
 
@@ -113,6 +115,23 @@ def resolve_array_filepaths(params: dict[str, Any]) -> dict[str, Any]:
         else:
             resolved[key] = value
     return resolved
+
+
+@dataclass(frozen=True, slots=True)
+class Clock:
+    start: float = 0.0
+    stop: float = np.inf
+    step: float = 1.0
+
+    def __post_init__(self) -> None:
+        require_less_than(self.start, self.stop, name="start")
+        require_positive(self.step, name="step")
+        if np.isinf(self.step):
+            raise ValueError("step must be finite")
+
+    @property
+    def duration(self) -> float:
+        return self.stop - self.start
 
 
 class _PauseSchedule:
@@ -235,6 +254,7 @@ class LandlabModel:
         self,
         grid: ModelGrid,
         *,
+        clock: Clock,
         params: dict[str, Any],
     ) -> None:
         """Initialize the model.
@@ -248,8 +268,18 @@ class LandlabModel:
         """
         self.grid = grid
         self.params = params
-        self.setup_for_output(self.params)
-        self.setup_run_control(self.params["clock"])
+        self._clock = clock
+        self._current_time = self._clock.start
+
+        self.setup_for_output(self.params, self._clock)
+
+    @property
+    def run_duration(self) -> float:
+        return self._clock.duration
+
+    @property
+    def dt(self) -> float:
+        return self._clock.step
 
     @classmethod
     def from_file(cls, input_file: str) -> Self:
@@ -272,13 +302,14 @@ class LandlabModel:
         params = resolve_array_filepaths(params)
 
         grid = setup_grid(params["grid"])
-        return cls(grid, params=params)
+        clock = Clock(**params["clock"])
+        return cls(grid, clock=clock, params=params)
 
     @property
     def current_time(self) -> float:
         return self._current_time
 
-    def setup_for_output(self, params: dict) -> None:
+    def setup_for_output(self, params: dict, clock: Clock) -> None:
         """
         Setup variables for control of plotting and saving.
 
@@ -300,19 +331,18 @@ class LandlabModel:
         or "vtk". The default is "grid".
         """
         op_params = params["output"]
-        clock = params["clock"]
 
         self._plot_schedule = _PauseSchedule(
-            op_params["plot_times"], start=clock["start"], stop=clock["stop"]
+            op_params["plot_times"], start=clock.start, stop=clock.stop
         )
         self._save_schedule = _PauseSchedule(
-            op_params["save_times"], start=clock["start"], stop=clock["stop"]
+            op_params["save_times"], start=clock.start, stop=clock.stop
         )
         self._report_schedule = _PauseSchedule(
-            op_params["report_times"], start=clock["start"], stop=clock["stop"]
+            op_params["report_times"], start=clock.start, stop=clock.stop
         )
 
-        if self._save_schedule.is_due(clock["start"]):
+        if self._save_schedule.is_due(clock.start):
             self._save_schedule.advance()
 
         self.ndigits_for_save_files = 4
@@ -338,19 +368,6 @@ class LandlabModel:
             print("Unrecognized save format '" + save_fmt + "'.")
             print("Valid formats are: grid, vtk, netcdf")
             raise ValueError
-
-    def setup_run_control(self, clock_params: dict) -> None:
-        """
-        Initialize variables related to control of run timing.
-
-        Parameters
-        ----------
-        clock_params : dict
-            Dictionary with items "start", "step", and "stop"
-        """
-        self.run_duration = clock_params["stop"] - clock_params["start"]
-        self.dt = clock_params["step"]
-        self._current_time = clock_params["start"]
 
     def report(self, current_time: float) -> None:
         """Issue a text update on status."""
