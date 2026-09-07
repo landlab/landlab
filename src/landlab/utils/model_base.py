@@ -189,53 +189,6 @@ def _iter_pause_times(
             yield next_pause
 
 
-def _get_pause_time_list_and_next(time_info, clock_dict, no_first_pause=False):
-    """
-    Given a float or iterable as ``time_info``, return a list of times to pause the
-    simulation to perform an action.
-
-    Return a list of times at which to pause the simulation, including an item at
-    the end that is after the termination of the run so that there is always an item
-    to be popped.
-
-    Parameters
-    ----------
-    time_info : float or list of float
-        Interval for pausing (if float) or list of individual times
-    clock_dict : dict
-        Contains ``start`` and ``stop`` as float items, with ``stop`` > ``start``
-    no_first_pause : bool
-        Flag indicating whether to include the start time as pause time (default False)
-
-    Returns
-    -------
-    list : list of simulation times at which to pause for a given action
-    float : the next time at which to pause
-
-    Examples
-    --------
-    >>> cldict = {"start": 0.0, "step": 1.0, "stop": 4.0}
-    >>> _get_pause_time_list_and_next(1.0, cldict)
-        ([1.0, 2.0, 3.0, 4.0], 0.0)
-    >>> _get_pause_time_list_and_next(1.0, cldict, no_first_pause=True)
-    ([2.0, 3.0, 4.0], 1.0)
-    >>> _get_pause_time_list_and_next([0.0, 0.5, 2.0, 4.0], cldict)
-    ([0.5, 2.0, 4.0], 0.0)
-    """
-    if isinstance(time_info, float) or isinstance(time_info, int):
-        start = clock_dict["start"]
-        if no_first_pause:
-            start += time_info
-        pause_times = list(np.arange(start, clock_dict["stop"] + time_info, time_info))
-    elif isinstance(time_info, list):
-        pause_times = time_info.copy()
-    else:
-        print("time_info must be of type float or list, not", type(time_info))
-        raise (TypeError)
-    next_pause = pause_times.pop(0)
-    return pause_times, next_pause
-
-
 class LandlabModel:
     """
     Base class for a generic Landlab grid-based model.
