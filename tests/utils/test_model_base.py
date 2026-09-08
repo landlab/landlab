@@ -10,6 +10,7 @@ from landlab import RasterModelGrid
 from landlab.io.native_landlab import save_grid
 from landlab.utils.model_base import LandlabModel
 from landlab.utils.model_base import _iter_pause_times
+from landlab.utils.model_base import _PauseSchedule
 from landlab.utils.model_base import merge_params
 from landlab.utils.model_base import resolve_array_filepaths
 from landlab.utils.model_base import setup_grid
@@ -75,6 +76,52 @@ def test_iter_pause_times_rejects_nonfinite_interval(interval):
 def test_iter_pause_times_requires_strictly_increasing_times(schedule):
     with pytest.raises(ValidationError, match="^schedule must be"):
         next(_iter_pause_times(schedule))
+
+
+def test_pause_schedule_starts_at_first_pause():
+    schedule = _PauseSchedule([0.0, 1.0, 2.5])
+
+    assert schedule.next_pause == 0.0
+
+
+def test_pause_schedule_reports_when_pause_is_due():
+    schedule = _PauseSchedule([1.0, 2.0])
+
+    assert not schedule.is_due(0.5)
+    assert schedule.is_due(1.0)
+    assert schedule.is_due(1.5)
+
+
+def test_pause_schedule_advance_returns_next_pause():
+    schedule = _PauseSchedule([1.0, 2.0])
+
+    assert schedule.advance() == 2.0
+    assert schedule.next_pause == 2.0
+
+
+def test_pause_schedule_is_infinite_when_exhausted():
+    schedule = _PauseSchedule([1.0])
+
+    assert np.isinf(schedule.advance())
+    assert np.isinf(schedule.next_pause)
+    assert not schedule.is_due(1e9)
+
+
+def test_pause_schedule_honors_start_and_stop():
+    schedule = _PauseSchedule([0.0, 1.0, 2.0, 3.0], start=1.0, stop=2.0)
+
+    assert schedule.next_pause == 1.0
+    assert schedule.advance() == 2.0
+    assert np.isinf(schedule.advance())
+
+
+def test_pause_schedule_with_constant_interval():
+    schedule = _PauseSchedule(0.5, start=1.0, stop=2.0)
+
+    assert schedule.next_pause == 1.0
+    assert schedule.advance() == 1.5
+    assert schedule.advance() == 2.0
+    assert np.isinf(schedule.advance())
 
 
 def test_merge_params():
@@ -144,12 +191,12 @@ def test_merge_params_dict_overrides_non_dict_default():
 
 
 def test_model_init_uses_in_memory_grid_and_params(model_params):
-    model_params["clock"] = {"start": 0.0, "stop": 100.0, "step": 0.25}
+    clock = Clock(start=0.0, stop=100.0, step=0.25)
     model_params.pop("grid")
 
     grid = RasterModelGrid((3, 4))
 
-    model = LandlabModel(grid, params=model_params)
+    model = LandlabModel(grid, clock=clock, params=model_params)
 
     assert model.grid is grid
     assert model.params is model_params
