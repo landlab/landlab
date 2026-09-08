@@ -11,6 +11,7 @@ from landlab import RasterModelGrid
 from landlab.io.native_landlab import save_grid
 from landlab.utils.model_base import Clock
 from landlab.utils.model_base import LandlabModel
+from landlab.utils.model_base import _FilenameSequence
 from landlab.utils.model_base import _iter_pause_times
 from landlab.utils.model_base import _PauseSchedule
 from landlab.utils.model_base import merge_params
@@ -124,6 +125,54 @@ def test_pause_schedule_with_constant_interval():
     assert schedule.advance() == 1.5
     assert schedule.advance() == 2.0
     assert np.isinf(schedule.advance())
+
+
+@pytest.mark.parametrize("base", ("foobar", "foo.bar", ""))
+@pytest.mark.parametrize("ext", (".nc", "vtk", ""))
+def test_filename_sequence_numbers_files(base, ext):
+    filenames = _FilenameSequence(base, ndigits=4, ext=ext)
+
+    assert list(islice(filenames, 4)) == [
+        f"{base}0001{ext}",
+        f"{base}0002{ext}",
+        f"{base}0003{ext}",
+        f"{base}0004{ext}",
+    ]
+
+
+def test_filename_sequence_defaults_to_unpadded_names_without_extension():
+    filenames = _FilenameSequence("foo")
+
+    assert next(filenames) == "foo1"
+    assert next(filenames) == "foo2"
+
+
+def test_filename_sequence_is_an_iterator():
+    filenames = _FilenameSequence("frog")
+
+    assert iter(filenames) is filenames
+
+
+def test_filename_sequence_padding_is_a_minimum_width():
+    filenames = _FilenameSequence("f", ndigits=1)
+
+    assert list(islice(filenames, 10)) == [
+        "f1",
+        "f2",
+        "f3",
+        "f4",
+        "f5",
+        "f6",
+        "f7",
+        "f8",
+        "f9",
+        "f10",
+    ]
+
+
+def test_filename_sequence_rejects_negative_ndigits():
+    with pytest.raises(ValidationError, match="^ndigits must be"):
+        _FilenameSequence("frame", ndigits=-1)
 
 
 def test_merge_params():
