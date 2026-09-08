@@ -18,6 +18,7 @@
 #
 # *(Greg Tucker, University of Colorado Boulder)*
 #
+from collections.abc import Callable
 from collections.abc import Iterator
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -188,6 +189,21 @@ class _PauseSchedule:
         return self._next_pause
 
 
+@dataclass(slots=True)
+class _Event:
+    schedule: _PauseSchedule
+    action: Callable[[float], None]
+
+    @property
+    def next_time(self) -> float:
+        return self.schedule.next_pause
+
+    def run_if_due(self, time: float) -> None:
+        if self.schedule.is_due(time):
+            self.action(time)
+            self.schedule.advance()
+
+
 def _iter_pause_times(
     schedule: float | Sequence[float],
     *,
@@ -336,7 +352,7 @@ class LandlabModel:
         self._clock = clock
         self._current_time = self._clock.start
 
-        self.setup_for_output(self.params, self._clock)
+        self._build_events(self.params["output"], self._clock)
 
     @property
     def run_duration(self) -> float:
@@ -374,7 +390,7 @@ class LandlabModel:
     def current_time(self) -> float:
         return self._current_time
 
-    def setup_for_output(self, params: dict, clock: Clock) -> None:
+    def _build_events(self, params: dict, clock: Clock) -> None:
         """
         Setup variables for control of plotting and saving.
 
@@ -395,24 +411,27 @@ class LandlabModel:
         The "format" parameter can be "grid" (native Landlab grid format), "netcdf",
         or "vtk". The default is "grid".
         """
-        op_params = params["output"]
-
-        self._plot_schedule = _PauseSchedule(
-            op_params["plot_times"], start=clock.start, stop=clock.stop
-        )
-        self._save_schedule = _PauseSchedule(
-            op_params["save_times"], start=clock.start, stop=clock.stop
-        )
+        start, stop = clock.start, clock.stop
+        self._events = {
+            "report": _Event(
+                _PauseSchedule(params["report_times"], start=start, stop=stop),
+                action=self.report,
+            ),
+            "plot": _Event(
+                _PauseSchedule(params["plot_times"], start=start, stop=stop),
+                action=self.plot,
+            ),
+            "save": _Event(
+                _PauseSchedule(params["save_times"], start=start, stop=stop),
+                action=self.save,
+            ),
+        }
+        if self._events["save"].schedule.is_due(start):
+            self._events["save"].schedule.advance()
 
         self._saver = _GridSaver(
-            self.grid, op_params["save_path"], fmt=params.get("format", "grid"), ndigits=4
-         )
-        self._report_schedule = _PauseSchedule(
-            op_params["report_times"], start=clock.start, stop=clock.stop
+            self.grid, params["save_path"], fmt=params.get("format", "grid"), ndigits=4
         )
-
-        if self._save_schedule.is_due(clock.start):
-            self._save_schedule.advance()
 
     def report(self, current_time: float) -> None:
         """Issue a text update on status."""
@@ -465,26 +484,12 @@ class LandlabModel:
 
     def _time_to_next_pause(self) -> float:
         return (
-            min(
-                self._plot_schedule.next_pause,
-                self._save_schedule.next_pause,
-                self._report_schedule.next_pause,
-            )
-            - self.current_time
+            min(event.next_time for event in self._events.values()) - self.current_time
         )
 
     def _run_scheduled_actions(self) -> None:
-        if self._report_schedule.is_due(self.current_time):
-            self.report(self.current_time)
-            self._report_schedule.advance()
-
-        if self._plot_schedule.is_due(self.current_time):
-            self.plot(self.current_time)
-            self._plot_schedule.advance()
-
-        if self._save_schedule.is_due(self.current_time):
-            self.save(self.current_time)
-            self._save_schedule.advance()
+        for event in self._events.values():
+            event.run_if_due(self.current_time)
 
 
 def setup_grid(params: dict) -> ModelGrid:
