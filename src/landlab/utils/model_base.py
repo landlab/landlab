@@ -27,6 +27,7 @@ from typing import Self
 
 import numpy as np
 from requireit import require_less_than
+from requireit import require_nonnegative
 from requireit import require_positive
 from requireit import require_sorted
 
@@ -206,6 +207,24 @@ def _iter_pause_times(
             if next_pause > stop:
                 break
             yield next_pause
+
+
+class _FilenameSequence:
+    def __init__(self, base_name: str, *, ndigits: int = 0, ext: str = "") -> None:
+        self._base_name = base_name
+        self._ndigits = require_nonnegative(ndigits, name="ndigits")
+        self._ext = ext
+        self._frame = 0
+
+    def __next__(self) -> str:
+        self._frame += 1
+        return self._build_filename()
+
+    def __iter__(self) -> Self:
+        return self
+
+    def _build_filename(self) -> str:
+        return f"{self._base_name}" f"{self._frame:0{self._ndigits}d}" f"{self._ext}"
 
 
 class LandlabModel:
