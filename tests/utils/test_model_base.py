@@ -1,6 +1,7 @@
 from contextlib import chdir
 from dataclasses import FrozenInstanceError
 from itertools import islice
+from unittest.mock import patch
 
 import numpy as np
 import pytest
@@ -12,6 +13,7 @@ from landlab.io.native_landlab import save_grid
 from landlab.utils.model_base import Clock
 from landlab.utils.model_base import LandlabModel
 from landlab.utils.model_base import _FilenameSequence
+from landlab.utils.model_base import _GridSaver
 from landlab.utils.model_base import _iter_pause_times
 from landlab.utils.model_base import _PauseSchedule
 from landlab.utils.model_base import merge_params
@@ -173,6 +175,46 @@ def test_filename_sequence_padding_is_a_minimum_width():
 def test_filename_sequence_rejects_negative_ndigits():
     with pytest.raises(ValidationError, match="^ndigits must be"):
         _FilenameSequence("frame", ndigits=-1)
+
+
+@pytest.mark.parametrize(
+    ("fmt", "writer_name", "ext"),
+    [
+        ("grid", "save_grid", ".grid"),
+        ("netcdf", "write_netcdf", ".nc"),
+        ("vtk", "write_legacy_vtk", ".vtk"),
+    ],
+)
+def test_grid_saver_uses_writer_for_format(fmt, writer_name, ext):
+    grid = RasterModelGrid((3, 4))
+    saver = _GridSaver(grid, "foo-output", fmt=fmt, ndigits=3)
+
+    with patch(f"landlab.utils.model_base.{writer_name}") as writer:
+        filename = saver.save()
+
+    assert filename == f"foo-output001{ext}"
+    writer.assert_called_once()
+
+
+def test_grid_saver_advances_filename():
+    saver = _GridSaver(RasterModelGrid((3, 4)), "frame", ndigits=2)
+
+    with patch("landlab.utils.model_base.save_grid"):
+        assert saver.save() == "frame01.grid"
+        assert saver.save() == "frame02.grid"
+
+
+def test_grid_saver_is_callable():
+    saver = _GridSaver(RasterModelGrid((3, 4)), "frame")
+
+    with patch("landlab.utils.model_base.save_grid") as writer:
+        assert saver(10.0) is None
+        assert writer.call_count == 1
+
+
+def test_grid_saver_rejects_unknown_format():
+    with pytest.raises(ValidationError, match="^fmt must be one of"):
+        _GridSaver(RasterModelGrid((3, 4)), "frame", fmt="foobar")
 
 
 def test_merge_params():
