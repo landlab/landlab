@@ -87,6 +87,7 @@ from .radiation import Radiation
 from .river_flow_dynamics import RiverFlowDynamics
 from .sink_fill import SinkFiller
 from .sink_fill import SinkFillerBarnes
+from .soil_depth_evolver import SoilDepthEvolver
 from .soil_moisture import SoilInfiltrationGreenAmpt
 from .soil_moisture import SoilMoisture
 from .space import Space
@@ -177,6 +178,7 @@ COMPONENTS = [
     SimpleSubmarineDiffuser,
     SinkFiller,
     SinkFillerBarnes,
+    SoilDepthEvolver,
     SoilMoisture,
     SoilInfiltrationGreenAmpt,
     Space,
