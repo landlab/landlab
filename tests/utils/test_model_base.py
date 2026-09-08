@@ -1,6 +1,7 @@
 from contextlib import chdir
 from dataclasses import FrozenInstanceError
 from itertools import islice
+from unittest.mock import Mock
 from unittest.mock import patch
 
 import numpy as np
@@ -12,6 +13,7 @@ from landlab import RasterModelGrid
 from landlab.io.native_landlab import save_grid
 from landlab.utils.model_base import Clock
 from landlab.utils.model_base import LandlabModel
+from landlab.utils.model_base import _Event
 from landlab.utils.model_base import _FilenameSequence
 from landlab.utils.model_base import _GridSaver
 from landlab.utils.model_base import _iter_pause_times
@@ -127,6 +129,50 @@ def test_pause_schedule_with_constant_interval():
     assert schedule.advance() == 1.5
     assert schedule.advance() == 2.0
     assert np.isinf(schedule.advance())
+
+
+def test_event_reports_next_scheduled_time():
+    event = _Event(_PauseSchedule([1.0, 2.0]), action=lambda time: None)
+
+    assert event.next_time == 1.0
+
+
+def test_event_does_not_run_before_it_is_due():
+    action = Mock()
+    event = _Event(_PauseSchedule([1.0, 2.0]), action=action)
+
+    event.run_if_due(0.5)
+
+    action.assert_not_called()
+    assert event.next_time == 1.0
+
+
+def test_event_runs_action_when_due():
+    action = Mock()
+    event = _Event(_PauseSchedule([1.0, 2.0]), action=action)
+
+    event.run_if_due(1.0)
+
+    action.assert_called_once_with(1.0)
+
+
+def test_event_advances_after_running_action():
+    event = _Event(_PauseSchedule([1.0, 2.0]), action=lambda time: None)
+
+    event.run_if_due(1.0)
+
+    assert event.next_time == 2.0
+
+
+def test_event_is_exhausted_after_its_last_action():
+    action = Mock()
+    event = _Event(_PauseSchedule([1.0]), action=action)
+
+    event.run_if_due(1.0)
+    event.run_if_due(2.0)
+
+    action.assert_called_once_with(1.0)
+    assert np.isinf(event.next_time)
 
 
 @pytest.mark.parametrize("base", ("foobar", "foo.bar", ""))
