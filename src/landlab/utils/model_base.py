@@ -28,6 +28,7 @@ from typing import Self
 import numpy as np
 from requireit import require_less_than
 from requireit import require_nonnegative
+from requireit import require_one_of
 from requireit import require_positive
 from requireit import require_sorted
 
@@ -35,6 +36,9 @@ from landlab.core.component_utils import iter_adaptive_time_steps
 from landlab.core.component_utils import iter_time_steps
 from landlab.core.model_parameter_loader import load_params
 from landlab.grid.base import ModelGrid
+from landlab.io.legacy_vtk import write_legacy_vtk
+from landlab.io.native_landlab import save_grid
+from landlab.io.netcdf import write_netcdf
 
 
 def merge_params(
@@ -227,6 +231,48 @@ class _FilenameSequence:
         return f"{self._base_name}" f"{self._frame:0{self._ndigits}d}" f"{self._ext}"
 
 
+class _GridSaver:
+    EXTENSIONS = {
+        "grid": ".grid",
+        "netcdf": ".nc",
+        "vtk": ".vtk",
+    }
+
+    def __init__(
+        self,
+        grid: ModelGrid,
+        base_name: str,
+        *,
+        fmt="grid",
+        ndigits: int = 4,
+    ) -> None:
+        fmt = require_one_of(fmt, allowed=_GridSaver.EXTENSIONS, name="fmt")
+        self._filenames = _FilenameSequence(
+            base_name, ndigits=ndigits, ext=self.EXTENSIONS[fmt]
+        )
+
+        self._grid = grid
+
+        self._write = getattr(self, f"_write_{fmt}")
+
+    def __call__(self, time: float) -> None:
+        self.save()
+
+    def save(self) -> str:
+        filename = next(self._filenames)
+        self._write(filename)
+        return filename
+
+    def _write_grid(self, filename: str) -> None:
+        save_grid(self._grid, filename, clobber=True)
+
+    def _write_netcdf(self, filename: str) -> None:
+        write_netcdf(filename, self._grid)
+
+    def _write_vtk(self, filename: str) -> None:
+        write_legacy_vtk(filename, self._grid, clobber=True)
+
+
 class LandlabModel:
     """
     Base class for a generic Landlab grid-based model.
@@ -357,36 +403,16 @@ class LandlabModel:
         self._save_schedule = _PauseSchedule(
             op_params["save_times"], start=clock.start, stop=clock.stop
         )
+
+        self._saver = _GridSaver(
+            self.grid, op_params["save_path"], fmt=params.get("format", "grid"), ndigits=4
+         )
         self._report_schedule = _PauseSchedule(
             op_params["report_times"], start=clock.start, stop=clock.stop
         )
 
         if self._save_schedule.is_due(clock.start):
             self._save_schedule.advance()
-
-        self.ndigits_for_save_files = 4
-        self.save_num = 0  # current save file frame number
-        self.save_path = op_params["save_path"]
-        if op_params["plot_to_file"]:
-            self.ndigits_for_plot_files = 4
-            self.plot_num = 0  # current plot image frame number
-        self.display_params = params
-
-        if "format" in op_params:
-            save_fmt = op_params["format"]
-        else:
-            save_fmt = "grid"
-
-        if save_fmt == "grid":
-            self.save_state = self.save_state_grid_format
-        elif save_fmt == "vtk":
-            self.save_state = self.save_state_vtk_format
-        elif save_fmt == "netcdf":
-            self.save_state = self.save_state_netcdf_format
-        else:
-            print("Unrecognized save format '" + save_fmt + "'.")
-            print("Valid formats are: grid, vtk, netcdf")
-            raise ValueError
 
     def report(self, current_time: float) -> None:
         """Issue a text update on status."""
@@ -396,45 +422,9 @@ class LandlabModel:
         """Virtual function for plotting; to be overridden."""
         print("Base class placeholder for plot() at time", current_time)
 
-    def save_state_grid_format(
-        self, save_path: str, save_num: int, ndigits: int
-    ) -> None:
-        """
-        Save the grid and its fields in native Landlab format.
-
-        Override this function to add to or modify what gets saved.
-        """
-        from landlab.io.native_landlab import save_grid
-
-        save_grid(
-            self.grid, save_path + str(save_num).zfill(ndigits) + ".grid", clobber=True
-        )
-
-    def save_state_vtk_format(
-        self, save_path: str, save_num: int, ndigits: int
-    ) -> None:
-        """
-        Save grid fields in legacy VTK format.
-
-        Override this function to add to or modify what gets saved.
-        """
-        from landlab.io.legacy_vtk import write_legacy_vtk
-
-        write_legacy_vtk(
-            save_path + str(save_num).zfill(ndigits) + ".vtk", self.grid, clobber=True
-        )
-
-    def save_state_netcdf_format(
-        self, save_path: str, save_num: int, ndigits: int
-    ) -> None:
-        """
-        Save grid fields in NetCDF format.
-
-        Override this function to add to or modify what gets saved.
-        """
-        from landlab.io.netcdf import write_netcdf
-
-        write_netcdf(save_path + str(save_num).zfill(ndigits) + ".nc", self.grid)
+    def save(self, current_time: float) -> None:
+        """Save a grid."""
+        self._saver(current_time)
 
     def update(self, dt: float) -> None:
         """
@@ -493,8 +483,7 @@ class LandlabModel:
             self._plot_schedule.advance()
 
         if self._save_schedule.is_due(self.current_time):
-            self.save_num += 1
-            self.save_state(self.save_path, self.save_num, self.ndigits_for_save_files)
+            self.save(self.current_time)
             self._save_schedule.advance()
 
 
