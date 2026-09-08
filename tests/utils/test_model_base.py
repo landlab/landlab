@@ -1,4 +1,5 @@
 from contextlib import chdir
+from itertools import islice
 
 import numpy as np
 import pytest
@@ -8,6 +9,7 @@ from requireit import ValidationError
 from landlab import RasterModelGrid
 from landlab.io.native_landlab import save_grid
 from landlab.utils.model_base import LandlabModel
+from landlab.utils.model_base import _iter_pause_times
 from landlab.utils.model_base import merge_params
 from landlab.utils.model_base import resolve_array_filepaths
 from landlab.utils.model_base import setup_grid
@@ -36,6 +38,43 @@ def model_params():
             "plot_to_file": False,
         },
     }
+
+
+def test_iter_pause_times_with_constant_interval():
+    times = _iter_pause_times(2.0, start=1.0, stop=7.0)
+
+    assert list(times) == [1.0, 3.0, 5.0, 7.0]
+
+
+def test_iter_pause_times_with_explicit_times():
+    times = _iter_pause_times([0.0, 1.0, 2.5, 4.0, 6.0], start=1.0, stop=4.0)
+
+    assert list(times) == [1.0, 2.5, 4.0]
+
+
+def test_iter_pause_times_can_be_unbounded():
+    times = _iter_pause_times(0.5, start=1.0)
+    actual = list(islice(times, 4))
+
+    assert actual == [1.0, 1.5, 2.0, 2.5]
+
+
+@pytest.mark.parametrize("interval", [0.0, -1.0])
+def test_iter_pause_times_rejects_nonpositive_interval(interval):
+    with pytest.raises(ValidationError, match="^pause interval must be"):
+        next(_iter_pause_times(interval))
+
+
+@pytest.mark.parametrize("interval", [np.inf, np.nan])
+def test_iter_pause_times_rejects_nonfinite_interval(interval):
+    with pytest.raises((ValueError, ValidationError), match="^pause interval must"):
+        next(_iter_pause_times(interval))
+
+
+@pytest.mark.parametrize("schedule", [[0.0, 2.0, 1.0], [0.0, 1.0, 1.0]])
+def test_iter_pause_times_requires_strictly_increasing_times(schedule):
+    with pytest.raises(ValidationError, match="^schedule must be"):
+        next(_iter_pause_times(schedule))
 
 
 def test_merge_params():
