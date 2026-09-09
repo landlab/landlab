@@ -13,6 +13,7 @@ from landlab import RasterModelGrid
 from landlab.io.native_landlab import save_grid
 from landlab.utils.model_base import Clock
 from landlab.utils.model_base import LandlabModel
+from landlab.utils.model_base import _build_events
 from landlab.utils.model_base import _Event
 from landlab.utils.model_base import _FilenameSequence
 from landlab.utils.model_base import _GridSaver
@@ -173,6 +174,21 @@ def test_event_is_exhausted_after_its_last_action():
 
     action.assert_called_once_with(1.0)
     assert np.isinf(event.next_time)
+
+
+def test_build_events_pairs_actions_with_schedules():
+    actions = {"report": Mock(), "save": Mock()}
+    events = _build_events(
+        {"report_times": [1.0, 2.0], "save_times": 0.5},
+        clock=Clock(start=1.0, stop=2.0),
+        actions=actions,
+    )
+
+    assert set(events) == {"report", "save"}
+    assert events["report"].action is actions["report"]
+    assert events["report"].next_time == 1.0
+    assert events["save"].action is actions["save"]
+    assert events["save"].next_time == 1.0
 
 
 @pytest.mark.parametrize("base", ("foobar", "foo.bar", ""))
