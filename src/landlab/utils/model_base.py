@@ -65,6 +65,8 @@ True
 
 from __future__ import annotations
 
+import os
+import tomllib
 from collections.abc import Callable
 from collections.abc import Iterator
 from collections.abc import Mapping
@@ -503,10 +505,15 @@ class LandlabModel:
         Parameters
         ----------
         input_file : str
-            Name of yaml-format file containing names and values
+            Name of a YAML or TOML file containing model parameters. TOML files
+            are identified by a ``.toml`` extension; other files are read as YAML.
         """
-        with open(input_file) as fp:
-            params = load_params(fp)
+        if os.path.splitext(input_file)[1].lower() == ".toml":
+            with open(input_file, "rb") as fp:
+                params = tomllib.load(fp)
+        else:
+            with open(input_file) as fp:
+                params = load_params(fp)
         return cls.from_params(params=params)
 
     @classmethod

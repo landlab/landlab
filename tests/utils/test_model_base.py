@@ -483,7 +483,34 @@ def test_model_from_params_returns_subclass(model_params):
     assert isinstance(FrogModel.from_params(model_params), FrogModel)
 
 
-def test_model_from_file(tmp_path):
+def test_model_from_toml_file(tmp_path):
+    input_file = tmp_path / "model.toml"
+    input_file.write_text("""
+[grid]
+source = "create"
+
+[grid.create_grid.RasterModelGrid]
+shape = [3, 4]
+xy_spacing = [2.0, 4.0]
+
+[clock]
+start = 2.0
+stop = 8.0
+step = 0.25
+""")
+
+    model = LandlabModel.from_file(input_file)
+
+    assert isinstance(model.grid, RasterModelGrid)
+    assert model.grid.shape == (3, 4)
+    assert model.grid.dx == 2.0
+    assert model.grid.dy == 4.0
+    assert model.current_time == 2.0
+    assert model.run_duration == 6.0
+    assert model.dt == 0.25
+
+
+def test_model_from_yaml_file(tmp_path):
     input_file = tmp_path / "model.yaml"
     input_file.write_text("""
 grid:
