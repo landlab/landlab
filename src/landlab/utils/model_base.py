@@ -43,6 +43,16 @@ Examples
 ...
 >>> model = LandscapeEvolutionModel.from_params(
 ...     {
+...         "grid": {
+...             "source": "create",
+...             "create_grid": {
+...                 "RasterModelGrid": {
+...                     "shape": (5, 5),
+...                     "xy_spacing": 1.0,
+...                 },
+...             },
+...         },
+...         "clock": {"start": 0.0, "stop": 2.0, "step": 1.0},
 ...         "uplift_rate": 0.001,
 ...         "erodibility": 0.01,
 ...         "diffusivity": 0.1,
