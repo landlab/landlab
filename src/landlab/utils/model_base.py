@@ -469,22 +469,30 @@ class ModelRunner:
 
 
 class LandlabModel:
-    """
-    Base class for a generic Landlab grid-based model.
+    """Base class for a time-dependent, grid-based Landlab model.
 
-    Examples
+    ``LandlabModel`` provides configuration constructors, scheduled reporting and
+    output, and model time management. Subclasses define the model physics by
+    constructing their components and implementing :meth:`update`. They may
+    override :meth:`plot`, :meth:`report`, and :meth:`save` to customize the
+    corresponding scheduled events.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        Grid shared by the model's components.
+    clock : Clock
+        Start time, stop time, and default time-step duration.
+    params : dict
+        Model parameters. The ``output`` section configures the scheduled
+        events.
+
+    See Also
     --------
-    >>> from landlab.utils.model_base import LandlabModel
-    >>> class MyModel(LandlabModel):
-    ...     pass
-    ...
-    >>> p = {"grid": {"source": "create"}}
-    >>> p["grid"]["create_grid"] = {
-    ...     "RasterModelGrid": {"shape": (4, 5), "xy_spacing": 2.0}
-    ... }
-    >>> model = MyModel.from_params(p)
-    >>> model.grid.shape
-    (4, 5)
+    Clock
+        Definition of the model time domain.
+    ModelRunner
+        Time-stepping and event orchestration.
     """
 
     # Default parameters, to be overridden in derived classes
@@ -523,6 +531,8 @@ class LandlabModel:
         ----------
         grid : ModelGrid
             A Landlab `ModelGrid`.
+        clock : Clock
+            Start time, stop time, and default time-step duration.
         params : dict
             Dictionary containing names and values of model parameters
         """
@@ -562,13 +572,21 @@ class LandlabModel:
 
     @classmethod
     def from_file(cls, input_file: str) -> Self:
-        """Create a model from an input file.
+        """Create a model from parameters stored in a YAML or TOML file.
+
+        The file contents are loaded into a parameter dictionary and passed to
+        :meth:`from_params`. Files with a ``.toml`` extension are read as TOML;
+        all other files are read as YAML.
 
         Parameters
         ----------
         input_file : str
-            Name of a YAML or TOML file containing model parameters. TOML files
-            are identified by a ``.toml`` extension; other files are read as YAML.
+            Name of the parameter file.
+
+        Returns
+        -------
+        LandlabModel
+            Model constructed from the parameters in ``input_file``.
         """
         if os.path.splitext(input_file)[1].lower() == ".toml":
             with open(input_file, "rb") as fp:
@@ -580,6 +598,22 @@ class LandlabModel:
 
     @classmethod
     def from_params(cls, params: dict[str, Any] | None = None) -> Self:
+        """Create a model from a parameter dictionary.
+
+        User parameters are merged with :attr:`DEFAULT_PARAMS`, references to
+        arrays stored in files are resolved, and the model grid and clock are
+        constructed before the class is initialized.
+
+        Parameters
+        ----------
+        params : dict, optional
+            Model parameters that override :attr:`DEFAULT_PARAMS`.
+
+        Returns
+        -------
+        LandlabModel
+            Model constructed from the merged parameters.
+        """
         params = {} if params is None else params
 
         params = merge_params(params, defaults=cls.DEFAULT_PARAMS)
@@ -614,15 +648,31 @@ class LandlabModel:
         pass
 
     def update_until(self, update_to_time: float, dt: float) -> None:
-        """Iterate up to given time, using time-step duration dt."""
+        """Advance the model to an absolute model time.
+
+        This method advances the model without running scheduled events.
+
+        Parameters
+        ----------
+        update_to_time : float
+            Model time to which the model should advance. If this is not later
+            than the current time, the model is unchanged.
+        dt : float
+            Maximum time-step duration.
+        """
         self._runner.update_until(update_to_time, dt=dt)
 
     def run(self, run_duration: float | None = None, dt: float | None = None) -> None:
-        """Run the model for given duration, or self.run_duration if none
-        given.
+        """Advance the model while running scheduled events.
 
-        Includes file output of images and model state at user-specified
-        intervals.
+        Parameters
+        ----------
+        run_duration : float, optional
+            Duration of the run. By default, advance from the current time to the
+            stop time of the model clock.
+        dt : float, optional
+            Maximum time-step duration. By default, use the step specified by the
+            model clock.
         """
         self._runner.run(run_duration, dt=dt)
 
