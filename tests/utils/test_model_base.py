@@ -13,6 +13,7 @@ from landlab import RasterModelGrid
 from landlab.io.native_landlab import save_grid
 from landlab.utils.model_base import Clock
 from landlab.utils.model_base import LandlabModel
+from landlab.utils.model_base import ModelRunner
 from landlab.utils.model_base import _build_events
 from landlab.utils.model_base import _Event
 from landlab.utils.model_base import _FilenameSequence
@@ -189,6 +190,94 @@ def test_build_events_pairs_actions_with_schedules():
     assert events["report"].next_time == 1.0
     assert events["save"].action is actions["save"]
     assert events["save"].next_time == 1.0
+
+
+def test_model_runner_uses_clock():
+    runner = ModelRunner(Mock(), clock=Clock(start=1.0, stop=5.0, step=0.25))
+
+    assert runner.current_time == 1.0
+    assert runner.run_duration == 4.0
+    assert runner.dt == 0.25
+
+
+def test_model_runner_update_until_advances_model_and_time():
+    model = Mock()
+    runner = ModelRunner(model, clock=Clock(start=1.0, stop=5.0, step=1.0))
+
+    runner.update_until(3.5, dt=1.0)
+
+    actual_steps = [call.args[0] for call in model.update.call_args_list]
+
+    assert len(actual_steps)
+    assert actual_steps == pytest.approx([2.5 / 3.0] * 3)
+    assert runner.current_time == 3.5
+
+
+def test_model_runner_update_until_ignores_past_time():
+    model = Mock()
+    runner = ModelRunner(model, clock=Clock(start=1.0, stop=5.0))
+
+    runner.update_until(0.5, dt=0.25)
+
+    model.update.assert_not_called()
+    assert runner.current_time == 1.0
+
+
+def test_model_runner_run_without_events():
+    model = Mock()
+    runner = ModelRunner(model, clock=Clock(start=1.0, stop=3.5, step=1.0))
+
+    runner.run()
+
+    actual_steps = [call.args[0] for call in model.update.call_args_list]
+
+    assert len(actual_steps)
+    assert actual_steps == pytest.approx([2.5 / 3.0] * 3)
+    assert runner.current_time == 3.5
+
+
+def test_model_runner_run_stops_at_clock_stop_after_partial_update():
+    model = Mock()
+    runner = ModelRunner(model, clock=Clock(start=1.0, stop=5.0, step=1.0))
+    runner.update_until(2.0, dt=1.0)
+    assert runner.current_time == 2.0
+
+    model.reset_mock()
+
+    runner.run()
+
+    actual_steps = [call.args[0] for call in model.update.call_args_list]
+    assert actual_steps == [1.0, 1.0, 1.0]
+    # assert model.update.call_args_list == [call(1.0), call(1.0), call(1.0)]
+    assert runner.current_time == 5.0
+
+
+def test_model_runner_runs_scheduled_events():
+    model = Mock()
+    action = Mock()
+    event = _Event(_PauseSchedule([1.0, 2.0, 3.0]), action=action)
+    runner = ModelRunner(
+        model,
+        clock=Clock(start=1.0, stop=3.0, step=0.75),
+        events={"report": event},
+    )
+
+    runner.run()
+
+    actual_times = [call.args[0] for call in action.call_args_list]
+    assert actual_times == [1.0, 2.0, 3.0]
+    assert runner.current_time == 3.0
+
+
+def test_model_runner_copies_events():
+    action = Mock()
+    events = {"report": _Event(_PauseSchedule([1.0]), action=action)}
+    runner = ModelRunner(Mock(), clock=Clock(start=1.0, stop=2.0), events=events)
+    events.clear()
+
+    runner.run()
+
+    action.assert_called_once_with(1.0)
 
 
 @pytest.mark.parametrize("base", ("foobar", "foo.bar", ""))
