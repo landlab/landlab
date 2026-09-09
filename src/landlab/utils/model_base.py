@@ -20,6 +20,7 @@
 #
 from collections.abc import Callable
 from collections.abc import Iterator
+from collections.abc import Mapping
 from collections.abc import Sequence
 from dataclasses import dataclass
 from itertools import count
@@ -352,7 +353,26 @@ class LandlabModel:
         self._clock = clock
         self._current_time = self._clock.start
 
-        self._build_events(self.params["output"], self._clock)
+        output_params = params["output"]
+        self._saver = _GridSaver(
+            grid,
+            output_params["save_path"],
+            fmt=output_params.get("format", "grid"),
+            ndigits=4,
+        )
+
+        self._events = _build_events(
+            output_params,
+            clock=clock,
+            actions={
+                "plot": self.plot,
+                "report": self.report,
+                "save": self.save,
+            },
+        )
+
+        if self._events["save"].schedule.is_due(clock.start):
+            self._events["save"].schedule.advance()
 
     @property
     def run_duration(self) -> float:
@@ -389,49 +409,6 @@ class LandlabModel:
     @property
     def current_time(self) -> float:
         return self._current_time
-
-    def _build_events(self, params: dict, clock: Clock) -> None:
-        """
-        Setup variables for control of plotting and saving.
-
-        Parameters
-        ----------
-        params : dict
-            Parameter dictionary. Must include a key ``output`` with a dictionary
-        containing values for ``plot_times``, ``save_times``, and ``report_times``.
-        Each of these should be either a ``float`` or a ``list``. If a list, the value
-        is interpreted as a list of model times for plotting, saving, or reporting.
-        If a single float, the value is interpreted as the (regular) time
-        interval (in model time) for plotting, saving, or reporting.
-            Should also contain a key ``clock`` as a dictionary that has values
-        for ``start`` and ``stop``.
-
-        Notes
-        -----
-        The "format" parameter can be "grid" (native Landlab grid format), "netcdf",
-        or "vtk". The default is "grid".
-        """
-        start, stop = clock.start, clock.stop
-        self._events = {
-            "report": _Event(
-                _PauseSchedule(params["report_times"], start=start, stop=stop),
-                action=self.report,
-            ),
-            "plot": _Event(
-                _PauseSchedule(params["plot_times"], start=start, stop=stop),
-                action=self.plot,
-            ),
-            "save": _Event(
-                _PauseSchedule(params["save_times"], start=start, stop=stop),
-                action=self.save,
-            ),
-        }
-        if self._events["save"].schedule.is_due(start):
-            self._events["save"].schedule.advance()
-
-        self._saver = _GridSaver(
-            self.grid, params["save_path"], fmt=params.get("format", "grid"), ndigits=4
-        )
 
     def report(self, current_time: float) -> None:
         """Issue a text update on status."""
@@ -490,6 +467,25 @@ class LandlabModel:
     def _run_scheduled_actions(self) -> None:
         for event in self._events.values():
             event.run_if_due(self.current_time)
+
+
+def _build_events(
+    params: dict[str, Any],
+    *,
+    clock: Clock,
+    actions: Mapping[str, Callable[[float], None]],
+) -> dict[str, _Event]:
+    start, stop = clock.start, clock.stop
+
+    events = {
+        name: _Event(
+            _PauseSchedule(params[f"{name}_times"], start=start, stop=stop),
+            action=action,
+        )
+        for name, action in actions.items()
+    }
+
+    return events
 
 
 def setup_grid(params: dict) -> ModelGrid:
