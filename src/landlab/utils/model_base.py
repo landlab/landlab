@@ -18,6 +18,9 @@
 #
 # *(Greg Tucker, University of Colorado Boulder)*
 #
+
+from __future__ import annotations
+
 from collections.abc import Callable
 from collections.abc import Iterator
 from collections.abc import Mapping
@@ -290,6 +293,73 @@ class _GridSaver:
         write_legacy_vtk(filename, self._grid, clobber=True)
 
 
+class ModelRunner:
+    def __init__(
+        self,
+        model: LandlabModel,
+        *,
+        clock: Clock,
+        events: Mapping[str, _Event] | None = None,
+    ) -> None:
+        self._model = model
+        self._clock = clock
+        self._current_time = clock.start
+        self._events = {} if events is None else dict(events)
+
+    @property
+    def current_time(self) -> float:
+        return self._current_time
+
+    @property
+    def run_duration(self) -> float:
+        return self._clock.duration
+
+    @property
+    def dt(self) -> float:
+        return self._clock.step
+
+    def update_until(
+        self,
+        update_to_time: float,
+        dt: float,
+    ) -> None:
+        duration = update_to_time - self.current_time
+        if duration <= 0.0:
+            return
+
+        for this_dt in iter_time_steps(duration, dt=dt):
+            self._model.update(this_dt)
+            self._current_time += this_dt
+        self._current_time = update_to_time
+
+    def run(
+        self,
+        run_duration: float | None = None,
+        dt: float | None = None,
+    ) -> None:
+        if run_duration is None:
+            run_duration = self._clock.stop - self.current_time
+        if dt is None:
+            dt = self._clock.step
+
+        self._run_scheduled_actions()
+        for time_until_pause in iter_adaptive_time_steps(
+            run_duration, calc_dt=self._time_to_next_pause
+        ):
+            self.update_until(self.current_time + time_until_pause, dt)
+            self._run_scheduled_actions()
+
+    def _time_to_next_pause(self) -> float:
+        return (
+            min((event.next_time for event in self._events.values()), default=np.inf)
+            - self.current_time
+        )
+
+    def _run_scheduled_actions(self) -> None:
+        for event in self._events.values():
+            event.run_if_due(self.current_time)
+
+
 class LandlabModel:
     """
     Base class for a generic Landlab grid-based model.
@@ -350,8 +420,6 @@ class LandlabModel:
         """
         self.grid = grid
         self.params = params
-        self._clock = clock
-        self._current_time = self._clock.start
 
         output_params = params["output"]
         self._saver = _GridSaver(
@@ -361,7 +429,7 @@ class LandlabModel:
             ndigits=4,
         )
 
-        self._events = _build_events(
+        events = _build_events(
             output_params,
             clock=clock,
             actions={
@@ -371,16 +439,18 @@ class LandlabModel:
             },
         )
 
-        if self._events["save"].schedule.is_due(clock.start):
-            self._events["save"].schedule.advance()
+        if events["save"].schedule.is_due(clock.start):
+            events["save"].schedule.advance()
+
+        self._runner = ModelRunner(self, clock=clock, events=events)
 
     @property
     def run_duration(self) -> float:
-        return self._clock.duration
+        return self._runner.run_duration
 
     @property
     def dt(self) -> float:
-        return self._clock.step
+        return self._runner.dt
 
     @classmethod
     def from_file(cls, input_file: str) -> Self:
@@ -408,7 +478,7 @@ class LandlabModel:
 
     @property
     def current_time(self) -> float:
-        return self._current_time
+        return self._runner.current_time
 
     def report(self, current_time: float) -> None:
         """Issue a text update on status."""
@@ -432,13 +502,7 @@ class LandlabModel:
 
     def update_until(self, update_to_time: float, dt: float) -> None:
         """Iterate up to given time, using time-step duration dt."""
-        duration = update_to_time - self.current_time
-        if duration <= 0.0:
-            return
-
-        for this_dt in iter_time_steps(duration, dt=dt):
-            self.update(this_dt)
-            self._current_time += this_dt
+        self._runner.update_until(update_to_time, dt=dt)
 
     def run(self, run_duration: float | None = None, dt: float | None = None) -> None:
         """Run the model for given duration, or self.run_duration if none
@@ -447,26 +511,7 @@ class LandlabModel:
         Includes file output of images and model state at user-specified
         intervals.
         """
-        if run_duration is None:
-            run_duration = self.run_duration
-        if dt is None:
-            dt = self.dt
-
-        self._run_scheduled_actions()
-        for time_until_pause in iter_adaptive_time_steps(
-            run_duration, calc_dt=self._time_to_next_pause
-        ):
-            self.update_until(self.current_time + time_until_pause, dt)
-            self._run_scheduled_actions()
-
-    def _time_to_next_pause(self) -> float:
-        return (
-            min(event.next_time for event in self._events.values()) - self.current_time
-        )
-
-    def _run_scheduled_actions(self) -> None:
-        for event in self._events.values():
-            event.run_if_due(self.current_time)
+        self._runner.run(run_duration, dt=dt)
 
 
 def _build_events(
