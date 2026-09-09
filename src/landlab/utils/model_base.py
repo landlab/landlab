@@ -1,23 +1,67 @@
 #! /usr/bin/env python
 
-# # Base class for a grid-based Landlab model
-#
-# This code defines LandlabModel, a Python class that is designed to make it easier
-# to create a standalone model code using Landlab. The model developer writes
-# a class that inherits from LandlabModel and adds the functionality needed to
-# implement their model. LandlabModel provides code to handle formatted user input,
-# in the form of either a Python dictionary or the name of a yaml-format input
-# file (given as a string). The LandlabModel __init__() method will combine the
-# user inputs with a set of default parameter values defined in the derived
-# class header (for parameters whose value has not been specified by the user).
-# For model execution, the user simply needs to override the built-in update()
-# method. LandlabModel calls this via a built-in run() method (which runs the model
-# from start to finish) and a built-in update_until() method (which calls
-# update() until the either the run is complete or it is time to pause and
-# generate output).
-#
-# *(Greg Tucker, University of Colorado Boulder)*
-#
+"""Base class and runner for a grid-based Landlab model.
+
+Model authors subclass :class:`LandlabModel` and implement :meth:`~LandlabModel.update`
+to advance their components by a supplied time step. The base class constructs the
+grid and clock, while :class:`ModelRunner` advances time and runs scheduled output
+events.
+
+The following landscape-evolution model combines uniform uplift, stream-power
+erosion, and linear hillslope diffusion:
+
+*(Greg Tucker, University of Colorado Boulder)*
+
+Examples
+--------
+>>> import numpy as np
+>>> from landlab.components import FastscapeEroder
+>>> from landlab.components import FlowAccumulator
+>>> from landlab.components import LinearDiffuser
+>>> class LandscapeEvolutionModel(LandlabModel):
+...     def __init__(self, grid, *, clock, params):
+...         super().__init__(grid, clock=clock, params=params)
+...         self._uplift_rate = params["uplift_rate"]
+...         elevation = grid.add_zeros("topographic__elevation", at="node")
+...         elevation[:] = 0.01 * grid.node_y
+...         self._flow_router = FlowAccumulator(grid, flow_director="D8")
+...         self._flow_router.run_one_step()
+...         self._eroder = FastscapeEroder(grid, K_sp=params["erodibility"])
+...         self._diffuser = LinearDiffuser(
+...             grid, linear_diffusivity=params["diffusivity"]
+...         )
+...
+...     def update(self, dt):
+...         elevation = self.grid.at_node["topographic__elevation"]
+...         elevation[self.grid.core_nodes] += self._uplift_rate * dt
+...         self._flow_router.run_one_step()
+...         self._eroder.run_one_step(dt)
+...         self._diffuser.run_one_step(dt)
+...
+...     def report(self, current_time):
+...         print(f"model time: {current_time:g}")
+...
+>>> model = LandscapeEvolutionModel.from_params(
+...     {
+...         "uplift_rate": 0.001,
+...         "erodibility": 0.01,
+...         "diffusivity": 0.1,
+...         "output": {
+...             "report_times": [0.0, 1.0, 2.0],
+...             "plot_times": [],
+...             "save_times": [],
+...         },
+...     }
+... )
+>>> model.run()
+model time: 0
+model time: 1
+model time: 2
+>>> model.current_time
+2.0
+>>> np.all(np.isfinite(model.grid.at_node["topographic__elevation"]))
+True
+"""
 
 from __future__ import annotations
 
