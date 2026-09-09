@@ -185,6 +185,24 @@ def resolve_array_filepaths(params: dict[str, Any]) -> dict[str, Any]:
 
 @dataclass(frozen=True, slots=True)
 class Clock:
+    """Define the time domain and default time step for a model run.
+
+    Parameters
+    ----------
+    start : float, optional
+        Initial model time.
+    stop : float, optional
+        Final model time. It must be greater than ``start``.
+    step : float, optional
+        Positive, finite default time-step duration.
+
+    Examples
+    --------
+    >>> clock = Clock(start=2.0, stop=8.0, step=0.5)
+    >>> clock.duration
+    6.0
+    """
+
     start: float = 0.0
     stop: float = np.inf
     step: float = 1.0
