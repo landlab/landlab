@@ -368,6 +368,40 @@ class _GridSaver:
 
 
 class ModelRunner:
+    """Advance a model through time and run scheduled events.
+
+    A model runner owns the current model time. It advances the model by calling
+    its ``update`` method with time-step durations no greater than the requested
+    step. Scheduled events are run at their specified absolute model times.
+
+    Parameters
+    ----------
+    model : LandlabModel
+        Model to advance. Its ``update`` method must accept a time-step
+        duration as its only argument.
+    clock : Clock
+        Time domain and default time step for the run.
+    events : mapping of str to _Event, optional
+        Named events to run according to their schedules.
+
+    Examples
+    --------
+    >>> class Model:
+    ...     def __init__(self):
+    ...         self.elapsed = 0.0
+    ...
+    ...     def update(self, dt):
+    ...         self.elapsed += dt
+    ...
+    >>> model = Model()
+    >>> runner = ModelRunner(model, clock=Clock(start=1.0, stop=3.5, step=1.0))
+    >>> runner.run()
+    >>> runner.current_time
+    3.5
+    >>> model.elapsed
+    2.5
+    """
+
     def __init__(
         self,
         model: LandlabModel,
