@@ -12,18 +12,20 @@ from landlab.core.utils import require_id_array
 from landlab.utils.geometry.planar import find_nearest_node
 
 """
-A collection of tools for defining a channel network on a cellular-like ModelGrid
-(e.g., RasterModelGrid, HexModelGrid) and mapping values (e.g., flow, shear stress)
-between the cellular-like ModelGrid and NetworkModelGrid representations of the network.
+A collection of tools for defining a channel network on a grid 
+and mapping values (e.g., flow, shear stress) between different
+grid representations of the network.
 """
 
 
 def get_link_nodes(nmgrid: NetworkModelGrid) -> NDArray[np.integer]:
-    """Get the downstream (head) and upstream (tail) NetworkModelGrid link nodes.
-    The nodes listed in the NetworkModelGrid nodes_at_link attribute
-    may not be ordered as [head node, tail node]. Output from this function
-    should be used for all channel_network_grid_tools functions that require a
-    link_nodes input.
+    """Get the downstream and upstream NetworkModelGrid link nodes.
+
+    The nodes listed in the networkmodel grid nodes_at_link
+    attribute may not be ordered as [head node (downstream),
+    tail node (upstream)]. Output from this function should be
+    used for all channel_network_grid_tools functions that require
+    a link_nodes input.
 
     Parameters
     ----------
@@ -32,8 +34,9 @@ def get_link_nodes(nmgrid: NetworkModelGrid) -> NDArray[np.integer]:
     Returns
     -------
     link_nodes : array_like
-        For a nmgrid of L links, returns a Lx2 array_like, the ith row of the
-        array is the [downstream node id, upstream node id] of the ith link
+        For a nmgrid of L links, returns a Lx2 array_like, the ith row
+        of the array is the [downstream node id, upstream node id] of
+        the ith link
     """
 
     fd = FlowDirectorSteepest(nmgrid, "topographic__elevation")
@@ -50,8 +53,10 @@ def _link_to_points_and_dist(
     number_of_points: int = 1000,
 ) -> tuple[float, float, float]:
     """Create a series of points between two points.
-    Given two points defined by coordinates x0,y0 and x1,y1, define a series
-    of points between them and the distance from point x0,y0 to each point.
+
+    Given two points defined by coordinates x0,y0 and x1,y1,
+    define a series of points between them and the distance from
+    point x0,y0 to each point.
 
     Parameters
     ----------
@@ -88,18 +93,20 @@ def _dist_func(x0: float, x1: float, y0: float, y1: float) -> float:
 
 
 def extract_channel_nodes(grid: ModelGrid, Ct: float) -> NDArray[np.integer]:
-    """Extract the channel nodes from a cellular-type ModelGrid DEM representation.
-    Interpret which nodes of the DEM on a cellular-type ModelGrid represent
-    the channel network. The channel network is all nodes that have a drainage
-    area greater than or equal to the average drainage area at which channels
-    initiate in the DEM (Ct, based on field or remote sensing evidence).
+    """Extract the channel nodes from a cellular-type ModelGrid.
 
-    Use Ct = average drainage area at which colluvial channels begin to get the
-    entire channel network.
+    Find the nodes of the DEM on a cellular-type ModelGrid that
+    represent the channel network. The channel network is all
+    nodes that have a drainage area greater than or equal to
+    the average drainage area at which channels initiate in the
+    DEM (Ct, based on field or remote sensing evidence).
 
-    Use Ct = the drainage area at which cascade channels typically begin to get
-    the portion of the channel network where sediment transport is primarily via
-    fluvial processes.
+    Use Ct = average drainage area at which colluvial channels
+    begin to get the entire channel network.
+
+    Use Ct = the drainage area at which cascade channels typically
+    begin to getthe portion of the channel network where sediment
+    transport is primarily viafluvial processes.
 
     Parameters
     ----------
@@ -123,17 +130,19 @@ def extract_terrace_nodes(
     acn: NDArray[np.integer],
     fcn: NDArray[np.integer],
 ) -> NDArray[np.integer]:
-    """Determine which RasterModelGrid nodes coincide with a channel terrace.
-    This function is specific to the RasterModelGrid. Terrarce nodes are assumed
-    to be a fixed width (number of nodes) from the channel nodes.
+    """Determine which RasterModelGrid nodes are channel terrace nodes.
+
+    This function is specific to the RasterModelGrid. Terrarce nodes
+    are assumed to be a fixed width (number of nodes) from the channel
+    nodes.
 
 
     Parameters
     ----------
     grid : RasterModelGrid
     terrace_width : int
-        Width of terrace in number of nodes. If provided as float, will be rounded
-        to nearest int.
+        Width of terrace in number of nodes. If provided as float, will
+        be rounded to nearest int.
     acn : array_like
         Array of all node IDs included in the channel network.
     fcn : array_like
@@ -150,7 +159,7 @@ def extract_terrace_nodes(
         Array of all node IDs included in the terrace.
 
     """
-    # round to int in case provided as float
+    # Round to int in case provided as float
     terrace_width = round(terrace_width)
     if terrace_width < 1:
         raise ValueError(f"terrace width must be 1 or greater ({terrace_width})")
@@ -176,13 +185,14 @@ def extract_terrace_nodes(
 def min_distance_to_network(
     grid: ModelGrid, acn: NDArray[np.integer], node_id: int
 ) -> tuple[float, int]:
-    """Find the shortest distance (as the crow flies) to the channel network.
-    Measured from a node of a cellular-type ModelGrid to the cellular-type
-    ModelGrid channel nodes. Returns the distance and the closest channel node.
+    """The shortest distance (as the crow flies) to the channel network.
+
+    Measured from a node of a ModelGrid to the channel nodes of another
+    grid. Returns the distance and the closest channel node.
 
     Parameters
     ----------
-    grid : cellular-type ModelGrid
+    grid : ModelGrid
     acn : list of int
         Array of all node ids included in the channel network.
     node_id : int
@@ -278,29 +288,29 @@ def choose_unique(
     return np.sort(sorted_rows[is_last])
 
 
-def map_network_links_to_coincident_nodes(
+def map_network_links_to_nodes(
     grid: ModelGrid,
     nmgrid: NetworkModelGrid,
     link_nodes: ArrayLike,
     remove_duplicates: bool = False,
 ) -> dict[str, NDArray]:
-    """Map the links of a NetworkModelGrid to the nodes of a cellular-type ModelGrid.
-    This function finds each cellular-type ModelGrid node that is coincident with
-    a NetworkModelGrid link (nodes whose associated cell intersects the link).
-    Each coincident cellular-type ModelGrid node is then recorded in a mapper dictionary
-    (nmg_link_to_mg_coincident_nodes_mapper) in terms of its x and y coordinates,
-    the link it is mapped to, and the downstream distance of the node on the link.
-    The downstream distance of the node on the link is defined as the distance
-    from the upstream end (tail) of the link to the first (most downstream) point
-    within the node's cell.
+    """Map the links of a NetworkModelGrid to the nodes of a ModelGrid.
+
+    This function finds each ModelGrid (e.g., raster model grid) node
+    whose cell area is coincident with a NetworkModelGrid link. Each coincident
+    node is then recorded in a mapper dictionary (nmg_link_to_mg_coincident_nodes_mapper)
+    in terms of its x and y coordinates, the link it is mapped to, and the downstream
+    distance of the node on the link. The downstream distance of the node on the link
+    is defined as the distance from the upstream end (tail) of the link to the first
+    (most downstream) point within the node's cell.
 
 
     Parameters
     ----------
-    grid : cellular-type ModelGrid
+    grid : ModelGrid
     nmgrid : NetworkModelGrid
     link_nodes : array_like
-        Head and tail node of each link
+        Head and tail node of each link generated by the function "get_link_nodes".
     remove_duplicates : bool, optional
         If True, when two or more links are coincident with the same node, which
         can occur at stream junctions, the node is assigned to the link with the
@@ -309,7 +319,7 @@ def map_network_links_to_coincident_nodes(
 
     Returns
     -------
-    nmg_link_to_coincident_nodes_mapper: dict
+    network_link_to_node_mapper: dict
         Each key of the dictionary contains an array_like whose length is equal to the
         number of coincident nodes. Keys include link ID, coincident node ID,
         downstream distance of the coincident node, x coordinate of the coincident
@@ -317,7 +327,7 @@ def map_network_links_to_coincident_nodes(
 
     """
 
-    # validate that link_nodes is correct format
+    # Validate that link_nodes is correct format
     require_id_array(
         link_nodes,
         shape=("n_links", 2),
@@ -326,8 +336,8 @@ def map_network_links_to_coincident_nodes(
         name="link_nodes",
     )
 
-    # for each link in the network model grid, map nodes of the other grid to
-    # the link
+    # For each link in the network model grid, map nodes of the other
+    # grid to the link
     link_ids_list = []
     nodes_list = []
     xs_list = []
@@ -342,22 +352,26 @@ def map_network_links_to_coincident_nodes(
         x1 = nmgrid.x_of_node[lknd[1]]
         y1 = nmgrid.y_of_node[lknd[1]]
 
-        # get x and y coordinates and downstream distance from the upstream
-        # node for 1000 points generated from downstream node to upstream node
+        # Convert the link to a series of 1000 points, ordered from
+        # the head node to tail node
         Xs, Ys, dists = _link_to_points_and_dist(
             (x0, y0), (x1, y1), number_of_points=1000
         )
-        downstream_dists = dists.max() - dists  # convert to distance from tail node
-        # find the node closest to each of the points
+        # Get downstream distance from the tail node
+        downstream_dists = dists.max() - dists
+        # Find the node closest to each of the 1000 points
+        # All unique nodes that are closest to a point are mapped to
+        # the link.
         nodes = find_nearest_node(
             np.array([grid.node_x, grid.node_y]).T, np.array([Xs, Ys]).T
         )
-        # using the x and y coordinates of the first (most downstream) point
-        # within the node's cell to represent the node location on the link
+        # Get the first (most downstream) point that each unique node
+        # is closest to the link
         mask = choose_from_repeated(nodes, choose="first")
         nodes = nodes[mask]
-
-        link_ids_list.append((np.ones(len(nodes)) * link_id).astype(int))
+        # Create the link_id, x and y coordinate, downstream distance
+        # and link drainage area lists for each unique node
+        link_ids_list.append(np.full(len(nodes), link_id, dtype=int))
         nodes_list.append(nodes)
         xs_list.append(grid.node_x[nodes])
         ys_list.append(grid.node_y[nodes])
@@ -369,25 +383,23 @@ def map_network_links_to_coincident_nodes(
                 dtype=float,
             )
         )
-
-    nmg_link_to_coincident_nodes_mapper = {
+    # Add those lists to the mapper
+    network_link_to_node_mapper = {
         "link_id": np.concatenate(link_ids_list),
-        "coincident_node": np.concatenate(nodes_list),
+        "node": np.concatenate(nodes_list),
         "x": np.concatenate(xs_list),
         "y": np.concatenate(ys_list),
-        "coincident_node_downstream_dist": np.concatenate(downstream_dists_list),
+        "node_downstream_dist": np.concatenate(downstream_dists_list),
         "link_drainage_area": np.concatenate(link_drainage_areas_list),
     }
 
     if remove_duplicates:
-        values = nmg_link_to_coincident_nodes_mapper["coincident_node"]
-        area = nmg_link_to_coincident_nodes_mapper["link_drainage_area"]
+        values = network_link_to_node_mapper["node"]
+        area = network_link_to_node_mapper["link_drainage_area"]
         idx = choose_unique(values=values, order_by=[area], choose="last")
         idx.sort()
-        for key in nmg_link_to_coincident_nodes_mapper.keys():
+        for key in network_link_to_node_mapper.keys():
 
-            nmg_link_to_coincident_nodes_mapper[key] = (
-                nmg_link_to_coincident_nodes_mapper[key][idx]
-            )
+            network_link_to_node_mapper[key] = network_link_to_node_mapper[key][idx]
 
-    return nmg_link_to_coincident_nodes_mapper
+    return network_link_to_node_mapper
