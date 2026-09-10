@@ -12,7 +12,7 @@ from landlab.core.utils import require_id_array
 from landlab.utils.geometry.planar import find_nearest_node
 
 """
-A collection of tools for defining a channel network on a grid 
+A collection of tools for defining a channel network on a grid
 and mapping values (e.g., flow, shear stress) between different
 grid representations of the network.
 """
