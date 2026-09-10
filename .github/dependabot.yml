@@ -13,8 +13,6 @@ updates:
 
   - package-ecosystem: "pip"
     directory: "/requirements"
-    ignore:
-      - dependency-name: "mesa"
     schedule:
       interval: "daily"
     open-pull-requests-limit: 1
