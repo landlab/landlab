@@ -2,34 +2,41 @@ from collections.abc import Sequence
 from typing import Literal
 
 import numpy as np
-import pandas as pd
 from numpy.typing import ArrayLike
 from numpy.typing import NDArray
 
+from landlab import NetworkModelGrid
+from landlab import RasterModelGrid
 from landlab.components.flow_director.flow_director_steepest import FlowDirectorSteepest
+from landlab.core.utils import require_id_array
+from landlab.utils.geometry.planar import find_nearest_node
 
 """
-A collection of tools for mapping values (e.g., flow, shear stress) between
-network model grid and raster model grid representations of a channel network.
+A collection of tools for defining a channel network on a grid
+and mapping values (e.g., flow, shear stress) between different
+grid representations of the network.
 """
 
 
-def get_link_nodes(nmgrid):
-    """Get the downstream (head) and upstream (tail) nodes at a link from
-    flow director. The network model grid nodes_at_link attribute may not be
-    ordered according to flow direction. Output from this function should be
-    used for all channel_network_grid_tools functions that require a link_nodes
-    input
+def get_link_nodes(nmgrid: NetworkModelGrid) -> NDArray[np.integer]:
+    """Get the downstream and upstream NetworkModelGrid link nodes.
+
+    The nodes listed in the networkmodel grid nodes_at_link
+    attribute may not be ordered as [head node (downstream),
+    tail node (upstream)]. Output from this function should be
+    used for all channel_network_grid_tools functions that require
+    a link_nodes input.
 
     Parameters
     ----------
-    nmgrid : network model grid
+    nmgrid : NetworkModelGrid
 
     Returns
     -------
-    link_nodes : np.array
-        for a nmgrid of n nodes, returns a nx2 np array, the ith row of the
-        array is the [downstream node id, upstream node id] of the ith link
+    link_nodes : array_like
+        For a nmgrid of L links, returns a Lx2 array_like, the ith row
+        of the array is the [downstream node id, upstream node id] of
+        the ith link
     """
 
     fd = FlowDirectorSteepest(nmgrid, "topographic__elevation")
@@ -44,27 +51,30 @@ def _link_to_points_and_dist(
     point_0: tuple[float, float],
     point_1: tuple[float, float],
     number_of_points: int = 1000,
-):
-    """Given two points defined by coordinates x0,y0 and x1,y1, define a series
-    of points between them and the distance from point x0,y0 to each point.
+) -> tuple[float, float, float]:
+    """Create a series of points between two points.
+
+    Given two points defined by coordinates x0,y0 and x1,y1,
+    define a series of points between them and the distance from
+    point x0,y0 to each point.
 
     Parameters
     ----------
     point_0 : tuple of 2 floats
-        point 0 coordinates x and y
+        Point 0 coordinates x and y
     point_1 : tuple of 2 floats
-        point 1 coordinates x and y
+        Point 1 coordinates x and y
     number_of_points : int
-        number of points to create along the reach. The default is 1000.
+        Number of points to create along the reach. The default is 1000.
 
     Returns
     -------
-    X : np array
-        x coordinate of points
-    Y : np array
-        y coordinate of points
-    dist : np array
-        linear distance between points
+    X : array_like
+        X coordinate of points
+    Y : array_like
+        Y coordinate of points
+    dist : array_like
+        Linear distance between points
 
     """
     x0 = point_0[0]
@@ -78,66 +88,78 @@ def _link_to_points_and_dist(
     return X, Y, dist
 
 
-def _dist_func(x0, x1, y0, y1):
+def _dist_func(x0: float, x1: float, y0: float, y1: float) -> float:
     return np.hypot(x0 - x1, y0 - y1)
 
 
-def extract_channel_nodes(grid, Ct):
-    """interpret which nodes of the DEM represent the channel network as all nodes
-    that have a drainage area >= to the average drainage area at which
-    channels initiate in the DEM (Ct, based on field or remote sensing evidence).
+def extract_channel_nodes(grid: ModelGrid, Ct: float) -> NDArray[np.integer]:
+    """Extract the channel nodes from a cellular-type ModelGrid.
 
-    Use Ct = average drainage area at which colluvial channels to get the entire
-    channel network.
+    Find the nodes of the DEM on a cellular-type ModelGrid that
+    represent the channel network. The channel network is all
+    nodes that have a drainage area greater than or equal to
+    the average drainage area at which channels initiate in the
+    DEM (Ct, based on field or remote sensing evidence).
 
-    Use Ct = the drainage area at which cascade channels typically begin to get
-    a channel network where sediment transport is primarily via fluvial processes
+    Use Ct = average drainage area at which colluvial channels
+    begin to get the entire channel network.
+
+    Use Ct = the drainage area at which cascade channels typically
+    begin to getthe portion of the channel network where sediment
+    transport is primarily viafluvial processes.
 
     Parameters
     ----------
-    grid : raster model grid
-        raster model grid with node field "drainage_area"
+    grid : ModelGrid
+        A cellular-type ModelGrid with node field "drainage_area"
     Ct : float
         Channel threshold drainage area
 
     Returns
     -------
-    cn : np array of int
-         array of all node ids included in the channel network
+    cn : array_like of int
+         Array of all node ids included in the channel network.
 
     """
     return np.flatnonzero(grid.at_node["drainage_area"] >= Ct)
 
 
-def extract_terrace_nodes(grid, terrace_width, acn, fcn):
-    """Determine which raster model grid nodes coincide with channel terraces,
-    which presently are assumed to be a fixed width (number of nodes) from
-    the channel nodes
+def extract_terrace_nodes(
+    grid: RasterModelGrid,
+    terrace_width: int,
+    acn: NDArray[np.integer],
+    fcn: NDArray[np.integer],
+) -> NDArray[np.integer]:
+    """Determine which RasterModelGrid nodes are channel terrace nodes.
+
+    This function is specific to the RasterModelGrid. Terrarce nodes
+    are assumed to be a fixed width (number of nodes) from the channel
+    nodes.
 
 
     Parameters
     ----------
-    grid : raster model grid
+    grid : RasterModelGrid
     terrace_width : int
-        Width of terrace in number of nodes. If provided as float, will be rounded
-        to nearest int.
-    acn : np array
-        array of all node IDs included in the channel network
-    fcn : np array
-        array of all node IDs included in the fluvial channel network
+        Width of terrace in number of nodes. If provided as float, will
+        be rounded to nearest int.
+    acn : array_like
+        Array of all node IDs included in the channel network.
+    fcn : array_like
+        Array of all node IDs included in the fluvial channel network.
 
     Raises
     ------
     ValueError
-        Occurs if terrace width less than 1.
+        Occurs if terrace width is less than 1.
 
     Returns
     -------
-    terrace_nodes : np array
-        array of all node IDs included in the terrace
+    terrace_nodes : array_like
+        Array of all node IDs included in the terrace.
 
     """
-    # round to int in case provided as float
+    # Round to int in case provided as float
     terrace_width = round(terrace_width)
     if terrace_width < 1:
         raise ValueError(f"terrace width must be 1 or greater ({terrace_width})")
@@ -160,24 +182,28 @@ def extract_terrace_nodes(grid, terrace_width, acn, fcn):
     return terrace_nodes
 
 
-def min_distance_to_network(grid, acn, node_id):
-    """Determine the shortest distance (as the crow flies) from a node to the
-    channel network and the closest channel node
+def min_distance_to_network(
+    grid: ModelGrid, acn: NDArray[np.integer], node_id: int
+) -> tuple[float, int]:
+    """The shortest distance (as the crow flies) to the channel network.
+
+    Measured from a node of a ModelGrid to the channel nodes of another
+    grid. Returns the distance and the closest channel node.
 
     Parameters
     ----------
-    grid : raster model grid
+    grid : ModelGrid
     acn : list of int
-        array of all node ids included in the channel network
+        Array of all node ids included in the channel network.
     node_id : int
-        ID of node from which the distance will be determined
+        ID of node from which the distance will be determined.
 
     Returns
     -------
     offset : float
-        distance between node and channel network
+        Distance between node and channel network.
     mdn : int
-        ID of channel node that is closest node
+        ID of channel node that is closest node.
 
     """
     x0, y0 = grid.node_x[node_id], grid.node_y[node_id]
@@ -262,76 +288,118 @@ def choose_unique(
     return np.sort(sorted_rows[is_last])
 
 
-def map_nmg_links_to_rmg_coincident_nodes(
-    grid, nmgrid, link_nodes, remove_duplicates=False
-):
-    """Map links of a network model grid to all coincident raster model grid
-    nodes. Each coincident raster model grid node is defined in terms of its
-    x and y coordinates, the link it is mapped to and distance downstream from
-    the upstream (tail) end of the link.
+def map_network_links_to_nodes(
+    grid: ModelGrid,
+    nmgrid: NetworkModelGrid,
+    link_nodes: ArrayLike,
+    remove_duplicates: bool = False,
+) -> dict[str, NDArray]:
+    """Map the links of a NetworkModelGrid to the nodes of a ModelGrid.
+
+    This function finds each ModelGrid (e.g., raster model grid) node
+    whose cell area is coincident with a NetworkModelGrid link. Each coincident
+    node is then recorded in a mapper dictionary (nmg_link_to_mg_coincident_nodes_mapper)
+    in terms of its x and y coordinates, the link it is mapped to, and the downstream
+    distance of the node on the link. The downstream distance of the node on the link
+    is defined as the distance from the upstream end (tail) of the link to the first
+    (most downstream) point within the node's cell.
 
 
     Parameters
     ----------
-    grid : raster model grid
-    nmgrid : network model grid
-    link_nodes : np array
-        head and tail node of each link
-    remove_duplicates : bool
-        if True, when two or more links are coincident with the same node,
-        the node is assigned to the link with the largest drainage area. If False,
-        the node is assigned to each coincident link. The default is False.
+    grid : ModelGrid
+    nmgrid : NetworkModelGrid
+    link_nodes : array_like
+        Head and tail node of each link generated by the function "get_link_nodes".
+    remove_duplicates : bool, optional
+        If True, when two or more links are coincident with the same node, which
+        can occur at stream junctions, the node is assigned to the link with the
+        largest drainage area. If False, the node is assigned to each coincident
+        link. The default is False.
 
     Returns
     -------
-
-    nmg_link_to_rmg_coincident_nodes_mapper: pandas dataframe
-        each row of the dataframe lists the link ID, the coincident node ID, the
-        x and y coordinates and the downstream distance of the coincident node
-        and the drainage area of the link
+    network_link_to_node_mapper: dict
+        Each key of the dictionary contains an array_like whose length is equal to the
+        number of coincident nodes. Keys include link ID, coincident node ID,
+        downstream distance of the coincident node, x coordinate of the coincident
+        node, y coordinate of the coincident node and drainage area of the link.
 
     """
-    Lxy = []  # list of all nodes and node attributes that coincide with the
-    # network model grid links
-    # loop through all links in network model grid to determine raster grid cells
-    # coincident with each link and equivalent distance from upstream (tail) node
-    for linkID, lknd in enumerate(link_nodes):  # for each link in network grid
 
-        x0 = nmgrid.x_of_node[lknd[0]]  # x and y of downstream link node
+    # Validate that link_nodes is correct format
+    require_id_array(
+        link_nodes,
+        shape=("n_links", 2),
+        max_id=nmgrid.number_of_nodes - 1,
+        bad_id=None,
+        name="link_nodes",
+    )
+
+    # For each link in the network model grid, map nodes of the other
+    # grid to the link
+    link_ids_list = []
+    nodes_list = []
+    xs_list = []
+    ys_list = []
+    downstream_dists_list = []
+    link_drainage_areas_list = []
+    for link_id, lknd in enumerate(link_nodes):
+        # x and y of downstream (head) node of link
+        x0 = nmgrid.x_of_node[lknd[0]]
         y0 = nmgrid.y_of_node[lknd[0]]
-        x1 = nmgrid.x_of_node[lknd[1]]  # x and y of upstream link node
+        # x and y of upstream (tail) node of link
+        x1 = nmgrid.x_of_node[lknd[1]]
         y1 = nmgrid.y_of_node[lknd[1]]
 
-        # x and y coordinates and downstream distance from the upstream (tail)
-        # node for 1000 points generated from downstream node to upstream node
-        X, Y, dist = _link_to_points_and_dist((x0, y0), (x1, y1), number_of_points=1000)
-        dist = dist.max() - dist  # convert to distance from tail node
-        nodelist = []  # list of nodes along link
-        for i, y in enumerate(Y):
-            x = X[i]
-            node = grid.find_nearest_node((x, y))
-            # if node not already in list, append - many points will be in same cell;
-            # only need to list cell once
-            if node not in nodelist:
-                nodelist.append(node)
-                xy = {
-                    "linkID": linkID,
-                    "coincident_node": node,
-                    "x": grid.node_x[node],
-                    "y": grid.node_y[node],
-                    "dist": dist[i],
-                    "drainage_area": nmgrid.at_link["drainage_area"][linkID],
-                }
-                Lxy.append(xy)
-    df = pd.DataFrame(Lxy)
+        # Convert the link to a series of 1000 points, ordered from
+        # the head node to tail node
+        Xs, Ys, dists = _link_to_points_and_dist(
+            (x0, y0), (x1, y1), number_of_points=1000
+        )
+        # Get downstream distance from the tail node
+        downstream_dists = dists.max() - dists
+        # Find the node closest to each of the 1000 points
+        # All unique nodes that are closest to a point are mapped to
+        # the link.
+        nodes = find_nearest_node(
+            np.array([grid.node_x, grid.node_y]).T, np.array([Xs, Ys]).T
+        )
+        # Get the first (most downstream) point that each unique node
+        # is closest to the link
+        mask = choose_from_repeated(nodes, choose="first")
+        nodes = nodes[mask]
+        # Create the link_id, x and y coordinate, downstream distance
+        # and link drainage area lists for each unique node
+        link_ids_list.append(np.full(len(nodes), link_id, dtype=int))
+        nodes_list.append(nodes)
+        xs_list.append(grid.node_x[nodes])
+        ys_list.append(grid.node_y[nodes])
+        downstream_dists_list.append(downstream_dists[mask])
+        link_drainage_areas_list.append(
+            np.full(
+                nodes.size,
+                nmgrid.at_link["drainage_area"][link_id],
+                dtype=float,
+            )
+        )
+    # Add those lists to the mapper
+    network_link_to_node_mapper = {
+        "link_id": np.concatenate(link_ids_list),
+        "node": np.concatenate(nodes_list),
+        "x": np.concatenate(xs_list),
+        "y": np.concatenate(ys_list),
+        "node_downstream_dist": np.concatenate(downstream_dists_list),
+        "link_drainage_area": np.concatenate(link_drainage_areas_list),
+    }
 
-    # if remove_duplicates, remove duplicate node id from link with smaller
-    # contributing area.
     if remove_duplicates:
-        values = df["coincident_node"].to_numpy()
-        area = df["drainage_area"].to_numpy()
+        values = network_link_to_node_mapper["node"]
+        area = network_link_to_node_mapper["link_drainage_area"]
         idx = choose_unique(values=values, order_by=[area], choose="last")
         idx.sort()
-        df = df.iloc[idx].reset_index(drop=True)
+        for key in network_link_to_node_mapper.keys():
 
-    return df
+            network_link_to_node_mapper[key] = network_link_to_node_mapper[key][idx]
+
+    return network_link_to_node_mapper
