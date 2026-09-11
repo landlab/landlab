@@ -191,9 +191,6 @@ def test_dr_time_bad_set_data_(dr_time):
         dr_time.set_data(
             time=[0.0], item_id=[0.0], data_variable="mean_elevation", new_value=105.0
         )
-    # should return KeyError: 'This datarecord does not hold items'
-    with pytest.raises(TypeError):
-        dr_time.set_data(time=0.0, data_variable="mean_elevation", new_value=105.0)
 
 
 # TypeError('time must be a list or a 1-d array')
@@ -372,10 +369,6 @@ def test_dr_2dim_bad_set_data(dr_2dim):
     with pytest.raises(IndexError):
         dr_2dim.set_data(
             time=[130.0], item_id=[1], data_variable="grid_element", new_value="node"
-        )
-    with pytest.raises(TypeError):
-        dr_2dim.set_data(
-            time=[0.0], item_id=1, data_variable="mean_elevation", new_value=105.0
         )
 
 

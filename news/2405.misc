@@ -1,0 +1,2 @@
+Refactored DataRecord.set_data to simplify variable validation and variable
+dimensions when indexing into stored values.
