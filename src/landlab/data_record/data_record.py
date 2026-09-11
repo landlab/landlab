@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
+import warnings
+from collections.abc import Callable
+from collections.abc import Collection
 from collections.abc import Iterable
 from collections.abc import Mapping
+from dataclasses import dataclass
+from enum import StrEnum
+from numbers import Number
 from typing import Any
 
 import numpy as np
@@ -14,6 +20,47 @@ from requireit import require_dtype
 from requireit import require_one_of
 from requireit import require_shape
 from requireit import require_sorted
+
+
+@dataclass(frozen=True)
+class MissingValue:
+    fill_value: Any
+    is_missing: Callable[[NDArray[Any]], NDArray[np.bool_]] | None = None
+
+    def __post_init__(self):
+        fill_value = self.fill_value
+
+        def equals_fill(values):
+            return np.asarray(values) == fill_value
+
+        if self.is_missing is None:
+            if isinstance(fill_value, float) and np.isnan(fill_value):
+                func = np.isnan
+            else:
+                func = equals_fill
+
+            object.__setattr__(self, "is_missing", func)
+
+
+MISSING_NAN = MissingValue(fill_value=np.nan)
+MISSING_ID = MissingValue(fill_value=-1)
+MISSING_ELEMENT = MissingValue(fill_value="nan")
+
+
+def spec_from_value(value: ArrayLike) -> MissingValue:
+    dtype = np.asarray(value).dtype
+    if np.issubdtype(dtype, np.integer):
+        return MISSING_ID
+    elif np.issubdtype(dtype, np.bool_):
+        return MissingValue(False)
+    elif np.issubdtype(dtype, np.str_):
+        return MISSING_ELEMENT
+    return MISSING_NAN
+
+
+class FillPolicy(StrEnum):
+    DEFAULT = "default"
+    LEGACY = "legacy"
 
 
 class DataRecord:
@@ -82,6 +129,7 @@ class DataRecord:
         items=None,
         data_vars=None,
         attrs=None,
+        fill_value: str | Mapping[str, MissingValue | ArrayLike] | None = "legacy",
     ):
         """
         Parameters
@@ -145,6 +193,13 @@ class DataRecord:
         attrs : dict (optional)
             Dictionary of global attributes on the DataRecord (metadata).
             Example: {'time_units' : 'y'}
+        fill_value : {"legacy"} or mapping or None, optional
+            Control how missing values are represented when the dataset is expanded.
+            Unspecified variables use inferred behavior unless ``"legacy"`` is used.
+
+            * ``"legacy"`` (default): use ``np.nan`` for missing values.
+            * ``None``: infer dtype-preserving missing values from the data.
+            * mapping: specify per-variable missing values or ``MissingValue`` specs.
 
         Examples
         --------
@@ -226,6 +281,18 @@ class DataRecord:
         1       0.0          link           3
 
         """
+        fill_value = {} if fill_value is None else fill_value
+        if isinstance(fill_value, str) and fill_value == FillPolicy.LEGACY:
+            self._fill_policy = FillPolicy.LEGACY
+            warnings.warn(
+                "The default fill_value='legacy' will change in a future release. "
+                "Use fill_value=None to adopt the new dtype-preserving behavior.",
+                FutureWarning,
+                stacklevel=2,
+            )
+        else:
+            self._fill_policy = FillPolicy.DEFAULT
+
         with_time = False
         if time is not None:
             with_time = True
@@ -324,6 +391,24 @@ class DataRecord:
         # create an xarray Dataset:
         self._dataset = xr.Dataset(data_vars=data_vars_dict, coords=coords, attrs=attrs)
 
+        fill_value = {} if fill_value is None else fill_value
+
+        if self._fill_policy is FillPolicy.LEGACY:
+            premitted = np.fromiter(self._permitted_locations, dtype=object)
+            MISSING_ELEMENT_LEGACY = MissingValue(
+                fill_value=np.nan, is_missing=lambda v: ~np.isin(v, premitted)
+            )
+            fill_value = {name: MISSING_NAN for name in self._dataset} | {
+                "element_id": MISSING_NAN,
+                "grid_element": MISSING_ELEMENT_LEGACY,
+            }
+        else:
+            fill_value |= {"element_id": MISSING_ID, "grid_element": MISSING_ELEMENT}
+
+        self._fill_value = norm_fill_specs(
+            infer_fill_values(values=self._dataset) | fill_value
+        )
+
     def _norm_time(self, time: ArrayLike) -> NDArray[np.floating]:
         time = np.atleast_1d(time)
         with raise_as(TypeError):
@@ -385,6 +470,7 @@ class DataRecord:
         item_id: ArrayLike | None = None,
         new_item_loc: dict[str, Any] | None = None,
         new_record: dict[str, Any] | None = None,
+        fill_value: Mapping[str, MissingValue | ArrayLike] | None = None,
     ) -> None:
         """Add data to the DataRecord.
 
@@ -428,7 +514,7 @@ class DataRecord:
         Note that both arrays have 2 dimensions as they vary along dimensions
         'time' and 'item_id'.
 
-        >>> dr = DataRecord(grid, time=0.0, items=items)
+        >>> dr = DataRecord(grid, time=0.0, items=items, fill_value=None)
 
         Records relating to pre-existing items can be added to the DataRecord
         using the method 'add_record':
@@ -443,8 +529,8 @@ class DataRecord:
         ...     new_record={"item_size": (["item_id", "time"], [[0.2]])},
         ... )
         >>> dr.dataset["element_id"].values
-        array([[ 1.,  6.],
-               [ 3., nan]])
+        array([[ 1,  6],
+               [ 3, -1]])
         >>> dr.get_data([2.0], [0], "item_size")
         array([0.2])
 
@@ -470,6 +556,15 @@ class DataRecord:
                 "new_item_loc requires time; use set_data() to change item locations"
                 " instead."
             )
+
+        new_record = norm_data_vars({} if new_record is None else dict(new_record))
+
+        self._fill_value |= prepare_fill_specs(
+            fill_value,
+            var_spec=new_record,
+            forbidden=self._dataset,
+            policy=self._fill_policy,
+        )
 
         coords_to_add = {}
         new_data_vars = {}
@@ -520,13 +615,32 @@ class DataRecord:
 
         ds_to_add = xr.Dataset(data_vars=new_data_vars, coords=coords_to_add)
 
-        self._dataset = xr.merge((self._dataset, ds_to_add), compat="no_conflicts")
+        coords_to_extend = find_new_coords(ds_to_add, self._dataset)
+
+        self._dataset = extend_dimensions(
+            self._dataset,
+            coords_to_extend,
+            fill_value=resolve_fill_values(self._fill_value),
+            policy=self._fill_policy,
+        )
+
+        missing_vars = set(ds_to_add) - set(self._dataset)
+        for name in missing_vars:
+            fill = self._fill_value[name].fill_value
+            self._dataset[name] = filled_array(
+                ds_to_add[name], self._dataset, fill_value=fill
+            )
+
+        for name, da in ds_to_add.data_vars.items():
+            coords = _coords_for(self._dataset, da)
+            self._dataset[name].loc[coords] = da
 
     def add_item(
         self,
         time: ArrayLike | None = None,
         new_item: dict[str, Any] | None = None,
         new_item_spec: dict[str, Any] | None = None,
+        fill_value: Mapping[str, MissingValue | ArrayLike] | None = None,
     ) -> None:
         """Add new items to a DataRecord.
 
@@ -608,6 +722,17 @@ class DataRecord:
         >>> dr.dataset["size"][:, 1].values
         array([nan, nan, 10.,  5.])
         """
+        new_item_spec = norm_data_vars(
+            {} if new_item_spec is None else dict(new_item_spec)
+        )
+
+        self._fill_value |= prepare_fill_specs(
+            fill_value,
+            var_spec=new_item_spec,
+            forbidden=self._dataset,
+            policy=self._fill_policy,
+        )
+
         has_time = "time" in self._dataset
 
         if time is None and has_time:
@@ -618,8 +743,6 @@ class DataRecord:
             raise TypeError("new_item must be a mapping")
 
         time = self._norm_time(time) if has_time else None
-
-        new_item_spec = {} if new_item_spec is None else dict(new_item_spec)
 
         with raise_as(KeyError):
             require_contains(
@@ -656,8 +779,23 @@ class DataRecord:
         # Dataset of new record:
         ds_to_add = xr.Dataset(data_vars=data_vars_dict, coords=coords_to_add)
 
-        # Merge new record and original dataset:
-        self._dataset = xr.merge((self._dataset, ds_to_add), compat="no_conflicts")
+        coords_to_extend = find_new_coords(ds_to_add, self._dataset)
+
+        self._dataset = extend_dimensions(
+            self._dataset,
+            coords_to_extend,
+            fill_value=resolve_fill_values(self._fill_value),
+            policy=self._fill_policy,
+        )
+
+        for name, da in ds_to_add.data_vars.items():
+            if name not in self._dataset:
+                fill = self._fill_value[name].fill_value
+                self._dataset[name] = filled_array(da, self._dataset, fill_value=fill)
+
+        for name, da in ds_to_add.data_vars.items():
+            coords = _coords_for(self._dataset, da)
+            self._dataset[name].loc[coords] = da
 
     def get_data(self, time=None, item_id=None, data_variable=None):
         """Return values of a variable at a given time and/or for selected items.
@@ -1029,7 +1167,7 @@ class DataRecord:
         Note that both arrays have 2 dimensions as they vary along dimensions
         'time' and 'item_id'.
 
-        >>> dr3 = DataRecord(grid, time=[0.0], items=my_items3)
+        >>> dr3 = DataRecord(grid, time=[0.0], items=my_items3, fill_value=None)
 
         Records relating to pre-existing items can be added to the DataRecord
         using the method 'add_record':
@@ -1044,11 +1182,11 @@ class DataRecord:
         for these time coordinates.
 
         >>> dr3.dataset["grid_element"].values
-        array([['node', nan, nan],
-               ['link', nan, nan]], dtype=object)
+        array([['node', 'nan', 'nan'],
+               ['link', 'nan', 'nan']], dtype='<U6')
         >>> dr3.dataset["element_id"].values
-        array([[ 1., nan, nan],
-               [ 3., nan, nan]])
+        array([[ 1, -1, -1],
+               [ 3, -1, -1]])
 
         To fill these values with the last valid value, use the method
         ffill_grid_element_and_id:
@@ -1056,10 +1194,10 @@ class DataRecord:
         >>> dr3.ffill_grid_element_and_id()
         >>> dr3.dataset["grid_element"].values
         array([['node', 'node', 'node'],
-               ['link', 'link', 'link']], dtype=object)
+               ['link', 'link', 'link']], dtype='<U6')
         >>> dr3.dataset["element_id"].values
-        array([[1., 1., 1.],
-               [3., 3., 3.]])
+        array([[1, 1, 1],
+               [3, 3, 3]])
 
         In some applications, there may be no prior valid value. Under these
         circumstances, those values will stay as NaN. That is, this only
@@ -1069,7 +1207,7 @@ class DataRecord:
         ...     "grid_element": np.array([["node"], ["link"]]),
         ...     "element_id": np.array([[1], [3]]),
         ... }
-        >>> dr3 = DataRecord(grid, time=[0.0], items=my_items3)
+        >>> dr3 = DataRecord(grid, time=[0.0], items=my_items3, fill_value=None)
         >>> dr3.dataset["element_id"].values
         array([[1], [3]])
         >>> dr3.dataset["grid_element"].values
@@ -1093,77 +1231,72 @@ class DataRecord:
         >>> dr3.time_coordinates
         [0.0, 1.0]
         >>> dr3.dataset["element_id"].values
-        array([[ 1., nan],
-               [ 3., nan],
-               [nan,  4.],
-               [nan,  4.]])
+        array([[ 1, -1],
+               [ 3, -1],
+               [-1,  4],
+               [-1,  4]])
         >>> dr3.dataset["grid_element"].values
-        array([['node', nan],
-               ['link', nan],
-               [nan, 'node'],
-               [nan, 'node']], dtype=object)
+        array([['node', 'nan'],
+               ['link', 'nan'],
+               ['nan', 'node'],
+               ['nan', 'node']], dtype='<U6')
 
         We expect that the NaN's to the left of the 4.s will stay NaN. And they
         do.
 
         >>> dr3.ffill_grid_element_and_id()
         >>> dr3.dataset["element_id"].values
-        array([[ 1.,  1.],
-               [ 3.,  3.],
-               [nan,  4.],
-               [nan,  4.]])
+        array([[ 1,  1],
+               [ 3,  3],
+               [-1,  4],
+               [-1,  4]])
         >>> dr3.dataset["grid_element"].values
         array([['node', 'node'],
                ['link', 'link'],
-               [nan, 'node'],
-               [nan, 'node']], dtype=object)
+               ['nan', 'node'],
+               ['nan', 'node']], dtype='<U6')
 
         Finally, if we add a new time, we see that we need to fill in the
         full time column.
 
         >>> dr3.add_record(time=[2])
         >>> dr3.dataset["element_id"].values
-        array([[ 1.,  1., nan],
-               [ 3.,  3., nan],
-               [nan,  4., nan],
-               [nan,  4., nan]])
+        array([[ 1,  1, -1],
+               [ 3,  3, -1],
+               [-1,  4, -1],
+               [-1,  4, -1]])
         >>> dr3.dataset["grid_element"].values
-        array([['node', 'node', nan],
-               ['link', 'link', nan],
-               [nan, 'node', nan],
-               [nan, 'node', nan]], dtype=object)
+        array([['node', 'node', 'nan'],
+               ['link', 'link', 'nan'],
+               ['nan', 'node', 'nan'],
+               ['nan', 'node', 'nan']], dtype='<U6')
 
         And that forward filling fills everything as expected.
 
         >>> dr3.ffill_grid_element_and_id()
         >>> dr3.dataset["element_id"].values
-        array([[ 1.,  1.,  1.],
-               [ 3.,  3.,  3.],
-               [nan,  4.,  4.],
-               [nan,  4.,  4.]])
+        array([[ 1,  1,  1],
+               [ 3,  3,  3],
+               [-1,  4,  4],
+               [-1,  4,  4]])
 
         >>> dr3.dataset["grid_element"].values
         array([['node', 'node', 'node'],
                ['link', 'link', 'link'],
-               [nan, 'node', 'node'],
-               [nan, 'node', 'node']], dtype=object)
+               ['nan', 'node', 'node'],
+               ['nan', 'node', 'node']], dtype='<U6')
         """
+        ids = self._dataset["element_id"].values
 
-        ei = self._dataset["element_id"].values
+        n_rows, n_cols = ids.shape
+        for col in range(1, n_cols):
+            bad_vals = self._fill_value["element_id"].is_missing(ids[:, col])
+            ids[bad_vals, col] = ids[bad_vals, col - 1]
 
-        for i in range(ei.shape[0]):
-            for j in range(1, ei.shape[1]):
-                if np.isnan(ei[i, j]):
-                    ei[i, j] = ei[i, j - 1]
-
-        self._dataset["element_id"] = (["item_id", "time"], ei)
-
-        ge = self._dataset["grid_element"].values
-        for i in range(ge.shape[0]):
-            for j in range(1, ge.shape[1]):
-                if ge[i, j] not in self._permitted_locations:
-                    ge[i, j] = ge[i, j - 1]
-        self._dataset["grid_element"] = (["item_id", "time"], ge)
+        elements = self._dataset["grid_element"].values
+        for col in range(1, n_cols):
+            bad_vals = self._fill_value["grid_element"].is_missing(elements[:, col])
+            elements[bad_vals, col] = elements[bad_vals, col - 1]
 
     @property
     def dataset(self):
@@ -1218,6 +1351,163 @@ class DataRecord:
             return sorted(self.time_coordinates)[-2]
 
 
+def norm_data_vars(data_vars: Mapping[str, Any]) -> dict[str, xr.DataArray]:
+    ds = xr.Dataset(data_vars=data_vars)
+    return dict(ds.data_vars)
+
+
+def norm_fill_specs(
+    fill_value: Mapping[str, MissingValue | ArrayLike],
+) -> dict[str, MissingValue]:
+    return {
+        name: (
+            value if isinstance(value, MissingValue) else MissingValue(fill_value=value)
+        )
+        for name, value in fill_value.items()
+    }
+
+
+def infer_fill_values(
+    values: Mapping[str, ArrayLike],
+) -> dict[str, MissingValue]:
+    return {name: spec_from_value(array) for name, array in values.items()}
+
+
+def prepare_fill_specs(
+    fill_value: Mapping[str, MissingValue | ArrayLike] | None,
+    *,
+    var_spec: Mapping[str, xr.DataArray] | None = None,
+    forbidden: Collection[str] | None = None,
+    policy: FillPolicy = FillPolicy.LEGACY,
+):
+    forbidden = set() if forbidden is None else set(forbidden)
+    var_spec = {} if var_spec is None else var_spec
+    allowed = set(var_spec) - forbidden
+
+    if policy is FillPolicy.LEGACY:
+        if fill_value is not None:
+            raise ValueError("fill_value is not supported with legacy fill policy")
+        return {name: MISSING_NAN for name in allowed}
+
+    fill_value = {} if fill_value is None else dict(fill_value)
+
+    if set(fill_value) & forbidden:
+        names = [repr(name) for name in sorted(set(fill_value) & forbidden)]
+        raise ValueError(
+            f"fill_value provided for existing variables: {', '.join(names)}"
+        )
+
+    if set(fill_value) - set(var_spec):
+        names = [repr(name) for name in sorted(set(fill_value) - set(var_spec))]
+        raise ValueError(
+            f"fill_value provided for unknown variables: {', '.join(names)}"
+        )
+
+    vars_to_infer = allowed - set(fill_value)
+    return norm_fill_specs(
+        infer_fill_values({name: var_spec[name] for name in vars_to_infer}) | fill_value
+    )
+
+
+def resolve_fill_values(specs: Mapping[str, MissingValue]):
+    return {name: spec.fill_value for name, spec in specs.items()}
+
+
+def find_new_coords(
+    new: xr.Dataset,
+    existing: xr.Dataset,
+) -> dict[str, NDArray]:
+    new_coords = {}
+
+    if "item_id" in new.coords:
+        if "item_id" in existing.coords:
+            values = find_new_items(new["item_id"], existing["item_id"])
+        else:
+            values = np.asarray(new["item_id"])
+
+        if values.size:
+            new_coords["item_id"] = values
+
+    if "time" in new.coords:
+        if "time" in existing.coords:
+            values = find_new_times(new["time"], existing["time"])
+        else:
+            values = np.asarray(new["time"])
+
+        if values.size:
+            new_coords["time"] = values
+
+    return new_coords
+
+
+def extend_dimensions(
+    dataset: xr.Dataset,
+    coords_to_add: Mapping[str, xr.DataArray],
+    *,
+    fill_value: dict[str, str | Number] | None = None,
+    policy: FillPolicy = FillPolicy.LEGACY,
+) -> xr.Dataset:
+    if not coords_to_add:
+        return dataset
+
+    object_vars = (
+        {name for name, var in dataset.items() if var.dtype.kind in "OUS"}
+        if policy is FillPolicy.LEGACY
+        else {}
+    )
+
+    new_coords = {}
+    for dim, values in coords_to_add.items():
+        values = np.asarray(values)
+
+        if dim in dataset.coords:
+            new_coords[dim] = np.concatenate([dataset[dim].values, values])
+        else:
+            new_coords[dim] = values
+
+    extended = dataset.reindex(new_coords, fill_value=fill_value)
+
+    for name in object_vars:
+        extended[name] = extended[name].astype(object).copy()
+
+    for name, var in extended.items():
+        if not var.values.flags.writeable:
+            extended[name] = var.copy(deep=True)
+
+    return extended
+
+
+def _coords_for(
+    dataset: xr.Dataset,
+    da: xr.DataArray,
+) -> dict[str, xr.DataArray]:
+    coords = {}
+
+    for dim in da.dims:
+        if dim == "time":
+            indices = np.array(
+                [_find_time(t, dataset["time"].values) for t in da[dim].values]
+            )
+            coords[dim] = dataset[dim].isel({dim: indices})
+        else:
+            coords[dim] = da[dim]
+
+    return coords
+
+
+def filled_array(
+    values: xr.DataArray,
+    dataset: xr.Dataset,
+    fill_value: str | Number,
+) -> xr.DataArray:
+    dims = values.dims
+    shape = tuple(dataset.sizes[dim] for dim in dims)
+    coords = {dim: dataset.coords[dim] for dim in dims}
+    data = np.full(shape, fill_value, dtype=values.dtype)
+
+    return xr.DataArray(data, dims=dims, coords=coords)
+
+
 def norm_element_id(ids: ArrayLike) -> NDArray[np.intp]:
     """Normalize element IDs to a 1-D array of ``np.intp``.
 
@@ -1257,6 +1547,7 @@ def norm_grid_element(
     elements: ArrayLike,
     *,
     allowed: Iterable[str] = (),
+    policy: FillPolicy = FillPolicy.LEGACY,
 ) -> NDArray[np.str_]:
     """Normalize grid element names to a NumPy string array.
 
@@ -1291,7 +1582,11 @@ def norm_grid_element(
     """
     allowed = set(allowed)
 
-    ge_dtype = f"<U{max(len(x) for x in allowed)}" if allowed else str
+    if policy is FillPolicy.LEGACY:
+        ge_dtype = object
+    else:
+        ge_dtype = f"<U{max(len(x) for x in allowed)}" if allowed else str
+
     elements = np.asarray(
         [elements] if isinstance(elements, str) else elements,
         dtype=ge_dtype,
@@ -1301,6 +1596,42 @@ def norm_grid_element(
         raise ValueError("elements must contain valid locations for this grid type.")
 
     return elements
+
+
+def find_new_items(
+    needles: ArrayLike,
+    haystack: ArrayLike,
+) -> NDArray[np.integer]:
+    needles = np.asarray(needles)
+    require_shape(needles, shape=("n",), name="needles")
+    require_dtype(needles, dtype=np.integer, name="needles")
+
+    haystack = np.asarray(haystack)
+    require_shape(haystack, shape=("n",), name="haystack")
+    require_dtype(haystack, dtype=np.integer, name="haystack")
+
+    found = np.isin(needles, haystack)
+    return needles[~found]
+
+
+def find_new_times(
+    needles: ArrayLike,
+    haystack: ArrayLike,
+) -> NDArray[np.integer | np.floating]:
+    needles = np.asarray(needles)
+    require_shape(needles, shape=("n",), name="needles")
+
+    haystack = np.asarray(haystack)
+    require_shape(haystack, shape=("n",), name="haystack")
+
+    new = []
+    for needle in needles:
+        try:
+            _find_time(needle, haystack)
+        except IndexError:
+            new.append(needle)
+
+    return np.asarray(new, dtype=needles.dtype)
 
 
 def _find_time(time: float | int, times: ArrayLike) -> int:
