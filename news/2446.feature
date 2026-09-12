@@ -1,1 +1,1 @@
-Add base-class, LandlabModel, for building Landlab models.
+Add Model and ModelRunner classes for building and running Landlab models.
