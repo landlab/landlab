@@ -10,9 +10,8 @@ from numpy.testing import assert_array_equal
 from requireit import ValidationError
 
 from landlab import RasterModelGrid
-from landlab.io.native_landlab import save_grid
 from landlab.core.model import Clock
-from landlab.core.model import LandlabModel
+from landlab.core.model import Model
 from landlab.core.model import ModelRunner
 from landlab.core.model import _build_events
 from landlab.core.model import _Event
@@ -23,6 +22,7 @@ from landlab.core.model import _PauseSchedule
 from landlab.core.model import merge_params
 from landlab.core.model import resolve_array_filepaths
 from landlab.core.model import setup_grid
+from landlab.io.native_landlab import save_grid
 
 
 @pytest.fixture
@@ -202,9 +202,7 @@ def test_build_events_missing_action_raises():
     }
     actions = {"report": Mock()}
     with pytest.raises(ValidationError, match="^actions must contain save"):
-        _build_events(
-            params, clock=Clock(start=1.0, stop=2.0), actions=actions
-        )
+        _build_events(params, clock=Clock(start=1.0, stop=2.0), actions=actions)
 
 
 def test_model_runner_uses_clock():
@@ -455,7 +453,7 @@ def test_model_init_uses_in_memory_grid_and_params(model_params):
 
     grid = RasterModelGrid((3, 4))
 
-    model = LandlabModel(grid, clock=clock, params=model_params)
+    model = Model(grid, clock=clock, params=model_params)
 
     assert model.grid is grid
     assert model.params is model_params
@@ -470,7 +468,7 @@ def test_model_from_params(model_params):
         "xy_spacing": (0.5, 8.0),
         "xy_of_lower_left": (-16.0, 32.0),
     }
-    model = LandlabModel.from_params(model_params)
+    model = Model.from_params(model_params)
 
     assert isinstance(model.grid, RasterModelGrid)
     assert model.grid.shape == (40, 50)
@@ -486,11 +484,11 @@ def test_model_from_params_missing_keys(key):
     params = {"grid": None, "clock": None}
     params.pop(key)
     with pytest.raises(ValidationError, match=f"^params must contain {key}"):
-        LandlabModel.from_params(params)
+        Model.from_params(params)
 
 
 def test_model_from_params_returns_subclass(model_params):
-    class FrogModel(LandlabModel):
+    class FrogModel(Model):
         pass
 
     assert isinstance(FrogModel.from_params(model_params), FrogModel)
@@ -512,7 +510,7 @@ stop = 8.0
 step = 0.25
 """)
 
-    model = LandlabModel.from_file(input_file)
+    model = Model.from_file(input_file)
 
     assert isinstance(model.grid, RasterModelGrid)
     assert model.grid.shape == (3, 4)
@@ -538,7 +536,7 @@ clock:
   step: 0.25
 """)
 
-    model = LandlabModel.from_file(input_file)
+    model = Model.from_file(input_file)
 
     assert isinstance(model.grid, RasterModelGrid)
     assert model.grid.shape == (3, 4)
