@@ -180,7 +180,10 @@ def test_event_is_exhausted_after_its_last_action():
 def test_build_events_pairs_actions_with_schedules():
     actions = {"report": Mock(), "save": Mock()}
     events = _build_events(
-        {"report_times": [1.0, 2.0], "save_times": 0.5},
+        {
+            "report": {"times": [1.0, 2.0]},
+            "save": {"times": 0.5},
+        },
         clock=Clock(start=1.0, stop=2.0),
         actions=actions,
     )
@@ -190,6 +193,18 @@ def test_build_events_pairs_actions_with_schedules():
     assert events["report"].next_time == 1.0
     assert events["save"].action is actions["save"]
     assert events["save"].next_time == 1.0
+
+
+def test_build_events_missing_action_raises():
+    params = {
+        "report": {"times": [1.0, 2.0]},
+        "save": {"times": 0.5},
+    }
+    actions = {"report": Mock()}
+    with pytest.raises(ValidationError, match="^actions must contain save"):
+        _build_events(
+            params, clock=Clock(start=1.0, stop=2.0), actions=actions
+        )
 
 
 def test_model_runner_uses_clock():

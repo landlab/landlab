@@ -87,6 +87,7 @@ from typing import Any
 from typing import Self
 
 import numpy as np
+from requireit import require_contains
 from requireit import require_less_than
 from requireit import require_nonnegative
 from requireit import require_one_of
@@ -683,14 +684,15 @@ def _build_events(
     clock: Clock,
     actions: Mapping[str, Callable[[float], None]],
 ) -> dict[str, _Event]:
-    start, stop = clock.start, clock.stop
+    require_contains(actions, required=params, name="actions")
 
+    start, stop = clock.start, clock.stop
     events = {
         name: _Event(
-            _PauseSchedule(params[f"{name}_times"], start=start, stop=stop),
-            action=action,
+            _PauseSchedule(event_config["times"], start=start, stop=stop),
+            action=actions[name],
         )
-        for name, action in actions.items()
+        for name, event_config in params.items()
     }
 
     return events
