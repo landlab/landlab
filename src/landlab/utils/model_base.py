@@ -15,34 +15,12 @@ erosion, and linear hillslope diffusion:
 Examples
 --------
 >>> import numpy as np
->>> from landlab.components import FastscapeEroder
 >>> from landlab.components import FlowAccumulator
 >>> from landlab.components import LinearDiffuser
+>>> from landlab.components import StreamPowerEroder
+
 >>> class LandscapeEvolutionModel(LandlabModel):
-...     def __init__(self, grid, *, clock, params):
-...         super().__init__(grid, clock=clock, params=params)
-...         self._uplift_rate = params["uplift_rate"]
-...         elevation = grid.add_zeros("topographic__elevation", at="node")
-...         elevation[:] = 0.01 * grid.node_y
-...         self._flow_router = FlowAccumulator(grid, flow_director="D8")
-...         self._flow_router.run_one_step()
-...         self._eroder = FastscapeEroder(grid, K_sp=params["erodibility"])
-...         self._diffuser = LinearDiffuser(
-...             grid, linear_diffusivity=params["diffusivity"]
-...         )
-...
-...     def update(self, dt):
-...         elevation = self.grid.at_node["topographic__elevation"]
-...         elevation[self.grid.core_nodes] += self._uplift_rate * dt
-...         self._flow_router.run_one_step()
-...         self._eroder.run_one_step(dt)
-...         self._diffuser.run_one_step(dt)
-...
-...     def report(self, current_time):
-...         print(f"model time: {current_time:g}")
-...
->>> model = LandscapeEvolutionModel.from_params(
-...     {
+...     DEFAULT_PARAMS = {
 ...         "grid": {
 ...             "source": "create",
 ...             "create_grid": {
@@ -52,17 +30,54 @@ Examples
 ...                 },
 ...             },
 ...         },
+...     }
+...
+...     def __init__(self, grid, *, clock, params):
+...         super().__init__(grid, clock=clock, params=params)
+...         rng = np.random.default_rng()
+...         elevation = grid.add_zeros("topographic__elevation", at="node")
+...         elevation[grid.core_nodes] = rng.uniform(size=len(grid.core_nodes))
+...
+...         self._uplift_rate = params["model"]["parameters"]["uplift_rate"]
+...         self._flow_accumulator = FlowAccumulator(
+...             grid, **params["model"]["components"]["flow_accumulator"]
+...         )
+...         self._flow_accumulator.run_one_step()
+...         self._eroder = StreamPowerEroder(
+...             grid, **params["model"]["components"]["eroder"]
+...         )
+...         self._diffuser = LinearDiffuser(
+...             grid, **params["model"]["components"]["diffuser"]
+...         )
+...
+...     def update(self, dt):
+...         elevation = self.grid.at_node["topographic__elevation"]
+...         elevation[self.grid.core_nodes] += self._uplift_rate * dt
+...         self._diffuser.run_one_step(dt)
+...         self._flow_accumulator.run_one_step()
+...         self._eroder.run_one_step(dt)
+...
+...     def report(self, current_time):
+...         print(f"model time: {current_time:g}")
+...
+
+>>> model = LandscapeEvolutionModel.from_params(
+...     {
 ...         "clock": {"start": 0.0, "stop": 2.0, "step": 1.0},
-...         "uplift_rate": 0.001,
-...         "erodibility": 0.01,
-...         "diffusivity": 0.1,
-...         "output": {
-...             "report_times": [0.0, 1.0, 2.0],
-...             "plot_times": [],
-...             "save_times": [],
+...         "model": {
+...             "parameters": {"uplift_rate": 0.001},
+...             "components": {
+...                 "flow_accumulator": {"flow_director": "D8"},
+...                 "eroder": {"K_sp": 0.01},
+...                 "diffuser": {"linear_diffusivity": 0.1},
+...             },
+...         },
+...         "events": {
+...             "report": {"times": [0.0, 1.0, 2.0]},
 ...         },
 ...     }
 ... )
+
 >>> model.run()
 model time: 0
 model time: 1
