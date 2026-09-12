@@ -2,7 +2,7 @@
 
 """Base class and runner for a grid-based Landlab model.
 
-Model authors subclass :class:`LandlabModel` and implement :meth:`~LandlabModel.update`
+Model authors subclass :class:`Model` and implement :meth:`~Model.update`
 to advance their components by a supplied time step. The base class constructs the
 grid and clock, while :class:`ModelRunner` advances time and runs scheduled output
 events.
@@ -19,7 +19,7 @@ Examples
 >>> from landlab.components import LinearDiffuser
 >>> from landlab.components import StreamPowerEroder
 
->>> class LandscapeEvolutionModel(LandlabModel):
+>>> class LandscapeEvolutionModel(Model):
 ...     DEFAULT_PARAMS = {
 ...         "grid": {
 ...             "source": "create",
@@ -393,7 +393,7 @@ class ModelRunner:
 
     Parameters
     ----------
-    model : LandlabModel
+    model : Model
         Model to advance. Its ``update`` method must accept a time-step
         duration as its only argument.
     clock : Clock
@@ -421,7 +421,7 @@ class ModelRunner:
 
     def __init__(
         self,
-        model: LandlabModel,
+        model: Model,
         *,
         clock: Clock,
         events: Mapping[str, _Event] | None = None,
@@ -485,10 +485,10 @@ class ModelRunner:
             event.run_if_due(self.current_time)
 
 
-class LandlabModel:
+class Model:
     """Base class for a time-dependent, grid-based Landlab model.
 
-    ``LandlabModel`` provides configuration constructors, scheduled reporting and
+    ``Model`` provides configuration constructors, scheduled reporting and
     output, and model time management. Subclasses define the model physics by
     constructing their components and implementing :meth:`update`. They may
     override :meth:`plot`, :meth:`report`, and :meth:`save` to customize the
@@ -583,7 +583,7 @@ class LandlabModel:
 
         Returns
         -------
-        LandlabModel
+        Model
             Model constructed from the parameters in ``input_file``.
         """
         if os.path.splitext(input_file)[1].lower() == ".toml":
@@ -609,7 +609,7 @@ class LandlabModel:
 
         Returns
         -------
-        LandlabModel
+        Model
             Model constructed from the merged parameters.
         """
         params = {} if params is None else params
