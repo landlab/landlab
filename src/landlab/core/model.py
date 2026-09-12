@@ -171,7 +171,7 @@ def _merge_params(
     return merged
 
 
-def resolve_array_filepaths(params: dict[str, Any]) -> dict[str, Any]:
+def _resolve_array_filepaths(params: dict[str, Any]) -> dict[str, Any]:
     """Return new parameters with array filepath references resolved.
 
     Dictionary values containing an ``"_filepath"`` key are replaced by
@@ -194,7 +194,7 @@ def resolve_array_filepaths(params: dict[str, Any]) -> dict[str, Any]:
             if "_filepath" in value:
                 resolved[key] = np.load(value["_filepath"])
             else:
-                resolved[key] = resolve_array_filepaths(value)
+                resolved[key] = _resolve_array_filepaths(value)
         else:
             resolved[key] = value
     return resolved
@@ -615,7 +615,7 @@ class Model:
         params = {} if params is None else params
 
         params = _merge_params(params, defaults=cls.DEFAULT_PARAMS)
-        params = resolve_array_filepaths(params)
+        params = _resolve_array_filepaths(params)
 
         params = require_contains(params, required=("clock", "grid"), name="params")
 

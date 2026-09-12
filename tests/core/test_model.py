@@ -20,7 +20,7 @@ from landlab.core.model import _GridSaver
 from landlab.core.model import _iter_pause_times
 from landlab.core.model import _merge_params
 from landlab.core.model import _PauseSchedule
-from landlab.core.model import resolve_array_filepaths
+from landlab.core.model import _resolve_array_filepaths
 from landlab.core.model import setup_grid
 from landlab.io.native_landlab import save_grid
 
@@ -614,7 +614,7 @@ def test_resolve_array_filepaths(tmp_path):
         "f": {"_filepath": "test3.npy"},
     }
     with chdir(tmp_path):
-        actual = resolve_array_filepaths(p)
+        actual = _resolve_array_filepaths(p)
 
     assert actual is not p
     assert actual["b"] is not p["b"]
