@@ -481,14 +481,12 @@ def test_model_from_params(model_params):
     assert model.params is not model_params
 
 
-def test_model_from_params_uses_defaults():
-    model = LandlabModel.from_params()
-
-    assert isinstance(model.grid, RasterModelGrid)
-    assert model.grid.shape == (5, 5)
-    assert model.current_time == 0.0
-    assert model.run_duration == 2.0
-    assert model.dt == 1.0
+@pytest.mark.parametrize("key", ("grid", "clock"))
+def test_model_from_params_missing_keys(key):
+    params = {"grid": None, "clock": None}
+    params.pop(key)
+    with pytest.raises(ValidationError, match=f"^params must contain {key}"):
+        LandlabModel.from_params(params)
 
 
 def test_model_from_params_returns_subclass(model_params):

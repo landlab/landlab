@@ -84,6 +84,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from itertools import count
 from typing import Any
+from typing import ClassVar
 from typing import Self
 
 import numpy as np
@@ -485,7 +486,7 @@ class LandlabModel:
     clock : Clock
         Start time, stop time, and default time-step duration.
     params : dict
-        Model parameters. The ``output`` section configures the scheduled
+        Model parameters. The ``events`` section configures the scheduled
         events.
 
     See Also
@@ -497,27 +498,7 @@ class LandlabModel:
     """
 
     # Default parameters, to be overridden in derived classes
-    DEFAULT_PARAMS = {
-        "grid": {
-            "source": "create",
-            "create_grid": {
-                "RasterModelGrid": {
-                    "shape": (5, 5),
-                    "xy_spacing": 1.0,
-                },
-            },
-        },
-        "clock": {"start": 0.0, "stop": 2.0, "step": 1.0},
-        "output": {
-            "plot_times": 10.0,  # float or list
-            "save_times": 10.0,  # float or list
-            "report_times": 1.0,  # float or list
-            "save_path": "model_output",
-            "clobber": True,
-            "fields": None,
-            "plot_to_file": True,
-        },
-    }
+    DEFAULT_PARAMS: ClassVar[dict[str, Any]] = {}
 
     def __init__(
         self,
@@ -540,16 +521,9 @@ class LandlabModel:
         self.grid = grid
         self.params = params
 
-        output_params = params["output"]
-        self._saver = _GridSaver(
-            grid,
-            output_params["save_path"],
-            fmt=output_params.get("format", "grid"),
-            ndigits=4,
-        )
-
+        event_params = params.get("events", {})
         events = _build_events(
-            output_params,
+            event_params,
             clock=clock,
             actions={
                 "plot": self.plot,
@@ -558,9 +532,17 @@ class LandlabModel:
             },
         )
 
-        if events["save"].schedule.is_due(clock.start):
-            events["save"].schedule.advance()
+        if "save" in events:
+            if events["save"].schedule.is_due(clock.start):
+                events["save"].schedule.advance()
 
+        save_params = event_params.get("save", {})
+        self._saver = _GridSaver(
+            grid,
+            save_params.get("base_name", "model-output"),
+            fmt=save_params.get("format", "grid"),
+            ndigits=save_params.get("ndigits", 4),
+        )
         self._runner = ModelRunner(self, clock=clock, events=events)
 
     @property
@@ -620,6 +602,8 @@ class LandlabModel:
         params = merge_params(params, defaults=cls.DEFAULT_PARAMS)
         params = resolve_array_filepaths(params)
 
+        params = require_contains(params, required=("clock", "grid"), name="params")
+
         grid = setup_grid(params["grid"])
         clock = Clock(**params["clock"])
         return cls(grid, clock=clock, params=params)
@@ -630,11 +614,11 @@ class LandlabModel:
 
     def report(self, current_time: float) -> None:
         """Issue a text update on status."""
-        print(self.__class__.__name__, "time =", current_time)
+        print(f"time = {current_time}")
 
     def plot(self, current_time: float = 0.0) -> None:
         """Virtual function for plotting; to be overridden."""
-        print("Base class placeholder for plot() at time", current_time)
+        raise NotImplementedError("plot")
 
     def save(self, current_time: float) -> None:
         """Save a grid."""
