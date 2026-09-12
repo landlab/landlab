@@ -3,6 +3,7 @@ import inspect
 import numpy as np
 import pytest
 from pytest import approx
+from requireit import ValidationError
 from scipy.spatial import Delaunay
 from scipy.spatial import Voronoi
 
@@ -254,3 +255,91 @@ def test_big_graph(n_nodes):
     xy_of_node = np.random.rand(2 * n_nodes).reshape((-1, 2))
     graph = VoronoiDelaunayToGraph(xy_of_node)
     assert graph.number_of_nodes == n_nodes
+
+
+def test_remove_extra_links_with_valid_perimeter_links_info():
+    xy_of_node = np.array([[0, 0], [2, 0], [1, 1], [1.5, 1.5], [0, 2], [2, 2]])
+    perimeter_links = [[0, 1], [1, 2], [2, 3], [3, 5], [4, 5], [0, 4]]
+
+    graph1 = VoronoiDelaunayToGraph(xy_of_node)
+    assert graph1.number_of_links == 11
+
+    graph2 = VoronoiDelaunayToGraph(xy_of_node, perimeter_links=perimeter_links)
+    assert graph2.number_of_links == 9
+
+
+def test_invalid_perimeter_links_not_forming_single_closed_boundary():
+    xy_of_node = np.array([[0, 0], [2, 0], [1, 1], [1.5, 1.5], [0, 2], [2, 2]])
+    perimeter_links = [[0, 1], [0, 2], [1, 2], [2, 3], [3, 5], [4, 5], [0, 4]]
+
+    with pytest.warns(UserWarning, match="one closed boundary loop"):
+        graph = VoronoiDelaunayToGraph(xy_of_node, perimeter_links=perimeter_links)
+
+    assert graph.number_of_links == 10
+
+
+def test_invalid_perimeter_links_with_disconnected_multiple_loops(xy_of_hex):
+    perimeter_links = [[0, 1], [1, 3], [3, 0], [5, 8], [8, 7], [7, 5]]
+    with pytest.warns(UserWarning, match="multiple disconnected loops"):
+        VoronoiDelaunayToGraph(xy_of_hex, perimeter_links=perimeter_links)
+
+
+@pytest.fixture
+def untrimmed_notched_square_graph(monkeypatch):
+    xy_of_node = [[0, 0], [2, 0], [1, 0.5], [0, 2], [2, 2]]
+    perimeter_links = [[0, 2], [2, 1], [1, 4], [4, 3], [3, 0]]
+    with monkeypatch.context() as patch:
+        for method in ("drop_corners", "drop_perimeter_faces", "drop_perimeter_cells"):
+            patch.setattr(VoronoiDelaunayToGraph, method, lambda *args, **kwds: None)
+        graph = VoronoiDelaunayToGraph(xy_of_node, perimeter_links=perimeter_links)
+    return graph
+
+
+def test_unbound_corners_without_is_extra_link_info(untrimmed_notched_square_graph):
+    graph = untrimmed_notched_square_graph
+    expected = np.flatnonzero(graph.y_of_corner < 0)
+    assert expected.size == 1
+    np.testing.assert_array_equal(graph.unbound_corners(), expected)
+    np.testing.assert_array_equal(graph.is_bound_corner(), graph.y_of_corner >= 0)
+
+
+def test_drop_corners_without_is_extra_link_info(untrimmed_notched_square_graph):
+    graph = untrimmed_notched_square_graph
+    graph.drop_corners(np.flatnonzero(graph.y_of_corner < 0))
+
+    assert graph.number_of_corners == 3
+    assert graph.number_of_links == 7
+    assert graph.number_of_patches == 3
+    assert np.all(graph.y_of_corner >= 0)
+    assert not np.any(np.all(np.sort(graph.nodes_at_link, axis=1) == [0, 1], axis=1))
+
+
+@pytest.mark.parametrize("shape", [(), (6,), (3, 1), (3, 3), (3, 2, 1)])
+def test_xy_of_node_invalid_shape(shape):
+    with pytest.raises(ValidationError, match="xy_of_node"):
+        VoronoiDelaunayToGraph(np.zeros(shape))
+
+
+@pytest.mark.parametrize("n_nodes", [0, 1, 2])
+def test_xy_of_node_invalid_length(n_nodes):
+    with pytest.raises(ValidationError, match="xy_of_node"):
+        VoronoiDelaunayToGraph(np.zeros((n_nodes, 2)))
+
+
+@pytest.mark.parametrize("shape", [(), (0,), (6,), (3, 1), (3, 3), (3, 2, 1)])
+def test_perimeter_links_invalid_shape(xy_of_hex, shape):
+    with pytest.raises(ValidationError, match="perimeter_links"):
+        VoronoiDelaunayToGraph(xy_of_hex, np.zeros(shape, dtype=int))
+
+
+@pytest.mark.parametrize("n_links", [0, 1, 2])
+def test_perimeter_links_invalid_length(xy_of_hex, n_links):
+    with pytest.raises(ValidationError, match="perimeter_links"):
+        VoronoiDelaunayToGraph(xy_of_hex, np.zeros((n_links, 2), dtype=int))
+
+
+@pytest.mark.parametrize("dtype", [float, complex, bool, str, object])
+def test_perimeter_links_invalid_dtype(xy_of_hex, dtype):
+    perimeter_links = np.asarray([[0, 1], [1, 2], [2, 0]], dtype=dtype)
+    with pytest.raises(ValidationError, match="perimeter_links"):
+        VoronoiDelaunayToGraph(xy_of_hex, perimeter_links)
