@@ -18,8 +18,8 @@ from landlab.core.model import _Event
 from landlab.core.model import _FilenameSequence
 from landlab.core.model import _GridSaver
 from landlab.core.model import _iter_pause_times
+from landlab.core.model import _merge_params
 from landlab.core.model import _PauseSchedule
-from landlab.core.model import merge_params
 from landlab.core.model import resolve_array_filepaths
 from landlab.core.model import setup_grid
 from landlab.io.native_landlab import save_grid
@@ -385,7 +385,7 @@ def test_merge_params():
     user = {"a": 1, "dict": {"user": 2}}
     defaults = {"a": 0, "b": 3, "dict": {"default": 4}}
 
-    actual = merge_params(user, defaults=defaults)
+    actual = _merge_params(user, defaults=defaults)
 
     assert actual == {
         "a": 1,
@@ -404,7 +404,7 @@ def test_merge_params_copies_nested_dicts():
         "merged": {"default": {"value": 4}},
     }
 
-    actual = merge_params(user, defaults=defaults)
+    actual = _merge_params(user, defaults=defaults)
 
     assert actual == {
         "user_only": {"nested": {"value": 1}},
@@ -424,7 +424,7 @@ def test_merge_params_does_not_merge_grid_dict():
     user = {"grid": {"RasterModelGrid": {"shape": (3, 4)}}}
     defaults = {"grid": {"HexModelGrid": {"shape": (5, 6)}}}
 
-    actual = merge_params(user, defaults=defaults)
+    actual = _merge_params(user, defaults=defaults)
 
     assert actual["grid"] == user["grid"]
     assert actual["grid"] is not user["grid"]
@@ -435,14 +435,14 @@ def test_merge_params_preserves_grid_instance():
     grid = RasterModelGrid((3, 4))
 
     params = {"grid": {"source": "grid_object", "grid_object": grid}}
-    actual = merge_params(params)
+    actual = _merge_params(params)
 
     assert actual["grid"]["grid_object"] is grid
     assert actual["grid"] is not params["grid"]
 
 
 def test_merge_params_dict_overrides_non_dict_default():
-    actual = merge_params({"value": {"dict": 1}}, defaults={"value": 0})
+    actual = _merge_params({"value": {"dict": 1}}, defaults={"value": 0})
 
     assert actual == {"value": {"dict": 1}}
 
