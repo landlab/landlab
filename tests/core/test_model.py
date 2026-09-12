@@ -11,18 +11,18 @@ from requireit import ValidationError
 
 from landlab import RasterModelGrid
 from landlab.io.native_landlab import save_grid
-from landlab.utils.model_base import Clock
-from landlab.utils.model_base import LandlabModel
-from landlab.utils.model_base import ModelRunner
-from landlab.utils.model_base import _build_events
-from landlab.utils.model_base import _Event
-from landlab.utils.model_base import _FilenameSequence
-from landlab.utils.model_base import _GridSaver
-from landlab.utils.model_base import _iter_pause_times
-from landlab.utils.model_base import _PauseSchedule
-from landlab.utils.model_base import merge_params
-from landlab.utils.model_base import resolve_array_filepaths
-from landlab.utils.model_base import setup_grid
+from landlab.core.model import Clock
+from landlab.core.model import LandlabModel
+from landlab.core.model import ModelRunner
+from landlab.core.model import _build_events
+from landlab.core.model import _Event
+from landlab.core.model import _FilenameSequence
+from landlab.core.model import _GridSaver
+from landlab.core.model import _iter_pause_times
+from landlab.core.model import _PauseSchedule
+from landlab.core.model import merge_params
+from landlab.core.model import resolve_array_filepaths
+from landlab.core.model import setup_grid
 
 
 @pytest.fixture
@@ -355,7 +355,7 @@ def test_grid_saver_uses_writer_for_format(fmt, writer_name, ext):
     grid = RasterModelGrid((3, 4))
     saver = _GridSaver(grid, "foo-output", fmt=fmt, ndigits=3)
 
-    with patch(f"landlab.utils.model_base.{writer_name}") as writer:
+    with patch(f"landlab.core.model.{writer_name}") as writer:
         filename = saver.save()
 
     assert filename == f"foo-output001{ext}"
@@ -365,7 +365,7 @@ def test_grid_saver_uses_writer_for_format(fmt, writer_name, ext):
 def test_grid_saver_advances_filename():
     saver = _GridSaver(RasterModelGrid((3, 4)), "frame", ndigits=2)
 
-    with patch("landlab.utils.model_base.save_grid"):
+    with patch("landlab.core.model.save_grid"):
         assert saver.save() == "frame01.grid"
         assert saver.save() == "frame02.grid"
 
@@ -373,7 +373,7 @@ def test_grid_saver_advances_filename():
 def test_grid_saver_is_callable():
     saver = _GridSaver(RasterModelGrid((3, 4)), "frame")
 
-    with patch("landlab.utils.model_base.save_grid") as writer:
+    with patch("landlab.core.model.save_grid") as writer:
         assert saver(10.0) is None
         assert writer.call_count == 1
 
