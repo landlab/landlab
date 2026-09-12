@@ -104,7 +104,6 @@ from typing import Self
 
 import numpy as np
 from requireit import require_contains
-from requireit import require_less_than
 from requireit import require_nonnegative
 from requireit import require_one_of
 from requireit import require_positive
@@ -113,6 +112,7 @@ from requireit import require_sorted
 from landlab.core.component_utils import iter_adaptive_time_steps
 from landlab.core.component_utils import iter_time_steps
 from landlab.core.model_parameter_loader import load_params
+from landlab.core.model_runner import Clock
 from landlab.grid.base import ModelGrid
 from landlab.io.legacy_vtk import write_legacy_vtk
 from landlab.io.native_landlab import save_grid
@@ -198,41 +198,6 @@ def _resolve_array_filepaths(params: dict[str, Any]) -> dict[str, Any]:
         else:
             resolved[key] = value
     return resolved
-
-
-@dataclass(frozen=True, slots=True)
-class Clock:
-    """Define the time domain and default time step for a model run.
-
-    Parameters
-    ----------
-    start : float, optional
-        Initial model time.
-    stop : float, optional
-        Final model time. It must be greater than ``start``.
-    step : float, optional
-        Positive, finite default time-step duration.
-
-    Examples
-    --------
-    >>> clock = Clock(start=2.0, stop=8.0, step=0.5)
-    >>> clock.duration
-    6.0
-    """
-
-    start: float = 0.0
-    stop: float = np.inf
-    step: float = 1.0
-
-    def __post_init__(self) -> None:
-        require_less_than(self.start, self.stop, name="start")
-        require_positive(self.step, name="step")
-        if np.isinf(self.step):
-            raise ValueError("step must be finite")
-
-    @property
-    def duration(self) -> float:
-        return self.stop - self.start
 
 
 class _PauseSchedule:
