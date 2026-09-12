@@ -21,7 +21,7 @@ from landlab.core.model import _iter_pause_times
 from landlab.core.model import _merge_params
 from landlab.core.model import _PauseSchedule
 from landlab.core.model import _resolve_array_filepaths
-from landlab.core.model import setup_grid
+from landlab.core.model import _setup_grid
 from landlab.io.native_landlab import save_grid
 
 
@@ -558,7 +558,7 @@ def test_setup_grid_creates_grid():
         },
     }
 
-    grid = setup_grid(params)
+    grid = _setup_grid(params)
 
     assert isinstance(grid, RasterModelGrid)
     assert grid.shape == (4, 5)
@@ -572,7 +572,7 @@ def test_setup_grid_loads_grid(tmp_path):
     path = tmp_path / "model.grid"
     save_grid(original, path)
 
-    actual = setup_grid({"source": "file", "grid_file_name": path})
+    actual = _setup_grid({"source": "file", "grid_file_name": path})
 
     assert isinstance(actual, RasterModelGrid)
     assert actual.shape == original.shape
@@ -583,19 +583,19 @@ def test_setup_grid_loads_grid(tmp_path):
 def test_setup_grid_uses_existing_grid():
     expected = RasterModelGrid((3, 4))
 
-    actual = setup_grid({"source": "grid_object", "grid_object": expected})
+    actual = _setup_grid({"source": "grid_object", "grid_object": expected})
 
     assert actual is expected
 
 
 def test_setup_grid_rejects_unknown_source():
     with pytest.raises(ValidationError, match="^source must be one of"):
-        setup_grid({"source": "unknown"})
+        _setup_grid({"source": "unknown"})
 
 
 def test_setup_grid_rejects_non_grid_object():
     with pytest.raises(ValueError, match="^grid source must be"):
-        setup_grid({"source": "grid_object", "grid_object": object()})
+        _setup_grid({"source": "grid_object", "grid_object": object()})
 
 
 def test_resolve_array_filepaths(tmp_path):
