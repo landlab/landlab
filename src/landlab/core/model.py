@@ -119,7 +119,7 @@ from landlab.io.native_landlab import save_grid
 from landlab.io.netcdf import write_netcdf
 
 
-def merge_params(
+def _merge_params(
     user: dict[str, Any],
     *,
     defaults: dict[str, Any] | None = None,
@@ -146,7 +146,7 @@ def merge_params(
     --------
     >>> user = {"a": 1, "d": {"da": 4}, "e": 5, "grid": {"RasterModelGrid": []}}
     >>> defaults = {"a": 2, "b": 3, "d": {"db": 6}, "grid": {"HexModelGrid": []}}
-    >>> merged = merge_params(user, defaults=defaults)
+    >>> merged = _merge_params(user, defaults=defaults)
     >>> merged["a"] == user["a"]
     True
     >>> merged["b"] == defaults["b"]
@@ -166,7 +166,7 @@ def merge_params(
             if k == "grid" or not isinstance(default_value, dict):
                 default_value = None
 
-            merged[k] = merge_params(v, defaults=default_value)
+            merged[k] = _merge_params(v, defaults=default_value)
 
     return merged
 
@@ -614,7 +614,7 @@ class Model:
         """
         params = {} if params is None else params
 
-        params = merge_params(params, defaults=cls.DEFAULT_PARAMS)
+        params = _merge_params(params, defaults=cls.DEFAULT_PARAMS)
         params = resolve_array_filepaths(params)
 
         params = require_contains(params, required=("clock", "grid"), name="params")
