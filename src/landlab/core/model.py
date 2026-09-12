@@ -619,7 +619,7 @@ class Model:
 
         params = require_contains(params, required=("clock", "grid"), name="params")
 
-        grid = setup_grid(params["grid"])
+        grid = _setup_grid(params["grid"])
         clock = Clock(**params["clock"])
         return cls(grid, clock=clock, params=params)
 
@@ -697,7 +697,7 @@ def _build_events(
     return events
 
 
-def setup_grid(params: dict) -> ModelGrid:
+def _setup_grid(params: dict) -> ModelGrid:
     """Load or create the grid.
 
     Parameters
@@ -728,14 +728,14 @@ def setup_grid(params: dict) -> ModelGrid:
     --------
     >>> p = {"source": "create"}
     >>> p["create_grid"] = {"RasterModelGrid": {"shape": (4, 5), "xy_spacing": 2.0}}
-    >>> grid = setup_grid(params=p)
+    >>> grid = _setup_grid(params=p)
     >>> grid.shape
     (4, 5)
 
     >>> from landlab import RasterModelGrid
     >>> p = {"source": "grid_object"}
     >>> p["grid_object"] = RasterModelGrid((3, 3))
-    >>> grid = setup_grid(params=p)
+    >>> grid = _setup_grid(params=p)
     >>> grid.shape
     (3, 3)
     """
