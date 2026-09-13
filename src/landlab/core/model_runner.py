@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from collections.abc import Iterable
 from collections.abc import Iterator
 from collections.abc import Mapping
 from collections.abc import Sequence
@@ -10,6 +11,7 @@ from typing import Any
 from typing import Protocol
 
 import numpy as np
+from requireit import require_between
 from requireit import require_contains
 from requireit import require_less_than
 from requireit import require_positive
@@ -113,10 +115,6 @@ class ModelRunner:
         return self._current_time
 
     @property
-    def run_duration(self) -> float:
-        return self._clock.duration
-
-    @property
     def dt(self) -> float:
         return self._clock.step
 
@@ -125,9 +123,13 @@ class ModelRunner:
         update_to_time: float,
         dt: float,
     ) -> None:
+        require_between(
+            update_to_time,
+            a_min=self.current_time,
+            a_max=self._clock.stop,
+            name="update_to_time",
+        )
         duration = update_to_time - self.current_time
-        if duration <= 0.0:
-            return
 
         for this_dt in iter_time_steps(duration, dt=dt):
             self._model.update(this_dt)
@@ -136,17 +138,20 @@ class ModelRunner:
 
     def run(
         self,
-        run_duration: float | None = None,
+        duration: float | None = None,
         dt: float | None = None,
     ) -> None:
-        if run_duration is None:
-            run_duration = self._clock.stop - self.current_time
+        remaining = self._clock.stop - self.current_time
+        if duration is None:
+            duration = remaining
+        else:
+            require_between(duration, a_min=0.0, a_max=remaining, name="duration")
         if dt is None:
             dt = self._clock.step
 
         self._run_scheduled_actions()
         for time_until_pause in iter_adaptive_time_steps(
-            run_duration, calc_dt=self._time_to_next_pause
+            duration, calc_dt=self._time_to_next_pause
         ):
             self.update_until(self.current_time + time_until_pause, dt)
             self._run_scheduled_actions()
@@ -164,12 +169,12 @@ class ModelRunner:
 
 @dataclass(slots=True)
 class _Event:
-    schedule: _PauseSchedule
+    schedule: _Schedule
     action: Callable[[float], None]
 
     @property
     def next_time(self) -> float:
-        return self.schedule.next_pause
+        return self.schedule.next_time
 
     def run_if_due(self, time: float) -> None:
         if self.schedule.is_due(time):
@@ -177,78 +182,111 @@ class _Event:
             self.schedule.advance()
 
 
-class _PauseSchedule:
-    """Track the next pause in a sequence of times.
-
-    Parameters
-    ----------
-    schedule : float or sequence of float
-        Constant interval between pauses, or a sequence of absolute times
-        at which to pause.
-    start : float, optional
-        Earliest time in the schedule. For a constant interval, this is
-        also the first pause. Explicit times before ``start`` are skipped.
-    stop : float, optional
-        Latest time in the schedule. The stop time is included. With the
-        default of infinity, a constant-interval schedule is unbounded.
+class _Schedule:
+    """Track the next time in a sequence of times.
 
     Examples
     --------
-    >>> schedule = _PauseSchedule(1.0, start=0.0, stop=4.0)
-    >>> schedule.next_pause
+    >>> schedule = _Schedule.from_interval(1.0, start=0.0, stop=4.0)
+    >>> schedule.next_time
     0.0
     >>> schedule.advance()
     1.0
-    >>> schedule = _PauseSchedule([0.0, 0.5, 2.0, 4.0], start=0.5, stop=4.0)
-    >>> schedule.next_pause
+    >>> schedule = _Schedule.from_times([0.0, 0.5, 2.0, 4.0], start=0.5, stop=4.0)
+    >>> schedule.next_time
     0.5
     """
 
     def __init__(
         self,
-        schedule: float | Sequence[float],
+        schedule: Iterable[float],
+    ) -> None:
+        self._times = iter(schedule)
+        self._next_time = next(self._times, np.inf)
+
+    @classmethod
+    def from_interval(
+        cls,
+        interval: float,
         *,
         start: float = 0.0,
         stop: float = np.inf,
-    ) -> None:
-        self._times = _iter_pause_times(schedule=schedule, start=start, stop=stop)
-        self._next_pause = next(self._times, np.inf)
+    ) -> _Schedule:
+        """Create a schedule of regularly spaced times.
+
+        Parameters
+        ----------
+        interval : float
+            Positive, finite duration between scheduled times.
+        start : float, optional
+            First scheduled absolute model time.
+        stop : float, optional
+            Last permitted absolute model time, inclusive.
+        """
+        return cls(_iter_interval_times(interval, start=start, stop=stop))
+
+    @classmethod
+    def from_times(
+        cls,
+        times: Sequence[float],
+        *,
+        start: float = 0.0,
+        stop: float = np.inf,
+    ) -> _Schedule:
+        """Create a schedule from explicitly specified times.
+
+        Parameters
+        ----------
+        times : sequence of float
+            Strictly increasing absolute model times.
+        start : float, optional
+            Earliest permitted model time, inclusive.
+        stop : float, optional
+            Latest permitted model time, inclusive.
+        """
+        return cls(_iter_scheduled_times(times, start=start, stop=stop))
 
     @property
-    def next_pause(self) -> float:
-        return self._next_pause
+    def next_time(self) -> float:
+        return self._next_time
 
     def is_due(self, time: float) -> bool:
-        return time >= self._next_pause
+        return time >= self._next_time
 
     def advance(self) -> float:
-        self._next_pause = next(self._times, np.inf)
-        return self._next_pause
+        self._next_time = next(self._times, np.inf)
+        return self._next_time
 
 
-def _iter_pause_times(
-    schedule: float | Sequence[float],
+def _iter_interval_times(
+    interval: float,
     *,
     start: float = 0.0,
     stop: float = np.inf,
 ) -> Iterator[float]:
-    if isinstance(schedule, (float, int)):
-        require_positive(schedule, name="pause interval")
-        if not np.isfinite(schedule):
-            raise ValueError("pause interval must be finite")
-        for step in count():  # pragma: no branch
-            next_pause = start + step * schedule
-            if next_pause > stop:
-                break
-            yield next_pause
-    else:
-        require_sorted(schedule, strict=True, name="schedule")
-        for next_pause in schedule:
-            if next_pause < start:
-                continue
-            if next_pause > stop:
-                break
-            yield next_pause
+    require_positive(interval, name="interval")
+    if not np.isfinite(interval):
+        raise ValueError("interval must be finite")
+    for step in count():  # pragma: no branch
+        next_time = start + step * interval
+        if next_time > stop:
+            break
+        yield next_time
+
+
+def _iter_scheduled_times(
+    schedule: Sequence[float],
+    *,
+    start: float = 0.0,
+    stop: float = np.inf,
+) -> Iterator[float]:
+    require_sorted(schedule, strict=True, name="schedule")
+    for next_time in schedule:
+        if next_time < start:
+            continue
+        if next_time > stop:
+            break
+        yield next_time
 
 
 def _build_events(
@@ -258,14 +296,24 @@ def _build_events(
     actions: Mapping[str, Callable[[float], None]],
 ) -> dict[str, _Event]:
     require_contains(actions, required=params, name="actions")
-
     start, stop = clock.start, clock.stop
-    events = {
-        name: _Event(
-            _PauseSchedule(event_config["times"], start=start, stop=stop),
-            action=actions[name],
-        )
-        for name, event_config in params.items()
-    }
+
+    events = {}
+    for name, event_config in params.items():
+        if len(event_config.keys() & {"interval", "times"}) != 1:
+            raise ValueError(
+                f"{name} event must contain exactly one of 'interval' or 'times'"
+            )
+
+        if "interval" in event_config:
+            schedule = _Schedule.from_interval(
+                event_config["interval"], start=start, stop=stop
+            )
+        else:
+            schedule = _Schedule.from_times(
+                event_config["times"], start=start, stop=stop
+            )
+
+        events[name] = _Event(schedule, action=actions[name])
 
     return events

@@ -208,7 +208,6 @@ def test_model_init_uses_in_memory_grid_and_params(model_params):
     assert model.grid is grid
     assert model.params is model_params
     assert model.current_time == 0.0
-    assert model.run_duration == 100.0
     assert model.dt == 0.25
 
 
@@ -301,7 +300,7 @@ def test_model_delegates_time_stepping_to_runner():
     model.update_until(0.5, dt=0.25)
     assert model.current_time == 0.5
 
-    model.run(run_duration=0.5, dt=0.25)
+    model.run(duration=0.5, dt=0.25)
     assert model.current_time == 1.0
 
 
@@ -328,7 +327,6 @@ step = 0.25
     assert model.grid.dx == 2.0
     assert model.grid.dy == 4.0
     assert model.current_time == 2.0
-    assert model.run_duration == 6.0
     assert model.dt == 0.25
 
 
@@ -354,7 +352,6 @@ clock:
     assert model.grid.dx == 2.0
     assert model.grid.dy == 4.0
     assert model.current_time == 2.0
-    assert model.run_duration == 6.0
     assert model.dt == 0.25
 
 

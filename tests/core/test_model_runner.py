@@ -10,8 +10,9 @@ from landlab.core.model_runner import Clock
 from landlab.core.model_runner import ModelRunner
 from landlab.core.model_runner import _build_events
 from landlab.core.model_runner import _Event
-from landlab.core.model_runner import _iter_pause_times
-from landlab.core.model_runner import _PauseSchedule
+from landlab.core.model_runner import _iter_interval_times
+from landlab.core.model_runner import _iter_scheduled_times
+from landlab.core.model_runner import _Schedule
 
 
 def test_clock_defaults():
@@ -54,7 +55,7 @@ def test_build_events_pairs_actions_with_schedules():
     events = _build_events(
         {
             "report": {"times": [1.0, 2.0]},
-            "save": {"times": 0.5},
+            "save": {"interval": 0.5},
         },
         clock=Clock(start=1.0, stop=2.0),
         actions=actions,
@@ -70,105 +71,121 @@ def test_build_events_pairs_actions_with_schedules():
 def test_build_events_missing_action_raises():
     params = {
         "report": {"times": [1.0, 2.0]},
-        "save": {"times": 0.5},
+        "save": {"interval": 0.5},
     }
     actions = {"report": Mock()}
     with pytest.raises(ValidationError, match="^actions must contain save"):
         _build_events(params, clock=Clock(start=1.0, stop=2.0), actions=actions)
 
 
-def test_iter_pause_times_with_constant_interval():
-    times = _iter_pause_times(2.0, start=1.0, stop=7.0)
+@pytest.mark.parametrize(
+    "event_config",
+    ({}, {"interval": 0.5, "times": [1.0, 2.0]}),
+)
+def test_build_events_requires_exactly_one_schedule(event_config):
+    with pytest.raises(
+        ValueError,
+        match="^report event must contain exactly one of 'interval' or 'times'$",
+    ):
+        _build_events(
+            {"report": event_config},
+            clock=Clock(start=1.0, stop=2.0),
+            actions={"report": Mock()},
+        )
+
+
+def test_iter_interval_times():
+    times = _iter_interval_times(2.0, start=1.0, stop=7.0)
 
     assert list(times) == [1.0, 3.0, 5.0, 7.0]
 
 
-def test_iter_pause_times_with_explicit_times():
-    times = _iter_pause_times([0.0, 1.0, 2.5, 4.0, 6.0], start=1.0, stop=4.0)
+def test_iter_scheduled_times():
+    times = _iter_scheduled_times([0.0, 1.0, 2.5, 4.0, 6.0], start=1.0, stop=4.0)
 
     assert list(times) == [1.0, 2.5, 4.0]
 
 
-def test_iter_pause_times_can_be_unbounded():
-    times = _iter_pause_times(0.5, start=1.0)
+def test_iter_interval_times_can_be_unbounded():
+    times = _iter_interval_times(0.5, start=1.0)
     actual = list(islice(times, 4))
 
     assert actual == [1.0, 1.5, 2.0, 2.5]
 
 
 @pytest.mark.parametrize("interval", [0.0, -1.0])
-def test_iter_pause_times_rejects_nonpositive_interval(interval):
-    with pytest.raises(ValidationError, match="^pause interval must be"):
-        next(_iter_pause_times(interval))
+def test_iter_interval_times_rejects_nonpositive_interval(interval):
+    with pytest.raises(ValidationError, match="^interval must be"):
+        next(_iter_interval_times(interval))
 
 
 @pytest.mark.parametrize("interval", [np.inf, np.nan])
-def test_iter_pause_times_rejects_nonfinite_interval(interval):
-    with pytest.raises((ValueError, ValidationError), match="^pause interval must"):
-        next(_iter_pause_times(interval))
+def test_iter_interval_times_rejects_nonfinite_interval(interval):
+    with pytest.raises((ValueError, ValidationError), match="^interval must"):
+        next(_iter_interval_times(interval))
 
 
 @pytest.mark.parametrize("schedule", [[0.0, 2.0, 1.0], [0.0, 1.0, 1.0]])
-def test_iter_pause_times_requires_strictly_increasing_times(schedule):
+def test_iter_scheduled_times_requires_strictly_increasing_times(schedule):
     with pytest.raises(ValidationError, match="^schedule must be"):
-        next(_iter_pause_times(schedule))
+        next(_iter_scheduled_times(schedule))
 
 
-def test_pause_schedule_starts_at_first_pause():
-    schedule = _PauseSchedule([0.0, 1.0, 2.5])
+def test_schedule_starts_at_first_pause():
+    schedule = _Schedule.from_times([0.0, 1.0, 2.5])
 
-    assert schedule.next_pause == 0.0
+    assert schedule.next_time == 0.0
 
 
-def test_pause_schedule_reports_when_pause_is_due():
-    schedule = _PauseSchedule([1.0, 2.0])
+def test_schedule_reports_when_pause_is_due():
+    schedule = _Schedule.from_times([1.0, 2.0])
 
     assert not schedule.is_due(0.5)
     assert schedule.is_due(1.0)
     assert schedule.is_due(1.5)
 
 
-def test_pause_schedule_advance_returns_next_pause():
-    schedule = _PauseSchedule([1.0, 2.0])
+def test_schedule_advance_returns_next_time():
+    schedule = _Schedule.from_times([1.0, 2.0])
 
     assert schedule.advance() == 2.0
-    assert schedule.next_pause == 2.0
+    assert schedule.next_time == 2.0
 
 
-def test_pause_schedule_is_infinite_when_exhausted():
-    schedule = _PauseSchedule([1.0])
+def test_schedule_is_infinite_when_exhausted():
+    schedule = _Schedule.from_times([1.0])
 
     assert np.isinf(schedule.advance())
-    assert np.isinf(schedule.next_pause)
+    assert np.isinf(schedule.next_time)
     assert not schedule.is_due(1e9)
 
 
-def test_pause_schedule_honors_start_and_stop():
-    schedule = _PauseSchedule([0.0, 1.0, 2.0, 3.0], start=1.0, stop=2.0)
+def test_schedule_honors_start_and_stop():
+    schedule = _Schedule.from_times([0.0, 1.0, 2.0, 3.0], start=1.0, stop=2.0)
 
-    assert schedule.next_pause == 1.0
+    assert schedule.next_time == 1.0
     assert schedule.advance() == 2.0
     assert np.isinf(schedule.advance())
 
 
-def test_pause_schedule_with_constant_interval():
-    schedule = _PauseSchedule(0.5, start=1.0, stop=2.0)
+def test_schedule_with_constant_interval():
+    schedule = _Schedule.from_interval(0.5, start=1.0, stop=2.0)
 
-    assert schedule.next_pause == 1.0
+    assert schedule.next_time == 1.0
     assert schedule.advance() == 1.5
     assert schedule.advance() == 2.0
     assert np.isinf(schedule.advance())
 
 
 def test_event_reports_next_scheduled_time():
-    event = _Event(_PauseSchedule([1.0, 2.0]), action=lambda time: None)
+    event = _Event(_Schedule.from_times([1.0, 2.0]), action=lambda time: None)
 
     assert event.next_time == 1.0
 
 
 def test_event_does_not_run_before_it_is_due():
     action = Mock()
-    event = _Event(_PauseSchedule([1.0, 2.0]), action=action)
+    event = _Event(_Schedule.from_times([1.0, 2.0]), action=action)
 
     event.run_if_due(0.5)
 
@@ -178,7 +195,7 @@ def test_event_does_not_run_before_it_is_due():
 
 def test_event_runs_action_when_due():
     action = Mock()
-    event = _Event(_PauseSchedule([1.0, 2.0]), action=action)
+    event = _Event(_Schedule.from_times([1.0, 2.0]), action=action)
 
     event.run_if_due(1.0)
 
@@ -186,7 +203,7 @@ def test_event_runs_action_when_due():
 
 
 def test_event_advances_after_running_action():
-    event = _Event(_PauseSchedule([1.0, 2.0]), action=lambda time: None)
+    event = _Event(_Schedule.from_times([1.0, 2.0]), action=lambda time: None)
 
     event.run_if_due(1.0)
 
@@ -195,7 +212,7 @@ def test_event_advances_after_running_action():
 
 def test_event_is_exhausted_after_its_last_action():
     action = Mock()
-    event = _Event(_PauseSchedule([1.0]), action=action)
+    event = _Event(_Schedule.from_times([1.0]), action=action)
 
     event.run_if_due(1.0)
     event.run_if_due(2.0)
@@ -208,7 +225,6 @@ def test_model_runner_uses_clock():
     runner = ModelRunner(Mock(), clock=Clock(start=1.0, stop=5.0, step=0.25))
 
     assert runner.current_time == 1.0
-    assert runner.run_duration == 4.0
     assert runner.dt == 0.25
 
 
@@ -225,14 +241,22 @@ def test_model_runner_update_until_advances_model_and_time():
     assert runner.current_time == 3.5
 
 
-def test_model_runner_update_until_ignores_past_time():
+def test_model_runner_update_until_rejects_past_time():
     model = Mock()
     runner = ModelRunner(model, clock=Clock(start=1.0, stop=5.0))
 
-    runner.update_until(0.5, dt=0.25)
+    with pytest.raises(ValidationError, match="update_to_time must be"):
+        runner.update_until(0.5, dt=0.25)
 
     model.update.assert_not_called()
     assert runner.current_time == 1.0
+
+
+def test_model_runner_update_until_rejects_time_after_clock_stop():
+    runner = ModelRunner(Mock(), clock=Clock(start=1.0, stop=5.0))
+
+    with pytest.raises(ValidationError, match="^update_to_time must be"):
+        runner.update_until(5.5, dt=0.25)
 
 
 def test_model_runner_run_without_events():
@@ -252,11 +276,18 @@ def test_model_runner_run_uses_explicit_duration_and_step():
     model = Mock()
     runner = ModelRunner(model, clock=Clock(start=1.0, stop=5.0, step=2.0))
 
-    runner.run(run_duration=1.5, dt=0.5)
+    runner.run(duration=1.5, dt=0.5)
 
     actual_steps = [call.args[0] for call in model.update.call_args_list]
     assert actual_steps == [0.5, 0.5, 0.5]
     assert runner.current_time == 2.5
+
+
+def test_model_runner_run_rejects_duration_past_clock_stop():
+    runner = ModelRunner(Mock(), clock=Clock(start=1.0, stop=5.0))
+
+    with pytest.raises(ValidationError, match="^duration must be"):
+        runner.run(duration=4.5)
 
 
 def test_model_runner_run_stops_at_clock_stop_after_partial_update():
@@ -278,7 +309,7 @@ def test_model_runner_run_stops_at_clock_stop_after_partial_update():
 def test_model_runner_runs_scheduled_events():
     model = Mock()
     action = Mock()
-    event = _Event(_PauseSchedule([1.0, 2.0, 3.0]), action=action)
+    event = _Event(_Schedule.from_times([1.0, 2.0, 3.0]), action=action)
     runner = ModelRunner(
         model,
         clock=Clock(start=1.0, stop=3.0, step=0.75),
@@ -294,7 +325,7 @@ def test_model_runner_runs_scheduled_events():
 
 def test_model_runner_copies_events():
     action = Mock()
-    events = {"report": _Event(_PauseSchedule([1.0]), action=action)}
+    events = {"report": _Event(_Schedule.from_times([1.0]), action=action)}
     runner = ModelRunner(Mock(), clock=Clock(start=1.0, stop=2.0), events=events)
     events.clear()
 

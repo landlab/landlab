@@ -190,10 +190,6 @@ class Model:
         self._runner = ModelRunner(self, clock=clock, events=events)
 
     @property
-    def run_duration(self) -> float:
-        return self._runner.run_duration
-
-    @property
     def dt(self) -> float:
         return self._runner.dt
 
@@ -284,26 +280,26 @@ class Model:
         Parameters
         ----------
         update_to_time : float
-            Model time to which the model should advance. If this is not later
-            than the current time, the model is unchanged.
+            Model time to which the model should advance. It must be
+            between the current model time and the clock stop time, inclusive.
         dt : float
             Maximum time-step duration.
         """
         self._runner.update_until(update_to_time, dt=dt)
 
-    def run(self, run_duration: float | None = None, dt: float | None = None) -> None:
+    def run(self, duration: float | None = None, dt: float | None = None) -> None:
         """Advance the model while running scheduled events.
 
         Parameters
         ----------
-        run_duration : float, optional
+        duration : float, optional
             Duration of the run. By default, advance from the current time to the
             stop time of the model clock.
         dt : float, optional
             Maximum time-step duration. By default, use the step specified by the
             model clock.
         """
-        self._runner.run(run_duration, dt=dt)
+        self._runner.run(duration, dt=dt)
 
 
 def _merge_params(
