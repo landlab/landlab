@@ -114,147 +114,6 @@ from landlab.io.netcdf import write_netcdf
 __all__ = ["Model"]
 
 
-def _merge_params(
-    user: dict[str, Any],
-    *,
-    defaults: dict[str, Any] | None = None,
-) -> dict[str, Any]:
-    """Merge parameters with defaults, returning a new nested dictionary.
-
-    Merge default parameters into the user-parameter dictionary, adding
-    defaults where user values are absent. Nested dictionaries are merged
-    recursively, except for ``grid``, which is treated as a single value.
-
-    Parameters
-    ----------
-    user : dict
-        dict containing names and values of user-defined parameters
-    defaults : dict, optional
-        dict containing all parameter names and their default values
-
-    Returns
-    -------
-    merged : dict
-        The merged parameters.
-
-    Examples
-    --------
-    >>> user = {"a": 1, "d": {"da": 4}, "e": 5, "grid": {"RasterModelGrid": []}}
-    >>> defaults = {"a": 2, "b": 3, "d": {"db": 6}, "grid": {"HexModelGrid": []}}
-    >>> merged = _merge_params(user, defaults=defaults)
-    >>> merged["a"] == user["a"]
-    True
-    >>> merged["b"] == defaults["b"]
-    True
-    >>> sorted(merged["d"].items())
-    [('da', 4), ('db', 6)]
-
-    >>> merged["grid"]
-    {'RasterModelGrid': []}
-    """
-    defaults = {} if defaults is None else defaults
-
-    merged = {**defaults, **user}
-    for k, v in merged.items():
-        if isinstance(v, dict):
-            default_value = defaults.get(k)
-            if k == "grid" or not isinstance(default_value, dict):
-                default_value = None
-
-            merged[k] = _merge_params(v, defaults=default_value)
-
-    return merged
-
-
-def _resolve_array_filepaths(params: dict[str, Any]) -> dict[str, Any]:
-    """Return new parameters with array filepath references resolved.
-
-    Dictionary values containing an ``"_filepath"`` key are replaced by
-    arrays loaded from the referenced files. Nested parameter dictionaries
-    are processed recursively.
-
-    Parameters
-    ----------
-    params : dict
-        Parameter dictionary that may contain array filepath references.
-
-    Returns
-    -------
-    resolved : dict
-        A new parameter dictionary containing the resolved arrays.
-    """
-    resolved = {}
-    for key, value in params.items():
-        if isinstance(value, dict):
-            if "_filepath" in value:
-                resolved[key] = np.load(value["_filepath"])
-            else:
-                resolved[key] = _resolve_array_filepaths(value)
-        else:
-            resolved[key] = value
-    return resolved
-
-
-class _FilenameSequence:
-    def __init__(self, base_name: str, *, ndigits: int = 0, ext: str = "") -> None:
-        self._base_name = base_name
-        self._ndigits = require_nonnegative(ndigits, name="ndigits")
-        self._ext = ext
-        self._frame = 0
-
-    def __next__(self) -> str:
-        self._frame += 1
-        return self._build_filename()
-
-    def __iter__(self) -> Self:
-        return self
-
-    def _build_filename(self) -> str:
-        return f"{self._base_name}" f"{self._frame:0{self._ndigits}d}" f"{self._ext}"
-
-
-class _GridSaver:
-    EXTENSIONS = {
-        "grid": ".grid",
-        "netcdf": ".nc",
-        "vtk": ".vtk",
-    }
-
-    def __init__(
-        self,
-        grid: ModelGrid,
-        base_name: str,
-        *,
-        fmt="grid",
-        ndigits: int = 4,
-    ) -> None:
-        fmt = require_one_of(fmt, allowed=_GridSaver.EXTENSIONS, name="fmt")
-        self._filenames = _FilenameSequence(
-            base_name, ndigits=ndigits, ext=self.EXTENSIONS[fmt]
-        )
-
-        self._grid = grid
-
-        self._write = getattr(self, f"_write_{fmt}")
-
-    def __call__(self, time: float) -> None:
-        self.save()
-
-    def save(self) -> str:
-        filename = next(self._filenames)
-        self._write(filename)
-        return filename
-
-    def _write_grid(self, filename: str) -> None:
-        save_grid(self._grid, filename, clobber=True)
-
-    def _write_netcdf(self, filename: str) -> None:
-        write_netcdf(filename, self._grid)
-
-    def _write_vtk(self, filename: str) -> None:
-        write_legacy_vtk(filename, self._grid, clobber=True)
-
-
 class Model:
     """Base class for a time-dependent, grid-based Landlab model.
 
@@ -445,6 +304,147 @@ class Model:
             model clock.
         """
         self._runner.run(run_duration, dt=dt)
+
+
+def _merge_params(
+    user: dict[str, Any],
+    *,
+    defaults: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Merge parameters with defaults, returning a new nested dictionary.
+
+    Merge default parameters into the user-parameter dictionary, adding
+    defaults where user values are absent. Nested dictionaries are merged
+    recursively, except for ``grid``, which is treated as a single value.
+
+    Parameters
+    ----------
+    user : dict
+        dict containing names and values of user-defined parameters
+    defaults : dict, optional
+        dict containing all parameter names and their default values
+
+    Returns
+    -------
+    merged : dict
+        The merged parameters.
+
+    Examples
+    --------
+    >>> user = {"a": 1, "d": {"da": 4}, "e": 5, "grid": {"RasterModelGrid": []}}
+    >>> defaults = {"a": 2, "b": 3, "d": {"db": 6}, "grid": {"HexModelGrid": []}}
+    >>> merged = _merge_params(user, defaults=defaults)
+    >>> merged["a"] == user["a"]
+    True
+    >>> merged["b"] == defaults["b"]
+    True
+    >>> sorted(merged["d"].items())
+    [('da', 4), ('db', 6)]
+
+    >>> merged["grid"]
+    {'RasterModelGrid': []}
+    """
+    defaults = {} if defaults is None else defaults
+
+    merged = {**defaults, **user}
+    for k, v in merged.items():
+        if isinstance(v, dict):
+            default_value = defaults.get(k)
+            if k == "grid" or not isinstance(default_value, dict):
+                default_value = None
+
+            merged[k] = _merge_params(v, defaults=default_value)
+
+    return merged
+
+
+def _resolve_array_filepaths(params: dict[str, Any]) -> dict[str, Any]:
+    """Return new parameters with array filepath references resolved.
+
+    Dictionary values containing an ``"_filepath"`` key are replaced by
+    arrays loaded from the referenced files. Nested parameter dictionaries
+    are processed recursively.
+
+    Parameters
+    ----------
+    params : dict
+        Parameter dictionary that may contain array filepath references.
+
+    Returns
+    -------
+    resolved : dict
+        A new parameter dictionary containing the resolved arrays.
+    """
+    resolved = {}
+    for key, value in params.items():
+        if isinstance(value, dict):
+            if "_filepath" in value:
+                resolved[key] = np.load(value["_filepath"])
+            else:
+                resolved[key] = _resolve_array_filepaths(value)
+        else:
+            resolved[key] = value
+    return resolved
+
+
+class _FilenameSequence:
+    def __init__(self, base_name: str, *, ndigits: int = 0, ext: str = "") -> None:
+        self._base_name = base_name
+        self._ndigits = require_nonnegative(ndigits, name="ndigits")
+        self._ext = ext
+        self._frame = 0
+
+    def __next__(self) -> str:
+        self._frame += 1
+        return self._build_filename()
+
+    def __iter__(self) -> Self:
+        return self
+
+    def _build_filename(self) -> str:
+        return f"{self._base_name}" f"{self._frame:0{self._ndigits}d}" f"{self._ext}"
+
+
+class _GridSaver:
+    EXTENSIONS = {
+        "grid": ".grid",
+        "netcdf": ".nc",
+        "vtk": ".vtk",
+    }
+
+    def __init__(
+        self,
+        grid: ModelGrid,
+        base_name: str,
+        *,
+        fmt="grid",
+        ndigits: int = 4,
+    ) -> None:
+        fmt = require_one_of(fmt, allowed=_GridSaver.EXTENSIONS, name="fmt")
+        self._filenames = _FilenameSequence(
+            base_name, ndigits=ndigits, ext=self.EXTENSIONS[fmt]
+        )
+
+        self._grid = grid
+
+        self._write = getattr(self, f"_write_{fmt}")
+
+    def __call__(self, time: float) -> None:
+        self.save()
+
+    def save(self) -> str:
+        filename = next(self._filenames)
+        self._write(filename)
+        return filename
+
+    def _write_grid(self, filename: str) -> None:
+        save_grid(self._grid, filename, clobber=True)
+
+    def _write_netcdf(self, filename: str) -> None:
+        write_netcdf(filename, self._grid)
+
+    def _write_vtk(self, filename: str) -> None:
+        write_legacy_vtk(filename, self._grid, clobber=True)
 
 
 def _setup_grid(params: dict) -> ModelGrid:
