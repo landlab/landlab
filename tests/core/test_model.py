@@ -261,17 +261,6 @@ def test_model_from_params_uses_subclass_defaults():
     assert model.dt == 0.25
 
 
-@pytest.mark.parametrize("times", ([0.0, 1.0], [1.0]))
-def test_model_prepares_save_schedule(times):
-    model = Model(
-        RasterModelGrid((3, 4)),
-        clock=Clock(start=0.0, stop=2.0),
-        params={"events": {"save": {"times": times}}},
-    )
-
-    assert model._runner._events["save"].next_time == 1.0
-
-
 def test_model_default_actions(capsys):
     model = Model(
         RasterModelGrid((3, 4)),

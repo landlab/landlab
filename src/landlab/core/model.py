@@ -176,10 +176,6 @@ class Model:
             },
         )
 
-        if "save" in events:
-            if events["save"].schedule.is_due(clock.start):
-                events["save"].schedule.advance()
-
         save_params = event_params.get("save", {})
         self._saver = _GridSaver(
             grid,
