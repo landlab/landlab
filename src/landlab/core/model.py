@@ -258,7 +258,7 @@ class Model:
 
     def plot(self, current_time: float = 0.0) -> None:
         """Virtual function for plotting; to be overridden."""
-        raise NotImplementedError("plot")
+        raise NotImplementedError(f"{type(self).__name__} must implement plot()")
 
     def save(self, current_time: float) -> None:
         """Save a grid."""
@@ -270,7 +270,7 @@ class Model:
 
         The derived class should override this function.
         """
-        pass
+        raise NotImplementedError(f"{type(self).__name__} must implement update()")
 
     def update_until(self, update_to_time: float, dt: float) -> None:
         """Advance the model to an absolute model time.

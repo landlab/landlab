@@ -282,8 +282,11 @@ def test_model_default_actions(capsys):
     model.report(0.5)
     assert capsys.readouterr().out == "time = 0.5\n"
 
-    with pytest.raises(NotImplementedError, match="^plot$"):
+    with pytest.raises(NotImplementedError, match="^Model must implement plot"):
         model.plot()
+
+    with pytest.raises(NotImplementedError, match="^Model must implement update"):
+        model.update(0.5)
 
     with patch("landlab.core.model.save_grid") as writer:
         model.save(0.5)
@@ -291,7 +294,11 @@ def test_model_default_actions(capsys):
 
 
 def test_model_delegates_time_stepping_to_runner():
-    model = Model(
+    class FrogModel(Model):
+        def update(self, dt):
+            pass
+
+    model = FrogModel(
         RasterModelGrid((3, 4)),
         clock=Clock(stop=2.0, step=0.5),
         params={},
