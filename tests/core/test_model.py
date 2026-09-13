@@ -1,5 +1,6 @@
 from contextlib import chdir
 from itertools import islice
+from types import MappingProxyType
 from unittest.mock import patch
 
 import numpy as np
@@ -197,6 +198,17 @@ def test_merge_params_dict_overrides_non_dict_default():
     assert actual == {"value": {"dict": 1}}
 
 
+def test_merge_params_accepts_nested_mappings():
+    user = MappingProxyType({"nested": MappingProxyType({"user": 1})})
+    defaults = MappingProxyType({"nested": MappingProxyType({"default": 2})})
+
+    actual = _merge_params(user, defaults=defaults)
+
+    assert actual == {"nested": {"user": 1, "default": 2}}
+    assert isinstance(actual, dict)
+    assert isinstance(actual["nested"], dict)
+
+
 def test_model_init_uses_in_memory_grid_and_params(model_params):
     clock = Clock(start=0.0, stop=100.0, step=0.25)
     model_params.pop("grid")
@@ -280,6 +292,20 @@ def test_model_default_actions(capsys):
     with patch("landlab.core.model.save_grid") as writer:
         model.save(0.5)
     writer.assert_called_once()
+
+
+def test_model_runs_custom_action():
+    calls = []
+    model = Model(
+        RasterModelGrid((3, 4)),
+        clock=Clock(stop=1.0),
+        params={"events": {"custom": {"times": [0.0]}}},
+        actions={"custom": calls.append},
+    )
+
+    model.run(duration=0.0)
+
+    assert calls == [0.0]
 
 
 def test_model_delegates_time_stepping_to_runner():
@@ -411,12 +437,19 @@ def test_resolve_array_filepaths(tmp_path):
     np.save(tmp_path / "test2", expected_2d)
     np.save(tmp_path / "test3", expected_col)
 
-    p = {
-        "a": 123,
-        "b": {"c": 456, "d": {"_filepath": "test1.npy"}},
-        "e": {"_filepath": "test2.npy"},
-        "f": {"_filepath": "test3.npy"},
-    }
+    p = MappingProxyType(
+        {
+            "a": 123,
+            "b": MappingProxyType(
+                {
+                    "c": 456,
+                    "d": MappingProxyType({"_filepath": "test1.npy"}),
+                }
+            ),
+            "e": MappingProxyType({"_filepath": "test2.npy"}),
+            "f": MappingProxyType({"_filepath": "test3.npy"}),
+        }
+    )
     with chdir(tmp_path):
         actual = _resolve_array_filepaths(p)
 

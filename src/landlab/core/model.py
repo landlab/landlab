@@ -93,6 +93,7 @@ from __future__ import annotations
 
 import os
 import tomllib
+from collections.abc import Mapping
 from typing import Any
 from typing import ClassVar
 from typing import Self
@@ -129,7 +130,7 @@ class Model:
         Grid shared by the model's components.
     clock : Clock
         Start time, stop time, and default time-step duration.
-    params : dict
+    params : mapping
         Model parameters. The ``events`` section configures the scheduled
         events.
 
@@ -142,14 +143,14 @@ class Model:
     """
 
     # Default parameters, to be overridden in derived classes
-    DEFAULT_PARAMS: ClassVar[dict[str, Any]] = {}
+    DEFAULT_PARAMS: ClassVar[Mapping[str, Any]] = {}
 
     def __init__(
         self,
         grid: ModelGrid,
         *,
         clock: Clock,
-        params: dict[str, Any],
+        params: Mapping[str, Any],
     ) -> None:
         """Initialize the model.
 
@@ -159,8 +160,8 @@ class Model:
             A Landlab `ModelGrid`.
         clock : Clock
             Start time, stop time, and default time-step duration.
-        params : dict
-            Dictionary containing names and values of model parameters
+        params : mapping
+            Mapping containing names and values of model parameters.
         """
         self.grid = grid
         self.params = params
@@ -216,7 +217,7 @@ class Model:
         return cls.from_params(params=params)
 
     @classmethod
-    def from_params(cls, params: dict[str, Any] | None = None) -> Self:
+    def from_params(cls, params: Mapping[str, Any] | None = None) -> Self:
         """Create a model from a parameter dictionary.
 
         User parameters are merged with :attr:`DEFAULT_PARAMS`, references to
@@ -225,7 +226,7 @@ class Model:
 
         Parameters
         ----------
-        params : dict, optional
+        params : mapping, optional
             Model parameters that override :attr:`DEFAULT_PARAMS`.
 
         Returns
@@ -299,9 +300,9 @@ class Model:
 
 
 def _merge_params(
-    user: dict[str, Any],
+    user: Mapping[str, Any],
     *,
-    defaults: dict[str, Any] | None = None,
+    defaults: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Merge parameters with defaults, returning a new nested dictionary.
 
@@ -311,10 +312,10 @@ def _merge_params(
 
     Parameters
     ----------
-    user : dict
-        dict containing names and values of user-defined parameters
-    defaults : dict, optional
-        dict containing all parameter names and their default values
+    user : mapping
+        Names and values of user-defined parameters.
+    defaults : mapping, optional
+        Default parameter names and values.
 
     Returns
     -------
@@ -340,9 +341,9 @@ def _merge_params(
 
     merged = {**defaults, **user}
     for k, v in merged.items():
-        if isinstance(v, dict):
+        if isinstance(v, Mapping):
             default_value = defaults.get(k)
-            if k == "grid" or not isinstance(default_value, dict):
+            if k == "grid" or not isinstance(default_value, Mapping):
                 default_value = None
 
             merged[k] = _merge_params(v, defaults=default_value)
@@ -350,7 +351,7 @@ def _merge_params(
     return merged
 
 
-def _resolve_array_filepaths(params: dict[str, Any]) -> dict[str, Any]:
+def _resolve_array_filepaths(params: Mapping[str, Any]) -> dict[str, Any]:
     """Return new parameters with array filepath references resolved.
 
     Dictionary values containing an ``"_filepath"`` key are replaced by
@@ -359,8 +360,8 @@ def _resolve_array_filepaths(params: dict[str, Any]) -> dict[str, Any]:
 
     Parameters
     ----------
-    params : dict
-        Parameter dictionary that may contain array filepath references.
+    params : mapping
+        Parameters that may contain array filepath references.
 
     Returns
     -------
@@ -369,7 +370,7 @@ def _resolve_array_filepaths(params: dict[str, Any]) -> dict[str, Any]:
     """
     resolved = {}
     for key, value in params.items():
-        if isinstance(value, dict):
+        if isinstance(value, Mapping):
             if "_filepath" in value:
                 resolved[key] = np.load(value["_filepath"])
             else:
@@ -439,13 +440,13 @@ class _GridSaver:
         write_legacy_vtk(filename, self._grid, clobber=True)
 
 
-def _setup_grid(params: dict) -> ModelGrid:
+def _setup_grid(params: Mapping[str, Any]) -> ModelGrid:
     """Load or create the grid.
 
     Parameters
     ----------
-    params : dict
-        Dictionary containing parameters related grid setup.
+    params : mapping
+        Parameters related to grid setup.
 
     Notes
     -----
@@ -491,7 +492,7 @@ def _setup_grid(params: dict) -> ModelGrid:
     )
 
     if source == "create":
-        return create_grid(params, section="create_grid")
+        return create_grid(dict(params), section="create_grid")
 
     if source == "file":
         return load_grid(params["grid_file_name"])

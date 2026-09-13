@@ -290,7 +290,7 @@ def _iter_scheduled_times(
 
 
 def _build_events(
-    params: dict[str, Any],
+    params: Mapping[str, Mapping[str, Any]],
     *,
     clock: Clock,
     actions: Mapping[str, Callable[[float], None]],
