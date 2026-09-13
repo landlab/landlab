@@ -236,7 +236,7 @@ def _iter_pause_times(
         require_positive(schedule, name="pause interval")
         if not np.isfinite(schedule):
             raise ValueError("pause interval must be finite")
-        for step in count():
+        for step in count():  # pragma: no branch
             next_pause = start + step * schedule
             if next_pause > stop:
                 break
