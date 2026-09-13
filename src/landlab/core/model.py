@@ -93,6 +93,7 @@ from __future__ import annotations
 
 import os
 import tomllib
+from collections.abc import Callable
 from collections.abc import Mapping
 from typing import Any
 from typing import ClassVar
@@ -151,6 +152,7 @@ class Model:
         *,
         clock: Clock,
         params: Mapping[str, Any],
+        actions: Mapping[str, Callable[[float], None]] | None = None,
     ) -> None:
         """Initialize the model.
 
@@ -162,20 +164,24 @@ class Model:
             Start time, stop time, and default time-step duration.
         params : mapping
             Mapping containing names and values of model parameters.
+        actions : mapping of str to callable, optional
+            Additional named actions available to configured events. Each action
+            is called with the current model time. Supplied actions replace
+            built-in actions with the same name.
         """
         self.grid = grid
         self.params = params
 
+        registered_actions = {
+            "plot": self.plot,
+            "report": self.report,
+            "save": self.save,
+        }
+        if actions is not None:
+            registered_actions.update(actions)
+
         event_params = params.get("events", {})
-        events = _build_events(
-            event_params,
-            clock=clock,
-            actions={
-                "plot": self.plot,
-                "report": self.report,
-                "save": self.save,
-            },
-        )
+        events = _build_events(event_params, clock=clock, actions=registered_actions)
 
         save_params = event_params.get("save", {})
         self._saver = _GridSaver(
