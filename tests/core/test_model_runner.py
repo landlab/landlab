@@ -248,6 +248,17 @@ def test_model_runner_run_without_events():
     assert runner.current_time == 3.5
 
 
+def test_model_runner_run_uses_explicit_duration_and_step():
+    model = Mock()
+    runner = ModelRunner(model, clock=Clock(start=1.0, stop=5.0, step=2.0))
+
+    runner.run(run_duration=1.5, dt=0.5)
+
+    actual_steps = [call.args[0] for call in model.update.call_args_list]
+    assert actual_steps == [0.5, 0.5, 0.5]
+    assert runner.current_time == 2.5
+
+
 def test_model_runner_run_stops_at_clock_stop_after_partial_update():
     model = Mock()
     runner = ModelRunner(model, clock=Clock(start=1.0, stop=5.0, step=1.0))

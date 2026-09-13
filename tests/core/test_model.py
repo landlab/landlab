@@ -244,6 +244,67 @@ def test_model_from_params_returns_subclass(model_params):
     assert isinstance(FrogModel.from_params(model_params), FrogModel)
 
 
+def test_model_from_params_uses_subclass_defaults():
+    class FrogModel(Model):
+        DEFAULT_PARAMS = {
+            "grid": {
+                "source": "create",
+                "create_grid": {"RasterModelGrid": {"shape": (3, 4)}},
+            },
+            "clock": {"start": 1.0, "stop": 2.0, "step": 0.25},
+        }
+
+    model = FrogModel.from_params()
+
+    assert isinstance(model.grid, RasterModelGrid)
+    assert model.grid.shape == (3, 4)
+    assert model.current_time == 1.0
+    assert model.dt == 0.25
+
+
+@pytest.mark.parametrize("times", ([0.0, 1.0], [1.0]))
+def test_model_prepares_save_schedule(times):
+    model = Model(
+        RasterModelGrid((3, 4)),
+        clock=Clock(start=0.0, stop=2.0),
+        params={"events": {"save": {"times": times}}},
+    )
+
+    assert model._runner._events["save"].next_time == 1.0
+
+
+def test_model_default_actions(capsys):
+    model = Model(
+        RasterModelGrid((3, 4)),
+        clock=Clock(stop=1.0),
+        params={},
+    )
+
+    model.report(0.5)
+    assert capsys.readouterr().out == "time = 0.5\n"
+
+    with pytest.raises(NotImplementedError, match="^plot$"):
+        model.plot()
+
+    with patch("landlab.core.model.save_grid") as writer:
+        model.save(0.5)
+    writer.assert_called_once()
+
+
+def test_model_delegates_time_stepping_to_runner():
+    model = Model(
+        RasterModelGrid((3, 4)),
+        clock=Clock(stop=2.0, step=0.5),
+        params={},
+    )
+
+    model.update_until(0.5, dt=0.25)
+    assert model.current_time == 0.5
+
+    model.run(run_duration=0.5, dt=0.25)
+    assert model.current_time == 1.0
+
+
 def test_model_from_toml_file(tmp_path):
     input_file = tmp_path / "model.toml"
     input_file.write_text("""
