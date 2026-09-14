@@ -15,10 +15,10 @@ class SoilDepthEvolver(Component):
     allowing the user to choose the transport formulation independently.
 
     Soil is produced according to an exponential soil-production function::
-        
+
       production_rate = rock_to_soil_density_ratio
                       * maximum_production_rate
-                      * exp(-soil_depth / decay_depth)  
+                      * exp(-soil_depth / decay_depth)
 
     where ``P`` is the soil-production rate, ``rho_r`` is rock density,
     ``rho_s`` is soil density, ``P_0`` is the maximum soil-production
