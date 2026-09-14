@@ -14,12 +14,11 @@ class SoilDepthEvolver(Component):
     The component tracks changes in soil thickness through time while
     allowing the user to choose the transport formulation independently.
 
-    Soil is produced according to an exponential soil-production function,
-
-    .. math::
-
-        P = \\frac{\\rho_r}{\\rho_s} P_0
-            \\exp\\left(-\\frac{H}{H_0}\\right),
+    Soil is produced according to an exponential soil-production function::
+        
+      production_rate = rock_to_soil_density_ratio
+                      * maximum_production_rate
+                      * exp(-soil_depth / decay_depth)  
 
     where ``P`` is the soil-production rate, ``rho_r`` is rock density,
     ``rho_s`` is soil density, ``P_0`` is the maximum soil-production
@@ -47,7 +46,8 @@ class SoilDepthEvolver(Component):
     the same grid, update ``topographic__elevation``, and provide a
     ``run_one_step(dt)`` method.
 
-    ## Notes
+    Notes
+    --------
 
     This component was developed in support of the RESET (Recurring Soil
     Evacuation in Topographic Hollows) modeling framework, which couples
@@ -162,14 +162,18 @@ class SoilDepthEvolver(Component):
 
         super().__init__(grid)
 
-        soil_production_rate = require_nonnegative(
-            soil_production_rate,
-            name="soil_production_rate",
+        self._maximum_production_rate = float(
+            require_nonnegative(
+                soil_production_rate,
+                name="soil_production_rate",
+            )
         )
 
-        soil_production_decay_depth = require_positive(
-            soil_production_decay_depth,
-            name="soil_production_decay_depth",
+        self._production_decay_depth = float(
+            require_nonnegative(
+                soil_production_decay_depth,
+                name="soil_production_decay_depth",
+            )
         )
 
         rock_density = require_positive(
@@ -181,12 +185,6 @@ class SoilDepthEvolver(Component):
             soil_density,
             name="soil_density",
         )
-
-        self._maximum_production_rate = float(soil_production_rate)
-        self._production_decay_depth = float(soil_production_decay_depth)
-
-        self._rock_density = float(rock_density)
-        self._soil_density = float(soil_density)
 
         self._density_ratio = self._rock_density / self._soil_density
 
