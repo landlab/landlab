@@ -173,14 +173,11 @@ class SoilDepthEvolver(Component):
             )
         )
 
-        
         self._rock_to_soil_density_ratio = float(
             require_positive(
-                rock_to_soil_density_ratio,
-                name="rock_to_soil_density_ratio"
+                rock_to_soil_density_ratio, name="rock_to_soil_density_ratio"
             )
         )
-
 
         # Diffuser is created in the driver and passed in.
         self._diffuser = diffuser
