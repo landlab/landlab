@@ -114,11 +114,10 @@ class SoilDepthEvolver(Component):
         self,
         grid,
         *,
-        diffuser,
+        diffuser=None,
         soil_production_rate: float = 0.0003,
         soil_production_decay_depth: float = 0.5,
-        rock_density: float = 2000.0,
-        soil_density: float = 1600.0,
+        rock_to_soil_density_ratio: float = 1.25,
     ) -> None:
         """SoilDepthEvolver.
 
@@ -141,10 +140,11 @@ class SoilDepthEvolver(Component):
         grid : ModelGrid
             Landlab grid containing ``topographic__elevation`` and
             ``soil__depth`` at nodes.
-        diffuser : Landlab Component
-            Hillslope-transport component operating on the same grid. The
-            component must provide ``run_one_step(dt)`` and update
-            ``topographic__elevation``.
+        diffuser : Landlab Component or None, optional
+            Hillslope-transport component operating on the same grid. If provided,
+            the component must provide ``run_one_step(dt)`` and update
+            ``topographic__elevation``. If None, no sediment transport is applied.
+            Default is None.
         soil_production_rate : float, optional
             Maximum soil-production rate for zero soil thickness, in meters
             per year. Must be nonnegative. Default is 0.0003 m/yr.
@@ -152,12 +152,9 @@ class SoilDepthEvolver(Component):
             Characteristic soil depth controlling the exponential decline in
             soil-production rate, in meters. Must be positive. Default is
             0.5 m.
-        rock_density : float, optional
-            Density of parent rock, in kilograms per cubic meter. Must be
-            positive. Default is 2000 kg/m3.
-        soil_density : float, optional
-            Bulk density of produced soil, in kilograms per cubic meter.
-            Must be positive. Default is 1600 kg/m3.
+        rock_to_soil_density_ratio : float, optional
+            Ratio of parent-rock density to produced-soil bulk density.
+            Must be positive. Default is 1.25.
         """
 
         super().__init__(grid)
@@ -170,35 +167,23 @@ class SoilDepthEvolver(Component):
         )
 
         self._production_decay_depth = float(
-            require_nonnegative(
+            require_positive(
                 soil_production_decay_depth,
                 name="soil_production_decay_depth",
             )
         )
 
-        rock_density = require_positive(
-            rock_density,
-            name="rock_density",
+        
+        self._rock_to_soil_density_ratio = float(
+            require_positive(
+                rock_to_soil_density_ratio,
+                name="rock_to_soil_density_ratio"
+            )
         )
 
-        soil_density = require_positive(
-            soil_density,
-            name="soil_density",
-        )
-
-        self._density_ratio = self._rock_density / self._soil_density
 
         # Diffuser is created in the driver and passed in.
         self._diffuser = diffuser
-
-        # Landlab fields
-        self._elevation = self.grid.at_node["topographic__elevation"]
-
-        self._soil_depth = self.grid.at_node["soil__depth"]
-
-        if np.any(self._soil_depth < 0.0):
-            raise ValueError("soil__depth cannot contain negative values.")
-
         self._current_time = 0.0
 
     def run_one_step(self, dt: float) -> dict:
@@ -220,33 +205,41 @@ class SoilDepthEvolver(Component):
         if not np.isfinite(dt) or dt <= 0.0:
             raise ValueError("dt must be a positive, finite number.")
 
-        elevation_before = self._elevation.copy()
-        soil_depth_before = self._soil_depth.copy()
+        elevation = self.grid.at_node["topographic__elevation"]
+        soil_depth = self.grid.at_node["soil__depth"]
+
+        if np.any(soil_depth < 0.0):
+            raise ValueError("soil__depth cannot contain negative values.")
+
+        elevation_before = elevation.copy()
+        soil_depth_before = soil_depth.copy()
 
         production_rate = (
-            self._density_ratio
+            self._rock_to_soil_density_ratio
             * self._maximum_production_rate
-            * np.exp(-self._soil_depth / self._production_decay_depth)
+            * np.exp(-soil_depth / self._production_decay_depth)
         )
 
         soil_produced = production_rate * dt
 
-        self._diffuser.run_one_step(dt)
+        if self._diffuser is not None:
+            self._diffuser.run_one_step(dt)
 
-        elevation_change = self._elevation - elevation_before
+        elevation_change = elevation - elevation_before
 
         self._update_soil_depth(
+            soil_depth=soil_depth,
             soil_depth_before=soil_depth_before,
             elevation_change=elevation_change,
             soil_produced=soil_produced,
         )
 
-        soil_depth_change = self._soil_depth - soil_depth_before
+        soil_depth_change = soil_depth - soil_depth_before
 
         self._current_time += dt
 
         return {
-            "soil_depth": self._soil_depth.copy(),
+            "soil_depth": soil_depth.copy(),
             "elevation_change": elevation_change,
             "soil_depth_change": soil_depth_change,
             "soil_produced": soil_produced,

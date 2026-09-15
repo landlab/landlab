@@ -99,8 +99,8 @@ def test_zero_decay_depth_raises(grid):
         )
 
 
-def test_zero_rock_density_raises(grid):
-    """Rock density must be positive."""
+def test_zero_density_ratio_raises(grid):
+    """Rock-to-soil density ratio must be positive."""
 
     diffuser = DummyDiffuser(grid)
 
@@ -108,20 +108,7 @@ def test_zero_rock_density_raises(grid):
         SoilDepthEvolver(
             grid,
             diffuser=diffuser,
-            rock_density=0.0,
-        )
-
-
-def test_zero_soil_density_raises(grid):
-    """Soil density must be positive."""
-
-    diffuser = DummyDiffuser(grid)
-
-    with pytest.raises(ValueError):
-        SoilDepthEvolver(
-            grid,
-            diffuser=diffuser,
-            soil_density=0.0,
+            rock_to_soil_density_ratio=0.0,
         )
 
 
@@ -215,13 +202,12 @@ def test_soil_production_equation(grid):
         diffuser=diffuser,
         soil_production_rate=0.0003,
         soil_production_decay_depth=0.5,
-        rock_density=2000.0,
-        soil_density=1600.0,
+        rock_to_soil_density_ratio=1.25,
     )
 
     result = component.run_one_step(1.0)
 
-    expected = (2000.0 / 1600.0) * 0.0003 * np.exp(-0.5 / 0.5)
+    expected = 1.25 * 0.0003 * np.exp(-0.5 / 0.5)
 
     np.testing.assert_allclose(
         result["production_rate"],
@@ -323,13 +309,12 @@ def test_exhausted_soil_retains_new_production(grid):
         diffuser=diffuser,
         soil_production_rate=0.001,
         soil_production_decay_depth=0.5,
-        rock_density=2000.0,
-        soil_density=1600.0,
+        rock_to_soil_density_ratio=1.25,
     )
 
     result = component.run_one_step(1.0)
 
-    expected_production = (2000.0 / 1600.0) * 0.001 * np.exp(-0.5 / 0.5)
+    expected_production = 1.25 * 0.001 * np.exp(-0.5 / 0.5)
 
     np.testing.assert_allclose(
         result["soil_depth"],
@@ -417,8 +402,7 @@ def test_with_taylor_nonlinear_diffuser():
         diffuser=diffuser,
         soil_production_rate=0.0003,
         soil_production_decay_depth=0.5,
-        rock_density=2000.0,
-        soil_density=1600.0,
+        rock_to_soil_density_ratio=1.25,
     )
 
     result = component.run_one_step(1.0)
