@@ -1,5 +1,5 @@
 bmipy==2.0.1
-matplotlib==3.11.1
+matplotlib==3.11.2
 netcdf4==1.7.4
 numpy==2.5.3
 pandas==3.0.5
