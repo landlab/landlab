@@ -92,3 +92,4 @@ test-results.xml
 
 # nox virtual envs
 .nox
+.virtual_documents/
