@@ -835,33 +835,30 @@ class DataRecord:
         if time is None:
             self._dataset[data_variable].values[item_id] = new_value
         else:
-            try:
-                len(time)
-            except TypeError as exc:
-                raise TypeError("time must be a list or a 1-d array") from exc
-            try:
-                # check that time coordinate already exists
-                time_index = np.where(self._dataset.time.values == time)[0][0]
-            except IndexError as exc:
+            with raise_as(TypeError):
+                time = require_shape(np.asarray(time), shape=("n",), name="time")
+            time_index = np.flatnonzero(self._dataset.time.values == time)
+            if len(time_index) == 0:
                 raise IndexError(
                     "The time you passed is not currently"
                     " in the DataRecord, you must change the value"
-                    " you pass or first create the new time "
+                    " you pass or first create the new time"
                     " coordinate using the add_record method"
-                ) from exc
+                )
+            time_index = time_index[0]
 
             if item_id is None:
                 self._dataset[data_variable].values[time_index] = new_value
             else:
-                try:
-                    len(item_id)
-                except TypeError as exc:
-                    raise TypeError("item_id must be a list or a 1-d array") from exc
-                try:
-                    self._dataset["item_id"]
-                    self._dataset[data_variable].values[item_id, time_index] = new_value
-                except KeyError as exc:
-                    raise KeyError("This DataRecord does not hold items") from exc
+                with raise_as(TypeError):
+                    item_id = require_shape(item_id, shape=("n",), name="item_id")
+                with raise_as(KeyError):
+                    require_contains(
+                        self._dataset.sizes,
+                        required=("item_id",),
+                        name="dataset dimensions",
+                    )
+                self._dataset[data_variable].values[item_id, time_index] = new_value
 
     def calc_aggregate_value(
         self,

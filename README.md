@@ -1,14 +1,13 @@
-![[DOI][doi-link]][doi-badge]
-![[Documentation][rtd-link]][rtd-badge]
-![[Coverage][coveralls-link]][coveralls-badge]
-![[Testing][test-link]][test-badge]
-![[pre-commit.ci status][lint-link]][lint-badge]
+[![DOI][doi-badge]][doi-link]
+[![Documentation][rtd-badge]][rtd-link]
+[![Coverage][codecov-badge]][codecov-link]
+[![Testing][test-badge]][test-link]
+[![pre-commit.ci status][lint-badge]][lint-link]
 
-
-[coveralls-badge]: https://coveralls.io/repos/landlab/landlab/badge.png
-[coveralls-link]: https://coveralls.io/r/landlab/landlab
-[doi-badge]: https://zenodo.org/badge/DOI/10.5281/zenodo.3776837.svg
-[doi-link]: https://doi.org/10.5281/zenodo.3776837
+[codecov-badge]: https://codecov.io/gh/landlab/landlab/graph/badge.svg
+[codecov-link]: https://codecov.io/gh/landlab/landlab
+[doi-badge]: https://zenodo.org/badge/DOI/10.5281/zenodo.595872.svg
+[doi-link]: https://doi.org/10.5281/zenodo.595872
 [lint-badge]: https://results.pre-commit.ci/badge/github/landlab/landlab/master.svg
 [lint-link]: https://results.pre-commit.ci/latest/github/landlab/landlab/master
 [rtd-badge]:https://readthedocs.org/projects/landlab/badge/?version=latest

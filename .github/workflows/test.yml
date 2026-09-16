@@ -49,18 +49,23 @@ jobs:
           - { os: macos-15-intel, cibw-only: cp312-macosx_x86_64 }
           - { os: macos-15-intel, cibw-only: cp313-macosx_x86_64 }
           - { os: macos-15-intel, cibw-only: cp314-macosx_x86_64 }
+          - { os: macos-15-intel, cibw-only: cp315-macosx_x86_64 }
           - { os: macos-latest, cibw-only: cp312-macosx_arm64 }
           - { os: macos-latest, cibw-only: cp313-macosx_arm64 }
           - { os: macos-latest, cibw-only: cp314-macosx_arm64 }
+          - { os: macos-latest, cibw-only: cp315-macosx_arm64 }
           - { os: ubuntu-latest, cibw-only: cp312-manylinux_x86_64 }
           - { os: ubuntu-latest, cibw-only: cp313-manylinux_x86_64 }
           - { os: ubuntu-latest, cibw-only: cp314-manylinux_x86_64 }
+          - { os: ubuntu-latest, cibw-only: cp315-manylinux_x86_64 }
           - { os: ubuntu-24.04-arm, cibw-only: cp312-manylinux_aarch64 }
           - { os: ubuntu-24.04-arm, cibw-only: cp313-manylinux_aarch64 }
           - { os: ubuntu-24.04-arm, cibw-only: cp314-manylinux_aarch64 }
+          - { os: ubuntu-24.04-arm, cibw-only: cp315-manylinux_aarch64 }
           - { os: windows-2022, cibw-only: cp312-win_amd64 }
           - { os: windows-2022, cibw-only: cp313-win_amd64 }
           - { os: windows-2022, cibw-only: cp314-win_amd64 }
+          - { os: windows-2022, cibw-only: cp315-win_amd64 }
 
     steps:
       - uses: actions/checkout@v7
@@ -82,8 +87,11 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, ubuntu-24.04-arm, macos-15-intel, macos-latest, windows-latest]
-        python-version: ["3.12", "3.13", "3.14"]
+        python-version: ["3.12", "3.13", "3.14", "3.15"]
         pytest-marker: ["slow", "not slow"]
+        exclude:
+          - os: windows-latest
+            python-version: "3.15"
 
     steps:
       - uses: actions/checkout@v7
@@ -117,7 +125,7 @@ jobs:
           MPLBACKEND: "module://matplotlib_inline.backend_inline"
           PYTEST_ADDOPTS: "--overwrite -m '${{ matrix.pytest-marker }}'"
         with:
-          python-version: "3.13"
+          python-version: "3.14"
           nox-session: "test-notebooks"
           upload-name: ${{ matrix.os == 'macos-latest' && format('notebooks-{0}', matrix.pytest-marker) || '' }}
 
@@ -153,10 +161,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
-      - name: Use Python 3.14
+      - name: Use Python 3.15
         uses: actions/setup-python@v7
         with:
-          python-version: '3.14'
+          python-version: '3.15'
+          allow-prereleases: true
 
       - uses: actions/download-artifact@v8
         name: Download build artifact

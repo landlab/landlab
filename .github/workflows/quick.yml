@@ -19,8 +19,8 @@ jobs:
     strategy:
       matrix:
         include:
-          - { cibw-only: cp313-macosx_arm64 }
           - { cibw-only: cp314-macosx_arm64 }
+          - { cibw-only: cp315-macosx_arm64 }
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/build-bdist/
@@ -39,7 +39,7 @@ jobs:
           HYPOTHESIS_PROFILE: "ci"
           MPLBACKEND: "Agg"
         with:
-          python-version: "3.14"
+          python-version: "3.15"
           nox-session: "test"
 
   run-notebooks:
@@ -54,5 +54,5 @@ jobs:
           MPLBACKEND: "module://matplotlib_inline.backend_inline"
           PYTEST_ADDOPTS: "--overwrite"
         with:
-          python-version: "3.13"
+          python-version: "3.14"
           nox-session: "test-notebooks"
