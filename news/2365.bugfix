@@ -1,0 +1,2 @@
+Fixed the error messages raised by `load_params` so that they are
+more informative and less cryptic.
