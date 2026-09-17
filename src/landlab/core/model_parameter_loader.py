@@ -1,5 +1,9 @@
-import os
+import errno
+import pathlib
 import re
+from typing import Any
+from typing import BinaryIO
+from typing import TextIO
 
 import yaml
 
@@ -20,7 +24,17 @@ _loader.add_implicit_resolver(
 )
 
 
-def load_file_contents(file_like):
+class EmptyConfigurationError(ValueError):
+    pass
+
+
+class InvalidConfigurationError(ValueError):
+    pass
+
+
+def load_file_contents(
+    file_like: str | pathlib.Path | TextIO | BinaryIO,
+) -> dict[str, Any]:
     """Load the contents of a file or file-like object.
 
     Parameters
@@ -34,27 +48,41 @@ def load_file_contents(file_like):
     str
         The contents of the file.
     """
+    contents, _ = _read_parameter_source(file_like)
+    return contents
+
+
+def _read_parameter_source(
+    file_like: str | pathlib.Path | TextIO | BinaryIO,
+) -> tuple[str, str]:
     if hasattr(file_like, "read"):
-        return file_like.read()
-    else:
-        if isinstance(file_like, str):
-            try:
-                with open(file_like) as fp:
-                    return fp.read()
-            except (FileNotFoundError, OSError):
-                _, ext = os.path.splitext(file_like)
-                if ext:
-                    raise FileNotFoundError(
-                        f"The parameter file '{file_like}' was not found"
-                    )
-                return file_like
-        else:
-            raise TypeError(
-                f"'{file_like}' must be either a file-like object, a path to a file or a string"
-            )
+        return file_like.read(), "stream"
+
+    if isinstance(file_like, pathlib.Path):
+        with open(file_like) as fp:
+            return fp.read(), "file"
+
+    if isinstance(file_like, str):
+        try:
+            with open(file_like) as fp:
+                return fp.read(), "file"
+        except OSError as error:
+            if error.errno in (
+                errno.EINVAL,
+                errno.ENAMETOOLONG,
+                errno.ENOENT,
+            ):
+                return file_like, "text"
+            raise
+
+    raise TypeError(
+        "'file_like' must be either a file-like object, a path to a file or a string"
+    )
 
 
-def load_params(file_like):
+def load_params(
+    file_like: str | pathlib.Path | TextIO | BinaryIO,
+) -> dict[str, Any]:
     """Load parameters from a YAML style file.
 
     Parameters
@@ -82,23 +110,38 @@ def load_params(file_like):
     >>> params["start"], params["stop"], params["step"]
     (0.0, 10.0, 2.0)
     """
-    contents = load_file_contents(file_like)
+    contents, source = _read_parameter_source(file_like)
+    prefix = f"{file_like}: " if source == "file" else ""
+
     try:
         params = yaml.load(contents, Loader=_loader)
     except yaml.YAMLError as exc:
-        raise ValueError(f"Error parsing YAML content: {exc}") from exc
+        raise InvalidConfigurationError(
+            f"{prefix}could not parse parameters as YAML: {exc}"
+        ) from exc
+
     if params is None:
-        if os.path.isfile(file_like):
-            raise ValueError("File found but is empty")
-        else:
-            raise ValueError("The parameter file is empty")
+        raise EmptyConfigurationError(
+            f"{prefix}expected a parameter dictionary, but YAML content was empty"
+        )
+
     if not isinstance(params, dict):
-        if os.path.isfile(file_like):
-            raise ValueError(
-                f"File found but parsing produced a {type(params).__name__} instead of a dictionary. Ensure that your file uses 'key: value' syntax"
+        msg = (
+            f"expected a parameter dictionary, but YAML parsing produced"
+            f" {type(params).__name__}. Use 'key: value' entries."
+        )
+
+        if source == "text":
+            msg += (
+                " Input could not be opened as a file and did not contain"
+                " a YAML parameter dictionary. If you intended a filename,"
+                " check that the file exists."
             )
-        else:
-            raise ValueError(
-                f"The YAML content was parsed successfully but produced a {type(params).__name__} instead of a dictionary. Ensure that your file uses 'key: value' syntax"
-            )
+
+        raise InvalidConfigurationError(prefix + msg)
+
+    invalid_keys = [key for key in params if not isinstance(key, str)]
+    if invalid_keys:
+        raise InvalidConfigurationError(f"{prefix}parameter names must be strings.")
+
     return params
