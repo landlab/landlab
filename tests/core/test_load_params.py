@@ -6,7 +6,6 @@ from unittest.mock import patch
 import pytest
 import yaml
 
-from landlab.core.model_parameter_loader import EmptyConfigurationError
 from landlab.core.model_parameter_loader import InvalidConfigurationError
 from landlab.core.model_parameter_loader import load_file_contents
 from landlab.core.model_parameter_loader import load_params
@@ -18,43 +17,87 @@ z: [1, 2]
 a: frog
 """
 
-NOT_A_YAML_PARAMS_STR = """
-x: 1e7
-y: 1
-z: [1, 2]
-a: frog
-a
+TOML_PARAMS_STR = """
+x = 1e7
+y = 1
+z = [1, 2]
+a = "frog"
 """
 
-YAML_PARAMS_LIST_STR = """[2,3,2,1]"""
+YAML_PARAMS = {
+    "x": 1e7,
+    "y": 1,
+    "z": [1, 2],
+    "a": "frog",
+}
 
-YAML_PARAMS_EMPTY_STR = """ """
 
-YAML_PARAMS = {"x": 1e7, "y": 1, "z": [1, 2], "a": "frog"}
+@pytest.mark.parametrize("fmt", ("yaml", "toml", None))
+def test_load_with_format(fmt):
+    params = load_params(StringIO(""), fmt=fmt)
+    assert params == {}
 
 
-def test_from_yaml_string():
+@pytest.mark.parametrize("fmt", ("yml", ".yaml", ".toml"))
+def test_bad_format_raises(fmt):
+    with pytest.raises(ValueError, match="^fmt must be one of"):
+        load_params(StringIO(""), fmt=fmt)
+
+
+def test_detect_toml(tmp_path):
+    params_toml = tmp_path / "params.toml"
+    params_toml.write_text("foo = 'bar'")
+    expected = {"foo": "bar"}
+
+    assert load_params(params_toml) == expected
+    assert load_params(str(params_toml)) == expected
+    with open(params_toml, "rb") as stream:
+        assert load_params(stream) == expected
+
+
+@pytest.mark.parametrize(
+    "fmt, contents",
+    (
+        ("toml", TOML_PARAMS_STR),
+        ("yaml", YAML_PARAMS_STR),
+    ),
+)
+def test_from_string(fmt, contents):
     """Load parameters from YAML-formatted string."""
-    params = load_params(YAML_PARAMS_STR)
+    params = load_params(contents, fmt=fmt)
     assert params == YAML_PARAMS
     assert isinstance(params["x"], float)
     assert isinstance(params["y"], int)
 
 
-def test_from_yaml_file_like():
+@pytest.mark.parametrize(
+    "fmt, contents",
+    (
+        ("toml", TOML_PARAMS_STR),
+        ("yaml", YAML_PARAMS_STR),
+    ),
+)
+def test_from_file_like(fmt, contents):
     """Load parameters from YAML-formatted string."""
-    params = load_params(StringIO(YAML_PARAMS_STR))
+    params = load_params(StringIO(contents), fmt=fmt)
     assert params == YAML_PARAMS
     assert isinstance(params["x"], float)
     assert isinstance(params["y"], int)
 
 
-def test_from_yaml_path(tmpdir):
+@pytest.mark.parametrize(
+    "fmt, contents",
+    (
+        ("toml", TOML_PARAMS_STR),
+        ("yaml", YAML_PARAMS_STR),
+    ),
+)
+def test_from_path(tmpdir, fmt, contents):
     """Load parameters from YAML-formatted string."""
     with tmpdir.as_cwd():
         with open("params.yaml", "w") as fp:
-            fp.write(YAML_PARAMS_STR)
-        params = load_params("./params.yaml")
+            fp.write(contents)
+        params = load_params("./params.yaml", fmt=fmt)
     assert params == YAML_PARAMS
     assert isinstance(params["x"], float)
     assert isinstance(params["y"], int)
@@ -82,42 +125,40 @@ def test_read_file_no_extension(tmpdir):
     assert isinstance(params["y"], int)
 
 
-def test_file_found_but_faulty_yaml_syntax(tmpdir):
-    with tmpdir.as_cwd():
-        with open("params_not_yaml.txt", "w") as fp:
-            fp.write(NOT_A_YAML_PARAMS_STR)
-        with pytest.raises(ValueError):
-            load_params("./params_not_yaml.txt")
+@pytest.mark.parametrize(
+    "fmt, content",
+    (
+        ("toml", "["),
+        ("yaml", "["),
+    ),
+)
+def test_bad_input(fmt, content):
+    with pytest.raises(
+        InvalidConfigurationError,
+        match=f"^could not parse parameters as {fmt.upper()}",
+    ):
+        load_params(StringIO(content), fmt=fmt)
 
 
 def test_file_found_but_not_a_dict(tmpdir):
     with tmpdir.as_cwd():
         with open("params_list.txt", "w") as fp:
-            fp.write(YAML_PARAMS_LIST_STR)
+            fp.write("[1, 2, 3]")
         with pytest.raises(ValueError, match="^params_list.txt:"):
             load_params("params_list.txt")
 
 
 def test_yaml_string_but_is_not_a_dict():
-    yaml_string = YAML_PARAMS_LIST_STR
     with pytest.raises(ValueError, match="^expected a parameter dictionary"):
-        load_params(yaml_string)
-
-
-def test_yaml_string_is_empty():
-    yaml_string = """ """
-    with pytest.raises(ValueError, match="^expected a parameter dictionary"):
-        load_params(yaml_string)
+        load_params(StringIO("[1, 2, 3]"))
 
 
 def test_file_found_but_is_empty(tmpdir):
     with tmpdir.as_cwd():
         with open("params_empty.txt", "w") as fp:
-            fp.write(YAML_PARAMS_EMPTY_STR)
-        with pytest.raises(
-            ValueError, match="^params_empty.txt: expected a parameter dictionary"
-        ):
-            load_params("params_empty.txt")
+            fp.write("")
+        actual = load_params("params_empty.txt")
+    assert actual == {}
 
 
 @pytest.mark.parametrize(
@@ -153,10 +194,19 @@ def test_from_binary_stream():
     assert load_params(BytesIO(b"foo: bar")) == {"foo": "bar"}
 
 
+def test_from_stream_with_integer_name(tmp_path):
+    path = tmp_path / "params.toml"
+    path.write_text("foo: bar")
+    with path.open("r") as fp:
+        with open(fp.fileno(), closefd=False) as stream:
+            assert isinstance(stream.name, int)
+            actual = load_params(stream)
+    assert actual == {"foo": "bar"}
+
+
 @pytest.mark.parametrize("contents", ("", " \n", "# only a comment\n", "null", "~"))
 def test_empty_configuration(contents):
-    with pytest.raises(EmptyConfigurationError, match="YAML content was empty$"):
-        load_params(contents)
+    assert load_params(contents) == {}
 
 
 @pytest.mark.parametrize("contents", ["[1, 2]", "123", "true", "a scalar"])
