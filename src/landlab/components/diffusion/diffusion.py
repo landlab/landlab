@@ -176,6 +176,17 @@ class LinearDiffuser(Component):
         """
         super().__init__(grid)
 
+        # NOTE: Diffusion component has partial support for different grid types.
+        # Some methods (e.g., resolve_on_patches) and configurations require
+        # RasterModelGrid specifically.
+
+        if not isinstance(grid, RasterModelGrid):
+            # Allow non-raster grids only for simple method with node-based diffusivity
+            if method != "simple":
+                raise TypeError(
+                    "Diffusion component only supports non-Raster grids with method='simple'."
+                )
+
         self._bc_set_code = self._grid.bc_set_code
         method = self._validate_method(method)
 
