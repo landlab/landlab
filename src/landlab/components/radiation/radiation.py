@@ -213,22 +213,12 @@ class Radiation(Component):
         self._method = method
         self._N = cloudiness
         self._latitude = self._validate_latitude(latitude)
-        self._A = self._validate_albedo(albedo)
+        self._a = self._validate_albedo(albedo)
 
-        # note that kt provided by the user is just a
-        # 0.15-0.2 range value meant to indicate the type of region
-        # where the model is run, e.g 0.2 for coastal regions,
-        # 0.17 for interior regions, where the default is 0.17.
-        # this parameter can be used as a calibration coefficient
         self._kt = kt
 
         self._n = clearsky_turbidity
         self._m = opt_airmass
-
-        # For computations requiring temperature
-        self._Tmin, self._Tmax = self._validate_temperature_range(
-            min_daily_temp, max_daily_temp
-        )
 
         _assert_method_is_valid(self._method)
 
@@ -250,9 +240,6 @@ class Radiation(Component):
         self._cell_values["Slope"] = self._slope
         self._cell_values["Aspect"] = self._aspect
 
-        # Create a 'status' nodal field to store the status_at_node values
-        # then map it to a cell-based field the same statuses. Use this to
-        # generate a "closed elevations" field of boolean indexing.self
         self._gridCopy = copy.deepcopy(self._grid)
         self._gridCopy.add_field(
             "radiation_status_at_node", self._grid.status_at_node, at="node"
@@ -262,6 +249,10 @@ class Radiation(Component):
         )
         self._closed_elevations = (
             self._cellular_status == self._gridCopy.BC_NODE_IS_CLOSED
+        )
+
+        self._Tmin, self._Tmax = self._validate_temperature_range(
+            min_daily_temp, max_daily_temp
         )
 
     def run_one_step(self, dt=None):
@@ -280,11 +271,24 @@ class Radiation(Component):
             raise ValueError("albedo must be between 0 and 1")
         return albedo
 
+    def _process_field(self, field, field_name):
+        if isinstance(field, np.ndarray) and np.shape(field) == np.shape(
+            self._grid.at_node["topographic__elevation"]
+        ):
+            self._gridCopy.add_field(field_name, field, at="node")
+            return map_node_to_cell(self._gridCopy, field_name)
+
+        return field
+
     def _validate_temperature_range(self, min_temp, max_temp):
-        if min_temp > max_temp:
-            raise ValueError(
-                f"minimum temperature ({min_temp}) must be less than maximum ({max_temp})"
-            )
+        if np.any(min_temp is None) or np.any(max_temp is None):
+            raise ValueError("Tmin and Tmax are required fields")
+        if np.any(min_temp > max_temp):
+            raise ValueError("Tmin must be less than Tmax")
+
+        min_temp = self._process_field(min_temp, "min_temperature")
+        max_temp = self._process_field(max_temp, "max_temperature")
+
         return min_temp, max_temp
 
     @property
@@ -309,6 +313,9 @@ class Radiation(Component):
         This method looks to the properties ``current_time`` and
         ``hour`` and uses their values in updating fields.
         """
+
+        self._validate_existing_parameters()
+
         self._t = self._hour
 
         # Julian Day - ASCE-EWRI Task Committee Report, Jan-2005 - Eqn 25, (52)
@@ -326,8 +333,6 @@ class Radiation(Component):
         # Jan-2005 - Eqn 23,(50)
         self._dr = 1 + (0.033 * np.cos(np.pi / 180.0 * self._julian))
 
-        # Generate spatially distributed field of flat surface to
-        # sloped surface radiation incidence ratios
         self._ratio_flat_surface_calc()
 
         # Extraterrestrial radmodel.docx - ASCE-EWRI (2005), Eqn (21)
@@ -342,10 +347,6 @@ class Radiation(Component):
             )
         )
 
-        # Clear-sky Radiation, Rcs, ASCE-EWRI (2005) as default method
-        # if (optionally) turbidity and optical air mass are both user defined,
-        # an exponential decay model Bras (2.25) is used.
-        # Optical airmass must be >0 or Rcs2 is disregarded (log of zero or / 0 error)
         self._rcs2valid = True
         if self._m is not None:
             self._Rcs2 = self._Rext * np.exp(
@@ -357,17 +358,13 @@ class Radiation(Component):
         # Clear-sky Solar Radiation - ASCE-EWRI (2005), Eqn 19
         self._Rcs1 = self._Rext * (0.75 + 2 * (10**-5) * self._elevation)
 
-        # Rcs1, set to Rcs2 for empirical method, Rcs for accurate method
-        # Using optical air mass and turbidity is optional when watershed
-        # is relatively flat. n and m are not required fields at all
+        # Rcs1, is set to Rcs2 for empirical method, Rcs for accurate method
         if self._n is not None and self._m is not None and self._rcs2valid:
             self._Rc = self._Rcs2
         else:
             self._Rc = self._Rcs1
 
         # KT adjustment factor for incoming short-wave calculations
-        # this uses the ratio of local to sealevel barometric
-        # pressure following Allen (1996)
         self._Po = 101.325
 
         # Local atmospheric pressure ASCE-EWRI (2005), Eqn (34)
@@ -377,22 +374,15 @@ class Radiation(Component):
         self._KT = self._kt * (self._P / self._Po) ** 0.5
 
         # Incoming shortwave radiation cannot exceed clear-sky radiation
-        # Shortwave radiation should ideally be below clearsky radiation
-        # (Rc), if there is a case where the standard shortwave rad
-        # formula yields a result greater than Rc, set shortwave
-        # radiation to the clearsky radiation itself.
         self._Rs = np.minimum(
             self._KT * self._Rext * np.sqrt(self._Tmax - self._Tmin), self._Rc
         )
 
         # Net shortwave Radiation - ASCE-EWRI (2005), Eqn (43)
-        self._Rns = self._Rs * (1 - self._A)
+        self._Rns = self._Rs * (1 - self._a)
 
         # Relative Cloudiness - ASCE-EWRI (2005), Eqn (18)
         self._u = 1.35 * (self._Rs / self._Rc) - 0.35
-
-        # Cloudiness should be within 0.05 and 1 so as to not
-        # nullify or incorrectly calculate the net longwave radiation
         self._u = np.clip(self._u, 0.05, 1.0)
 
         # Net Longwave Radiation - ASCE-EWRI (2005), Eqn (17) in W/M^2
@@ -408,15 +398,10 @@ class Radiation(Component):
         # Load spatially distributed ratio to flat surface function values
         self._cell_values["radiation__ratio_to_flat_surface"] = self._radf
 
-        # If sun does not rise, accounted by an invalid trig function
-        # input, set all NaN grid values to 0.0 instead.
         self._radf[np.isnan(self._radf)] = 0.0
         self._Rext = 0.0 if np.isnan(self._Rext) else self._Rext
 
         # Net Radiation - ASCE-EWRI (2005), Eqn 15
-        # Apply the ratio to flat surface to net shortwave
-        # radiation first, then use spatially distributed
-        # shortwave radiation to calculate net radiation
         np.multiply(
             self._Rext,
             self._cell_values["radiation__ratio_to_flat_surface"],
@@ -445,11 +430,8 @@ class Radiation(Component):
         )
 
         # Net longwave flux
-        np.multiply(
-            self._Rnl,
-            self._cell_values["radiation__ratio_to_flat_surface"],
-            out=self._cell_values["radiation__net_longwave_flux"],
-        )
+        self._Rnl[self._closed_elevations] = 0.0
+        self._cell_values["radiation__net_longwave_flux"] = self._Rnl
 
         # Net radiation flux is net shortwave - net longwave
         np.subtract(
@@ -480,32 +462,25 @@ class Radiation(Component):
                 "No negative (< 0.0) values allowed in an above sea level elevation field."
             )
 
-        # Map nodal elevation values to cells to calculate clearsky incidence
-        # across a spatially distributed field
         self._elevation = map_node_to_cell(self._grid, "topographic__elevation")
 
-        # Convert latitude to radians and store trig calculations
-        self._phi = np.radians(self._latitude)  # Latitude in Radians
+        self._phi = np.radians(self._latitude)
         self._sinLat = np.sin(self._phi)
         self._cosLat = np.cos(self._phi)
 
-        # Get the hour angle using time of day
-        self._tau = (self._t + 12.0) * np.pi / 12.0  # Hour angle
+        self._tau = (self._t + 12.0) * np.pi / 12.0
 
-        # Calculate solar altitude using declination angle, hour angle, and latitude
         self._alpha = np.arcsin(
             np.sin(self._sdecl) * self._sinLat
             + (np.cos(self._sdecl) * self._cosLat * np.cos(self._tau))
-        )  # Solar Altitude/Angle
+        )
 
-        if self._alpha <= 0.25:  # If altitude is -ve,
-            self._alpha = 0.25  # sun is beyond the horizon
+        if self._alpha <= 0.25:
+            self._alpha = 0.25
 
-        # For less constant calculation, keeping solar altitude trig in fixed variables
         self._cosSA = np.cos(self._alpha)
         self._sinSA = np.sin(self._alpha)
 
-        # Avoid div by zero
         if self._cosSA <= 0.0001:
             self._cosSA = 0.0001
 
@@ -527,7 +502,7 @@ class Radiation(Component):
 
         self._flat = np.sin(self._alpha)
 
-        # solar angle of incidence, Multiplying this with incoming radiation
+        # Solar angle of incidence, multiplying this with incoming radiation
         # gives radiation on sloped surface see Flores-Cervantes, J.H. (2012)
         self._sloped = np.cos(self._slope) * self._sinSA + np.sin(
             self._slope
@@ -544,3 +519,8 @@ class Radiation(Component):
 
         # Closed nodes will be omitted from spatially distributed ratio calculations
         self._radf[self._closed_elevations] = 0.0
+
+    def _validate_existing_parameters(self):
+        self._Tmin, self._Tmax = self._validate_temperature_range(
+            self._Tmin, self._Tmax
+        )
