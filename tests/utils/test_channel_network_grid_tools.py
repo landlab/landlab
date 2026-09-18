@@ -646,15 +646,15 @@ class TestExtractChannelNodes:
 
     def test_extract_channel_nodes_2(self, grid):
         """small contributing area"""
-        acn = gt.extract_channel_nodes(grid, 300)
+        cn = gt.extract_channel_nodes(grid, 300)
         cn_e = np.array([3, 9, 17, 23, 30, 31, 32, 36])
-        check_vals(acn, cn_e)
+        check_vals(cn, cn_e)
 
     def test_extract_channel_nodes_3(self, grid):
         """contributing area is zero"""
-        acn = gt.extract_channel_nodes(grid, 0)
+        cn = gt.extract_channel_nodes(grid, 0)
         cn_e = grid.nodes.flatten()  # should return all nodes
-        check_vals(acn, cn_e)
+        check_vals(cn, cn_e)
 
 
 class TestExtractTerraceNodes:
@@ -662,18 +662,18 @@ class TestExtractTerraceNodes:
     def test_extract_terrace_nodes_1(self, grid):
         """terrace width = 1"""
         terrace_width = 1
-        acn = np.array([3, 9, 17, 23, 30, 31, 32, 36])
+        cn = np.array([3, 9, 17, 23, 30, 31, 32, 36])
         fcn = np.array([3, 9, 17, 23])
-        tn = gt.extract_terrace_nodes(grid, terrace_width, acn, fcn)
+        tn = gt.extract_terrace_nodes(grid, terrace_width, cn, fcn)
         tn_e = np.array([1, 2, 4, 8, 10, 11, 15, 16, 18, 22, 24, 25, 29])
         check_vals(tn, tn_e)
 
     def test_extract_terrace_nodes_2(self, grid):
         """terrace width = 2"""
         terrace_width = 2
-        acn = np.array([3, 9, 17, 23, 30, 31, 32, 36])
+        cn = np.array([3, 9, 17, 23, 30, 31, 32, 36])
         fcn = np.array([3, 9, 17, 23])
-        tn = gt.extract_terrace_nodes(grid, terrace_width, acn, fcn)
+        tn = gt.extract_terrace_nodes(grid, terrace_width, cn, fcn)
         tn_e = np.array(
             [
                 0,
@@ -708,18 +708,18 @@ class TestExtractTerraceNodes:
     def test_extract_terrace_nodes_3(self, grid):
         """terrace width = 0"""
         terrace_width = 0
-        acn = np.array([3, 9, 17, 23, 30, 31, 32, 36])
+        cn = np.array([3, 9, 17, 23, 30, 31, 32, 36])
         fcn = np.array([3, 9, 17, 23])
         with pytest.raises(ValueError) as exc_info:
-            gt.extract_terrace_nodes(grid, terrace_width, acn, fcn)
+            gt.extract_terrace_nodes(grid, terrace_width, cn, fcn)
         assert exc_info.match("terrace width must be 1 or greater")
 
     def test_extract_terrace_nodes_4(self, grid):
         """terrace width = 1.5 - should round to 2"""
         terrace_width = 1.5
-        acn = np.array([3, 9, 17, 23, 30, 31, 32, 36])
+        cn = np.array([3, 9, 17, 23, 30, 31, 32, 36])
         fcn = np.array([3, 9, 17, 23])
-        tn = gt.extract_terrace_nodes(grid, terrace_width, acn, fcn)
+        tn = gt.extract_terrace_nodes(grid, terrace_width, cn, fcn)
         tn_e = np.array(
             [
                 0,
@@ -757,8 +757,8 @@ class TestMinDistToNetwork:
     def test_min_dist_to_network_1(self, grid):
         """a normal test, only one closest node"""
         node_id = 47
-        acn = np.array([3, 9, 17, 23, 30, 31, 32, 36])
-        dist, mdn = gt.min_distance_to_network(grid, acn, node_id)
+        cn = np.array([3, 9, 17, 23, 30, 31, 32, 36])
+        dist, mdn = gt.min_distance_to_network(grid, cn, node_id)
         dist_e = 22.36068
         mdn_e = 32
         check_vals(dist, dist_e)
@@ -767,8 +767,8 @@ class TestMinDistToNetwork:
     def test_min_dist_to_network_2(self, grid):
         """two closest nodes, will pick first"""
         node_id = 2
-        acn = np.array([3, 9, 17, 23, 30, 31, 32, 36])
-        dist, mdn = gt.min_distance_to_network(grid, acn, node_id)
+        cn = np.array([3, 9, 17, 23, 30, 31, 32, 36])
+        dist, mdn = gt.min_distance_to_network(grid, cn, node_id)
         dist_e = 10
         mdn_e = 3
         check_vals(dist, dist_e)
@@ -777,8 +777,8 @@ class TestMinDistToNetwork:
     def test_min_dist_to_network_3(self, grid):
         """node coincides with a channel node"""
         node_id = 3
-        acn = np.array([3, 9, 17, 23, 30, 31, 32, 36])
-        dist, mdn = gt.min_distance_to_network(grid, acn, node_id)
+        cn = np.array([3, 9, 17, 23, 30, 31, 32, 36])
+        dist, mdn = gt.min_distance_to_network(grid, cn, node_id)
         dist_e = 0
         mdn_e = 3
         check_vals(dist, dist_e)

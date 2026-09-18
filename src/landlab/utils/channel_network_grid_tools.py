@@ -5,6 +5,7 @@ import numpy as np
 from numpy.typing import ArrayLike
 from numpy.typing import NDArray
 
+from landlab import ModelGrid
 from landlab import NetworkModelGrid
 from landlab import RasterModelGrid
 from landlab.components.flow_director.flow_director_steepest import FlowDirectorSteepest
@@ -92,43 +93,45 @@ def _dist_func(x0: float, x1: float, y0: float, y1: float) -> float:
     return np.hypot(x0 - x1, y0 - y1)
 
 
-def extract_channel_nodes(grid: ModelGrid, Ct: float) -> NDArray[np.integer]:
+def extract_channel_nodes(
+    grid: ModelGrid, channel_threshold: float
+) -> NDArray[np.integer]:
     """Extract the channel nodes from a cellular-type ModelGrid.
 
     Find the nodes of the DEM on a cellular-type ModelGrid that
     represent the channel network. The channel network is all
     nodes that have a drainage area greater than or equal to
     the average drainage area at which channels initiate in the
-    DEM (Ct, based on field or remote sensing evidence).
+    DEM (channel_threshold, based on field or remote sensing evidence).
 
-    Use Ct = average drainage area at which colluvial channels
-    begin to get the entire channel network.
+    Use channel_threshold = average drainage area at which colluvial
+    channels typically begin to get the entire channel network.
 
-    Use Ct = the drainage area at which cascade channels typically
-    begin to getthe portion of the channel network where sediment
-    transport is primarily viafluvial processes.
+    Use channel_threshold = average drainage area at which cascade
+    channels typically begin to get the portion of the channel network
+    where sediment transport is primarily via fluvial processes.
 
     Parameters
     ----------
     grid : ModelGrid
         A cellular-type ModelGrid with node field "drainage_area"
-    Ct : float
+    channel_threshold : float
         Channel threshold drainage area
 
     Returns
     -------
-    cn : array_like of int
+    channel_nodes : array_like of int
          Array of all node ids included in the channel network.
 
     """
-    return np.flatnonzero(grid.at_node["drainage_area"] >= Ct)
+    return np.flatnonzero(grid.at_node["drainage_area"] >= channel_threshold)
 
 
 def extract_terrace_nodes(
     grid: RasterModelGrid,
     terrace_width: int,
-    acn: NDArray[np.integer],
-    fcn: NDArray[np.integer],
+    channel_nodes: NDArray[np.integer],
+    fluvial_channel_nodes: NDArray[np.integer],
 ) -> NDArray[np.integer]:
     """Determine which RasterModelGrid nodes are channel terrace nodes.
 
@@ -143,9 +146,9 @@ def extract_terrace_nodes(
     terrace_width : int
         Width of terrace in number of nodes. If provided as float, will
         be rounded to nearest int.
-    acn : array_like
+    channel_nodes : array_like
         Array of all node IDs included in the channel network.
-    fcn : array_like
+    fluvial_channel_nodes : array_like
         Array of all node IDs included in the fluvial channel network.
 
     Raises
@@ -164,8 +167,8 @@ def extract_terrace_nodes(
     if terrace_width < 1:
         raise ValueError(f"terrace width must be 1 or greater ({terrace_width})")
 
-    acn = np.asarray(acn, dtype=int)
-    current_nodes = np.asarray(fcn, dtype=int)
+    channel_nodes = np.asarray(channel_nodes, dtype=int)
+    current_nodes = np.asarray(fluvial_channel_nodes, dtype=int)
     terrace_nodes = np.array([], dtype=int)
 
     for _ in range(terrace_width):
@@ -175,7 +178,7 @@ def extract_terrace_nodes(
         neighbors = np.unique(np.concatenate((adj_n, adj_dn)))
         neighbors = neighbors[neighbors != -1]
 
-        terrace_nodes = np.setdiff1d(neighbors, acn, assume_unique=True)
+        terrace_nodes = np.setdiff1d(neighbors, channel_nodes, assume_unique=True)
 
         current_nodes = terrace_nodes
 
@@ -183,17 +186,17 @@ def extract_terrace_nodes(
 
 
 def min_distance_to_network(
-    grid: ModelGrid, acn: NDArray[np.integer], node_id: int
+    grid: ModelGrid, channel_nodes: NDArray[np.integer], node_id: int
 ) -> tuple[float, int]:
     """The shortest distance (as the crow flies) to the channel network.
 
-    Measured from a node of a ModelGrid to the channel nodes of another
+    Measured from a node of a ModelGrid to the channel nodes of the
     grid. Returns the distance and the closest channel node.
 
     Parameters
     ----------
     grid : ModelGrid
-    acn : list of int
+    channel_nodes : list of int
         Array of all node ids included in the channel network.
     node_id : int
         ID of node from which the distance will be determined.
@@ -202,20 +205,20 @@ def min_distance_to_network(
     -------
     offset : float
         Distance between node and channel network.
-    mdn : int
+    closest_node : int
         ID of channel node that is closest node.
 
     """
     x0, y0 = grid.node_x[node_id], grid.node_y[node_id]
-    x_acn, y_acn = grid.node_x[acn], grid.node_y[acn]
+    x_acn, y_acn = grid.node_x[channel_nodes], grid.node_y[channel_nodes]
 
     dist = np.hypot(x_acn - x0, y_acn - y0)
 
     idx = np.argmin(dist)
     offset = dist[idx]
-    mdn = acn[idx]
+    closest_node = channel_nodes[idx]
 
-    return float(offset), int(mdn)
+    return float(offset), int(closest_node)
 
 
 def choose_from_repeated(
@@ -296,13 +299,14 @@ def map_network_links_to_nodes(
 ) -> dict[str, NDArray]:
     """Map the links of a NetworkModelGrid to the nodes of a ModelGrid.
 
-    This function finds each ModelGrid (e.g., raster model grid) node
-    whose cell area is coincident with a NetworkModelGrid link. Each coincident
-    node is then recorded in a mapper dictionary (nmg_link_to_mg_coincident_nodes_mapper)
-    in terms of its x and y coordinates, the link it is mapped to, and the downstream
-    distance of the node on the link. The downstream distance of the node on the link
-    is defined as the distance from the upstream end (tail) of the link to the first
-    (most downstream) point within the node's cell.
+    This function finds each ModelGrid (e.g., RasterModelGrid) node
+    whose cell area is coincident with a NetworkModelGrid link. Each
+    coincident node is then recorded in a mapper dictionary
+    (nmg_link_to_mg_coincident_nodes_mapper) in terms of its x and y
+    coordinates, the link it is mapped to, and the downstream distance
+    it represents on the link. The downstream distance of the node is
+    defined as the distance from the upstream end (tail) of the link
+    to the first (most downstream) point within the node's cell.
 
 
     Parameters
@@ -312,18 +316,19 @@ def map_network_links_to_nodes(
     link_nodes : array_like
         Head and tail node of each link generated by the function "get_link_nodes".
     remove_duplicates : bool, optional
-        If True, when two or more links are coincident with the same node, which
-        can occur at stream junctions, the node is assigned to the link with the
-        largest drainage area. If False, the node is assigned to each coincident
-        link. The default is False.
+        If True, when two or more links are coincident with the same
+        node, which can occur at stream junctions, the node is assigned
+        to the link with the largest drainage area. If False, the node
+        is assigned to each coincident link. The default is False.
 
     Returns
     -------
     network_link_to_node_mapper: dict
-        Each key of the dictionary contains an array_like whose length is equal to the
-        number of coincident nodes. Keys include link ID, coincident node ID,
-        downstream distance of the coincident node, x coordinate of the coincident
-        node, y coordinate of the coincident node and drainage area of the link.
+        Each key of the dictionary contains an array whose length is
+        equal to the number of coincident nodes. Keys include link ID,
+        coincident node ID, downstream distance of the coincident node,
+        x coordinate of the coincident node, y coordinate of the coincident
+        node and drainage area of the link.
 
     """
 
