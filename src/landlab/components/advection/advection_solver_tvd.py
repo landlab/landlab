@@ -2,6 +2,7 @@
 """Solve advection numerically using Total Variation Diminishing method."""
 
 import numpy as np
+from numpy.typing import NDArray
 
 from landlab import Component
 from landlab import LinkStatus
@@ -248,53 +249,43 @@ class AdvectionSolverTVD(Component):
         super().__init__(grid)
         self.initialize_output_fields()
 
-        self._scalars = []  # list of fields to advect
-        self._fluxes = []  # list of flux fields
         if fields_to_advect is None:
-            try:
-                self._scalars.append(self.grid.at_node["advected__quantity"])
-            except KeyError:
-                self._scalars.append(
-                    self.grid.add_zeros("advected__quantity", at="node")
-                )
-            try:
-                self._fluxes.append(self.grid.at_link["advection__flux"])
-            except KeyError:
-                self._fluxes.append(self.grid.add_zeros("advection__flux", at="link"))
-        elif isinstance(fields_to_advect, list):
-            flux_counter = 0
-            for field in fields_to_advect:
-                self._scalars.append(return_array_at_node(self.grid, field))
-                if isinstance(field, str):
-                    flux_name = "flux_of_" + field
-                else:
-                    flux_name = "advection__flux_" + str(flux_counter)
-                    flux_counter += 1
-                try:
-                    flux = return_array_at_link(self.grid, flux_name)
-                except FieldError:
-                    flux = grid.add_zeros(flux_name, at="link")
-                self._fluxes.append(flux)
-        else:
-            self._scalars.append(return_array_at_node(self.grid, fields_to_advect))
-            if isinstance(fields_to_advect, str):
-                flux_name = "flux_of_" + fields_to_advect
-            else:
-                flux_name = "advection__flux"
-            try:
-                flux = return_array_at_link(self.grid, flux_name)
-            except FieldError:
-                flux = grid.add_zeros(flux_name, at="link")
-            self._fluxes.append(flux)
+            if "advected__quantity" not in self.grid.at_node:
+                self.grid.add_zeros("advected__quantity", at="node")
+            fields_to_advect = ["advected__quantity"]
 
-        self._vel = self.grid.at_link["advection__velocity"]
+        if isinstance(fields_to_advect, str):
+            fields_to_advect = [fields_to_advect]
+
+        self._scalars: list[str | NDArray] = []
+        for field in fields_to_advect:
+            if isinstance(field, str) and field not in self.grid.at_node:
+                raise FieldError(field)
+            self._scalars.append(field)
+
+        self._fluxes: list[str | NDArray] = []
+        count = 0
+        for field in self._scalars:
+            if isinstance(field, str):
+                if field == "advected__quantity":
+                    flux = "advection__flux"
+                else:
+                    flux = f"flux_of_{field}"
+            else:
+                flux = f"advection__flux_{count}"
+                count += 1
+            if flux not in self.grid.at_link:
+                self.grid.add_zeros(flux, at="link")
+            self._fluxes.append(flux)
 
         self._advection_direction_is_steady = advection_direction_is_steady
         if advection_direction_is_steady:  # if so, only need to do this once
-            self._upwind_link_at_link = find_upwind_link_at_link(self.grid, self._vel)
-            self._upwind_link_at_link[
-                self.grid.status_at_link == LinkStatus.INACTIVE
-            ] = -1
+            is_inactive_link = self.grid.status_at_link == LinkStatus.INACTIVE
+
+            self._upwind_link_at_link = find_upwind_link_at_link(
+                self.grid, self.grid.at_link["advection__velocity"]
+            )
+            self._upwind_link_at_link[is_inactive_link] = -1
 
     def calc_rate_of_change_at_nodes(self, scalar, flux, dt, update_upwind_links=False):
         """Calculate time rate of change in the advected quantity at nodes.
@@ -311,20 +302,27 @@ class AdvectionSolverTVD(Component):
             multiple advected quantities, it only needs to be True for the
             first one updated, and the update will be used for the others)
         """
+        advection_velocity = self.grid.at_link["advection__velocity"]
+
         if update_upwind_links:
-            self._upwind_link_at_link = find_upwind_link_at_link(self.grid, self._vel)
+            self._upwind_link_at_link = find_upwind_link_at_link(
+                self.grid, advection_velocity
+            )
             self._upwind_link_at_link[
                 self.grid.status_at_link == LinkStatus.INACTIVE
             ] = -1
-        s_link_low = self.grid.map_node_to_link_linear_upwind(scalar, self._vel)
+        s_link_low = self.grid.map_node_to_link_linear_upwind(
+            scalar, advection_velocity
+        )
         s_link_high = self.grid.map_node_to_link_lax_wendroff(
-            scalar, dt * self._vel / self.grid.length_of_link
+            scalar, dt * advection_velocity / self.grid.length_of_link
         )
         r = upwind_to_local_grad_ratio(self.grid, scalar, self._upwind_link_at_link)
         psi = flux_lim_vanleer(r)
         s_at_link = psi * s_link_high + (1.0 - psi) * s_link_low
         flux[self.grid.active_links] = (
-            self._vel[self.grid.active_links] * s_at_link[self.grid.active_links]
+            advection_velocity[self.grid.active_links]
+            * s_at_link[self.grid.active_links]
         )
         return -self.grid.calc_flux_div_at_node(flux)
 
@@ -338,10 +336,11 @@ class AdvectionSolverTVD(Component):
         dt : float
             Time-step duration. Needed to calculate the Courant number.
         """
+        scalars = [return_array_at_node(self.grid, field) for field in self._scalars]
+        fluxes = [return_array_at_link(self.grid, field) for field in self._fluxes]
+
         update_upwinds = not self._advection_direction_is_steady
-        for i in range(len(self._scalars)):  # update each of the advected scalars
-            scalar = self._scalars[i]
-            flux = self._fluxes[i]
+        for scalar, flux in zip(scalars, fluxes):
             roc = self.calc_rate_of_change_at_nodes(
                 scalar, flux, dt, update_upwind_links=update_upwinds
             )
