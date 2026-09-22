@@ -89,6 +89,7 @@ from .sink_fill import SinkFiller
 from .sink_fill import SinkFillerBarnes
 from .soil_moisture import SoilInfiltrationGreenAmpt
 from .soil_moisture import SoilMoisture
+from .soil_landslider import SoilLandsliderGeo
 from .space import Space
 from .space import SpaceLargeScaleEroder
 from .spatial_precip import SpatialPrecipitationDistribution
