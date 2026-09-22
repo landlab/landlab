@@ -392,6 +392,7 @@ class NetworkSedimentTransporter(Component):
 
         self._d_mean_active = np.full(self.grid.number_of_links, np.nan)
         self._rhos_mean_active = np.full(self.grid.number_of_links, np.nan)
+        self._vol_tot = np.full(self.grid.number_of_links, np.nan)
 
         # Adjust topographic elevation based on the parcels present.
         # Note that at present FlowDirector is just used for network connectivity.
@@ -467,24 +468,27 @@ class NetworkSedimentTransporter(Component):
 
     def _calculate_mean_D_and_rho(self) -> None:
         """Calculate mean grain size and density on each link"""
-        self._rhos_mean_active[:] = aggregate_items_as_mean(
-            self._parcels.dataset["element_id"].values[:, -1].astype(int),
-            self._parcels.dataset["density"].values,
-            weights=self._parcels.dataset["volume"].values[:, -1],
-            size=self._grid.number_of_links,
-        )
-
         ids = self._parcels.dataset.element_id.values[:, -1].astype(int)
         parcel_diameter = self._parcels.dataset.D.values[:, -1]
         parcel_volume = self._parcels.dataset.volume.values[:, -1]
-        is_active = self._parcels.dataset.active_layer[:, -1] == 1
+        is_active = self._parcels.dataset.active_layer[:, -1].astype(bool)
+        is_valid = is_active & (ids >= 0)
+
+        self._rhos_mean_active.fill(np.nan)
+        aggregate_items_as_mean(
+            ids,
+            self._parcels.dataset["density"].values,
+            weights=parcel_volume,
+            where=is_valid,
+            out=self._rhos_mean_active,
+        )
 
         self._d_mean_active.fill(np.nan)
         aggregate_items_as_gmean(
             ids,
             parcel_diameter,
             weights=parcel_volume,
-            where=is_active,
+            where=is_valid,
             out=self._d_mean_active,
         )
 
@@ -501,11 +505,12 @@ class NetworkSedimentTransporter(Component):
         active or storage layer during this timestep, then updates node
         elevations.
         """
-        self._vol_tot = aggregate_items_as_sum(
-            self._parcels.dataset["element_id"].values[:, -1].astype(int),
-            self._parcels.dataset["volume"].values[:, -1],
-            size=self._grid.number_of_links,
-        )
+        ids = self._parcels.dataset["element_id"].values[:, -1].astype(int)
+        parcel_volume = self._parcels.dataset["volume"].values[:, -1]
+        is_valid = ids >= 0
+
+        self._vol_tot.fill(0.0)
+        aggregate_items_as_sum(ids, parcel_volume, where=is_valid, out=self._vol_tot)
 
         if self._active_layer_method == "WongParker":
             # Wong et al. (2007) approximation for active layer thickness.
@@ -601,19 +606,15 @@ class NetworkSedimentTransporter(Component):
                 active_inactive[make_active] = _ACTIVE
 
         self._parcels.dataset.active_layer[:, -1] = active_inactive
+        is_active = self._parcels.dataset.active_layer[:, -1].astype(bool)
+        parcel_volumes = self._parcels.dataset.volume.values[:, -1]
 
-        # set active here. reference it below in wilcock crowe
-        self._active_parcel_records = (
-            self._parcels.dataset.active_layer == _ACTIVE
-        ) * (self._this_timesteps_parcels)
-
-        parcel_volumes = self._parcels.dataset.volume.values[:, -1].copy()
-        parcel_volumes[~self._active_parcel_records.values[:, -1].astype(bool)] = 0.0
-
-        self._vol_act = aggregate_items_as_sum(
-            self._parcels.dataset["element_id"].values[:, -1].astype(int),
+        self._vol_act = np.full(self.grid.number_of_links, 0.0, dtype=float)
+        aggregate_items_as_sum(
+            ids,
             parcel_volumes,
-            size=self._grid.number_of_links,
+            where=is_active & is_valid,
+            out=self._vol_act,
         )
 
         self._vol_stor = (
@@ -700,20 +701,19 @@ class NetworkSedimentTransporter(Component):
         D_mean_activearray = np.full(self._num_parcels, np.nan)
         active_layer_thickness_array = np.full(self._num_parcels, np.nan)
 
-        # find active sand
-        # since find active already sets all prior timesteps to False, we
-        # can use D for all timesteps here.
-        findactivesand = (
-            self._parcels.dataset.D < _SAND_SIZE
-        ) * self._active_parcel_records
+        is_active = self._parcels.dataset.active_layer[:, -1].astype(bool)
+        parcel_volume = self._parcels.dataset.volume.values[:, -1]
+        parcel_diameter = self._parcels.dataset.D.values[:, -1]
+        ids = self._parcels.dataset["element_id"].values[:, -1].astype(int)
 
-        parcel_volumes = self._parcels.dataset.volume.values[:, -1].copy()
-        parcel_volumes[~findactivesand[:, -1].astype(bool)] = 0.0
+        is_valid = is_active & (ids >= 0)
 
-        vol_act_sand = aggregate_items_as_sum(
-            self._parcels.dataset["element_id"].values[:, -1].astype(int),
-            parcel_volumes,
-            size=self._grid.number_of_links,
+        vol_act_sand = np.full(self.grid.number_of_links, np.nan)
+        aggregate_items_as_sum(
+            ids,
+            parcel_volume,
+            where=is_valid & (parcel_diameter < _SAND_SIZE),
+            out=vol_act_sand,
         )
 
         frac_sand = np.zeros_like(self._vol_act)
@@ -722,17 +722,12 @@ class NetworkSedimentTransporter(Component):
         )
         frac_sand[np.isnan(frac_sand)] = 0.0
 
-        ids = self._parcels.dataset.element_id.values[:, -1].astype(int)
-        parcel_diameter = self._parcels.dataset.D.values[:, -1]
-        parcel_volume = self._parcels.dataset.volume.values[:, -1]
-        is_active = self._parcels.dataset.active_layer[:, -1] == 1
-
         self._d_mean_active.fill(np.nan)
         aggregate_items_as_gmean(
             ids,
-            np.ascontiguousarray(parcel_diameter),
-            weights=np.ascontiguousarray(parcel_volume),
-            where=is_active,
+            parcel_diameter,
+            weights=parcel_volume,
+            where=is_valid,
             out=self._d_mean_active,
         )
 

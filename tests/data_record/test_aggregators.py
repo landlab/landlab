@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 import requireit
+from numpy import average
 from numpy.testing import assert_allclose
 from numpy.testing import assert_array_equal
 from scipy.stats import gmean
@@ -19,6 +20,15 @@ from landlab.data_record.aggregators import aggregate_items_as_gmean
 from landlab.data_record.aggregators import aggregate_items_as_mean
 from landlab.data_record.aggregators import aggregate_items_as_sum
 
+AGGREGATE = {
+    "mean": aggregate_items_as_mean,
+    "gmean": aggregate_items_as_gmean,
+}
+BENCH = {
+    "mean": average,
+    "gmean": gmean,
+}
+
 
 def test_count_bench_cython():
     n_links = 1000
@@ -26,7 +36,7 @@ def test_count_bench_cython():
     out = np.empty(n_links, dtype=int)
     link_of_parcel = np.zeros(n_parcels, dtype=int)
 
-    _aggregate_items_as_count(out, link_of_parcel)
+    _aggregate_items_as_count(out, link_of_parcel, np.full(n_parcels, True))
 
     assert_array_equal(out[0], 100000)
     assert_array_equal(out[1:], 0)
@@ -38,10 +48,12 @@ def test_count_bench():
     n_parcels = 100000
     link_of_parcel = np.zeros(n_parcels, dtype=int)
 
-    out = aggregate_items_as_count(link_of_parcel, size=n_links)
+    out = np.full(n_links, -1, dtype=int)
+    actual = aggregate_items_as_count(link_of_parcel, out=out)
 
-    assert_array_equal(out[0], 100000)
-    assert_array_equal(out[1:], 0)
+    assert actual is out
+    assert_array_equal(actual[0], 100000)
+    assert_array_equal(actual[1:], 0)
 
 
 def test_sum_bench_cython():
@@ -50,8 +62,9 @@ def test_sum_bench_cython():
     out = np.empty(n_links, dtype=float)
     value_of_parcel = np.ones(n_parcels, dtype=float)
     link_of_parcel = np.zeros(n_parcels, dtype=int)
+    where = np.full(n_parcels, True, dtype=bool)
 
-    _aggregate_items_as_sum(out, link_of_parcel, value_of_parcel)
+    _aggregate_items_as_sum(out, link_of_parcel, value_of_parcel, where)
 
     assert_array_equal(out[0], 100000.0)
     assert_array_equal(out[1:], 0.0)
@@ -63,24 +76,29 @@ def test_sum_bench():
     value_of_parcel = np.ones(n_parcels, dtype=float)
     link_of_parcel = np.zeros(n_parcels, dtype=int)
 
-    out = aggregate_items_as_sum(link_of_parcel, value_of_parcel, size=n_links)
+    out = np.full(n_links, np.nan, dtype=float)
+    actual = aggregate_items_as_sum(link_of_parcel, value_of_parcel, out=out)
 
-    assert_array_equal(out[0], 100000.0)
-    assert_array_equal(out[1:], 0.0)
+    assert actual is out
+    assert_array_equal(actual[0], 100000.0)
+    assert_array_equal(actual[1:], 0.0)
 
 
 def test_mean_bench_cython():
     n_links = 100
     n_parcels = 100000
-    out = np.empty(n_links, dtype=float)
+    out = np.full(n_links, np.nan, dtype=float)
     value_of_parcel = np.ones(n_parcels, dtype=float)
     weight_of_parcel = np.ones(n_parcels, dtype=float)
     link_of_parcel = np.zeros(n_parcels, dtype=int)
+    where = np.full(n_parcels, True, dtype=bool)
 
-    _aggregate_items_as_mean(out, link_of_parcel, value_of_parcel, weight_of_parcel)
+    _aggregate_items_as_mean(
+        out, link_of_parcel, value_of_parcel, weight_of_parcel, where
+    )
 
     assert_array_equal(out[0], 1.0)
-    assert_array_equal(out[1:], 0.0)
+    assert np.all(np.isnan(out[1:]))
 
 
 def test_mean_bench():
@@ -89,16 +107,16 @@ def test_mean_bench():
     value_of_parcel = np.ones(n_parcels, dtype=float)
     weight_of_parcel = np.ones(n_parcels, dtype=float)
     link_of_parcel = np.zeros(n_parcels, dtype=int)
-
-    out = aggregate_items_as_mean(
+    out = np.full(n_links, np.nan)
+    aggregate_items_as_mean(
         link_of_parcel,
         value_of_parcel,
         weights=weight_of_parcel,
-        size=n_links,
+        out=out,
     )
 
     assert_array_equal(out[0], 1.0)
-    assert_array_equal(out[1:], 0.0)
+    assert np.all(np.isnan(out[1:]))
 
 
 def test_sum():
@@ -107,8 +125,11 @@ def test_sum():
     value_of_parcel = np.ones(n_parcels, dtype=float)
     link_of_parcel = np.arange(n_parcels, dtype=int) // n_links
 
-    out = aggregate_items_as_sum(link_of_parcel, value_of_parcel, size=n_links)
-    assert_array_equal(out, 10.0)
+    out = np.full(n_links, np.nan, dtype=float)
+    actual = aggregate_items_as_sum(link_of_parcel, value_of_parcel, out=out)
+
+    assert actual is out
+    assert_array_equal(actual, 10.0)
 
 
 def test_count():
@@ -151,10 +172,14 @@ def test_mean_with_negative_links():
     link_of_parcel = np.full(n_parcels, -1, dtype=int)
 
     out = aggregate_items_as_mean(
-        link_of_parcel, value_of_parcel, weights=weight_of_parcel
+        link_of_parcel,
+        value_of_parcel,
+        weights=weight_of_parcel,
+        where=link_of_parcel >= 0,
+        out=np.asarray([-1], dtype=float),
     )
 
-    assert_array_equal(out, 0.0)
+    assert_array_equal(out, -1)
 
 
 def test_aggregate_items_as_gmean():
@@ -181,44 +206,44 @@ def test_aggregate_items_as_gmean_with_weights():
     assert_allclose(actual, expected)
 
 
-def test_aggregate_items_as_gmean_with_where():
+@pytest.mark.parametrize("name", ("mean", "gmean"))
+def test_aggregate_items_as_gmean_with_where(name):
     ids = np.array([0, 0, 1, 1, 1])
     values = np.array([1.0, 4.0, 1.0, 3.0, 9.0])
     where = np.array([True, True, False, False, True])
+    out = np.empty(2, dtype=float)
 
-    actual = aggregate_items_as_gmean(ids, values, where=where)
-    expected = [gmean(values[(ids == 0) & where]), gmean(values[(ids == 1) & where])]
+    aggregate = AGGREGATE[name]
+    bench = BENCH[name]
+
+    actual = aggregate(ids, values, where=where, out=out)
+    expected = [bench(values[(ids == 0) & where]), bench(values[(ids == 1) & where])]
 
     assert_allclose(actual, expected)
 
 
-def test_aggregate_items_as_gmean_ignores_negative_ids():
-    ids = [0, -1, 0, 1]
-    values = [2.0, 100.0, 8.0, 9.0]
-
-    actual = aggregate_items_as_gmean(ids, values)
-
-    assert_allclose(actual, [4.0, 9.0])
-
-
-def test_aggregate_items_as_gmean_leaves_unselected_out_values_unchanged():
+@pytest.mark.parametrize("name", ("gmean", "mean"))
+def test_aggregate_items_as_gmean_leaves_unselected_out_values_unchanged(name):
     ids = np.array([0, 2])
     values = np.array([4.0, 9.0])
     out = np.array([-1.0, -2.0, -3.0, -4.0])
 
-    actual = aggregate_items_as_gmean(ids, values, out=out)
+    aggregate = AGGREGATE[name]
+    actual = aggregate(ids, values, out=out)
 
     assert actual is out
     assert_allclose(actual, [4.0, -2.0, 9.0, -4.0])
 
 
-def test_aggregate_items_as_gmean_nowhere_is_noop():
+@pytest.mark.parametrize("name", ("gmean", "mean"))
+def test_aggregate_items_as_gmean_nowhere_is_noop(name):
     ids = [0, 1, 2]
     values = [4.0, 9.0, 16.0]
     where = [False, False, False]
     out = np.array([-1.0, -2.0, -3.0])
 
-    actual = aggregate_items_as_gmean(ids, values, where=where, out=out)
+    aggregate = AGGREGATE[name]
+    actual = aggregate(ids, values, where=where, out=out)
 
     assert actual is out
     assert_array_equal(actual, [-1.0, -2.0, -3.0])
@@ -240,21 +265,28 @@ def test_aggregate_items_as_gmean_rejects_nonpositive_selected_values(bad_values
         aggregate_items_as_gmean([0], bad_values)
 
 
-def test_aggregate_items_as_gmean_rejects_negative_selected_weights():
+@pytest.mark.parametrize("name", ("gmean", "mean"))
+def test_aggregate_items_as_gmean_rejects_negative_selected_weights(name):
+    aggregate = AGGREGATE[name]
     with pytest.raises(requireit.ValidationError):
-        aggregate_items_as_gmean([0], [1.0], weights=[-1.0])
+        aggregate([0], [1.0], weights=[-1.0])
 
 
-def test_aggregate_items_as_gmean_allows_zero_weight():
-    actual = aggregate_items_as_gmean([0, 0], [2.0, 8.0], weights=[0.0, 1.0])
+@pytest.mark.parametrize("name", ("gmean", "mean"))
+def test_aggregate_items_as_gmean_allows_zero_weight(name):
+    aggregate = AGGREGATE[name]
+    actual = aggregate([0, 0], [2.0, 8.0], weights=[0.0, 1.0])
 
     assert_allclose(actual, [8.0])
 
 
-def test_aggregate_items_as_gmean_rejects_out_that_is_too_small():
+@pytest.mark.parametrize("name", ("gmean", "mean"))
+def test_aggregate_items_as_gmean_rejects_out_that_is_too_small(name):
     out = np.empty(2, dtype=float)
+
+    aggregate = AGGREGATE[name]
     with pytest.raises(requireit.ValidationError):
-        aggregate_items_as_gmean([0, 2], [1.0, 4.0], out=out)
+        aggregate([0, 2], [1.0, 4.0], out=out)
 
 
 @pytest.mark.parametrize(
@@ -265,9 +297,27 @@ def test_aggregate_items_as_gmean_rejects_out_that_is_too_small():
         pytest.param({"where": [True, False]}, id="where"),
     ],
 )
-def test_aggregate_items_as_gmean_rejects_shape_mismatch(kwds):
-    args = {"ids": [0], "values": [1.0]}
+@pytest.mark.parametrize("name", ("gmean", "mean"))
+def test_aggregate_items_as_gmean_rejects_shape_mismatch(name, kwds):
+    args = {"ids": [0], "values": [1.0], "out": np.empty(1, dtype=float)}
     args.update(kwds)
 
+    aggregate = AGGREGATE[name]
     with pytest.raises(requireit.ValidationError):
-        aggregate_items_as_gmean(**args)
+        aggregate(**args)
+
+
+@pytest.mark.parametrize("name", ("gmean", "mean"))
+def test_aggregate_items_as_gmean_where_without_out(name):
+    aggregate = AGGREGATE[name]
+
+    with pytest.raises(ValueError, match="^'out' must be provided"):
+        aggregate([0, 0, 1], [1.0, 1.0, 1.0], where=[True, True])
+
+
+@pytest.mark.parametrize("name", ("gmean", "mean"))
+def test_aggregate_items_as_gmean_with_zero_weights(name):
+    aggregate = AGGREGATE[name]
+
+    with pytest.raises(ValueError, match="^weights must sum to a positive value"):
+        aggregate([0, 0, 1], [1.0, 1.0, 1.0], weights=[1, 1, 0])
