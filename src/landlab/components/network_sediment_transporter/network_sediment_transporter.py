@@ -18,6 +18,12 @@ import numpy as np
 import scipy.constants
 from numpy.typing import ArrayLike
 from numpy.typing import NDArray
+from requireit import raise_as
+from requireit import require_between
+from requireit import require_contains
+from requireit import require_greater_than_or_equal
+from requireit import require_one_of
+from requireit import require_positive
 
 from landlab.components.flow_director.flow_director_steepest import FlowDirectorSteepest
 from landlab.core.model_component import Component
@@ -273,7 +279,7 @@ class NetworkSedimentTransporter(Component):
         active_layer_method: Literal[
             "WongParker", "GrainSizeDependent", "Constant10cm"
         ] = "WongParker",
-        active_layer_d_multiplier: int = 2,
+        active_layer_d_multiplier: float = 2,
         slope_threshold: float = 1e-4,
         k_transp_dep_abr: float | None = None,
     ) -> None:
@@ -317,69 +323,74 @@ class NetworkSedimentTransporter(Component):
         if not isinstance(grid, NetworkModelGrid):
             raise TypeError("grid must be NetworkModelGrid")
 
+        if not isinstance(parcels, DataRecord):
+            raise TypeError("parcels must be an instance of DataRecord")
+        require_contains(
+            parcels.dataset, required=_REQUIRED_PARCEL_ATTRIBUTES, name="dataset"
+        )
+        self._parcels = parcels
+
+        if not isinstance(flow_director, FlowDirectorSteepest):
+            raise TypeError("flow_director must be FlowDirectorSteepest")
+        self._fd = flow_director
+
+        with raise_as(ValueError):
+            self._bed_porosity = require_between(
+                bed_porosity,
+                a_min=0.0,
+                a_max=1.0,
+                inclusive_min=True,
+                inclusive_max=False,
+                name="bed_porosity",
+            )
+        self._g = require_positive(g, name="g")
+        self._fluid_density = require_positive(fluid_density, name="fluid_density")
+
+        with raise_as(ValueError):
+            self._transport_method = require_one_of(
+                transport_method,
+                allowed=_SUPPORTED_TRANSPORT_METHODS,
+                name="transport_method",
+            )
+        self._active_layer_method = require_one_of(
+            active_layer_method,
+            allowed=_SUPPORTED_ACTIVE_LAYER_METHODS,
+            name="active_layer_method",
+        )
+        if self._active_layer_method == "GrainSizeDependent":
+            self._active_layer_d_multiplier = require_positive(
+                active_layer_d_multiplier, name="active_layer_d_multiplier"
+            )
+        else:
+            self._active_layer_d_multiplier = None
+
+        self._slope_threshold = require_positive(
+            slope_threshold, name="slope_threshold"
+        )
+        if k_transp_dep_abr is not None:
+            k_transp_dep_abr = require_greater_than_or_equal(
+                k_transp_dep_abr, 0.0, name="k_transp_dep_abr"
+            )
+        self._k_transp_dep_abr = k_transp_dep_abr
+
         # run super. this will check for required inputs specified by _info
         super().__init__(grid)
 
-        # check key information about the parcels, including that all required
-        # attributes are present.
-        if not isinstance(parcels, DataRecord):
-            raise TypeError("parcels must be an instance of DataRecord")
-
-        for rpa in _REQUIRED_PARCEL_ATTRIBUTES:
-            if rpa not in parcels.dataset:
-                raise ValueError(f"{rpa} must be assigned to the parcels")
-
         # save key information about the parcels.
-        self._parcels = parcels
         self._num_parcels = self._parcels.number_of_items
         self._time_variable_parcel_attributes = frozenset(
             ("time_arrival_in_link", "active_layer", "location_in_link", "D", "volume")
         )
 
-        # assert that the flow director is a component and is of type
-        # FlowDirectorSteepest
-        if not isinstance(flow_director, FlowDirectorSteepest):
-            raise TypeError("flow_director must be FlowDirectorSteepest")
-
-        # save reference to flow director
-        self._fd = flow_director
-
-        # verify and save the bed porosity.
-        if bed_porosity < 0.0 or bed_porosity > 1:
-            raise ValueError(f"bed_porosity must be between 0 and 1 ({bed_porosity})")
-        self._bed_porosity = bed_porosity
-
         # save or create other key properties.
-        self._g = g
-        self._fluid_density = fluid_density
         self._time_idx = 0
         self._time = 0.0
         self._distance_traveled_cumulative = np.zeros(self._num_parcels)
-        self._slope_threshold = slope_threshold
-        self._k_transp_dep_abr = k_transp_dep_abr
-
-        # check the transport method is valid.
-        if transport_method in _SUPPORTED_TRANSPORT_METHODS:
-            self._transport_method = transport_method
-        else:
-            raise ValueError(
-                f"{transport_method}: Valid transport method not supported."
-            )
 
         # update the update_transport_time function to be the correct function
         # for the transport method.
         if self._transport_method == "WilcockCrowe":
             self._update_transport_time = self._calc_transport_wilcock_crowe
-
-        if active_layer_method in _SUPPORTED_ACTIVE_LAYER_METHODS:
-            self._active_layer_method = active_layer_method
-        else:
-            raise ValueError(
-                f"{active_layer_method}: Active layer method not supported."
-            )
-
-        if self._active_layer_method == "GrainSizeDependent":
-            self._active_layer_d_multiplier = active_layer_d_multiplier
 
         # save reference to key fields
         self._width = self._grid.at_link["channel_width"]
@@ -1005,6 +1016,8 @@ class NetworkSedimentTransporter(Component):
             If no parcels remain on the grid.
 
         """
+        dt = require_positive(dt, name="dt")
+
         self._time += dt
         self._time_idx += 1
         self._create_new_parcel_time()
@@ -1059,9 +1072,8 @@ def _recalculate_channel_slope(
             stacklevel=2,
         )
 
-    elif chan_slope < threshold:
-        chan_slope = threshold
-
+    if chan_slope < threshold:
+        return threshold
     return chan_slope
 
 
