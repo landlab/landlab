@@ -76,6 +76,8 @@ def test_results_property_contains_expected_keys():
         "a_diff",
         "unstable_mask",
         "labels",
+        "filled_labels",
+        "hole_fill_mask",
         "aspect_labels",
         "selected_labels",
     ]:
@@ -87,7 +89,7 @@ def test_aspect_labels_refine_region_labels():
     comp = ShallowLandslider(mg, cohesion_eff=15, angle_int_frict=30)
     comp.run_one_step()
 
-    reg = comp.results["labels"]
+    reg = comp.results["filled_labels"]
     asp = comp.results["aspect_labels"]
 
     # Aspect subgrouping should not introduce labels with no parent region.

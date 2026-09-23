@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 from scipy import ndimage as _nd
 from scipy.ndimage import binary_dilation as _binary_dilation
+from scipy.ndimage import binary_fill_holes as _binary_fill_holes
 from scipy.ndimage import generate_binary_structure as _generate_binary_structure
 from scipy.ndimage import label as _label
 from scipy.special import expit as _expit
@@ -114,10 +115,11 @@ class ShallowLandslider(Component):
     r"""
     Predict shallow landslide initiation on a Landlab grid.
 
-    This component computes node-wise stability metrics, identifies and
-    sub-groups contiguous unstable regions by aspect, optionally splits groups
-    using KDE-informed landslide length-width relationships, and labels the
-    resulting candidate landslides.
+    This component computes node-wise stability metrics, identifies contiguous
+    unstable regions, fills enclosed holes in their candidate footprints,
+    sub-groups the filled regions by aspect, optionally splits groups using
+    KDE-informed landslide length-width relationships, and labels the resulting
+    candidate landslides.
 
     The grid must contain topographic elevation, soil depth, and horizontal
     and vertical peak-ground-acceleration fields before initialization.
@@ -206,6 +208,8 @@ class ShallowLandslider(Component):
         self._a_diff = None
         self._unstable_mask = None
         self._labels = None
+        self._filled_labels = None
+        self._hole_fill_mask = None
         self._aspect_labels = None
         self._split_labels = None
         self._selected_labels = None
@@ -242,8 +246,9 @@ class ShallowLandslider(Component):
         Returns
         -------
         dict
-            Stability calculations and the connected, aspect-split, KDE-split,
-            and final candidate labels.
+            Stability calculations and the raw connected, hole-filled,
+            aspect-split, KDE-split, and final candidate labels. The
+            ``hole_fill_mask`` marks only cells introduced by filling.
         """
         return {
             "factor_of_safety": self._fos,
@@ -252,6 +257,8 @@ class ShallowLandslider(Component):
             "a_diff": self._a_diff,
             "unstable_mask": self._unstable_mask,
             "labels": self._labels,
+            "filled_labels": self._filled_labels,
+            "hole_fill_mask": self._hole_fill_mask,
             "aspect_labels": self._aspect_labels,
             "split_labels": self._split_labels,
             "selected_labels": self._selected_labels,
@@ -273,6 +280,7 @@ class ShallowLandslider(Component):
         """
         self._compute_stability()
         self._identify_regions()
+        self._fill_region_holes()
         self._filter_by_aspect_and_split(kde_input)
         self._select_groups(random_seed)
 
@@ -330,11 +338,60 @@ class ShallowLandslider(Component):
         )
         self._labels = labels.reshape(self.grid.number_of_nodes)
 
+    def _fill_region_holes(self):
+        """Fill safe, enclosed background cavities in each candidate region.
+
+        This is a morphological completion of candidate footprints; it does
+        not change the physical ``unstable_mask`` or its raw connected labels.
+        Components are processed independently with eight-cell connectivity.
+        Only background cells are filled; nodata, closed nodes, and labels from
+        another component remain unchanged even when enclosed by a region.
+        """
+        labels = self._labels.reshape(self.grid.shape)
+        filled_labels = labels.copy()
+        hole_fill_mask = np.zeros(labels.shape, dtype=bool)
+        structure = _generate_binary_structure(2, 2)
+
+        excluded = np.asarray(
+            self.grid.status_at_node == self.grid.BC_NODE_IS_CLOSED,
+            dtype=bool,
+        ).reshape(self.grid.shape)
+        if "nodata__mask" in self.grid.at_node:
+            excluded |= np.asarray(
+                self.grid.at_node["nodata__mask"], dtype=bool
+            ).reshape(self.grid.shape)
+
+        for region_id, region_slice in enumerate(_nd.find_objects(labels), start=1):
+            if region_slice is None:
+                continue
+
+            local_labels = labels[region_slice]
+            region_mask = local_labels == region_id
+            candidate_cavities = (
+                _binary_fill_holes(region_mask, structure=structure) & ~region_mask
+            )
+            if not np.any(candidate_cavities):
+                continue
+
+            accepted = (
+                candidate_cavities & (local_labels == 0) & ~excluded[region_slice]
+            )
+
+            if np.any(accepted):
+                filled_labels[region_slice][accepted] = region_id
+                hole_fill_mask[region_slice][accepted] = True
+
+        self._filled_labels = filled_labels.reshape(self.grid.number_of_nodes)
+        self._hole_fill_mask = hole_fill_mask.reshape(self.grid.number_of_nodes)
+
     def _filter_by_aspect_and_split(self, kde_input: dict | None):
         """Split region labels by aspect and KDE-informed width."""
         zones = self._create_zones(interval=self._aspect_interval)
+        region_labels = (
+            self._filled_labels if self._filled_labels is not None else self._labels
+        )
         aspect_subgroups, _, _ = self._split_groups_by_aspect(
-            groups=self._labels.reshape(self.grid.shape),
+            groups=region_labels.reshape(self.grid.shape),
             aspect_array=self._aspect.reshape(self.grid.shape),
             zones=zones,
             handle_small=self._handle_small,
