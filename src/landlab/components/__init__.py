@@ -87,9 +87,9 @@ from .radiation import Radiation
 from .river_flow_dynamics import RiverFlowDynamics
 from .sink_fill import SinkFiller
 from .sink_fill import SinkFillerBarnes
+from .soil_landslider import SoilLandsliderGeo
 from .soil_moisture import SoilInfiltrationGreenAmpt
 from .soil_moisture import SoilMoisture
-from .soil_landslider import SoilLandsliderGeo
 from .space import Space
 from .space import SpaceLargeScaleEroder
 from .spatial_precip import SpatialPrecipitationDistribution
@@ -178,6 +178,7 @@ COMPONENTS = [
     SimpleSubmarineDiffuser,
     SinkFiller,
     SinkFillerBarnes,
+    SoilLandsliderGeo,
     SoilMoisture,
     SoilInfiltrationGreenAmpt,
     Space,
