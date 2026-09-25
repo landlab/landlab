@@ -7,6 +7,8 @@ an icosahedron.
 Greg Tucker, University of Colorado Boulder, September 2023
 """
 
+from functools import cached_property
+
 import numpy as np
 
 from landlab.graph.quasi_spherical.refinable_icosahedron import RefinableIcosahedron
@@ -493,3 +495,187 @@ class DualIcosphereGraph:
             area_of_tri = area_of_sphertri(p0, p1, p2, self._radius)
             ntri = 5 + int(np.amin(self.corners_at_node[cell]) > -1)
             self.area_of_cell[cell] = ntri * area_of_tri
+
+    @cached_property
+    def parallel_links_at_link(self):
+        """Return similarly oriented links connected to each link.
+
+        Return IDs of links of the same orientation that are connected to
+        each given link's tail or head node.
+
+        The data structure is a *numpy* array of shape ``(n_links, 4)`` containing the
+        IDs of the "tail-wise" (connected to tail node) and "head-wise" (connected
+        to head node) links, or -1 if the link is inactive (e.g., on the perimeter)
+        or it has no attached parallel neighbor in the given direction. If the nodes at
+        either end of the link are part of a hexagonal cell, then there will be only one
+        parallel link for each node. If the nodes at either end of the link are part of a
+        pentagonal cell, then there will be two parallel links for that node, and both will
+        be included in the output array. The tail-wise parallel links will be in columns
+        0 and 1, and the head-wise parallel links will be in columns 2 and 3.
+
+        For example, for a node which has 5 links attached to it like this::
+
+                   o
+                 / |  .
+               7   8    9
+             /     |      .
+           o---5---o---6---o
+            .      .      /
+             1   2   3   4
+              . /     . /
+               o---0---0
+
+        the parallel links returned by this function would be::
+
+                   o
+                 / |  .
+               /  2,3   .
+             /     |      .
+           o-6---3-o-5---2-o
+            .      .      /
+             .  8,6 8,5  /
+              . /     . /
+               o-------0
+
+        while for a node which has 6 links attached to it like this::
+
+               o--11---o
+              / .     / .
+             7   8   9   10
+            /     . /     .
+           o---5---o---6---o
+            .     / .     /
+             1   2   3   4
+              . /     . /
+               o---0---o
+
+        the parallel links returned by this function would be::
+
+               o-------o
+              / .     / .
+             /   3   2   .
+            /     . /     .
+           o---6---o---5---o
+            .     / .     /
+             .   9   8   /
+              . /     . /
+               o-------o
+
+        Examples
+        --------
+        >>> from landlab import IcosphereGlobalGrid
+        >>> spherical_grid = IcosphereGlobalGrid(
+        ...     radius=6371e3, mesh_densification_level=1
+        ... )
+        >>> pll = spherical_grid.parallel_links_at_link
+        >>> pll[3:16]
+        array([[34 50  8 -1],
+               [42 -1 30 -1],
+               [ 0 -1 44 50],
+               [37 43  2 -1],
+               [ 9 -1 45 -1],
+               [ 3 -1 11 37],
+               [ 7 -1 19 -1],
+               [13 -1  0 24],
+               [ 8 43 15 -1],
+               [35 -1  1 -1],
+               [36 65 10 -1],
+               [16 -1 38 -1],
+               [11 -1 18 65]])
+        """
+
+        n_links = self.number_of_links
+        links_at_node = self.links_at_node
+        nodes_at_link = self.nodes_at_link
+
+        parallel_links = np.full((n_links, 4), -1, dtype=int)
+
+        # Determine the unit vectors along each link in the Cartesian coordinate system.
+        nodes_0 = self.coords_of_node[nodes_at_link[:, 0]]
+        nodes_1 = self.coords_of_node[nodes_at_link[:, 1]]
+        cartesian_v = nodes_1 - nodes_0
+        cartesian_v /= np.linalg.norm(cartesian_v, axis=1)[:, None]
+
+        # Calculate terms for a basis transformation to the spherical coordinate system.
+        cos_theta = np.cos(self.theta_of_node)
+        sin_theta = np.sin(self.theta_of_node)
+        cos_phi = np.cos(self.phi_of_node)
+        sin_phi = np.sin(self.phi_of_node)
+
+        # Determine the unit vectors at each node along the surface of the sphere
+        # (ignore radial component). The surface unit vectors will be used to transform
+        # the links into the local spherical coordinate system at each node, which will
+        # then be used to determine which links are parallel using a dot product.
+        e_theta = np.column_stack(
+            (cos_theta * cos_phi, cos_theta * sin_phi, -sin_theta)
+        )
+        e_phi = np.column_stack((-sin_phi, cos_phi, np.zeros_like(sin_phi)))
+
+        # For each link, determine the index of the link within the list of links that
+        # are attached the nodes at either end of the current link. This will be needed
+        # to determine which link to use when calculating the dot product to find
+        # parallel links.
+        slot_of_link_end = np.empty((n_links, 2), dtype=int)
+        for link_id in range(n_links):
+            end_node_0 = nodes_at_link[link_id, 0]
+            end_node_1 = nodes_at_link[link_id, 1]
+            slot_of_link_end[link_id, 0] = np.where(
+                links_at_node[end_node_0] == link_id
+            )[0][0]
+            slot_of_link_end[link_id, 1] = np.where(
+                links_at_node[end_node_1] == link_id
+            )[0][0]
+
+        # Iterate over each link, and for each node at the end of each link.
+        for link_id in range(n_links):
+            for link_end in (0, 1):
+                node_id = nodes_at_link[link_id, link_end]
+                links_around_node = links_at_node[node_id]
+
+                # For Icosphere grids, cells can either be pentagon or hexagons. If
+                # the cell is a pentagon, then the last index of links_around_node will
+                # be -1, so we need to remove that before doing the rest of the calculations.
+                links_around_node = links_around_node[links_around_node >= 0]
+                deg = links_around_node.size
+
+                # Project the the link vectors into the spherical coordinate system at
+                # the current node. These vectors will be used to determine which links are
+                # parallel using the dot product.
+                cartesian_v_loc = cartesian_v[links_around_node]
+                theta_component = np.dot(cartesian_v_loc, e_theta[node_id])
+                phi_component = np.dot(cartesian_v_loc, e_phi[node_id])
+                v_magnitude = np.sqrt(
+                    theta_component * theta_component + phi_component * phi_component
+                )
+                theta_component /= v_magnitude
+                phi_component /= v_magnitude
+
+                # Find local index of current link
+                self_index = slot_of_link_end[link_id, link_end]
+                if (
+                    self_index >= deg
+                ):  # in case node has only 5 neighbors and slot 5 is -1
+                    self_index = np.where(links_around_node == link_id)[0][0]
+
+                # Take the absolute value because parallel and anti-parallel are both
+                # equally parallel for this computation.
+                dot_products = np.abs(
+                    theta_component[self_index] * theta_component
+                    + phi_component[self_index] * phi_component
+                )
+                dot_products[self_index] = -1.0  # exclude self
+
+                if deg == 5:
+                    # 5 neighbours means that the cell is a pentagon, and there will then
+                    # be 2 links that are equally parallel
+                    parallel_links[link_id, 2 * link_end : 2 * link_end + 2] = (
+                        links_around_node[dot_products.argsort()[-2:]]
+                    )
+                else:
+                    # 6 neighbours means that the cell is a hexagon, and there will be 1
+                    # link that is exactly parallel, so take the last index
+                    parallel_links[link_id, 2 * link_end] = links_around_node[
+                        dot_products.argsort()[-1]
+                    ]
+
+        return parallel_links
