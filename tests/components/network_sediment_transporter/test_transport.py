@@ -179,10 +179,11 @@ def test_defined_parcel_transport():
     )  # single parcel, so qb = qbi
 
     # TEST A:
-    nst_qb = aggregate_items_as_sum(
+    nst_qb = np.zeros(nst._grid.number_of_links, dtype=float)
+    aggregate_items_as_sum(
         nst._parcels.dataset["element_id"].values[:, -1].astype(int),
         nst._qbi,
-        size=nst._grid.number_of_links,
+        out=nst_qb,
     )  # total sediment flux per unit width, m2/s
 
     # TEST B: transport via sum of parcel motion
