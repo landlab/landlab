@@ -4,9 +4,39 @@
 
 ### 2026
 
+Adams, B. A., Cooper, F. J., Walsh, C., & Cashman, K. V. (2026). **Landscapes buried beneath large-volume ignimbrites reveal preeruptive uplift rates.** *Science Advances,* 12(37), eaee5374.
+
+Annis, S., Badas, M. G., & Mascaro, G. (2026). **Increasing the fidelity of hyperlocal simulations of urban pluvial flooding through street flooding observations.** *Advances in Water Resources,* 105223.
+
+Aristotelis-Ilias, G., Athanasios, C., & Ierotheos, Z. (2026). **Bridging urban and catchment scales in urban pluvial flooding: a multi-resolution simulation tool.** *Environmental Earth Sciences,* 85(5), 114.
+
+Cai, S., Cao, X., Li, D., & Geng, H. (2026). **Spatiotemporal patterns of the anticlines in the frontal Fars arc of the Zagros: insights from landscape evolution model.** *Frontiers in Earth Science,* 14, 1808744.
+
+Chen, H., Wang, X., Lu, H., Campforts, B., & Van Balen, R. (2026). **Long-term carbon transfers due to land use changes in the Chinese Loess Plateau.** *Geoderma,* 473, 117969.
+
+Dominguez, S., Sylvain, R., Garcia-Estève, C., Cattin, R., & Graveleau, F. (2026). **Physical and Mechanical Properties of a New Analog Material (MAT-V) for Geomorphic Experiments.** *Geomorphica,* 2(2).
+
+Grom, V. C., & Forte, A. M. (2026). **Methods for quantifying spatial and temporal variation in landscape evolution model outputs.** *Geomorphica,* 2(1).
+
+Jimenez, H. N., Istanbulluoglu, E., Gorum, T., Stanley, T. A., Amatya, P. M., Tanyas, H., ... & Bozkurt, D. (2026). **Modeling the combined effects of the 2023 Türkiye–Syria earthquake and an Atmospheric River event on landslide hazard.** *Natural Hazards and Earth System Sciences,* 26(8), 3815-3838.
+
+Morris, M. J., Roberts, G. G., Richards, F. D., Lipp, A. G., & Siddle, E. R. (2026). **Seeing through geomorphic complexity to recover tectonics from topography: Inverting landscapes for uplift histories using the Wasserstein distance.** *Journal of Geophysical Research: Earth Surface,* 131(4), e2025JF008966.
+
+Oufella, L. A., Quesnel, Y., Godard, V., & Lagain, A. (2026). **Morphological evolution of impact craters and associated gravity anomalies: New perspectives from numerical modeling.** *Earth and Space Science,* 13(2), e2025EA004634.
+
+Roberge, L. O., Gasparini, N. M., Campforts, B., & Tucker, G. E. (2026). **ConcentrationTracker: Landlab components for tracking material concentrations in sediment.** *Geoscientific Model Development,* 19(3), 1387-1404.
+
+Roberge, L. O., Gasparini, N. M., Straub, K. M., Campforts, B., & Pazzaglia, F. J. (2026). **Seeing through the noise: Implications for signal preservation in sediment flux time series from erosional systems.** *Journal of Geophysical Research: Earth Surface,* 131(7), e2025JF008921.
+
 Sharma, H., & Ehlers, T. A. (2026). **Effects of Extreme Precipitation Events on Catchment Erosion along Climate and Ecological Gradient in the Chilean Coastal Cordillera.** In *Water Security and Climate Change: Adaptation for Sustainable and Resilient Development* (pp. 113-122). Cham: Springer Nature Switzerland, [https://doi.org/10.1007/978-3-032-08411-8_8](https://doi.org/10.1007/978-3-032-08411-8_8)
 
+Sheehan, C. E., Behn, M. D., Snyder, N. P., Dahl, T. A., & Valencius, I. (2026). **Modeling the anthropogenic effects on watershed evolution trajectory: An example from the Chestatee River in northern Georgia, USA.** *Journal of Geophysical Research: Earth Surface,* 131(6), e2025JF008682.
+
+Torra, O., Hürlimann, M., Puig‐Polo, C., Buill, F., Le Bouteiller, C., Ariagno, C., & Latron, J. (2026). **Multi‐Temporal UAV Surveys and Modelling of Soil Erosion in the Ca l'Isard Catchment, NE Spain.** *European Journal of Soil Science,* 77(5), e70412.
+
 Wang, Z., Jin, J., Lou, J., Wei, C., Zuo, X., Ling, Z., ... & Qiu, J. (2026). **Optically stimulated luminescence (OSL) dating of Qin-Han ancient city moat sediments in South China and its implications for geomorphic evolution.** *Catena*, 262, 109669, [https://doi.org/10.1016/j.catena.2025.109669](https://doi.org/10.1016/j.catena.2025.109669)
+
+Zuckerman, M., Padilla, A. M. R., & Arrowsmith, J. R. (2026). **Quantifying the erasure of earthquakes in desert landscapes.** *Seismica,* 5(2).
 
 ### 2025
 
