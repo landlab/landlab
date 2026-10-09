@@ -17,9 +17,8 @@ def test_bad_argument_mfd():
     links_at_node = mg.links_at_node
     active_link_dir_at_node = mg.active_link_dirs_at_node
     link_slope = np.arctan(mg.calc_grad_at_link(z))
-    link_slope[links_at_node] * active_link_dir_at_node
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="^partition_method must be one of"):
         flow_direction_mfd.flow_directions_mfd(
             z,
             neighbors_at_node,
