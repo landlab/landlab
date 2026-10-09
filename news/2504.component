@@ -1,0 +1,1 @@
+Added a new component, GlacierEroder, which simulates erosion of the topography due to a simple glacial erosion law. Ice thickness can be determined dynamically or prescribed as fixed values.
