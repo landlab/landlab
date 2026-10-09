@@ -86,7 +86,7 @@ def test_diffusion_as_bad_number(at):
         GlacialEroder(grid, ela_height=ela_height)
 
 
-def test_glacier_advection():
+def test_glacier_dynamic_advection():
     dt = 10 * 60 * 60 * 24 * 365.25  # one year in seconds
     time_to_run = 10000 * 60 * 60 * 24 * 365.25  # one thousand year in seconds
 
@@ -180,6 +180,100 @@ def test_glacier_advection():
     assert_array_almost_equal(
         mg.at_node["dynamic_ice__thickness"], ice_thickness_target
     )
+
+
+def test_fixed_glacier():
+    dt = 10 * 60 * 60 * 24 * 365.25  # one year in seconds
+    time_to_run = 1000 * 60 * 60 * 24 * 365.25  # one thousand year in seconds
+
+    mg = RasterModelGrid(
+        (4, 11), xy_spacing=(1000.0, 1000.0), xy_of_lower_left=(-5000.0, 0.0)
+    )
+
+    # create the fields in the grid
+    mg.add_zeros("topographic__elevation", at="node")
+    mg.add_zeros("fixed_ice__thickness", at="node")
+
+    mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
+
+    slope = 10
+    mg.at_node["topographic__elevation"] += mg.x_of_node * np.sin(np.deg2rad(slope))
+
+    positive_topo = mg.at_node["topographic__elevation"] > 0.0
+    mg.at_node["fixed_ice__thickness"][positive_topo] = 2000.0
+    mg.at_node["fixed_ice__thickness"][mg.boundary_nodes] = 0.0
+
+    # instantiate:
+    ge = GlacialEroder(
+        mg,
+        ela_height=0.0,
+        ela_thickness_band=1.0,
+        characteristic_u=20.0 / 60 / 60 / 24 / 365.25,
+        glacial_erosion_coefficient=1e-20,
+        Q_geo=0,
+        Q_accum=0,
+        Q_ablat=0,
+        latent_heat=1e10,
+    )
+
+    # perform the loop:
+    elapsed_time = 0.0
+    while elapsed_time < time_to_run:
+        if elapsed_time + dt > time_to_run:
+            dt = time_to_run - elapsed_time
+        ge.run_one_step(dt)
+        elapsed_time += dt
+
+    ice_thickness_target = np.array(
+        [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            2000.0,
+            2000.0,
+            2000.0,
+            2000.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            2000.0,
+            2000.0,
+            2000.0,
+            2000.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+        ]
+    )
+
+    assert_array_almost_equal(mg.at_node["fixed_ice__thickness"], ice_thickness_target)
 
 
 def test_exception_handling():
