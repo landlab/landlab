@@ -256,6 +256,47 @@ def test_step_function_with_single_named_quantity():
     assert len(grid.at_link["flux_of_one_advected__quantity"]) == grid.number_of_links
 
 
+def test_step_function_with_no_quantity_named_hex():
+    grid = HexModelGrid((3, 4), orientation="horizontal")
+    u = grid.add_zeros("advection__velocity", at="link")
+    u[grid.orientation_of_link == LinkOrientation.E] = 1.0
+
+    advector = AdvectionSolverTVD(grid, advection_direction_is_steady=True)
+    C = grid.at_node["advected__quantity"]
+    C[grid.x_of_node < np.median(grid.x_of_node)] = 1.0
+
+    for _ in range(10):
+        advector.run_one_step(0.1)
+
+    assert np.all(np.isfinite(C))
+
+    # verify that "advection__flux" field has been created
+    assert len(grid.at_link["advection__flux"]) == grid.number_of_links
+
+
+def test_step_function_with_single_named_quantity_hex():
+    grid = HexModelGrid((3, 4), orientation="horizontal")
+    C = grid.add_zeros("one_advected__quantity", at="node")
+    C[grid.x_of_node < np.median(grid.x_of_node)] = 1.0
+
+    u = grid.add_zeros("advection__velocity", at="link")
+    u[grid.orientation_of_link == LinkOrientation.E] = 1.0
+
+    advector = AdvectionSolverTVD(
+        grid,
+        fields_to_advect="one_advected__quantity",
+        advection_direction_is_steady=True,
+    )
+
+    for _ in range(10):
+        advector.run_one_step(0.1)
+
+    assert np.all(np.isfinite(C))
+
+    # verify that field "flux_of_one_advected__quantity" has been created
+    assert len(grid.at_link["flux_of_one_advected__quantity"]) == grid.number_of_links
+
+
 def test_with_two_advected_fields():
     grid = RasterModelGrid((3, 7))
     C1 = grid.add_zeros("first_advected__quantity", at="node")
