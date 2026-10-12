@@ -1,0 +1,3 @@
+Renamed `map_nmg_links_to_rmg_coincident_nodes` to `map_network_links_to_nodes`,
+added support for all `ModelGrid` types, improved performance, and changed its
+return value from a pandas `DataFrame` to a dictionary of NumPy arrays.
