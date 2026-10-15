@@ -11,6 +11,7 @@ from requireit import require_greater_than
 from requireit import require_nonnegative
 from requireit import require_positive
 
+import landlab.components.lava_extruder.lava_helper_functions as lhf
 from landlab import Component
 
 
@@ -380,26 +381,26 @@ class LavaExtruder(Component):
             lava_surface, lava_thickness
         )
 
-        velmag = np.maximum(
-            self._lava_density
-            * self._gravity
-            / (3.0 * self._viscosity)
-            * lava_at_link**2
-            * np.abs(lava_surface_grad)
-            - self._yield_stress / (2.0 * self._viscosity) * lava_at_link,
-            0.0,
+        lava_speed = lhf.calc_lava_speed(
+            lava_at_link,
+            lava_surface_grad,
+            lava_density=self._lava_density,
+            gravity=self._gravity,
+            viscosity=self._viscosity,
+            yield_stress=self._yield_stress,
         )
-        velmag[self._grid.status_at_link != self._grid.BC_LINK_IS_ACTIVE] = 0.0
-        lava_flux = -np.sign(lava_surface_grad) * lava_at_link * velmag
 
-        return velmag, lava_flux
+        lava_speed[self._grid.status_at_link != self._grid.BC_LINK_IS_ACTIVE] = 0.0
+        lava_flux = -np.sign(lava_surface_grad) * lava_at_link * lava_speed
 
-    def _calc_CFL_advection_timestep(self, velmag, dt, sub_dt):
+        return lava_speed, lava_flux
+
+    def _calc_CFL_advection_timestep(self, lava_speed, dt, sub_dt):
         """Calculate the CFL-limited advection timestep.
 
         Parameters
         ----------
-        velmag : ndarray
+        lava_speed : ndarray
             The magnitude of the lava velocity at each link.
         dt : float
             The current time step.
@@ -413,7 +414,10 @@ class LavaExtruder(Component):
         current_dt = np.min(
             self._courant
             * np.divide(
-                self._grid.length_of_link, velmag, where=velmag > 0.0, out=link_dt
+                self._grid.length_of_link,
+                lava_speed,
+                where=lava_speed > 0.0,
+                out=link_dt,
             )
         )
 
@@ -490,7 +494,7 @@ class LavaExtruder(Component):
 
         return min(current_dt, dt - sub_dt)
 
-    def _compute_lava_temperature(
+    def _calc_lava_temperature(
         self, lava_thermal_energy, lava_thickness, cell_areas, mask, lava_temperature
     ):
 
@@ -593,7 +597,7 @@ class LavaExtruder(Component):
         )
         cell_areas = self._grid.area_of_cell[self._grid.cell_at_node]
 
-        self.lava_temperature[:] = self._compute_lava_temperature(
+        self.lava_temperature[:] = self._calc_lava_temperature(
             self.lava_thermal_energy,
             lava_thickness,
             cell_areas,
@@ -763,7 +767,7 @@ class LavaExtruder(Component):
         # If there is no lava and there is a lid, accrete the lid to the topography.
         no_lava = lava_thickness < self._dry_thickness_threshold
 
-        self.lava_temperature[:] = self._compute_lava_temperature(
+        self.lava_temperature[:] = self._calc_lava_temperature(
             self.lava_thermal_energy,
             lava_thickness,
             cell_areas,
@@ -805,10 +809,10 @@ class LavaExtruder(Component):
 
             self._calc_vent_flux()
 
-            velmag, lava_flux = self._calc_lava_velocity()
+            lava_speed, lava_flux = self._calc_lava_velocity()
             conductive_rate = self._calc_conductive_cooling_rate()
             radiative_rate = self._calc_radiative_cooling_rate()
-            advection_dt = self._calc_CFL_advection_timestep(velmag, dt, sub_dt)
+            advection_dt = self._calc_CFL_advection_timestep(lava_speed, dt, sub_dt)
             freezing_dt = self._calc_CFL_freezing_timestep(conductive_rate, dt, sub_dt)
             radiative_dt = self._calc_CFL_radiative_timestep(radiative_rate, dt, sub_dt)
             current_dt = min(advection_dt, freezing_dt, radiative_dt)
