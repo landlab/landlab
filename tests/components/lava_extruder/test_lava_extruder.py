@@ -14,8 +14,8 @@ from landlab.components import LavaExtruder
 from landlab.core.component_utils import iter_adaptive_time_steps
 
 
-def test_calc_lava_velocity():
-    velocity = lhf.calc_lava_velocity(
+def test_calc_lava_speed():
+    velocity = lhf.calc_lava_speed(
         np.array([1.0, 2.0, 3.0, 4.0]),
         np.array([-0.1, 0.5, 0.0, -1.0]),
         lava_density=3.0,

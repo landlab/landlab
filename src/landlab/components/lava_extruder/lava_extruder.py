@@ -499,14 +499,14 @@ class LavaExtruder(Component):
     ):
 
         lava_temperature[mask] = np.minimum(
-            self._freezing_temperature
-            + lava_thermal_energy[mask]
-            / (
-                self._lava_density
-                * self._specific_heat_capacity
-                * cell_areas[mask]
-                * lava_thickness[mask]
-            ),
+            lhf.thermal_energy_to_temperature(
+                lava_thermal_energy[mask],
+                lava_thickness[mask],
+                cell_areas[mask],
+                lava_density=self._lava_density,
+                specific_heat_capacity=self._specific_heat_capacity,
+            )
+            + self._ambient_temperature,
             self._eruption_temperature,
         )
         lava_temperature[self._vent_nodes] = self._eruption_temperature
@@ -605,51 +605,37 @@ class LavaExtruder(Component):
             self.lava_temperature,
         )
 
-        basal_energy_loss_rate = np.minimum(
+        basal_energy_loss_rate = -np.maximum(
             0.0,
-            -self._thermal_conductivity
-            * (self.lava_temperature - self._ambient_temperature)
-            / self._basal_thickness
-            * cell_areas,
+            lhf.conductive_heat_flux(
+                self.lava_temperature,
+                cell_areas,
+                self._basal_thickness,
+                thermal_conductivity=self._thermal_conductivity,
+                ambient_temperature=self._ambient_temperature,
+            ),
         )
 
         self.lid_thickness[:] = np.maximum(self.lid_thickness, self._min_lid_thickness)
-        atmos_energy_loss_rate = np.minimum(
+
+        atmos_energy_loss_rate = -np.maximum(
             0.0,
-            -self._thermal_conductivity
-            * (self.lava_temperature - self._ambient_temperature)
-            / self.lid_thickness
-            * cell_areas,
+            lhf.conductive_heat_flux(
+                self.lava_temperature,
+                cell_areas,
+                self.lid_thickness,
+                thermal_conductivity=self._thermal_conductivity,
+                ambient_temperature=self._ambient_temperature,
+            ),
         )
 
         conductive_cooling_rate = basal_energy_loss_rate + atmos_energy_loss_rate
         conductive_cooling_rate[self._vent_nodes] = 0.0
         return conductive_cooling_rate
 
-    def _calc_changes(
-        self, limited_dt, lava_flux, conductive_cooling_rate, radiative_cooling_rate
+    def _calc_advective_energy_change(
+        self, limited_dt, lava_flux, elevation, lava_thickness, cell_areas
     ):
-        """Calculate the changes in lava thermal energy and thickness
-           due to advection and cooling.
-
-        Parameters
-        ----------
-        limited_dt : float
-            The limited time step for the current iteration.
-        lava_flux : ndarray
-            The flux of lava at each link.
-        conductive_cooling_rate : ndarray
-            The conductive cooling rate at each node.
-        radiative_cooling_rate : ndarray
-            The radiative cooling rate at each node.
-        """
-
-        elevation = self._grid.at_node["topographic__elevation"]
-        lava_thickness = self._grid.at_node["lava__thickness"]
-        cell_areas = self._grid.area_of_cell[self._grid.cell_at_node]
-
-        lava_flux = self._limit_lava_flux(lava_flux, limited_dt)
-
         self.lava_thermal_energy[self._vent_nodes] += (
             self._eruptive_volume_flux
             * self._lava_density
@@ -657,7 +643,6 @@ class LavaExtruder(Component):
             * (self._eruption_temperature - self._freezing_temperature)
             * limited_dt
         )
-        has_lava = lava_thickness > self._dry_thickness_threshold
 
         lava_surface = elevation + lava_thickness
         temperature_at_link = self._grid.map_value_at_max_node_to_link(
@@ -683,22 +668,24 @@ class LavaExtruder(Component):
         # Make sure that advection does not make lava_thermal_energy negative
         self.lava_thermal_energy[:] += total_advective_energy_change
         self.lava_thermal_energy[:] = np.maximum(self.lava_thermal_energy, 0.0)
+        return self.lava_thermal_energy
 
-        # Determine how much mass energy there is so that we know how much energy
-        # can be removed from the system due to freezing at each point.
-        total_mass_energy = (
-            lava_thickness
-            * cell_areas
-            * self._lava_density
-            * self._latent_heat_of_freezing
-        )
+    def _radiate_thermal_energy(self, radiative_cooling_change):
+        """Update lava thermal energy due to radiative cooling.
 
-        thermal_energy_change = np.zeros_like(total_mass_energy)
+        Parameters
+        ----------
+        radiative_cooling_change : ndarray
+            The change in thermal energy due to radiative cooling at each node.
 
-        radiative_cooling_change = radiative_cooling_rate * limited_dt
-        conductive_energy_change = conductive_cooling_rate * limited_dt
-
+        Returns
+        -------
+        lava_thermal_energy : ndarray
+            The updated lava thermal energy at each node.
+        """
         radiate_thermal_enegy = radiative_cooling_change <= 0.0
+
+        thermal_energy_change = np.zeros(self._grid.number_of_nodes)
 
         thermal_energy_change[radiate_thermal_enegy] = -np.minimum(
             abs(radiative_cooling_change[radiate_thermal_enegy]),
@@ -706,9 +693,12 @@ class LavaExtruder(Component):
         )
 
         self.lava_thermal_energy[:] += thermal_energy_change
+        return self.lava_thermal_energy
 
-        thermal_energy_change[:] = 0.0
+    def _conduct_thermal_energy(self, conductive_energy_change):
         conduct_thermal_energy = conductive_energy_change < 0.0
+
+        thermal_energy_change = np.zeros(self._grid.number_of_nodes)
 
         thermal_energy_change[conduct_thermal_energy] = -np.minimum(
             abs(conductive_energy_change[conduct_thermal_energy]),
@@ -720,9 +710,29 @@ class LavaExtruder(Component):
             conduct_thermal_energy
         ]
 
+        return conductive_energy_change
+
+    def _calc_freezing_rate(
+        self, lava_thickness, cell_areas, conductive_energy_change, limited_dt
+    ):
         self.freezing_rate[:] = 0.0
 
+        # Determine how much mass energy there is so that we know how much energy
+        # can be removed from the system due to freezing at each point.
+        total_mass_energy = (
+            lava_thickness
+            * cell_areas
+            * self._lava_density
+            * self._latent_heat_of_freezing
+        )
+
         remove_mass_energy = conductive_energy_change < 0.0
+
+        conductive_energy_change[remove_mass_energy] = np.maximum(
+            conductive_energy_change[remove_mass_energy],
+            -total_mass_energy[remove_mass_energy],
+        )
+
         self.freezing_rate[remove_mass_energy] = -conductive_energy_change[
             remove_mass_energy
         ] / (
@@ -732,6 +742,9 @@ class LavaExtruder(Component):
             * limited_dt
         )
 
+        return self.freezing_rate
+
+    def _update_lava_thickness(self, lava_thickness, lava_flux, limited_dt):
         lava_flux_div_at_node = self._grid.calc_flux_div_at_node(lava_flux)
 
         dHdt = self.vent_flux - lava_flux_div_at_node - self.freezing_rate
@@ -740,6 +753,14 @@ class LavaExtruder(Component):
             dHdt[self._grid.core_nodes] * limited_dt
         )
 
+        no_lava = lava_thickness <= self._dry_thickness_threshold
+        lava_thickness[no_lava] = 0.0
+
+        return lava_thickness
+
+    def _partition_lava_to_lid_and_topography(
+        self, elevation, lava_thickness, limited_dt
+    ):
         frozen_lava_thickness = self.freezing_rate * limited_dt
 
         add_to_lid = self.lid_thickness < self._max_lid_thickness
@@ -764,9 +785,63 @@ class LavaExtruder(Component):
         )
         lava_thickness[too_much_lava] = self._max_lava_thickness
 
-        # If there is no lava and there is a lid, accrete the lid to the topography.
-        no_lava = lava_thickness < self._dry_thickness_threshold
+        no_lava = lava_thickness <= self._dry_thickness_threshold
+        elevation[no_lava] += self.lid_thickness[no_lava] - self._min_lid_thickness
+        self.lid_thickness[no_lava] = self._min_lid_thickness
 
+    def _calc_changes(
+        self, limited_dt, lava_flux, conductive_cooling_rate, radiative_cooling_rate
+    ):
+        """Calculate the changes in lava thermal energy and thickness
+           due to advection and cooling.
+
+        Parameters
+        ----------
+        limited_dt : float
+            The limited time step for the current iteration.
+        lava_flux : ndarray
+            The flux of lava at each link.
+        conductive_cooling_rate : ndarray
+            The conductive cooling rate at each node.
+        radiative_cooling_rate : ndarray
+            The radiative cooling rate at each node.
+        """
+
+        elevation = self._grid.at_node["topographic__elevation"]
+        lava_thickness = self._grid.at_node["lava__thickness"]
+        cell_areas = self._grid.area_of_cell[self._grid.cell_at_node]
+
+        lava_flux = self._limit_lava_flux(lava_flux, limited_dt)
+
+        self.lava_thermal_energy = self._calc_advective_energy_change(
+            limited_dt, lava_flux, elevation, lava_thickness, cell_areas
+        )
+
+        radiative_cooling_change = radiative_cooling_rate * limited_dt
+
+        self.lava_thermal_energy = self._radiate_thermal_energy(
+            radiative_cooling_change
+        )
+
+        conductive_energy_change = conductive_cooling_rate * limited_dt
+
+        conductive_energy_change = self._conduct_thermal_energy(
+            conductive_energy_change
+        )
+
+        self.freezing_rate = self._calc_freezing_rate(
+            lava_thickness, cell_areas, conductive_energy_change, limited_dt
+        )
+
+        lava_thickness = self._update_lava_thickness(
+            lava_thickness, lava_flux, limited_dt
+        )
+
+        self._partition_lava_to_lid_and_topography(
+            elevation, lava_thickness, limited_dt
+        )
+
+        has_lava = lava_thickness > self._dry_thickness_threshold
         self.lava_temperature[:] = self._calc_lava_temperature(
             self.lava_thermal_energy,
             lava_thickness,
@@ -774,11 +849,10 @@ class LavaExtruder(Component):
             has_lava,
             self.lava_temperature,
         )
-        self.lava_temperature[no_lava] = self._ambient_temperature
 
-        elevation[no_lava] += self.lid_thickness[no_lava] - self._min_lid_thickness
-        self.lid_thickness[no_lava] = self._min_lid_thickness
-        lava_thickness[no_lava] = 0.0
+        # If there is no lava and there is a lid, accrete the lid to the topography.
+        no_lava = lava_thickness <= self._dry_thickness_threshold
+        self.lava_temperature[no_lava] = self._ambient_temperature
 
     def _calc_vent_flux(self):
         """Calculate the lava flux from the vent."""
