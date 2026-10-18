@@ -247,6 +247,43 @@ def test_freezing_mass_conservation():
     assert_almost_equal(final_topo_volume, initial_lava_volume)
 
 
+def test_too_much_lava():
+    max_dt = 100.0
+    time_to_run = 100.0
+
+    mg = RasterModelGrid((3, 20), xy_spacing=(100.0, 100.0))
+
+    # create the fields in the grid
+    mg.add_zeros("topographic__elevation", at="node")
+
+    mg.add_zeros("lava__thickness", at="node")
+    mg.at_node["lava__thickness"] += 1000.0  # excessive lava thickness
+
+    mg.add_zeros("lava__temperature", at="node")
+    mg.at_node["lava__temperature"][mg.at_node["lava__thickness"] > 0] = 1473.0
+
+    initial_volume = np.sum(mg.at_node["lava__thickness"] * mg.cell_area_at_node)
+
+    mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
+
+    le = LavaExtruder(
+        mg,
+        vent_coordinates=None,
+        eruptive_volume_flux=0.0,
+        max_lava_thickness=50.0,
+    )
+
+    for dt in iter_adaptive_time_steps(time_to_run, calc_dt=lambda: max_dt):
+        le.run_one_step(dt)
+
+    final_lava_volume = np.sum(mg.at_node["lava__thickness"] * mg.cell_area_at_node)
+    final_topo_volume = np.sum(
+        mg.at_node["topographic__elevation"] * mg.cell_area_at_node
+    )
+
+    assert_almost_equal(final_lava_volume, initial_volume - final_topo_volume)
+
+
 def test_vent_outside_domain():
     grid = RasterModelGrid((3, 3))
     grid.add_zeros("topographic__elevation", at="node")
