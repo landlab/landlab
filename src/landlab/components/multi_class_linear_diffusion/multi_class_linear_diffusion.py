@@ -113,9 +113,9 @@ class MultiClassLinearDiffusion(LinearDiffuser):
             distinguish which based on array length. Values on nodes will be
             mapped to links using an upwind scheme in the simple case.
         phi : float  (default 0.35)
-            Bulk porosity of bed sediment
+            Bulk porosity of the sediment layer
         rho_sed : float (default 2650)
-            Density of the sediment layer
+            Sediment density [kg/m^3]
         """
 
         # if "kd" not in grid.at_node:
