@@ -1,6 +1,6 @@
 bmipy==2.0.1
 matplotlib==3.11.2
-netcdf4==1.7.4
+netcdf4==1.7.5
 numpy==2.5.4
 pandas==3.0.6
 py-richdem==2.2.0rc3
