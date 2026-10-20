@@ -1,13 +1,13 @@
 #! /usr/env/python
-"""
-"""
+""" """
 
 import numpy as np
-from landlab.components import LinearDiffuser
+
 from landlab import Component
 from landlab import LinkStatus
 from landlab import NodeStatus
 from landlab import RasterModelGrid
+from landlab.components import LinearDiffuser
 
 _ALPHA = 0.15
 
@@ -96,12 +96,7 @@ class MultiClassLinearDiffusion(LinearDiffuser):
         },
     }
 
-    def __init__(self,
-                 grid,
-                 linear_diffusivity=0.01,
-                 phi=0.35,
-                 rho_sed=2650,
-                 **kwds):
+    def __init__(self, grid, linear_diffusivity=0.01, phi=0.35, rho_sed=2650, **kwds):
         """
         Parameters
         ----------
@@ -131,37 +126,45 @@ class MultiClassLinearDiffusion(LinearDiffuser):
 
         super().__init__(grid, **kwds)
 
-        if np.ndim(self._grid.at_node['grains__mass']) > 1:
-            self._n_classes = np.shape(self._grid.at_node['grains__mass'])[1]
+        if np.ndim(self._grid.at_node["grains__mass"]) > 1:
+            self._n_classes = np.shape(self._grid.at_node["grains__mass"])[1]
         else:
             self._n_classes = 1
         face_width_at_link = np.zeros(self._grid.number_of_links)
         has_face = self._grid.face_at_link != -1
-        face_width_at_link[has_face] = self._grid.length_of_face[self._grid.face_at_link[has_face]]
+        face_width_at_link[has_face] = self._grid.length_of_face[
+            self._grid.face_at_link[has_face]
+        ]
         links = self._grid.links_at_node
-        self._face_width_at_node_links = np.where(links != -1, face_width_at_link[links], 0.0)
+        self._face_width_at_node_links = np.where(
+            links != -1, face_width_at_link[links], 0.0
+        )
         area = self._grid.cell_area_at_node
-        self._inv_cell_area_at_node = np.divide(1.0, area, out=np.zeros_like(area), where=area > 0)
+        self._inv_cell_area_at_node = np.divide(
+            1.0, area, out=np.zeros_like(area), where=area > 0
+        )
         self._dx_min = self._grid.length_of_link[self._grid.active_links].min()
         self._zeros_at_node = self._grid.zeros(at="node")
         self._zeros_at_link = self._grid.zeros(at="link")
         self._zeros_at_link_for_fractions = np.zeros(
-            (np.shape(self._zeros_at_link)[0], self._n_classes))
+            (np.shape(self._zeros_at_link)[0], self._n_classes)
+        )
 
-    def _spread_mass_between_classes(self, dt,
-                                     topo):
+    def _spread_mass_between_classes(self, dt, topo):
 
         # Pointers
         sediment_flux = self._grid.at_link["hillslope_sediment__unit_volume_flux"] * dt
-        bed = self._grid.at_node['bedrock__elevation']
-        soil = self._grid.at_node['soil__depth']
-        grain_mass_node = self._grid.at_node['grains__mass']
+        bed = self._grid.at_node["bedrock__elevation"]
+        soil = self._grid.at_node["soil__depth"]
+        grain_mass_node = self._grid.at_node["grains__mass"]
         grain_mass_node[grain_mass_node < 0] = 0
         n_classes = self._n_classes
 
         # Init arrays
         g_total_link = self._zeros_at_link.copy()  # Total mass at link
-        g_state_link = self._zeros_at_link_for_fractions.copy()  # Grain mass of each class
+        g_state_link = (
+            self._zeros_at_link_for_fractions.copy()
+        )  # Grain mass of each class
         sed_flux_at_link = self._zeros_at_link.copy()
         self._sum_dzdt = self._zeros_at_node.copy()
 
@@ -169,35 +172,48 @@ class MultiClassLinearDiffusion(LinearDiffuser):
         tgrad = self.grid.calc_grad_at_link(topo)
 
         # Get the upwind node ID at link
-        upwind_node_id_at_link = self._grid.map_value_at_max_node_to_link(topo,
-                                                                          self._grid.nodes.flatten())
+        upwind_node_id_at_link = self._grid.map_value_at_max_node_to_link(
+            topo, self._grid.nodes.flatten()
+        )
         # Get only valid upwind nodes
         nonzero_upwind_node_ids = upwind_node_id_at_link.astype(int)
 
-        # Get the LINKS IDs 
+        # Get the LINKS IDs
         nonzero_link_ids = np.arange(self._grid.number_of_links)
 
         # Get the outlinks in each node
         outlinks_at_node = self.grid.link_at_node_is_downwind(tgrad)
         if n_classes > 1:
-            g_total_dt_node = np.sum(grain_mass_node, 1).copy()  # Total grains mass at node
+            g_total_dt_node = np.sum(
+                grain_mass_node, 1
+            ).copy()  # Total grains mass at node
             g_total_link[nonzero_link_ids] = g_total_dt_node[
-                nonzero_upwind_node_ids]  # Total sediment mass for of each up-wind node (mapped to link).
-            g_state_link[nonzero_link_ids, :] = (
-                grain_mass_node)[nonzero_upwind_node_ids, :]  # Sediment mass for all size-fraction, mapped to link
-            g_fraction_link = np.divide(g_state_link,
-                                        g_total_link.reshape(-1, 1),
-                                        out=np.zeros_like(g_state_link),
-                                        where=g_total_link.reshape(-1, 1) != 0)
-            self._sed_flux_at_link_class = np.multiply(np.abs(sediment_flux.reshape([-1, 1])),
-                                                       g_fraction_link) * -np.sign(tgrad[:, np.newaxis])
+                nonzero_upwind_node_ids
+            ]  # Total sediment mass for of each up-wind node (mapped to link).
+            g_state_link[nonzero_link_ids, :] = (grain_mass_node)[
+                nonzero_upwind_node_ids, :
+            ]  # Sediment mass for all size-fraction, mapped to link
+            g_fraction_link = np.divide(
+                g_state_link,
+                g_total_link.reshape(-1, 1),
+                out=np.zeros_like(g_state_link),
+                where=g_total_link.reshape(-1, 1) != 0,
+            )
+            self._sed_flux_at_link_class = np.multiply(
+                np.abs(sediment_flux.reshape([-1, 1])), g_fraction_link
+            ) * -np.sign(tgrad[:, np.newaxis])
         else:
             g_total_link[nonzero_link_ids] = grain_mass_node[
-                nonzero_upwind_node_ids]  # Total sediment mass for of each up-wind node mapped to link.
-            self._sed_flux_at_link_class = np.abs(sediment_flux.reshape([-1, 1])) * -np.sign(tgrad[:, np.newaxis])
+                nonzero_upwind_node_ids
+            ]  # Total sediment mass for of each up-wind node mapped to link.
+            self._sed_flux_at_link_class = np.abs(
+                sediment_flux.reshape([-1, 1])
+            ) * -np.sign(tgrad[:, np.newaxis])
 
-        fluxes = (self._grid.link_dirs_at_node[:, :, np.newaxis] *
-                  self._sed_flux_at_link_class[self._grid.links_at_node, :])
+        fluxes = (
+            self._grid.link_dirs_at_node[:, :, np.newaxis]
+            * self._sed_flux_at_link_class[self._grid.links_at_node, :]
+        )
         outlinks_fluxes_at_node = np.copy(fluxes)
         outlinks_fluxes_at_node[~outlinks_at_node, :] = 0
         outlinks_id = self.grid.links_at_node[outlinks_at_node]
@@ -208,33 +224,52 @@ class MultiClassLinearDiffusion(LinearDiffuser):
         # stored in the upwind node
         # sum_fluxes_out = np.abs(np.sum(np.abs(outlinks_fluxes_at_node), 1))
         sum_fluxes_out = np.abs(
-            np.sum(np.abs(outlinks_fluxes_at_node) * self._face_width_at_node_links[:, :, np.newaxis], 1))
+            np.sum(
+                np.abs(outlinks_fluxes_at_node)
+                * self._face_width_at_node_links[:, :, np.newaxis],
+                1,
+            )
+        )
 
         dz_per_grainsize_at_node = grain_mass_node / ((1 - self._phi) * self._rho_sed)
         if n_classes > 1:
             indices_to_correct_flux = np.where(
-                (sum_fluxes_out * self._inv_cell_area_at_node[:, np.newaxis]) > dz_per_grainsize_at_node)
+                (sum_fluxes_out * self._inv_cell_area_at_node[:, np.newaxis])
+                > dz_per_grainsize_at_node
+            )
         else:
             indices_to_correct_flux = np.where(
-                (sum_fluxes_out[:, 0] * self._inv_cell_area_at_node) > dz_per_grainsize_at_node)
+                (sum_fluxes_out[:, 0] * self._inv_cell_area_at_node)
+                > dz_per_grainsize_at_node
+            )
 
         if np.any(indices_to_correct_flux):
             # If the outflux is greater than the mass in the upstream node we should fix the outflux.
             if n_classes > 1:
-                ratios = np.divide(dz_per_grainsize_at_node[indices_to_correct_flux],
-                                   sum_fluxes_out[indices_to_correct_flux] * self._inv_cell_area_at_node[
-                                       indices_to_correct_flux[0]])
-                outlinks_fluxes_at_node[indices_to_correct_flux[0], :, indices_to_correct_flux[1]] *= ratios[:,
-                np.newaxis]
+                ratios = np.divide(
+                    dz_per_grainsize_at_node[indices_to_correct_flux],
+                    sum_fluxes_out[indices_to_correct_flux]
+                    * self._inv_cell_area_at_node[indices_to_correct_flux[0]],
+                )
+                outlinks_fluxes_at_node[
+                    indices_to_correct_flux[0], :, indices_to_correct_flux[1]
+                ] *= ratios[:, np.newaxis]
             else:
-                ratios = np.divide(dz_per_grainsize_at_node[indices_to_correct_flux][:, np.newaxis],
-                                   sum_fluxes_out[indices_to_correct_flux] *
-                                   self._inv_cell_area_at_node[indices_to_correct_flux[0]][:, np.newaxis])
+                ratios = np.divide(
+                    dz_per_grainsize_at_node[indices_to_correct_flux][:, np.newaxis],
+                    sum_fluxes_out[indices_to_correct_flux]
+                    * self._inv_cell_area_at_node[indices_to_correct_flux[0]][
+                        :, np.newaxis
+                    ],
+                )
 
-                outlinks_fluxes_at_node[indices_to_correct_flux[0], :] *= ratios[:, np.newaxis]
+                outlinks_fluxes_at_node[indices_to_correct_flux[0], :] *= ratios[
+                    :, np.newaxis
+                ]
             # Update the flux.
-            self._sed_flux_at_link_class[outlinks_id] = np.abs(outlinks_fluxes_at_node[outlinks_at_node, :]) * np.sign(
-                self._sed_flux_at_link_class[outlinks_id])
+            self._sed_flux_at_link_class[outlinks_id] = np.abs(
+                outlinks_fluxes_at_node[outlinks_at_node, :]
+            ) * np.sign(self._sed_flux_at_link_class[outlinks_id])
 
         sed_flux_at_link[:] = np.sum(self._sed_flux_at_link_class, axis=1)
         dz_soil_sediment = -self._grid.calc_flux_div_at_node(sed_flux_at_link)
@@ -242,8 +277,12 @@ class MultiClassLinearDiffusion(LinearDiffuser):
         # Update mass across grains classes
         if n_classes > 1:
             for size_class in range(n_classes):
-                dz = -self._grid.calc_flux_div_at_node(self._sed_flux_at_link_class[:, size_class])
-                grain_mass_node[:, size_class] += (dz) * (1 - self._phi) * self._rho_sed  # in kg/m2
+                dz = -self._grid.calc_flux_div_at_node(
+                    self._sed_flux_at_link_class[:, size_class]
+                )
+                grain_mass_node[:, size_class] += (
+                    (dz) * (1 - self._phi) * self._rho_sed
+                )  # in kg/m2
         else:
             dz = -self._grid.calc_flux_div_at_node(self._sed_flux_at_link_class[:, 0])
             grain_mass_node[:] += (dz) * (1 - self._phi) * self._rho_sed  # in kg/m2
@@ -263,7 +302,7 @@ class MultiClassLinearDiffusion(LinearDiffuser):
             Time-step duration (y)
         """
         # dt_max = _ALPHA * self._grid.length_of_link[0] ** 2 / self._kd
-        dt_max = _ALPHA * self._dx_min ** 2 / self._kd
+        dt_max = _ALPHA * self._dx_min**2 / self._kd
         n = int(dt // dt_max) + 1
         for _ in range(n):
             self._one_substep(dt / n)
@@ -281,13 +320,12 @@ class MultiClassLinearDiffusion(LinearDiffuser):
         soil_before = self.grid.at_node["soil__depth"].copy()
 
         super().run_one_step(dt)
-        dz_soil_sediment = self._spread_mass_between_classes(dt=dt,
-                                                             topo=topo_before)
+        dz_soil_sediment = self._spread_mass_between_classes(dt=dt, topo=topo_before)
 
         # Update topography after soil diffusion
-        self._grid.at_node['soil__depth'][:] = soil_before + dz_soil_sediment
-        self._grid.at_node['soil__depth'][self._grid.at_node['soil__depth'] <= 0] = 0
-        self._grid.at_node['topographic__elevation'][:] = (self._grid.at_node['soil__depth'][:] +
-                                                           self._grid.at_node['bedrock__elevation'][:])
-
-
+        self._grid.at_node["soil__depth"][:] = soil_before + dz_soil_sediment
+        self._grid.at_node["soil__depth"][self._grid.at_node["soil__depth"] <= 0] = 0
+        self._grid.at_node["topographic__elevation"][:] = (
+            self._grid.at_node["soil__depth"][:]
+            + self._grid.at_node["bedrock__elevation"][:]
+        )
