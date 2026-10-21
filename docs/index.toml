@@ -1,6 +1,7 @@
 # This file was automatically generated with:
 #     nox -s build-index
 
+
 # Generated using `landlab index components`
 [components]
 
@@ -3123,6 +3124,51 @@ name = 'landlab.components.network_sediment_transporter.sediment_pulser_each_par
 unit_agnostic = false
 summary = 'Send pulses of sediment to specific point locations within the channel'
 
+[components.ShallowLandslider]
+name = 'landlab.components.shallow_landslider.shallow_landslide_component.ShallowLandslider'
+unit_agnostic = true
+summary = 'Predict shallow landslide initiation & selection on a Landlab grid.'
+
+[components.ShallowLandslider.info.earthquake__horizontal_pga]
+doc = 'Horizontal PGA (multiples of g).'
+dtype = 'float64'
+intent = 'in'
+mapping = 'node'
+optional = false
+units = 'g'
+
+[components.ShallowLandslider.info.earthquake__vertical_pga]
+doc = 'Vertical PGA (multiples of g).'
+dtype = 'float64'
+intent = 'in'
+mapping = 'node'
+optional = false
+units = 'g'
+
+[components.ShallowLandslider.info.landslide__selected_labels]
+doc = 'Labels of selected candidate landslides (0 for unselected).'
+dtype = 'int64'
+intent = 'out'
+mapping = 'node'
+optional = false
+units = '-'
+
+[components.ShallowLandslider.info.soil__depth]
+doc = 'Depth of soil or weathered bedrock'
+dtype = 'float64'
+intent = 'in'
+mapping = 'node'
+optional = false
+units = 'm'
+
+[components.ShallowLandslider.info.topographic__elevation]
+doc = 'Land surface topographic elevation'
+dtype = 'float64'
+intent = 'in'
+mapping = 'node'
+optional = false
+units = 'm'
+
 [components.SharedStreamPower]
 name = 'landlab.components.erosion_deposition.shared_stream_power.SharedStreamPower'
 unit_agnostic = true
@@ -4485,6 +4531,20 @@ used_by = [
 ]
 provided_by = []
 
+[fields.earthquake__horizontal_pga]
+desc = 'Horizontal PGA (multiples of g).'
+used_by = [
+  'landlab.components.shallow_landslider.shallow_landslide_component.ShallowLandslider',
+]
+provided_by = []
+
+[fields.earthquake__vertical_pga]
+desc = 'Vertical PGA (multiples of g).'
+used_by = [
+  'landlab.components.shallow_landslider.shallow_landslide_component.ShallowLandslider',
+]
+provided_by = []
+
 [fields.ebb_tide_flow__velocity]
 desc = 'Horizontal flow velocity along links during ebb tide'
 used_by = []
@@ -4801,6 +4861,13 @@ desc = 'number of times FS is <=1 out of number of iterations user selected'
 used_by = []
 provided_by = [
   'landlab.components.landslides.landslide_probability.LandslideProbability',
+]
+
+[fields.landslide__selected_labels]
+desc = 'Labels of selected candidate landslides (0 for unselected).'
+used_by = []
+provided_by = [
+  'landlab.components.shallow_landslider.shallow_landslide_component.ShallowLandslider',
 ]
 
 [fields.landslide_sediment_point_source]
@@ -5144,6 +5211,7 @@ used_by = [
   'landlab.components.depth_dependent_diffusion.hillslope_depth_dependent_linear_flux.DepthDependentDiffuser',
   'landlab.components.depth_dependent_taylor_soil_creep.hillslope_depth_dependent_taylor_flux.DepthDependentTaylorDiffuser',
   'landlab.components.gravel_bedrock_eroder.gravel_bedrock_eroder.GravelBedrockEroder',
+  'landlab.components.shallow_landslider.shallow_landslide_component.ShallowLandslider',
   'landlab.components.space.space.Space',
   'landlab.components.space.space_large_scale_eroder.SpaceLargeScaleEroder',
   'landlab.components.threshold_eroder.threshold_eroder.ThresholdEroder',
@@ -5508,6 +5576,7 @@ used_by = [
   'landlab.components.priority_flood_flow_router.priority_flood_flow_router.PriorityFloodFlowRouter',
   'landlab.components.radiation.radiation.Radiation',
   'landlab.components.river_flow_dynamics.river_flow_dynamics.RiverFlowDynamics',
+  'landlab.components.shallow_landslider.shallow_landslide_component.ShallowLandslider',
   'landlab.components.sink_fill.fill_sinks.SinkFiller',
   'landlab.components.sink_fill.sink_fill_barnes.SinkFillerBarnes',
   'landlab.components.space.space.Space',
