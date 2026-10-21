@@ -9,6 +9,7 @@ KRB Jan 2017
 """
 
 import numpy as np
+from requireit import require_one_of
 
 from landlab.core.utils import as_id_array
 from landlab.grid.base import BAD_INDEX_VALUE
@@ -235,6 +236,12 @@ def flow_directions_mfd(
     >>> proportions.sum(axis=-1)
     array([1., 1., 1., 1., 1., 1., 1., 1., 1.])
     """
+    partition_method = require_one_of(
+        partition_method,
+        allowed=("square_root_of_slope", "slope"),
+        name="partition_method",
+    )
+
     # Calculate the number of nodes.
     num_nodes = len(elev)
 
@@ -298,8 +305,6 @@ def flow_directions_mfd(
         values_for_partitioning = flow_slopes**0.5
     elif partition_method == "slope":
         values_for_partitioning = flow_slopes
-    else:
-        raise ValueError("Keyword argument to partition_method invalid.")
 
     # Calculate proportions by normalizing by rowsums.
     denom = np.tile(values_for_partitioning.sum(1), (max_number_of_neighbors, 1)).T
