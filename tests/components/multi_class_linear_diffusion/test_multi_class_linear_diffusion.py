@@ -1,6 +1,4 @@
-"""Test MultiClassLinearDiffusion
-
-"""
+"""Test MultiClassLinearDiffusion"""
 
 import numpy as np
 import pytest
