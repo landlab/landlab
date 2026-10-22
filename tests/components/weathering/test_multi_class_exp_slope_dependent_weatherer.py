@@ -148,4 +148,3 @@ def test_mass_split_by_bed_proportions():
         np.broadcast_to(proportions, added.shape),
         err_msg=err_msg,
     )
-

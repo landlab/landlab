@@ -5,7 +5,10 @@
 """
 
 import numpy as np
-from landlab import Component, FieldError
+
+from landlab import Component
+from landlab import FieldError
+
 
 class MultiClassExpSlopeDependentWeatherer(Component):
     """Calculate exponential and slope-dependent weathering of bedrock.
@@ -126,13 +129,14 @@ class MultiClassExpSlopeDependentWeatherer(Component):
     }
 
     def __init__(
-        self, grid,
-            phi=0.35,
-            rho=2650,
-            soil_production_maximum_rate=10**-2,
-            slope_dependent_weathering_maximum_rate=10**-4,
-            soil_production_decay_depth=1.0,
-            slope_name = 'topographic__steepest_slope',
+        self,
+        grid,
+        phi=0.35,
+        rho=2650,
+        soil_production_maximum_rate=10**-2,
+        slope_dependent_weathering_maximum_rate=10**-4,
+        soil_production_decay_depth=1.0,
+        slope_name="topographic__steepest_slope",
     ):
         """
         Parameters
@@ -170,50 +174,50 @@ class MultiClassExpSlopeDependentWeatherer(Component):
         """Calculate soil production rate."""
 
         self.calc_rock_exposure_fraction()
-        self.grid.at_node["soil_production__rate"][self._cores] = ((self._p0+self._kappa*self._slope[self._cores]) *
-                         self._rock_exposure_fraction[self._cores])
-
+        self.grid.at_node["soil_production__rate"][self._cores] = (
+            self._p0 + self._kappa * self._slope[self._cores]
+        ) * self._rock_exposure_fraction[self._cores]
 
     def calc_rock_exposure_fraction(self):
-        """Update the bedrock exposure fraction.
-        """
-        self._rock_exposure_fraction = np.exp(-self._grid.at_node['soil__depth']/ self._depth_decay_scale)
+        """Update the bedrock exposure fraction."""
+        self._rock_exposure_fraction = np.exp(
+            -self._grid.at_node["soil__depth"] / self._depth_decay_scale
+        )
 
-
-    def _update_dz_and_mass(self,dt):
+    def _update_dz_and_mass(self, dt):
 
         # Pointers
-        soil = self._grid.at_node['soil__depth']
-        bedrock = self._grid.at_node['bedrock__elevation']
-        grains__weight = self._grid.at_node['grains__weight']
-        topo = self._grid.at_node['topographic__elevation']
+        soil = self._grid.at_node["soil__depth"]
+        bedrock = self._grid.at_node["bedrock__elevation"]
+        grains__weight = self._grid.at_node["grains__weight"]
+        topo = self._grid.at_node["topographic__elevation"]
 
         # Convert dz/dt to dz
-        dz_weathering = self.grid.at_node["soil_production__rate"][self._cores]*dt
+        dz_weathering = self.grid.at_node["soil_production__rate"][self._cores] * dt
         # Conevrt dz to mass per area [kg/m2]
         dmass_per_area = dz_weathering * self._rho * (1 - self._phi)
 
         # Update fields
-        if np.ndim(self._grid.at_node['bed_grains__proportions']) > 1:
-            grains__weight[self._cores, :] += dmass_per_area[:, np.newaxis] * \
-                                                        self._grid.at_node['bed_grains__proportions'][
-                                                            self._cores]
+        if np.ndim(self._grid.at_node["bed_grains__proportions"]) > 1:
+            grains__weight[self._cores, :] += (
+                dmass_per_area[:, np.newaxis]
+                * self._grid.at_node["bed_grains__proportions"][self._cores]
+            )
         else:
-            grains__weight[self._cores] += dmass_per_area * self._grid.at_node['bed_grains__proportions'][
-                self._cores]
+            grains__weight[self._cores] += (
+                dmass_per_area
+                * self._grid.at_node["bed_grains__proportions"][self._cores]
+            )
 
         bedrock[self._cores] -= dz_weathering
         soil[self._cores] += dz_weathering
         topo[self._cores] = soil[self._cores] + bedrock[self._cores]
 
-
     def _get_slope_field(self, slope):
         """Return the slope array at nodes, checking that it exists and is valid."""
         if isinstance(slope, str):
             if slope not in self._grid.at_node:
-                raise FieldError(
-                    f"Slope field '{slope}' not found at nodes. "
-                )
+                raise FieldError(f"Slope field '{slope}' not found at nodes. ")
             slope_array = self._grid.at_node[slope]
         else:
             slope_array = np.asarray(slope, dtype=float)
@@ -228,10 +232,7 @@ class MultiClassExpSlopeDependentWeatherer(Component):
 
         return slope_array
 
-
-    def run_one_step(self,
-                     dt=1):
-
+    def run_one_step(self, dt=1):
         """
         Parameters
         ----------
@@ -246,9 +247,7 @@ class MultiClassExpSlopeDependentWeatherer(Component):
         """Maximum rate of weathering with no depdency on the topographic slope (m/yr)."""
         return self._p0
 
-
     @property
     def maximum_slope_dependent_weathering_rate(self):
         """Slope-dependent maximum weathering rate (m/yr)."""
         return self._kappa
-
