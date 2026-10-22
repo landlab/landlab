@@ -3,23 +3,20 @@
 
 import numpy as np
 
-from landlab import Component
-from landlab import LinkStatus
-from landlab import NodeStatus
-from landlab import RasterModelGrid
 from landlab.components import LinearDiffuser
 
 _ALPHA = 0.15
 
 
 class MultiClassLinearDiffusion(LinearDiffuser):
-    """Calculate linear difffusion and spread sediment mass across grains classes.
-    This component call the LinearDiffuser component to update sediment flux by diffusion and
-    then update the mass accordingly.
+    """Calculate linear diffusion and spread sediment mass across grain classes.
 
-    The primary method of this class is : `run_one_step`.
+    This component calls the LinearDiffuser component to update sediment flux
+    by diffusion and then updates the mass of each grain class accordingly.
 
-        Examples
+    The primary method of this class is :func:`run_one_step`.
+
+    Examples
     --------
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
@@ -40,7 +37,7 @@ class MultiClassLinearDiffusion(LinearDiffuser):
     ... )
     >>> z = grid.add_field("topographic__elevation", bedrock + soil, at="node")
     >>> soil[grid.core_nodes].round(3)
-    >>> total_mass = grid.at_node["grains__mass"][grid.core_nodes].sum()
+    array([1.258, 2.516, 1.258])
     >>> diffuser = MultiClassLinearDiffusion(
     ...     grid, linear_diffusivity=0.1, phi=porosity, rho_sed=rho_sed
     ... )
@@ -154,8 +151,6 @@ class MultiClassLinearDiffusion(LinearDiffuser):
 
         # Pointers
         sediment_flux = self._grid.at_link["hillslope_sediment__unit_volume_flux"] * dt
-        bed = self._grid.at_node["bedrock__elevation"]
-        soil = self._grid.at_node["soil__depth"]
         grain_mass_node = self._grid.at_node["grains__mass"]
         grain_mass_node[grain_mass_node < 0] = 0
         n_classes = self._n_classes
@@ -220,8 +215,8 @@ class MultiClassLinearDiffusion(LinearDiffuser):
         inlinks_fluxes_at_node = np.copy(fluxes)
         inlinks_fluxes_at_node[outlinks_at_node, :] = 0
 
-        # Sum all outfluxes per node to check if transport rate is greater than the mass
-        # stored in the upwind node
+        # Sum all outfluxes per node to check if transport rate is greater
+        # than the mass stored in the upwind node
         # sum_fluxes_out = np.abs(np.sum(np.abs(outlinks_fluxes_at_node), 1))
         sum_fluxes_out = np.abs(
             np.sum(
@@ -244,7 +239,8 @@ class MultiClassLinearDiffusion(LinearDiffuser):
             )
 
         if np.any(indices_to_correct_flux):
-            # If the outflux is greater than the mass in the upstream node we should fix the outflux.
+            # If the outflux is greater than the mass in
+            # the upstream node we should fix the outflux.
             if n_classes > 1:
                 ratios = np.divide(
                     dz_per_grainsize_at_node[indices_to_correct_flux],

@@ -1,0 +1,3 @@
+Added a new component, ``MultiClassLinearDiffusion``, that extends ``LinearDiffuser``
+to diffuse sediment across multiple classes, tracking the mass of each class 
+at nodes while conserving total mass.
