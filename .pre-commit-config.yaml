@@ -1,6 +1,6 @@
 repos:
 - repo: https://github.com/MarcoGorelli/cython-lint
-  rev: v0.19.0
+  rev: v0.22.0
   hooks:
   - id: cython-lint
   - id: double-quote-cython-strings
@@ -19,8 +19,8 @@ repos:
         )
       language: pygrep
 
-- repo: https://github.com/psf/black
-  rev: 26.3.1
+- repo: https://github.com/psf/black-pre-commit-mirror
+  rev: 26.10.1
   hooks:
   - id: black
     name: black
@@ -47,12 +47,12 @@ repos:
   hooks:
   - id: blackdoc
     description: "Black for doctests"
-    additional_dependencies: ["black==26.3.1"]
+    additional_dependencies: ["black==26.10.1"]
   - id: blackdoc-autoupdate-black
 
 
 - repo: https://github.com/pycqa/flake8
-  rev: 7.3.0
+  rev: 7.4.1
   hooks:
   - id: flake8
     additional_dependencies:
@@ -87,13 +87,13 @@ repos:
       args: [--drop-empty-cells]
 
 - repo: https://github.com/asottile/pyupgrade
-  rev: v3.21.2
+  rev: v3.22.0
   hooks:
   - id: pyupgrade
     args: [--py311-plus]
 
 - repo: https://github.com/PyCQA/isort
-  rev: 8.0.1
+  rev: 10.0.0b1
   hooks:
   - id: isort
     name: isort (python)

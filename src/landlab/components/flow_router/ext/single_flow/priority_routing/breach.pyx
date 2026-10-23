@@ -351,7 +351,7 @@ cdef void _direct_flow_c(
         # cnp.int64_t [:] tmp_neighbors
         # cnp.int64_t [:] neighbors_to_do
         _priority_queue to_do = _priority_queue(_compare_second)
-        cnp.int64_t receiver_id, donor_id, i, j, done_n
+        cnp.int64_t receiver_id, donor_id, i, done_n
         # cnp.int64_t [:] neighbors
         pair[cnp.int64_t, cnp.float_t] node_pair
 
@@ -367,7 +367,7 @@ cdef void _direct_flow_c(
         base_level_nodes, closed_nodes, z, to_do, receivers, outlet_nodes, done, &done_n
     )
 
-    for j in range(nodes_n):
+    for _ in range(nodes_n):
         # a while loop is possible here, but prefer for loop, with future
         # multithreading evolution.
         if to_do.empty():

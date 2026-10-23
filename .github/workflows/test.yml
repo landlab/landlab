@@ -1,6 +1,9 @@
 name: Test
 
 on:
+  push:
+    branches:
+      - master
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
@@ -22,22 +25,22 @@ concurrency:
 jobs:
   build-sdist:
     name: Build source distribution
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.draft == false }}
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Build sdist
         run: pipx run build --sdist
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: build-sdist
           path: ${{ github.workspace }}/dist/*.tar.gz
 
   build-wheels:
     name: Build wheels on ${{ matrix.cibw-only }}
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.draft == false }}
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -46,21 +49,26 @@ jobs:
           - { os: macos-15-intel, cibw-only: cp312-macosx_x86_64 }
           - { os: macos-15-intel, cibw-only: cp313-macosx_x86_64 }
           - { os: macos-15-intel, cibw-only: cp314-macosx_x86_64 }
+          - { os: macos-15-intel, cibw-only: cp315-macosx_x86_64 }
           - { os: macos-latest, cibw-only: cp312-macosx_arm64 }
           - { os: macos-latest, cibw-only: cp313-macosx_arm64 }
           - { os: macos-latest, cibw-only: cp314-macosx_arm64 }
+          - { os: macos-latest, cibw-only: cp315-macosx_arm64 }
           - { os: ubuntu-latest, cibw-only: cp312-manylinux_x86_64 }
           - { os: ubuntu-latest, cibw-only: cp313-manylinux_x86_64 }
           - { os: ubuntu-latest, cibw-only: cp314-manylinux_x86_64 }
+          - { os: ubuntu-latest, cibw-only: cp315-manylinux_x86_64 }
           - { os: ubuntu-24.04-arm, cibw-only: cp312-manylinux_aarch64 }
           - { os: ubuntu-24.04-arm, cibw-only: cp313-manylinux_aarch64 }
           - { os: ubuntu-24.04-arm, cibw-only: cp314-manylinux_aarch64 }
+          - { os: ubuntu-24.04-arm, cibw-only: cp315-manylinux_aarch64 }
           - { os: windows-2022, cibw-only: cp312-win_amd64 }
           - { os: windows-2022, cibw-only: cp313-win_amd64 }
           - { os: windows-2022, cibw-only: cp314-win_amd64 }
+          - { os: windows-2022, cibw-only: cp315-win_amd64 }
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/build-bdist/
         env:
           CIBW_ENVIRONMENT: >-
@@ -79,11 +87,14 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, ubuntu-24.04-arm, macos-15-intel, macos-latest, windows-latest]
-        python-version: ["3.12", "3.13", "3.14"]
+        python-version: ["3.12", "3.13", "3.14", "3.15"]
         pytest-marker: ["slow", "not slow"]
+        exclude:
+          - os: windows-latest
+            python-version: "3.15"
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/run-tests/
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
@@ -106,7 +117,7 @@ jobs:
         pytest-marker: ["slow", "not slow"]
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/run-notebooks/
         env:
           OPENTOPOGRAPHY_API_KEY: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
@@ -114,7 +125,7 @@ jobs:
           MPLBACKEND: "module://matplotlib_inline.backend_inline"
           PYTEST_ADDOPTS: "--overwrite -m '${{ matrix.pytest-marker }}'"
         with:
-          python-version: "3.13"
+          python-version: "3.14"
           nox-session: "test-notebooks"
           upload-name: ${{ matrix.os == 'macos-latest' && format('notebooks-{0}', matrix.pytest-marker) || '' }}
 
@@ -126,9 +137,9 @@ jobs:
         shell: bash -l {0}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Use Python 3.12
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: '3.12'
 
@@ -149,13 +160,14 @@ jobs:
         shell: bash -l {0}
 
     steps:
-      - uses: actions/checkout@v5
-      - name: Use Python 3.14
-        uses: actions/setup-python@v6
+      - uses: actions/checkout@v7
+      - name: Use Python 3.15
+        uses: actions/setup-python@v7
         with:
-          python-version: '3.14'
+          python-version: '3.15'
+          allow-prereleases: true
 
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v8
         name: Download build artifact
         with:
           pattern: notebooks-*
@@ -174,7 +186,7 @@ jobs:
 
       - name: Upload static files as artifact
         id: deployment
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5
         with:
           path: build/html/
 
@@ -193,7 +205,7 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
   publish:
     needs:

@@ -36,7 +36,7 @@ def fill_nodes_at_face(
         face = row * faces_per_row
         node = row * n_cols + 1
 
-        for col in range(horizontal_faces_per_row):
+        for _ in range(horizontal_faces_per_row):
             nodes_at_face[face, 0] = node
             nodes_at_face[face, 1] = node + n_cols
 
@@ -44,7 +44,7 @@ def fill_nodes_at_face(
             face = face + 1
 
         node = (row + 1) * n_cols
-        for col in range(vertical_faces_per_row):
+        for _ in range(vertical_faces_per_row):
             nodes_at_face[face, 0] = node
             nodes_at_face[face, 1] = node + 1
 

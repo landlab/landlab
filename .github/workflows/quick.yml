@@ -15,14 +15,14 @@ jobs:
       github.event_name == 'push' ||
       github.event.pull_request.head.repo.full_name != github.repository
 
-    runs-on: "macos-14"
+    runs-on: "macos-latest"
     strategy:
       matrix:
         include:
-          - { cibw-only: cp313-macosx_arm64 }
           - { cibw-only: cp314-macosx_arm64 }
+          - { cibw-only: cp315-macosx_arm64 }
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/build-bdist/
         with:
           cibw-only: ${{ matrix.cibw-only }}
@@ -30,23 +30,23 @@ jobs:
 
   run-tests:
     needs: build
-    runs-on: "macos-14"
+    runs-on: "macos-latest"
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/run-tests/
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
           HYPOTHESIS_PROFILE: "ci"
           MPLBACKEND: "Agg"
         with:
-          python-version: "3.14"
+          python-version: "3.15"
           nox-session: "test"
 
   run-notebooks:
     needs: build
-    runs-on: "macos-14"
+    runs-on: "macos-latest"
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/run-notebooks/
         env:
           OPENTOPOGRAPHY_API_KEY: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
@@ -54,5 +54,5 @@ jobs:
           MPLBACKEND: "module://matplotlib_inline.backend_inline"
           PYTEST_ADDOPTS: "--overwrite"
         with:
-          python-version: "3.13"
+          python-version: "3.14"
           nox-session: "test-notebooks"

@@ -122,14 +122,14 @@ def fill_nodes_at_link(
         node = row * n_cols
         link = row * links_per_row
 
-        for col in range(horizontal_links_per_row):
+        for _ in range(horizontal_links_per_row):
             nodes_at_link[link, 0] = node
             nodes_at_link[link, 1] = node + 1
             node = node + 1
             link = link + 1
 
         node = row * n_cols
-        for col in range(vertical_links_per_row):
+        for _ in range(vertical_links_per_row):
             nodes_at_link[link, 0] = node
             nodes_at_link[link, 1] = node + n_cols
             node = node + 1

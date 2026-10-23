@@ -274,7 +274,6 @@ with open(os.path.join(src_dir, "../cython-files.txt")) as fp:
 autodoc_mock_imports = [
     "richdem",
     "bmipy",
-    "importlib-resources",
     "matplotlib",
     "netcdf4",
     "pandas",

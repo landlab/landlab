@@ -23,8 +23,8 @@ jobs:
             shell: bash -l {0}
 
         steps:
-          - uses: actions/checkout@v5
-          - uses: conda-incubator/setup-miniconda@v3
+          - uses: actions/checkout@v7
+          - uses: conda-incubator/setup-miniconda@v4
             with:
               python-version: 3.12
               miniforge-variant: Miniforge3
