@@ -24,6 +24,12 @@ from landlab.grid.nodestatus import NodeStatus
 from ..bedrock_landslider.cfuncs import _landslide_runout
 from ..depression_finder.lake_mapper import _FLOODED
 
+from requireit import require_between
+from requireit import require_nonnegative
+from requireit import require_one_of
+from requireit import require_positive
+
+
 MAX_HEIGHT_SLOPE = 100  # in m
 
 
@@ -159,8 +165,9 @@ class SoilLandsliderGeo(Component):
     def __init__(
         self,
         grid,
+        *,
         angle_int_frict=1.0,
-        threshold_slope=None,
+        deposition_threshold_slope=None,
         cohesion_eff=4e4,
         landslides_return_time=1e5,
         rho_s=2000,
@@ -169,7 +176,7 @@ class SoilLandsliderGeo(Component):
         fraction_fines_LS=0,
         phi=0,
         max_pixelsize_landslide=1e9,
-        seed=2021,
+        rng=None,
         verbose_landslides=False,
         landslides_on_boundary_nodes=True,
         critical_sliding_nodes=None,
@@ -187,7 +194,7 @@ class SoilLandsliderGeo(Component):
             Landlab ModelGrid object
         angle_int_frict: float, optional
             Materials angle of internal friction in [m/m]
-        threshold_slope: float, optional
+        deposition_threshold_slope: float, optional
             Threshold slope used in non-linear deposition scheme [m/m]
             Default value is set to angle_int_frict if not specified
         cohesion_eff : float, optional
@@ -207,10 +214,10 @@ class SoilLandsliderGeo(Component):
             Maximum size for landslides in number of pixels
         verbose_landslides : bool , optional
             Print output as number of simulated landslides per timestep
-        seed : float , optional
-            Provide seed to set stochastic model.
-            If not provided, seed is set to 2021.
-            Provide None to keep current seed.
+        rng : int , optional
+            Provide rng input seed to set stochastic model.
+            If not provided, rng is set to none.
+            Provide None to keep current rng.
         landslides_on_boundary_nodes : bool, optional
             Allow landslides to initiate (critical node) and extend over
             boundary nodes.
@@ -255,26 +262,28 @@ class SoilLandsliderGeo(Component):
         self.initialize_output_fields()
 
         # Store grid and parameters
-        self._angle_int_frict = angle_int_frict
-        if threshold_slope is None:
-            self._threshold_slope = angle_int_frict
+        #self._angle_int_frict = angle_int_frict
+        self._angle_int_frict = require_positive(angle_int_frict, name="angle_int_frict")
+        if deposition_threshold_slope is None:
+            self._deposition_threshold_slope = angle_int_frict
         else:
-            self._threshold_slope = threshold_slope
-        self._cohesion_eff = cohesion_eff
-        self._rho_s = rho_s
-        self._rho_h2o = rho_h2o
-        self._grav = grav
-        self._fraction_fines_LS = fraction_fines_LS
-        self._phi = phi
-        self._landslides_return_time = landslides_return_time
-        self._max_pixelsize_landslide = max_pixelsize_landslide
+            self._deposition_threshold_slope = require_positive(deposition_threshold_slope, name="deposition_threshold_slope")
+        self._cohesion_eff = require_positive(cohesion_eff, name="cohesion_eff")
+        self._rho_s = require_positive(rho_s, name="rho_s")
+        self._rho_h2o = require_positive(rho_h2o, name="rho_h2o")
+        self._grav = require_positive(grav, name="grav")
+        self._fraction_fines_LS = require_between(fraction_fines_LS, 0.0, 1.0, name="fraction_fines_LS")
+        self._phi = require_positive(phi, name="phi")
+        self._landslides_return_time = require_positive(landslides_return_time, name="landslides_return_time")
+        self._max_pixelsize_landslide = require_positive(max_pixelsize_landslide, name="max_pixelsize_landslide")
+
         self._verbose_landslides = verbose_landslides
         self._landslides_on_boundary_nodes = landslides_on_boundary_nodes
         self._critical_sliding_nodes = critical_sliding_nodes
-        self._min_deposition_slope = min_deposition_slope
-        self._Rw = Rw  # see below for edits
-        self._max_step_height = max_step_height
-        self._stable_stopper_factor = stable_stopper_factor
+        
+        self._min_deposition_slope = require_positive(min_deposition_slope, name="min_deposition_slope")
+        self._max_step_height = require_positive(max_step_height, name="max_step_height")
+        self._stable_stopper_factor = require_positive(stable_stopper_factor, name="stable_stopper_factor")
 
         # Data structures to store properties of simulated landslides.
         self._landslides_size = []
@@ -284,6 +293,8 @@ class SoilLandsliderGeo(Component):
 
         # Make sure the relative wetness values/grid exist/work and are less than one
         #
+        self._Rw = require_between(Rw, 0.0, 1.0, name="Rw")
+
         if Rw_mode == "calculated":
             if "rel__wetness" not in grid.at_node:
                 raise ValueError(
@@ -324,10 +335,9 @@ class SoilLandsliderGeo(Component):
             # catches the edge case where someone passes True
             raise TypeError("max_step_height must be False or a number, not True")
 
-        # Set seed
-        if seed is not None:
-            np.random.seed(seed)
-
+        # Set seed rng value
+		self._rng = np.random.default_rng(rng)
+		
     # Getters for properties
     @property
     def landslides_size(self):
@@ -366,7 +376,7 @@ class SoilLandsliderGeo(Component):
         Returns
         -------
         suspended_sed : float
-            Volume of suspended sediment.
+            flux of suspended sediment (volume divided by the dt)
 
         """
         # troubleshoot tracking
@@ -517,7 +527,13 @@ class SoilLandsliderGeo(Component):
             slope_neighbors_to_crit_node = (
                 topo[neighbors_up] - crit_node_el
             ) / dist_to_initial_node
+            
+            # if there are no uphill neighbors than no landslide is possible,
+            # delete this crit node and move to the next 
 
+            if slope_neighbors_to_crit_node.size == 0:
+                critical_landslide_nodes = np.delete(critical_landslide_nodes, 0, 0)
+                continue
             #####
             if self._verbose_landslides:
                 print(f"slope_neighbors_to_crit_node {slope_neighbors_to_crit_node}")
@@ -646,7 +662,7 @@ class SoilLandsliderGeo(Component):
                                 soil_d[upstream_neighbors[0]],
                                 topo[upstream_neighbors[0]] - new_el_1,
                             ),
-                            a_min=0,  # trying out changing this from 0 to .1mm to fix a bug
+                            a_min=0,
                             a_max=None,
                         )
                         # print(f'cell {upstream_neighbors[0]} sed_landslide_ero {sed_landslide_ero}')
@@ -774,8 +790,8 @@ class SoilLandsliderGeo(Component):
 
         # L following carretier 2016
         transport_length_hill = np.where(
-            slope < self._threshold_slope,
-            self.grid.dx / (1 - (slope / self._threshold_slope) ** 2),
+            slope < self._deposition_threshold_slope,
+            self.grid.dx / (1 - (slope / self._deposition_threshold_slope) ** 2),
             1e6,
         )
 
