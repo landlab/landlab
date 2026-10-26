@@ -1,7 +1,9 @@
 import numpy as np
-from requireit import require_between, require_positive
+from requireit import require_between
+from requireit import require_positive
 
 from landlab import Component
+
 from .fire_event_log import FireEvent
 
 # Regrowth parameters by aridity bin, derived from Viedma et al. (1997).
@@ -13,7 +15,7 @@ _REGROWTH_TABLE = (
     (0.5, 0.7, 15.0, 0.15),  # Sparse shrubs
     (0.7, 1.0, 18.5, 0.12),  # Sparse shrubs
 )
- 
+
 # Ignition/spread weights by aridity bin, derived from Viedma et al. (1997).
 # Columns: (aridity_low, aridity_high, fuel_weight, aridity_weight)
 _ARIDITY_WEIGHTS = (
@@ -27,10 +29,10 @@ _ARIDITY_WEIGHTS = (
 
 def _get_aridity_bin(aridity, table):
     """Return the two values in a table row for the bin containing aridity.
- 
+
     Bins are half-open, ``[low, high)``, except the last bin, which also
     includes its upper edge so that the maximum aridity is valid.
- 
+
     Examples
     --------
     >>> table = ((0.0, 0.5, 1.0, 2.0), (0.5, 1.0, 3.0, 4.0))
@@ -46,11 +48,11 @@ def _get_aridity_bin(aridity, table):
         if low <= aridity < high or aridity == high == upper_edge:
             return a, b
     raise ValueError(f"aridity {aridity} is outside the table range")
- 
- 
+
+
 def get_regrowth_params(aridity, table=_REGROWTH_TABLE):
     """Return ``(regrowth_time, regrowth_exponent)`` for an aridity value.
- 
+
     Examples
     --------
     >>> get_regrowth_params(0.2)
@@ -59,11 +61,11 @@ def get_regrowth_params(aridity, table=_REGROWTH_TABLE):
     (18.5, 0.12)
     """
     return _get_aridity_bin(aridity, table)
- 
- 
+
+
 def get_aridity_weights(aridity, table=_ARIDITY_WEIGHTS):
     """Return ``(fuel_weight, aridity_weight)`` for an aridity value.
- 
+
     Examples
     --------
     >>> get_aridity_weights(0.6)
@@ -94,47 +96,50 @@ class WildfireGenerator(Component):
     ``minimum_river_threshold`` sufficiently high (e.g. ``np.inf``) effectively
     disables river firebreaks entirely, allowing fire to spread across the full
     grid regardless of drainage network structure. Note that river firebreaks
-    are treated as absolute barriers; fire cannot cross nodes where drainage area
-    exceeds ``minimum_river_threshold`` regardless of fire intensity or wind.
+    are treated as absolute barriers; fire cannot cross nodes where drainage
+    area exceeds ``minimum_river_threshold`` regardless of fire intensity or wind.
     This is a simplifying assumption that may not hold for large, wind-driven
     fires. Making firebreaks probabilistic could be tested in future versions.
+
 
     Fire spreads iteratively outward from the ignition node to orthogonal
     (D4) neighbors using the same fuel-aridity probability, modulated by a
     logistic slope factor following Rothermel-style upslope enhancement::
 
-    
+
 
         slope_factor = 1 / (1 + exp(-upslope_preference * slope))
 
-    where ``slope`` is the slope between node and neighbour and ``upslope_preference``
-    is the ``upslope_preference`` parameter. Spread stops when no new nodes
-    are added to the fire front.
+    where ``slope`` is the slope between node and neighbour and
+    ``upslope_preference`` is the ``upslope_preference`` parameter.
+    Spread stops when no new nodes are added to the fire front.
+
 
     **Fire severity**
 
     Severity is calculated as a power-law function of a randomly perturbed
     aridity index following Grunig et al. (2023)::
 
-    
+
 
         severity = aridity ** sev_exponent
 
-    where the aridity index is drawn from a normal distribution centred on ``aridity`` (std = 0.05),
-    clamped to [0, 1]. Vegetation at burned nodes is reduced by the severity
-    factor each fire event.
+    where the aridity index is drawn from a normal distribution centred
+    on ``aridity`` (std = 0.05), clamped to [0, 1]. Vegetation at burned nodes
+    is reduced by the severity factor each fire event.
 
     **Vegetation recovery**
 
     After each timestep, vegetation recovers asymptotically toward
     ``max_vegetation`` following::
 
-    
+
 
         delta_vegetation = 1 - exp(-regrowth_exponent * dt / regrowth_time)
 
-    where ``regrowth_time`` is the recovery timescale and ``regrowth_exponent`` is the recovery
-    exponent, both determined by the aridity bin (``_regrowth_table``).
+    where ``regrowth_time`` is the recovery timescale and
+    ``regrowth_exponent``is the recovery exponent, both determined by
+    the aridity bin (``_regrowth_table``).
 
     **Fire logging**
 
@@ -162,7 +167,7 @@ class WildfireGenerator(Component):
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import WildfireGenerator
     >>> from landlab.components.wildfire_generator import FireEventLog
-    
+
     >>> np.random.seed(5000)
 
     >>> dt = 1
@@ -172,7 +177,7 @@ class WildfireGenerator(Component):
     >>> fuel = mg.add_zeros("fuel_availability", at="node")
     >>> fuel[:] = np.random.rand(mg.number_of_nodes) * 0.75
 
-    
+
     >>> log = FireEventLog()
     >>> wg = WildfireGenerator(mg, log=log)
     >>> wg.run_one_step(dt)
@@ -275,44 +280,41 @@ class WildfireGenerator(Component):
         aridity=0.5,
         severity_exponent=0.64,
         rng=5000,
-        log=None
+        log=None,
     ):
 
         super().__init__(grid)
 
-        
         self._rng = np.random.default_rng(rng)
 
         # --- aridity ---
-        self._aridity = require_between(aridity,
-                                        a_min=0.0, a_max=1.0,
-                                        name="aridity")
-        
+        self._aridity = require_between(aridity, a_min=0.0, a_max=1.0, name="aridity")
+
         # --- potential_fires ---
-        self._potential_fires = require_positive(potential_fires,
-                                                 name="potential_fires")
-    
+        self._potential_fires = require_positive(
+            potential_fires, name="potential_fires"
+        )
 
         # --- max_vegetation ---
-        self._max_vegetation = require_positive(max_vegetation,
-                                                name="max_vegetation")
+        self._max_vegetation = require_positive(max_vegetation, name="max_vegetation")
         # --- minimum_river_threshold ---
-        self._minimum_river_threshold = require_positive(minimum_river_threshold,
-                                                         name="minimum_river_threshold")
+        self._minimum_river_threshold = require_positive(
+            minimum_river_threshold, name="minimum_river_threshold"
+        )
         # --- upslope_preference ---
-        self._upslope_preference = require_positive(upslope_preference,
-                                                         name="upslope_preference")
+        self._upslope_preference = require_positive(
+            upslope_preference, name="upslope_preference"
+        )
 
         # --- severity_exponent ---
-        self._severity_exponent = require_between(severity_exponent,
-                                                  a_min=0.0, a_max=1.0,
-                                                  name="severity_exponent") 
-        
+        self._severity_exponent = require_between(
+            severity_exponent, a_min=0.0, a_max=1.0, name="severity_exponent"
+        )
+
         if log is not None and not callable(log):
             raise TypeError("log must be callable or None")
         self._log = log
-                                   
-        
+
         # --- fuel_availability field values ---
         fuel = grid.at_node["fuel_availability"]
         if np.any(fuel < 0.0):
@@ -337,14 +339,12 @@ class WildfireGenerator(Component):
         self._drainage_area = grid.at_node["drainage_area"]
         self._topo = grid.at_node["topographic__elevation"]
 
-
         # initialize output fields
         self.initialize_output_fields()
         self._grid.at_node["last_fire_time"][
             :
         ] = -np.inf  # Initialize last_fire_time to -inf (no fire has occurred yet)
         self._last_fire_time = self._grid.at_node["last_fire_time"]
-
 
     @property
     def _rivers(self):
@@ -365,7 +365,6 @@ class WildfireGenerator(Component):
         """Aridity index controlling fire severity and vegetation recovery [-]."""
         return self._aridity
 
-
     @aridity.setter
     def aridity(self, new_val):
         if new_val < 0.0:
@@ -375,13 +374,13 @@ class WildfireGenerator(Component):
         self._aridity = new_val
 
     def _regrow_vegetation(self, dt):
-        
+
         regrowth_time, regrowth_exponent = get_regrowth_params(self._aridity)
-        
+
         self._vegetation[:] = self._max_vegetation - (
             self._max_vegetation - self._vegetation
-            ) *np.exp(-regrowth_exponent * dt / regrowth_time)
-        
+        ) * np.exp(-regrowth_exponent * dt / regrowth_time)
+
     def _get_neighbors(self, node):
         """Method to get the active neighbor nodes (for fire spreading)"""
         return self._grid.active_adjacent_nodes_at_node[node]
@@ -461,9 +460,9 @@ class WildfireGenerator(Component):
             changed_nodes = list(burned)
             veg_before = self._vegetation[changed_nodes].copy()
             self._vegetation[changed_nodes] *= 1 - severity_factor
-            
+
             self._last_fire_time[changed_nodes] = self._current_time
-            
+
             if self._log is not None:
                 had_veg = veg_before > 0.0
                 if had_veg.any():
@@ -473,8 +472,6 @@ class WildfireGenerator(Component):
                 else:
                     removed_fraction = 0.0
 
-            
-            
                 self._log(
                     FireEvent(
                         year=float(self._current_time),
@@ -489,10 +486,9 @@ class WildfireGenerator(Component):
                     )
                 )
 
-
     def run_one_step(self, dt):
 
         self._current_time += dt
-        
+
         self._fire(dt)
         self._regrow_vegetation(dt)
