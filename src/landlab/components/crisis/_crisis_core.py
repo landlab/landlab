@@ -74,7 +74,7 @@ def load_h5(file_path):
     A small HDF5 file, created in memory (a file path works the same way):
 
     >>> import io, h5py, numpy as np
-    >>> from landlab.components.Crisis._crisis_core import load_h5
+    >>> from landlab.components.crisis._crisis_core import load_h5
     >>> h5 = io.BytesIO()
     >>> with h5py.File(h5, "w") as f:
     ...     _ = f.create_dataset("data", data=np.array([[1.0, 2.0],
@@ -106,7 +106,7 @@ def pad_rows(data):
 
     Examples
     --------
-    >>> from landlab.components.Crisis._crisis_core import pad_rows
+    >>> from landlab.components.crisis._crisis_core import pad_rows
     >>> pad_rows([[1, 2, 3], [4, 5]])
     [[1, 2, 3], [4, 5, None]]
     >>> pad_rows([])
@@ -150,7 +150,7 @@ def read_ascii_header(file_path):
     The content of a small DEM, given in memory (a file path works the same way):
 
     >>> import io
-    >>> from landlab.components.Crisis._crisis_core import read_ascii_header
+    >>> from landlab.components.crisis._crisis_core import read_ascii_header
     >>> dem = io.StringIO("ncols 3\\nnrows 2\\nxllcorner 1000.0\\nyllcorner 5000.0\\n"
     ...                   "cellsize 10.0\\nNODATA_value -9999\\n1 2 3\\n4 5 6\\n")
     >>> header = read_ascii_header(dem)
@@ -212,7 +212,7 @@ def lower_left_cell_center(header):
 
     Examples
     --------
-    >>> from landlab.components.Crisis._crisis_core import lower_left_cell_center
+    >>> from landlab.components.crisis._crisis_core import lower_left_cell_center
     >>> lower_left_cell_center({"xllcorner": 1000.0, "yllcorner": 5000.0, "cellsize": 10.0})
     (1005.0, 5005.0)
     >>> lower_left_cell_center({"xllcenter": 1005.0, "yllcenter": 5005.0, "cellsize": 10.0})
@@ -254,7 +254,7 @@ def compute_coordinate_vectors(rows, columns, xmin, ymin, Cell_size):
 
     Examples
     --------
-    >>> from landlab.components.Crisis._crisis_core import compute_coordinate_vectors
+    >>> from landlab.components.crisis._crisis_core import compute_coordinate_vectors
     >>> x, y = compute_coordinate_vectors(2, 3, 1005.0, 5005.0, 10.0)
     >>> x
     array([1005., 1015., 1025.])
@@ -290,7 +290,7 @@ def T_UpGrid(FD_Mat, indID):
     each pointing toward the center):
 
     >>> import numpy as np
-    >>> from landlab.components.Crisis._crisis_core import T_UpGrid
+    >>> from landlab.components.crisis._crisis_core import T_UpGrid
     >>> FD_Mat = np.array([
     ...     [0,  4,  0],
     ...     [1,  0, 16],
@@ -353,7 +353,7 @@ def _build_upslope_map(FD_Mat):
     the center cell (index 4) drains into it:
 
     >>> import numpy as np
-    >>> from landlab.components.Crisis._crisis_core import _build_upslope_map
+    >>> from landlab.components.crisis._crisis_core import _build_upslope_map
     >>> FD_Mat = np.array([
     ...     [0,  4,  0],
     ...     [1,  0, 16],
@@ -516,7 +516,7 @@ def Determine_Pseudo_3D_landslides(Elev_Mat, Trig_Cells, Area_Mat, Slope_Mat,
     plane geometry along the way makes its computed depth negative.
 
     >>> import numpy as np
-    >>> from landlab.components.Crisis._crisis_core import Determine_Pseudo_3D_landslides
+    >>> from landlab.components.crisis._crisis_core import Determine_Pseudo_3D_landslides
     >>> Elev_Mat  = np.array([[0.0, 2.0, 4.0, 6.0, 8.0]])
     >>> Slope_Mat = np.full((1, 5), 45.0)
     >>> Area_Mat  = np.array([[500.0, 400.0, 300.0, 200.0, 100.0]])
@@ -771,7 +771,7 @@ def Rupture_Dist(x_2d, y_2d, z_2d, corners):
     perpendicular distance); another is 300 m west of it.
 
     >>> import numpy as np
-    >>> from landlab.components.Crisis._crisis_core import Rupture_Dist
+    >>> from landlab.components.crisis._crisis_core import Rupture_Dist
     >>> x_2d = np.array([[500.0, -300.0]])
     >>> y_2d = np.array([[500.0, 500.0]])
     >>> z_2d = np.array([[0.0, 0.0]])
@@ -925,7 +925,7 @@ def _compute_Sa_vec(Ts_13, M, R_2D):
     M7.0 earthquake, at rupture distances of 10 and 20 km:
 
     >>> import numpy as np
-    >>> from landlab.components.Crisis._crisis_core import _compute_Sa_vec
+    >>> from landlab.components.crisis._crisis_core import _compute_Sa_vec
     >>> R_2D = np.array([[10.0, 20.0]])
     >>> np.round(_compute_Sa_vec(0.13, 7.0, R_2D), 5)
     array([[0.46497, 0.23461]])
@@ -1089,7 +1089,7 @@ def _find_triggering_cells_vectorized(
     cell (1, 1) is excluded for having a NaN (no-data) elevation.
 
     >>> import numpy as np
-    >>> from landlab.components.Crisis._crisis_core import _find_triggering_cells_vectorized
+    >>> from landlab.components.crisis._crisis_core import _find_triggering_cells_vectorized
     >>> Elev_Mat  = np.array([[100.0, 90.0], [80.0, np.nan]])
     >>> Slope_Mat = np.array([[45.0, 0.00005], [10.0, 20.0]])
     >>> Depths_vector = np.array([0.0, 1.0, 2.0], dtype=np.float32)
@@ -1548,7 +1548,7 @@ def Modeled_landslides_shapefiles(FID_all_times, Cell_size, x, y, t,
     temporary directory and read back to confirm the shapefile is correct:
 
     >>> import numpy as np, geopandas as gpd, tempfile, os
-    >>> from landlab.components.Crisis._crisis_core import Modeled_landslides_shapefiles
+    >>> from landlab.components.crisis._crisis_core import Modeled_landslides_shapefiles
     >>> FID_all_times = np.array([
     ...     [1.0, 1.0, np.nan],
     ...     [np.nan, 2.0, 2.0],
@@ -1651,7 +1651,7 @@ def to_north_to_south_index(linear_index, grid_shape):
     grid stores its rows from north to south; node 5 (north-east corner)
     is cell 2.
 
-    >>> from landlab.components.Crisis._crisis_core import to_north_to_south_index
+    >>> from landlab.components.crisis._crisis_core import to_north_to_south_index
     >>> to_north_to_south_index([0, 1, 2, 3, 4, 5], (2, 3)).tolist()
     [3, 4, 5, 0, 1, 2]
     """
@@ -1705,7 +1705,7 @@ def _save_individual_excel(state, output_dir, grid_shape, steady_state=False):
     row 1 (cells 3, 4, 5) when the rows are ordered from north to south.
 
     >>> import pandas as pd, tempfile, os
-    >>> from landlab.components.Crisis._crisis_core import _save_individual_excel
+    >>> from landlab.components.crisis._crisis_core import _save_individual_excel
     >>> state = {
     ...     'Individual_Current_triggering_linear_indices_with_time': [[0, 1], [2]],
     ...     'Individual_Current_triggering_depths_with_time':         [[1.0, 2.0], [1.5]],
@@ -1830,7 +1830,7 @@ def _save_summary_excel(state, output_dir, steady_state=False):
     Examples
     --------
     >>> import numpy as np, pandas as pd, tempfile, os
-    >>> from landlab.components.Crisis._crisis_core import _save_summary_excel
+    >>> from landlab.components.crisis._crisis_core import _save_summary_excel
     >>> state = {
     ...     'Total_Current_NL_vector_with_time':        np.array([2.0, 1.0]),
     ...     'Total_Current_Area_vector_with_time':      np.array([24.0, 4.0]),

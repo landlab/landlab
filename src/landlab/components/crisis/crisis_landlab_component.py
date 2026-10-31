@@ -1,24 +1,25 @@
-# =============================================================================
-#
-#   CRISIS — Coupled Regional Rainfall-Induced and Seismic Slope Instability
-#            Simulations
-#
-#   Module  : crisis_landlab_component.py
-#   Purpose : Landlab Component implementation of the CRISIS forward analysis model.
-#             Rainfall only, earthquake only, or coupled (rainfall + seismic) triggers
-#
-#   Authors : Mirna Kassem
-#             University of California, Berkeley
-#             kassem_mirna@berkeley.edu
-#
-#             Prof. Dimitrios Zekkos
-#             University of California, Berkeley
-#             zekkos@berkeley.edu
-#   
-#             Code was also written and reviewed by Yuval Shmilovitz (Yuval.Shmilovitz@colorado.edu)
-        
-# =============================================================================
+"""""
+=============================================================================
 
+  CRISIS — Coupled Regional Rainfall-Induced and Seismic Slope Instability
+           Simulations
+
+  Purpose : Landlab Component implementation of the CRISIS forward analysis model.
+            Rainfall only, earthquake only, or coupled (rainfall + seismic) triggers
+
+  Authors : Mirna Kassem
+            University of California, Berkeley
+            kassem_mirna@berkeley.edu
+
+            Prof. Dimitrios Zekkos
+            University of California, Berkeley
+            zekkos@berkeley.edu
+
+            Code was also written and reviewed by Yuval Shmilovitz (Yuval.Shmilovitz@colorado.edu)
+
+   Documentation: Additional documentation and manual stored at https://github.com/yuvalsmilo/CRISIS-Landlab.git
+=============================================================================
+"""
 
 # =============================================================================
 # Imports
@@ -37,7 +38,7 @@ Gamma_W = 9.81  # unit weight of water (kN/m³)
 
 # pull in the physics, file-loading and output functions from the core CRISIS module.
 # _crisis_core.py sits next to this file: import it relative to the package when
-# this file is imported as part of Landlab (landlab.components.Crisis), and
+# this file is imported as part of Landlab (landlab.components.crisis), and
 # directly when imported from its own folder.
 try:
     from . import _crisis_core as _core
@@ -71,7 +72,7 @@ def _node_to_2d(grid, field_name):
     --------
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components.Crisis.crisis_landlab_component import _node_to_2d
+    >>> from landlab.components.crisis.crisis_landlab_component import _node_to_2d
     >>> grid = RasterModelGrid((2, 3))
     >>> _ = grid.add_field("topographic__elevation", np.arange(6.0), at="node")
     >>> _node_to_2d(grid, "topographic__elevation")
@@ -159,7 +160,7 @@ def check_params(params):
 
     Examples
     --------
-    >>> from landlab.components.Crisis.crisis_landlab_component import check_params
+    >>> from landlab.components.crisis.crisis_landlab_component import check_params
     >>> params = {
     ...     "dem_file": "dem.asc", "output_dir": "Outputs",
     ...     "Coordinate_Reference_System": "EPSG:32610",
@@ -339,7 +340,7 @@ def _count_time_steps(folder, prefix, Depth_points):
     Examples
     --------
     >>> import os, tempfile
-    >>> from landlab.components.Crisis.crisis_landlab_component import _count_time_steps
+    >>> from landlab.components.crisis.crisis_landlab_component import _count_time_steps
     >>> folder = tempfile.mkdtemp()
     >>> for t in range(3):
     ...     for z in (1, 2):
