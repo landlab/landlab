@@ -9,6 +9,7 @@ from landlab import RasterModelGrid
 from landlab.components import AdvectionSolverTVD
 from landlab.components.advection import find_upwind_link_at_link
 from landlab.components.advection import upwind_to_local_grad_ratio
+from landlab.field.errors import FieldError
 from landlab.grid.linkorientation import LinkOrientation
 
 
@@ -323,3 +324,10 @@ def test_with_arrays_instead_of_fields():
     # verify that flux fields have been created
     assert len(grid.at_link["advection__flux_0"]) == grid.number_of_links
     assert len(grid.at_link["advection__flux_1"]) == grid.number_of_links
+
+
+def test_missing_field():
+    grid = RasterModelGrid((3, 7))
+    grid.add_zeros("advection__velocity", at="link")
+    with pytest.raises(FieldError, match="'foobar'"):
+        AdvectionSolverTVD(grid, fields_to_advect="foobar")
