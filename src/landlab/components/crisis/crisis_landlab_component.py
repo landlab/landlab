@@ -17,7 +17,7 @@
 
             Code was also written and reviewed by Yuval Shmilovitz (Yuval.Shmilovitz@colorado.edu)
 
-   Documentation: Additional documentation and manual stored at https://github.com/yuvalsmilo/CRISIS-Landlab.git
+   Documentation: Additional documentation and manual stored at https://github.com/kassemmirna/CRISIS-Landlab-Component-Documentation
 =============================================================================
 """
 
