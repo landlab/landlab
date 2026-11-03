@@ -41,7 +41,7 @@ class MultiClassExpSlopeDependentWeatherer(Component):
     >>> grid = RasterModelGrid((3, 4), xy_spacing=10.0)
     >>> phi, rho = 0.4, 2650.0
     >>> n_classes = 2
-    >>> grid.at_node["grains__weight"] = np.full((grid.number_of_nodes, n_classes), 5.0)
+    >>> grid.at_node["grains__mass"] = np.full((grid.number_of_nodes, n_classes), 5.0)
     >>> grid.at_node["bed_grains__proportions"] = np.full(
     ...     (grid.number_of_nodes, n_classes), 1.0 / n_classes
     ... )
@@ -50,7 +50,7 @@ class MultiClassExpSlopeDependentWeatherer(Component):
 
     >>> soil = grid.add_field(
     ...     "soil__depth",
-    ...     grid.at_node["grains__weight"].sum(axis=1) / (rho * (1 - phi)),
+    ...     grid.at_node["grains__mass"].sum(axis=1) / (rho * (1 - phi)),
     ...     at="node",
     ... )
     >>> bedrock = grid.add_zeros("bedrock__elevation", at="node")
@@ -110,7 +110,7 @@ class MultiClassExpSlopeDependentWeatherer(Component):
             "mapping": "node",
             "doc": "rate of soil production at nodes",
         },
-        "grains__weight": {
+        "grains__mass": {
             "dtype": float,
             "intent": "inout",
             "optional": False,
@@ -189,7 +189,7 @@ class MultiClassExpSlopeDependentWeatherer(Component):
         # Pointers
         soil = self._grid.at_node["soil__depth"]
         bedrock = self._grid.at_node["bedrock__elevation"]
-        grains__weight = self._grid.at_node["grains__weight"]
+        grains__mass = self._grid.at_node["grains__mass"]
         topo = self._grid.at_node["topographic__elevation"]
 
         # Convert dz/dt to dz
@@ -199,12 +199,12 @@ class MultiClassExpSlopeDependentWeatherer(Component):
 
         # Update fields
         if np.ndim(self._grid.at_node["bed_grains__proportions"]) > 1:
-            grains__weight[self._cores, :] += (
+            grains__mass[self._cores, :] += (
                 dmass_per_area[:, np.newaxis]
                 * self._grid.at_node["bed_grains__proportions"][self._cores]
             )
         else:
-            grains__weight[self._cores] += (
+            grains__mass[self._cores] += (
                 dmass_per_area
                 * self._grid.at_node["bed_grains__proportions"][self._cores]
             )
