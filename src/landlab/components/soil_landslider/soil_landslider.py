@@ -168,7 +168,7 @@ class SoilLandsliderGeo(Component):
         *,
         angle_int_frict=1.0,
         deposition_threshold_slope=None,
-        cohesion_eff=4e4,
+        cohesion_eff=4000,
         landslides_return_time=1e5,
         rho_s=2000,
         rho_h2o=1000,
@@ -203,7 +203,7 @@ class SoilLandsliderGeo(Component):
             Return time for stochastic landslide events to occur [T]
         rho_s : float, optional
             Bulk density sediment/soil [m L^-3].
-        rho_h20 : float, optional
+        rho_h2o : float, optional
             Bulk density water [m L^-3].
         fraction_fines_LS : float
             Fraction of permanently suspendable fines in bedrock
@@ -224,7 +224,7 @@ class SoilLandsliderGeo(Component):
         critical_sliding_nodes : list, optional
             Provide list with critical nodes where landslides have to initiate
             This cancels the stochastic part of the algorithm and allows the
-            user to form landslides at the provided critical nodes.
+            user to form landslides at the provided critical nodes. Ex [58]
         Rw_mode : str, optional
                 How to assign Rw values:
                 "constant": use the provided Rw value for all nodes (default).
@@ -498,6 +498,10 @@ class SoilLandsliderGeo(Component):
                 self._grav,
             )
             
+            if self._verbose_landslides:
+                print(f"FS Crit Node = {FS_critnode}")
+            
+            
             # if the critical node is stable then remove it, and restart the loop
             # no landslide there.
             if FS_critnode > 1:
@@ -580,7 +584,7 @@ class SoilLandsliderGeo(Component):
 
                         # if the slide hits a too stable cell stop propagating uphill that way slide
                         if FS[current_node] > self._stable_stopper_factor:
-                            # print("stablestopper induced")
+                            print("stablestopper induced")
                             continue
 
                         # Do actual slide
@@ -812,5 +816,5 @@ def calc_factor_of_safety(slope,soildepth,relativewetness,cohesion,frictionangle
     theta=np.arctan(slope) #slope in radians
     shearstrength = cohesion + g * soildepth * np.cos(theta) ** 2 * (rho_s - relativewetness * rho_h2o) * frictionangle 
     shearstress = rho_s * g * soildepth * np.cos(theta)* np.sin(theta)
-    FS = np.divide(shearstrength,shearstress,where=shearstress > 0,out=np.zeros_like(shearstress))
+    FS = np.divide(shearstrength,shearstress,where=shearstress > 0,out=np.full_like(shearstress, np.inf))
     return FS
