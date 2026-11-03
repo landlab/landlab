@@ -107,6 +107,9 @@ from .uniform_precip import PrecipitationDistribution
 from .vegetation_dynamics import Vegetation
 from .weathering import ExponentialWeatherer
 from .weathering import ExponentialWeathererIntegrated
+from .weathering.multi_class_exp_slope_dependent_weathering import (
+    MultiClassExpSlopeDependentWeatherer,
+)
 
 COMPONENTS = [
     AdvectionSolverTVD,

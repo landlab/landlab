@@ -217,7 +217,7 @@ class MultiClassExpSlopeDependentWeatherer(Component):
         """Return the slope array at nodes, checking that it exists and is valid."""
         if isinstance(slope, str):
             if slope not in self._grid.at_node:
-                raise FieldError(f"Slope field '{slope}' not found at nodes. ")
+                raise FieldError(f"Slope field {slope!r} not found at nodes. ")
             slope_array = self._grid.at_node[slope]
         else:
             slope_array = np.asarray(slope, dtype=float)
