@@ -1,4 +1,4 @@
-"""""
+""" ""
 =============================================================================
 
   CRISIS — Coupled Regional Rainfall-Induced and Seismic Slope Instability
@@ -28,11 +28,15 @@
 # this file contains interface logic only
 
 from __future__ import annotations
+
 import re
 from pathlib import Path
+
 import h5py
 import numpy as np
-from landlab import Component, RasterModelGrid
+
+from landlab import Component
+from landlab import RasterModelGrid
 
 Gamma_W = 9.81  # unit weight of water (kN/m³)
 
@@ -45,17 +49,17 @@ try:
 except ImportError:
     import _crisis_core as _core
 
-_build_upslope_map                = _core._build_upslope_map
+_build_upslope_map = _core._build_upslope_map
 _find_triggering_cells_vectorized = _core._find_triggering_cells_vectorized
-Determine_Pseudo_3D_landslides    = _core.Determine_Pseudo_3D_landslides
-Modeled_landslides_shapefiles     = _core.Modeled_landslides_shapefiles
-_save_individual_excel            = _core._save_individual_excel
-_save_summary_excel               = _core._save_summary_excel
-load_h5                           = _core.load_h5
-read_ascii_header                 = _core.read_ascii_header
-lower_left_cell_center            = _core.lower_left_cell_center
-compute_coordinate_vectors        = _core.compute_coordinate_vectors
-Rupture_Dist                      = _core.Rupture_Dist
+Determine_Pseudo_3D_landslides = _core.Determine_Pseudo_3D_landslides
+Modeled_landslides_shapefiles = _core.Modeled_landslides_shapefiles
+_save_individual_excel = _core._save_individual_excel
+_save_summary_excel = _core._save_summary_excel
+load_h5 = _core.load_h5
+read_ascii_header = _core.read_ascii_header
+lower_left_cell_center = _core.lower_left_cell_center
+compute_coordinate_vectors = _core.compute_coordinate_vectors
+Rupture_Dist = _core.Rupture_Dist
 
 
 # =============================================================================
@@ -63,6 +67,7 @@ Rupture_Dist                      = _core.Rupture_Dist
 # =============================================================================
 # Landlab stores node data as flat 1D arrays; CRISIS physics functions expect
 # 2D (nrows, ncols) arrays — this helper reshapes them on the fly.
+
 
 # small helper: turn a flat Landlab field back into a 2D grid shape
 def _node_to_2d(grid, field_name):
@@ -93,25 +98,35 @@ def _node_to_2d(grid, field_name):
 
 # keys every run needs, whatever the settings
 _ALWAYS_REQUIRED = (
-    "dem_file", "output_dir", "Coordinate_Reference_System",
-    "Gamma", "z_min", "z_max", "Depth_points",
-    "Min_LD_area", "top_or_bottom_indicator",
-    "Triggering_Indicator", "Hydrological_model_indicator", "Strength_indicator",
+    "dem_file",
+    "output_dir",
+    "Coordinate_Reference_System",
+    "Gamma",
+    "z_min",
+    "z_max",
+    "Depth_points",
+    "Min_LD_area",
+    "top_or_bottom_indicator",
+    "Triggering_Indicator",
+    "Hydrological_model_indicator",
+    "Strength_indicator",
 )
 
 # allowed values of the choice keys
 _CHOICES = {
-    "Triggering_Indicator":          (1, 2),
-    "Hydrological_model_indicator":  (1, 2, 3),
+    "Triggering_Indicator": (1, 2),
+    "Hydrological_model_indicator": (1, 2, 3),
     "Strength_variation_with_theta": (1, 2, 3),
-    "Strength_indicator":            (1, 2),
-    "top_or_bottom_indicator":       (1, 2),
-    "Seismic_displacement_model":    (1, 2, 3, 4),
-    "Rathje_method":                 (1, 2),
+    "Strength_indicator": (1, 2),
+    "top_or_bottom_indicator": (1, 2),
+    "Seismic_displacement_model": (1, 2, 3, 4),
+    "Rathje_method": (1, 2),
 }
 
 # the four corners of the fault plane (Seismic_displacement_model = 3 or 4)
-_FAULT_KEYS = tuple(f"fault_{axis}{corner}" for corner in (1, 2, 3, 4) for axis in "XYZ")
+_FAULT_KEYS = tuple(
+    f"fault_{axis}{corner}" for corner in (1, 2, 3, 4) for axis in "XYZ"
+)
 
 
 def check_params(params):
@@ -162,14 +177,23 @@ def check_params(params):
     --------
     >>> from landlab.components.crisis.crisis_landlab_component import check_params
     >>> params = {
-    ...     "dem_file": "dem.asc", "output_dir": "Outputs",
+    ...     "dem_file": "dem.asc",
+    ...     "output_dir": "Outputs",
     ...     "Coordinate_Reference_System": "EPSG:32610",
-    ...     "Gamma": 22.0, "z_min": 0.125, "z_max": 1.875, "Depth_points": 8,
-    ...     "Min_LD_area": 12.0, "top_or_bottom_indicator": 1,
-    ...     "Triggering_Indicator": 1, "Hydrological_model_indicator": 1, "Ru": 0.4,
-    ...     "Strength_indicator": 1, "c": 20.0, "Phi": 37.0,
+    ...     "Gamma": 22.0,
+    ...     "z_min": 0.125,
+    ...     "z_max": 1.875,
+    ...     "Depth_points": 8,
+    ...     "Min_LD_area": 12.0,
+    ...     "top_or_bottom_indicator": 1,
+    ...     "Triggering_Indicator": 1,
+    ...     "Hydrological_model_indicator": 1,
+    ...     "Ru": 0.4,
+    ...     "Strength_indicator": 1,
+    ...     "c": 20.0,
+    ...     "Phi": 37.0,
     ... }
-    >>> check_params(params)    # complete: nothing is reported
+    >>> check_params(params)  # complete: nothing is reported
 
     ``Ru`` is required only with ``Hydrological_model_indicator = 1``; with
     the HDF5 files (indicator 2), their folder is required instead, and so
@@ -189,9 +213,16 @@ def check_params(params):
 
     A coupled run with the Bray & Macedo model needs the earthquake keys:
 
-    >>> check_params({**params, "Triggering_Indicator": 2, "Seismic_displacement_model": 4,
-    ...               "pga_file": "PGA.h5", "Earthquake_time_point": 0,
-    ...               "Seismic_displacement_threshold": 5.0})
+    >>> check_params(
+    ...     {
+    ...         **params,
+    ...         "Triggering_Indicator": 2,
+    ...         "Seismic_displacement_model": 4,
+    ...         "pga_file": "PGA.h5",
+    ...         "Earthquake_time_point": 0,
+    ...         "Seismic_displacement_threshold": 5.0,
+    ...     }
+    ... )
     Traceback (most recent call last):
     ...
     ValueError: Missing or invalid entries in params:
@@ -203,9 +234,17 @@ def check_params(params):
     With a constant Ru (a single time step), the earthquake can only be at
     time step 0:
 
-    >>> check_params({**params, "Triggering_Indicator": 2, "Seismic_displacement_model": 1,
-    ...               "pga_file": "PGA.h5", "Earthquake_time_point": 3,
-    ...               "Seismic_displacement_threshold": 5.0, "M": 6.5})
+    >>> check_params(
+    ...     {
+    ...         **params,
+    ...         "Triggering_Indicator": 2,
+    ...         "Seismic_displacement_model": 1,
+    ...         "pga_file": "PGA.h5",
+    ...         "Earthquake_time_point": 3,
+    ...         "Seismic_displacement_threshold": 5.0,
+    ...         "M": 6.5,
+    ...     }
+    ... )
     Traceback (most recent call last):
     ...
     ValueError: Missing or invalid entries in params:
@@ -227,7 +266,9 @@ def check_params(params):
 
     def given(key):
         value = params.get(key)
-        return value is not None and not (isinstance(value, str) and value.strip() == "")
+        return value is not None and not (
+            isinstance(value, str) and value.strip() == ""
+        )
 
     def need(keys, reason=None):
         absent = [key for key in keys if not given(key)]
@@ -260,7 +301,9 @@ def check_params(params):
     elif hydro in (2, 3):
         if hydro == 2:
             need(["hydro_files_dir"], "Hydrological_model_indicator = 2")
-        need(["Strength_variation_with_theta"], f"Hydrological_model_indicator = {hydro}")
+        need(
+            ["Strength_variation_with_theta"], f"Hydrological_model_indicator = {hydro}"
+        )
         if theta == 2:
             need(["theta_files_dir"], "Strength_variation_with_theta = 2")
         if theta in (2, 3):
@@ -275,36 +318,57 @@ def check_params(params):
 
     # ── earthquake (coupled mode) ─────────────────────────────────────────
     if choice("Triggering_Indicator") == 2:
-        need(["pga_file", "Earthquake_time_point", "Seismic_displacement_threshold",
-              "Seismic_displacement_model"], "Triggering_Indicator = 2")
+        need(
+            [
+                "pga_file",
+                "Earthquake_time_point",
+                "Seismic_displacement_threshold",
+                "Seismic_displacement_model",
+            ],
+            "Triggering_Indicator = 2",
+        )
         # a constant Ru has a single time step (index 0): the earthquake is at step 0
-        if hydro == 1 and given("Earthquake_time_point") and params["Earthquake_time_point"] != 0:
+        if (
+            hydro == 1
+            and given("Earthquake_time_point")
+            and params["Earthquake_time_point"] != 0
+        ):
             problems.append(
                 "Earthquake_time_point must be 0 with Hydrological_model_indicator = 1 "
-                f"(a single time step), not {params['Earthquake_time_point']!r}")
+                f"(a single time step), not {params['Earthquake_time_point']!r}"
+            )
         model = choice("Seismic_displacement_model")
         method = None
         if model in (2, 3):
             need(["Rathje_method"], f"Seismic_displacement_model = {model}")
             method = choice("Rathje_method")
         if model in (1, 3, 4) or (model == 2 and method == 1):
-            need(["M"], f"Seismic_displacement_model = {model}"
-                        + (f" and Rathje_method = {method}" if model == 2 else ""))
+            need(
+                ["M"],
+                f"Seismic_displacement_model = {model}"
+                + (f" and Rathje_method = {method}" if model == 2 else ""),
+            )
         if (model in (2, 3) and method == 2) or model == 4:
-            need(["pgv_file"], f"Seismic_displacement_model = {model}"
-                               + (" and Rathje_method = 2" if model in (2, 3) else ""))
+            need(
+                ["pgv_file"],
+                f"Seismic_displacement_model = {model}"
+                + (" and Rathje_method = 2" if model in (2, 3) else ""),
+            )
         if model in (3, 4):
             need(["Ts"], f"Seismic_displacement_model = {model}")
             need(_FAULT_KEYS, f"Seismic_displacement_model = {model}")
 
     if problems:
-        raise ValueError("Missing or invalid entries in params:\n"
-                         + "\n".join(f"  - {p}" for p in problems))
+        raise ValueError(
+            "Missing or invalid entries in params:\n"
+            + "\n".join(f"  - {p}" for p in problems)
+        )
 
 
 # =============================================================================
 # Number of time steps of a set of HDF5 files
 # =============================================================================
+
 
 def _count_time_steps(folder, prefix, Depth_points):
     """Count the time steps of the HDF5 files ``{prefix}_T{t}Z{z}.h5`` in *folder*.
@@ -345,6 +409,7 @@ def _count_time_steps(folder, prefix, Depth_points):
     >>> for t in range(3):
     ...     for z in (1, 2):
     ...         open(os.path.join(folder, f"Pressure_head_T{t}Z{z}.h5"), "w").close()
+    ...
     >>> _count_time_steps(folder, "Pressure_head", Depth_points=2)
     3
 
@@ -366,13 +431,14 @@ def _count_time_steps(folder, prefix, Depth_points):
 
     >>> for z in (1, 2):
     ...     os.remove(os.path.join(folder, f"Pressure_head_T1Z{z}.h5"))
+    ...
     >>> _count_time_steps(folder, "Pressure_head", Depth_points=2)
     Traceback (most recent call last):
     ...
     FileNotFoundError: Pressure_head files: time step(s) T1 missing (found T0 ... T2; the time steps must be T0, T1, ... without gaps).
     """
     pattern = re.compile(rf"^{re.escape(prefix)}_T(\d+)Z(\d+)\.h5$")
-    layers = {}                                    # time step -> set of depth layers found
+    layers = {}  # time step -> set of depth layers found
     for path in Path(folder).iterdir() if Path(folder).is_dir() else ():
         match = pattern.match(path.name)
         if match:
@@ -413,6 +479,7 @@ def _count_time_steps(folder, prefix, Depth_points):
 # CrisisComponent — main class
 # =============================================================================
 # this is the main class — it implements CRISIS as a native Landlab component
+
 
 class CrisisComponent(Component):
     """Coupled rainfall-induced and coseismic landslide hazard model (CRISIS).
@@ -586,14 +653,12 @@ class CrisisComponent(Component):
 
     # dictionary listing every input/output field this component needs or makes
     _info = {
-
         # ── Topographic inputs ────────────────────────────────────────────────
         # All four must exist on the grid before CrisisComponent is instantiated.
         # Slope, D8 flow direction and drainage area are computed beforehand with
         # Landlab (e.g. calc_slope_at_node and a D8 FlowAccumulator). They are
         # marked optional here only because the component accepts custom field
         # names for them; __init__ raises a KeyError if any of them is missing.
-
         # ground surface height at each grid point, from the DEM
         "topographic__elevation": {
             "dtype": float,
@@ -603,7 +668,6 @@ class CrisisComponent(Component):
             "mapping": "node",
             "doc": "Surface elevation (DEM).  No-data cells: NaN or values below -900.",
         },
-
         # slope angle at each grid point, in degrees
         "topographic__slope": {
             "dtype": float,
@@ -616,7 +680,6 @@ class CrisisComponent(Component):
                 "np.degrees(grid.calc_slope_at_node('topographic__elevation'))."
             ),
         },
-
         # which way water flows from each cell (D8 direction)
         "flow__receiver_node": {
             "dtype": int,
@@ -629,7 +692,6 @@ class CrisisComponent(Component):
                 "FlowAccumulator using FlowDirectorD8."
             ),
         },
-
         "drainage_area": {
             "dtype": float,
             "intent": "in",
@@ -641,11 +703,9 @@ class CrisisComponent(Component):
                 "using FlowDirectorD8."
             ),
         },
-
         # ── Hydrology (input or output, depending on the indicators) ──────────
         # One value per node and depth layer: shape (number_of_nodes, Depth_points),
         # nodes in Landlab order (row 0 = south), layers ordered shallow to deep.
-
         # pore pressure head at each node and depth layer
         "soil_water__pressure_head": {
             "dtype": float,
@@ -661,7 +721,6 @@ class CrisisComponent(Component):
                 "is 3."
             ),
         },
-
         # volumetric water content at each node and depth layer
         "soil_water__volume_fraction": {
             "dtype": float,
@@ -677,10 +736,8 @@ class CrisisComponent(Component):
                 "when it is 1 or when Hydrological_model_indicator is 1."
             ),
         },
-
         # ── Outputs ───────────────────────────────────────────────────────────
         # Created on the grid by __init__ and updated after every run_one_step call.
-
         # ID number telling which landslide (if any) each cell belongs to
         "landslide__failure_id_accumulated": {
             "dtype": float,
@@ -693,7 +750,6 @@ class CrisisComponent(Component):
                 "of the landslide it belongs to. NaN where no failure has occurred."
             ),
         },
-
         # simple true/false flag: has this cell ever failed
         "landslide__failed_accumulated": {
             "dtype": bool,
@@ -703,7 +759,6 @@ class CrisisComponent(Component):
             "mapping": "node",
             "doc": "True at nodes that have failed in any time step (cumulative).",
         },
-
         # ID of the landslide each cell belongs to, for landslides new in this step
         "landslide__failure_id": {
             "dtype": int,
@@ -716,7 +771,6 @@ class CrisisComponent(Component):
                 "each new landslide; 0 elsewhere."
             ),
         },
-
         # failure-surface depth at each cell of a new landslide
         "failure__depth": {
             "dtype": float,
@@ -729,7 +783,6 @@ class CrisisComponent(Component):
                 "the current time step; 0 elsewhere."
             ),
         },
-
         # initiation (triggering) cell of each new landslide
         "triggering__cells": {
             "dtype": bool,
@@ -747,15 +800,16 @@ class CrisisComponent(Component):
     # this runs once when you create a CrisisComponent — it sets everything up
 
     def __init__(
-            self,
-            grid,
-            params,
-            slope = 'topographic__slope',
-            drainage_area = 'drainage_area',
-            flow_direction= "flow__receiver_node",
-            log_callback=print,
-            pressure_head="soil_water__pressure_head",
-            water_content="soil_water__volume_fraction"):
+        self,
+        grid,
+        params,
+        slope="topographic__slope",
+        drainage_area="drainage_area",
+        flow_direction="flow__receiver_node",
+        log_callback=print,
+        pressure_head="soil_water__pressure_head",
+        water_content="soil_water__volume_fraction",
+    ):
         """Initialize the CRISIS component and pre-load all static data.
 
         Parameters
@@ -844,17 +898,28 @@ class CrisisComponent(Component):
         >>> import os, tempfile
         >>> folder = tempfile.mkdtemp()
         >>> import io
-        >>> dem_file = io.StringIO("ncols 100\\nnrows 3\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n")  # ASCII DEM header of this grid, in memory
+        >>> dem_file = io.StringIO(
+        ...     "ncols 100\\nnrows 3\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n"
+        ... )  # ASCII DEM header of this grid, in memory
         >>> params = {
         ...     "output_dir": folder,
-        ...     "Coordinate_Reference_System": "EPSG:32610", "dem_file": dem_file,
-        ...     "Gamma": 22.0, "z_min": 0.125, "z_max": 1.875,
-        ...     "Depth_points": 8, "Min_LD_area": 12.0,
-        ...     "top_or_bottom_indicator": 1, "Triggering_Indicator": 1,
-        ...     "Hydrological_model_indicator": 1, "Ru": 0.8,
+        ...     "Coordinate_Reference_System": "EPSG:32610",
+        ...     "dem_file": dem_file,
+        ...     "Gamma": 22.0,
+        ...     "z_min": 0.125,
+        ...     "z_max": 1.875,
+        ...     "Depth_points": 8,
+        ...     "Min_LD_area": 12.0,
+        ...     "top_or_bottom_indicator": 1,
+        ...     "Triggering_Indicator": 1,
+        ...     "Hydrological_model_indicator": 1,
+        ...     "Ru": 0.8,
         ...     "Strength_variation_with_theta": 1,
-        ...     "Theta_s": 0.45, "Theta_r": 0.1,
-        ...     "Strength_indicator": 1, "c": 20.0, "Phi": 37.0,
+        ...     "Theta_s": 0.45,
+        ...     "Theta_r": 0.1,
+        ...     "Strength_indicator": 1,
+        ...     "c": 20.0,
+        ...     "Phi": 37.0,
         ... }
         >>> crisis = CrisisComponent(grid, params)
         >>> crisis.current_time_index
@@ -866,8 +931,10 @@ class CrisisComponent(Component):
         cell; row 0 is the southern-most row, so northing increases with the
         row index.
 
-        >>> params["dem_file"] = io.StringIO("ncols 100\\nnrows 3\\nxllcorner 500000.0\\n"
-        ...                                  "yllcorner 4000000.0\\ncellsize 1.0\\n")
+        >>> params["dem_file"] = io.StringIO(
+        ...     "ncols 100\\nnrows 3\\nxllcorner 500000.0\\n"
+        ...     "yllcorner 4000000.0\\ncellsize 1.0\\n"
+        ... )
         >>> crisis = CrisisComponent(grid, params)
         >>> crisis._x[:3].tolist()
         [500000.5, 500001.5, 500002.5]
@@ -876,8 +943,10 @@ class CrisisComponent(Component):
 
         A header that does not match the grid is rejected.
 
-        >>> params["dem_file"] = io.StringIO("ncols 50\\nnrows 3\\nxllcorner 500000.0\\n"
-        ...                                  "yllcorner 4000000.0\\ncellsize 1.0\\n")
+        >>> params["dem_file"] = io.StringIO(
+        ...     "ncols 50\\nnrows 3\\nxllcorner 500000.0\\n"
+        ...     "yllcorner 4000000.0\\ncellsize 1.0\\n"
+        ... )
         >>> CrisisComponent(grid, params)
         Traceback (most recent call last):
         ...
@@ -888,8 +957,10 @@ class CrisisComponent(Component):
 
         >>> crisis._Cell_size
         1.0
-        >>> params["dem_file"] = io.StringIO("ncols 100\\nnrows 3\\nxllcenter 0.0\\n"
-        ...                                  "yllcenter 0.0\\ncellsize 2.0\\n")
+        >>> params["dem_file"] = io.StringIO(
+        ...     "ncols 100\\nnrows 3\\nxllcenter 0.0\\n"
+        ...     "yllcenter 0.0\\ncellsize 2.0\\n"
+        ... )
         >>> CrisisComponent(grid, params)
         Traceback (most recent call last):
         ...
@@ -964,7 +1035,7 @@ class CrisisComponent(Component):
                     info = {key: dict(entry) for key, entry in self._info.items()}
                 info[name]["dtype"] = grid.at_node[name].dtype
         if info is not None:
-            self._info = info      # this instance only; the class declaration is unchanged
+            self._info = info  # this instance only; the class declaration is unchanged
 
         # ── Base class initialization ─────────────────────────────────────────
         # super().__init__ registers the grid and validates all _info "in" fields
@@ -977,7 +1048,7 @@ class CrisisComponent(Component):
         # remember the parameters dict for later use
         self._params = params
         # remember how to print/report progress messages
-        self._log    = log_callback
+        self._log = log_callback
 
         # ── Simulation clock and grid shape ───────────────────────────────────
 
@@ -989,7 +1060,9 @@ class CrisisComponent(Component):
 
         # ── Elevation ─────────────────────────────────────────────────────────
         # make our own private copy of the elevation grid
-        self._Elev_Mat = _node_to_2d(grid, "topographic__elevation").copy().astype(np.float32)
+        self._Elev_Mat = (
+            _node_to_2d(grid, "topographic__elevation").copy().astype(np.float32)
+        )
         # turn "no data" elevation placeholders into proper NaN (missing value)
         self._Elev_Mat[self._Elev_Mat < -900] = np.nan
 
@@ -1000,13 +1073,16 @@ class CrisisComponent(Component):
         # Landlab drainage area is already in m², so no unit conversion is needed.
 
         # remember the field names so run_one_step re-reads the same fields
-        self._slope_name          = slope
-        self._drainage_area_name  = drainage_area
+        self._slope_name = slope
+        self._drainage_area_name = drainage_area
         self._flow_direction_name = flow_direction
 
         # stop early with a clear error if any of the three fields is missing
-        missing = [name for name in (slope, drainage_area, flow_direction)
-                   if not grid.has_field(name, at="node")]
+        missing = [
+            name
+            for name in (slope, drainage_area, flow_direction)
+            if not grid.has_field(name, at="node")
+        ]
         if missing:
             raise KeyError(
                 f"CrisisComponent requires the grid field(s) {missing}. Compute slope "
@@ -1018,7 +1094,7 @@ class CrisisComponent(Component):
 
         # point at the grid fields (re-read at every run_one_step)
         self._Slope_Mat = grid.at_node[slope]
-        self._Area_Mat  = grid.at_node[drainage_area]
+        self._Area_Mat = grid.at_node[drainage_area]
 
         # convert Landlab receiver nodes to the D8 codes (1-128) used by the core
         self._FD_Mat = self._build_fd_mat_from_landlab(grid, flow_direction)
@@ -1038,7 +1114,10 @@ class CrisisComponent(Component):
         # the cell size is read automatically from the DEM header's cellsize;
         # areas and volumes use it, so it must also be the grid spacing
         self._Cell_size = float(dem_header["cellsize"])
-        if not (np.isclose(grid.dx, self._Cell_size) and np.isclose(grid.dy, self._Cell_size)):
+        if not (
+            np.isclose(grid.dx, self._Cell_size)
+            and np.isclose(grid.dy, self._Cell_size)
+        ):
             raise ValueError(
                 f"dem_file cellsize ({self._Cell_size}) does not match the grid spacing "
                 f"(dx = {grid.dx}, dy = {grid.dy})."
@@ -1057,8 +1136,10 @@ class CrisisComponent(Component):
         # build the list of soil depths, shallow to deep (every layer is checked for
         # failure, except a layer at depth 0, which is the ground surface)
         self._Depths_vector = np.linspace(
-            params["z_min"], params["z_max"],
-            params["Depth_points"], dtype=np.float32,
+            params["z_min"],
+            params["z_max"],
+            params["Depth_points"],
+            dtype=np.float32,
         )
 
         # ── Hydrology indicators and their grid fields ────────────────────────
@@ -1079,7 +1160,9 @@ class CrisisComponent(Component):
                 )
             self._Strength_variation_with_theta = 1
         else:
-            self._Strength_variation_with_theta = params["Strength_variation_with_theta"]
+            self._Strength_variation_with_theta = params[
+                "Strength_variation_with_theta"
+            ]
 
         # ── Number of time steps (never a parameter) ──────────────────────────
         # 1: a constant Ru is steady state, a single time step;
@@ -1089,10 +1172,12 @@ class CrisisComponent(Component):
             self._number_of_time_steps = 1
         elif self._Hydro_indicator == 2:
             self._number_of_time_steps = _count_time_steps(
-                params["hydro_files_dir"], "Pressure_head", params["Depth_points"])
+                params["hydro_files_dir"], "Pressure_head", params["Depth_points"]
+            )
             if self._Strength_variation_with_theta == 2:
                 theta_steps = _count_time_steps(
-                    params["theta_files_dir"], "Theta", params["Depth_points"])
+                    params["theta_files_dir"], "Theta", params["Depth_points"]
+                )
                 if theta_steps != self._number_of_time_steps:
                     raise ValueError(
                         f"The water content files have {theta_steps} time step(s), but the "
@@ -1109,7 +1194,8 @@ class CrisisComponent(Component):
             # (gaps, missing or extra layers); they cover this many time steps
             if self._Strength_variation_with_theta == 2:
                 theta_steps = _count_time_steps(
-                    params["theta_files_dir"], "Theta", params["Depth_points"])
+                    params["theta_files_dir"], "Theta", params["Depth_points"]
+                )
                 self._log(
                     f"Strength_variation_with_theta = 2: {theta_steps} time step(s) found in "
                     f"the water content files (T0 ... T{theta_steps - 1})."
@@ -1117,8 +1203,11 @@ class CrisisComponent(Component):
 
         # the earthquake must happen at one of the time steps of the run
         eq_t = params.get("Earthquake_time_point")
-        if (params["Triggering_Indicator"] == 2 and self._number_of_time_steps is not None
-                and not 0 <= eq_t < self._number_of_time_steps):
+        if (
+            params["Triggering_Indicator"] == 2
+            and self._number_of_time_steps is not None
+            and not 0 <= eq_t < self._number_of_time_steps
+        ):
             raise ValueError(
                 f"Earthquake_time_point = {eq_t} is not one of the {self._number_of_time_steps} "
                 f"time step(s) of the run (0 ... {self._number_of_time_steps - 1})."
@@ -1154,8 +1243,8 @@ class CrisisComponent(Component):
         # once from the fault plane geometry
 
         # placeholders for earthquake-related arrays, filled in only if needed
-        self._PGA_2D_array     = None
-        self._PGV_2D_array     = None
+        self._PGA_2D_array = None
+        self._PGV_2D_array = None
         self._Rupture_2D_array = None
 
         # only load earthquake data if this run includes seismic triggering
@@ -1186,13 +1275,13 @@ class CrisisComponent(Component):
 
         # placeholders for soil-strength maps that vary by location and depth
         self._Cohesion_3D_array = None
-        self._Phi_3D_array      = None
+        self._Phi_3D_array = None
 
         # only load these if strength is set to vary spatially
         if params["Strength_indicator"] == 2:
             # load cohesion (kPa) and friction angle (degrees) for every cell and depth
             self._Cohesion_3D_array = load_h5(params["cohesion_3d_file"])
-            self._Phi_3D_array      = load_h5(params["phi_3d_file"])
+            self._Phi_3D_array = load_h5(params["phi_3d_file"])
 
         # ── Upslope flow map ──────────────────────────────────────────────────
         # Pre-build {cell: [upslope neighbors]} dict so BFS delineation does not
@@ -1220,64 +1309,60 @@ class CrisisComponent(Component):
 
         # this dictionary holds every result that builds up as the simulation runs
         self._state = {
-
             # ── Cumulative rasters ────────────────────────────────────────────
             # grid of which cells have ever failed (true/false)
-            "Fail_Index_all_times":  np.zeros((self._rows, self._clms), dtype=bool),
+            "Fail_Index_all_times": np.zeros((self._rows, self._clms), dtype=bool),
             # grid of landslide ID numbers (NaN = no landslide there)
-            "FID_all_times":         np.full((self._rows, self._clms), np.nan, dtype=np.float32),
-
+            "FID_all_times": np.full(
+                (self._rows, self._clms), np.nan, dtype=np.float32
+            ),
             # ── Per-step totals (current = new this step only) ────────────────
             # total new landslide area at each time step
-            "Total_Current_Area_vector_with_time":      np.zeros(0, dtype=np.float32),
+            "Total_Current_Area_vector_with_time": np.zeros(0, dtype=np.float32),
             # total new landslide volume at each time step
-            "Total_Current_Volume_vector_with_time":    np.zeros(0, dtype=np.float32),
+            "Total_Current_Volume_vector_with_time": np.zeros(0, dtype=np.float32),
             # count of new landslides at each time step
-            "Total_Current_NL_vector_with_time":        np.zeros(0, dtype=np.float32),
-
+            "Total_Current_NL_vector_with_time": np.zeros(0, dtype=np.float32),
             # ── Per-step running totals (cumulative = all steps so far) ───────
             # running total area of all landslides so far, per time step
-            "Total_Cumulative_Area_vector_with_time":   np.zeros(0, dtype=np.float32),
+            "Total_Cumulative_Area_vector_with_time": np.zeros(0, dtype=np.float32),
             # running total volume of all landslides so far, per time step
             "Total_Cumulative_Volume_vector_with_time": np.zeros(0, dtype=np.float32),
             # running total count of landslides so far, per time step
-            "Total_Cumulative_NL_vector_with_time":     np.zeros(0, dtype=np.float32),
-
+            "Total_Cumulative_NL_vector_with_time": np.zeros(0, dtype=np.float32),
             # ── Per-step lists — new (current) landslide properties ───────────
             # list of cell locations that triggered new landslides, one entry per step
             "Individual_Current_triggering_linear_indices_with_time": [],
             # list of failure depths for the new landslides, one entry per step
-            "Individual_Current_triggering_depths_with_time":         [],
+            "Individual_Current_triggering_depths_with_time": [],
             # list of what caused the new failures (rain/quake), one entry per step
-            "Individual_Current_triggering_sources_with_time":        [],
+            "Individual_Current_triggering_sources_with_time": [],
             # list of new landslide areas, one entry per step
-            "Individual_Current_areas_with_time":                     [],
+            "Individual_Current_areas_with_time": [],
             # list of new landslide volumes, one entry per step
-            "Individual_Current_volumes_with_time":                   [],
-
+            "Individual_Current_volumes_with_time": [],
             # ── Per-step snapshots — cumulative landslide registry ────────────
             # snapshot of all triggering cell locations seen so far, per step
             "Individual_Cumulative_triggering_linear_indices_with_time": [],
             # snapshot of all failure depths seen so far, per step
-            "Individual_Cumulative_triggering_depths_with_time":         [],
+            "Individual_Cumulative_triggering_depths_with_time": [],
             # snapshot of all trigger sources seen so far, per step
-            "Individual_Cumulative_triggering_sources_with_time":        [],
+            "Individual_Cumulative_triggering_sources_with_time": [],
             # snapshot of all landslide areas seen so far, per step
-            "Individual_Cumulative_areas_with_time":                     [],
+            "Individual_Cumulative_areas_with_time": [],
             # snapshot of all landslide volumes seen so far, per step
-            "Individual_Cumulative_volumes_with_time":                   [],
-
+            "Individual_Cumulative_volumes_with_time": [],
             # ── Running master registry — all unique triggering cells ─────────
             # master list of every unique landslide-triggering cell location
             "Individual_Cumulative_triggering_linear_indices": [],
             # master list of failure depths matching the above cells
-            "Individual_Cumulative_triggering_depths":         [],
+            "Individual_Cumulative_triggering_depths": [],
             # master list of trigger sources matching the above cells
-            "Individual_Cumulative_triggering_sources":        [],
+            "Individual_Cumulative_triggering_sources": [],
             # master list of volumes matching the above cells
-            "Individual_Cumulative_volumes":                   [],
+            "Individual_Cumulative_volumes": [],
             # master list of areas matching the above cells
-            "Individual_Cumulative_areas":                     [],
+            "Individual_Cumulative_areas": [],
         }
 
         # ── Initialize output fields on the grid ──────────────────────────────
@@ -1290,37 +1375,47 @@ class CrisisComponent(Component):
         # at initialization rather than re-extracting them in every run_one_step call
 
         # ── General model settings ────────────────────────────────────────
-        self._Gamma       = params["Gamma"]                    # soil unit weight (kN/m³)
-        self._Gamma_W     = Gamma_W                            # unit weight of water (kN/m³)
+        self._Gamma = params["Gamma"]  # soil unit weight (kN/m³)
+        self._Gamma_W = Gamma_W  # unit weight of water (kN/m³)
         # (_Cell_size, the grid cell size in m, was read from the DEM header above)
-        self._Min_LD_area = params["Min_LD_area"]              # minimum landslide area (m²)
-        self._top_bot     = params["top_or_bottom_indicator"]  # shallowest (1) or deepest (2) failure
+        self._Min_LD_area = params["Min_LD_area"]  # minimum landslide area (m²)
+        self._top_bot = params[
+            "top_or_bottom_indicator"
+        ]  # shallowest (1) or deepest (2) failure
 
         # ── Triggering and strength settings ─────────────────────────────
-        self._Strength_indicator            = params["Strength_indicator"]
-        self._Triggering_Indicator          = params["Triggering_Indicator"]
+        self._Strength_indicator = params["Strength_indicator"]
+        self._Triggering_Indicator = params["Triggering_Indicator"]
         # (_Hydro_indicator and _Strength_variation_with_theta were checked and
         # stored above, with the hydrology fields)
         # a constant Ru is steady state: single-shapefile, no-time-step outputs
-        self._steady_state                  = self._Hydro_indicator == 1
-        self._CRS                           = params["Coordinate_Reference_System"]
+        self._steady_state = self._Hydro_indicator == 1
+        self._CRS = params["Coordinate_Reference_System"]
 
         # ── Settings used only in some cases ──────────────────────────────
         # check_params made sure each one is given when the settings need it;
         # a key the settings do not use is None here and is never used
-        self._c       = params.get("c")        # constant cohesion (kPa), Strength_indicator = 1
-        self._Phi     = params.get("Phi")      # constant friction angle (degrees), Strength_indicator = 1
-        self._Ru      = params.get("Ru")       # constant pore pressure coefficient, indicator 1
-        self._Theta_s = params.get("Theta_s")  # saturated water content, theta indicator 2 or 3
-        self._Theta_r = params.get("Theta_r")  # residual water content, theta indicator 2 or 3
+        self._c = params.get("c")  # constant cohesion (kPa), Strength_indicator = 1
+        self._Phi = params.get(
+            "Phi"
+        )  # constant friction angle (degrees), Strength_indicator = 1
+        self._Ru = params.get("Ru")  # constant pore pressure coefficient, indicator 1
+        self._Theta_s = params.get(
+            "Theta_s"
+        )  # saturated water content, theta indicator 2 or 3
+        self._Theta_r = params.get(
+            "Theta_r"
+        )  # residual water content, theta indicator 2 or 3
 
         # ── Seismic settings (Triggering_Indicator = 2) ───────────────────
-        self._Earthquake_time_point          = params.get("Earthquake_time_point")
-        self._Seismic_displacement_threshold = params.get("Seismic_displacement_threshold")
-        self._Seismic_displacement_model     = params.get("Seismic_displacement_model")
-        self._Rathje_method                  = params.get("Rathje_method")    # models 2 and 3
-        self._Ts                             = params.get("Ts")               # models 3 and 4
-        self._M                              = params.get("M")
+        self._Earthquake_time_point = params.get("Earthquake_time_point")
+        self._Seismic_displacement_threshold = params.get(
+            "Seismic_displacement_threshold"
+        )
+        self._Seismic_displacement_model = params.get("Seismic_displacement_model")
+        self._Rathje_method = params.get("Rathje_method")  # models 2 and 3
+        self._Ts = params.get("Ts")  # models 3 and 4
+        self._M = params.get("M")
 
     # =============================================================================
     # Public API
@@ -1396,17 +1491,28 @@ class CrisisComponent(Component):
         >>> import os, tempfile
         >>> folder = tempfile.mkdtemp()
         >>> import io
-        >>> dem_file = io.StringIO("ncols 100\\nnrows 3\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n")  # ASCII DEM header of this grid, in memory
+        >>> dem_file = io.StringIO(
+        ...     "ncols 100\\nnrows 3\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n"
+        ... )  # ASCII DEM header of this grid, in memory
         >>> params = {
         ...     "output_dir": folder,
-        ...     "Coordinate_Reference_System": "EPSG:32610", "dem_file": dem_file,
-        ...     "Gamma": 22.0, "z_min": 0.125, "z_max": 1.875,
-        ...     "Depth_points": 8, "Min_LD_area": 12.0,
-        ...     "top_or_bottom_indicator": 1, "Triggering_Indicator": 1,
-        ...     "Hydrological_model_indicator": 1, "Ru": Ru,
+        ...     "Coordinate_Reference_System": "EPSG:32610",
+        ...     "dem_file": dem_file,
+        ...     "Gamma": 22.0,
+        ...     "z_min": 0.125,
+        ...     "z_max": 1.875,
+        ...     "Depth_points": 8,
+        ...     "Min_LD_area": 12.0,
+        ...     "top_or_bottom_indicator": 1,
+        ...     "Triggering_Indicator": 1,
+        ...     "Hydrological_model_indicator": 1,
+        ...     "Ru": Ru,
         ...     "Strength_variation_with_theta": 1,
-        ...     "Theta_s": 0.45, "Theta_r": 0.1,
-        ...     "Strength_indicator": 1, "c": 20.0, "Phi": 37.0,
+        ...     "Theta_s": 0.45,
+        ...     "Theta_r": 0.1,
+        ...     "Strength_indicator": 1,
+        ...     "c": 20.0,
+        ...     "Phi": 37.0,
         ... }
         >>> crisis = CrisisComponent(grid, params)
         >>> crisis.run_one_step()
@@ -1418,7 +1524,9 @@ class CrisisComponent(Component):
         # Elevation, slope and drainage area are re-read every step, so updates
         # made to these fields by other components are picked up (the D8 flow
         # direction is read once, in __init__)
-        self._Elev_Mat = _node_to_2d(self._grid, "topographic__elevation").copy().astype(np.float32)
+        self._Elev_Mat = (
+            _node_to_2d(self._grid, "topographic__elevation").copy().astype(np.float32)
+        )
         self._Elev_Mat[self._Elev_Mat < -900] = np.nan
 
         self._Slope_Mat = self.get_topographic_slope()
@@ -1445,37 +1553,37 @@ class CrisisComponent(Component):
         # ── Unpack parameters into local variables ────────────────────────────
         # shortcuts to params and grid size, so the code below is easier to read
         params = self._params
-        rows   = self._rows
-        clms   = self._clms
+        rows = self._rows
+        clms = self._clms
 
         # Local shortcuts to the parameters cached in __init__
-        Gamma         = self._Gamma
-        Gamma_W       = self._Gamma_W
-        Cell_size     = self._Cell_size
-        Min_LD_area   = self._Min_LD_area
-        top_bot       = self._top_bot
+        Gamma = self._Gamma
+        Gamma_W = self._Gamma_W
+        Cell_size = self._Cell_size
+        Min_LD_area = self._Min_LD_area
+        top_bot = self._top_bot
 
         # ── Triggering and strength settings ──────────────────────────────────
-        Strength_indicator            = self._Strength_indicator
-        Triggering_Indicator          = self._Triggering_Indicator
+        Strength_indicator = self._Strength_indicator
+        Triggering_Indicator = self._Triggering_Indicator
         Strength_variation_with_theta = self._Strength_variation_with_theta
-        Hydro_indicator               = self._Hydro_indicator
-        CRS                           = self._CRS
+        Hydro_indicator = self._Hydro_indicator
+        CRS = self._CRS
 
         # Soil strength constants
-        c       = self._c
-        Phi     = self._Phi
-        Ru      = self._Ru
+        c = self._c
+        Phi = self._Phi
+        Ru = self._Ru
         Theta_s = self._Theta_s
         Theta_r = self._Theta_r
 
         # Seismic parameters
-        Earthquake_time_point          = self._Earthquake_time_point
+        Earthquake_time_point = self._Earthquake_time_point
         Seismic_displacement_threshold = self._Seismic_displacement_threshold
-        Seismic_displacement_model     = self._Seismic_displacement_model
-        Rathje_method                  = self._Rathje_method
-        Ts                             = self._Ts
-        M                              = self._M
+        Seismic_displacement_model = self._Seismic_displacement_model
+        Rathje_method = self._Rathje_method
+        Ts = self._Ts
+        M = self._M
 
         # Load hydrology
         Theta_3D, Pressures_3D = self._calc_hydrology(t, params)
@@ -1486,16 +1594,32 @@ class CrisisComponent(Component):
 
         # run the core math to find which cells fail this step, and at what depth
         Trig_Cells, Trig_Depths, Trig_sources = _find_triggering_cells_vectorized(
-            rows, clms,
-            self._Elev_Mat, self._Slope_Mat, self._Depths_vector,
-            Hydro_indicator, Pressures_3D, Theta_3D, Ru,
-            Triggering_Indicator, Strength_indicator, c, Phi,
-            Theta_s, Theta_r,
-            self._Cohesion_3D_array, self._Phi_3D_array,
-            Gamma_W, Gamma, t, Earthquake_time_point,
+            rows,
+            clms,
+            self._Elev_Mat,
+            self._Slope_Mat,
+            self._Depths_vector,
+            Hydro_indicator,
+            Pressures_3D,
+            Theta_3D,
+            Ru,
+            Triggering_Indicator,
+            Strength_indicator,
+            c,
+            Phi,
+            Theta_s,
+            Theta_r,
+            self._Cohesion_3D_array,
+            self._Phi_3D_array,
+            Gamma_W,
+            Gamma,
+            t,
+            Earthquake_time_point,
             self._PGA_2D_array,
-            Seismic_displacement_threshold, M,
-            Strength_variation_with_theta, top_bot,
+            Seismic_displacement_threshold,
+            M,
+            Strength_variation_with_theta,
+            top_bot,
             Seismic_displacement_model=Seismic_displacement_model,
             PGV_2D_array=self._PGV_2D_array,
             Ts=Ts,
@@ -1508,7 +1632,7 @@ class CrisisComponent(Component):
         # get the running "failed cells so far" grid out of state
         Fail_Index = self._state["Fail_Index_all_times"]
         # get the running landslide-ID grid out of state
-        FID        = self._state["FID_all_times"]
+        FID = self._state["FID_all_times"]
 
         # clear the per-step cell lists used to fill the per-step output fields
         self.LD_Z = []
@@ -1521,16 +1645,31 @@ class CrisisComponent(Component):
 
         if len(Trig_Cells) > 0:
             # walk uphill from each failing cell to build full landslide shapes
-            (Vol, Area, NL,
-             Trig_Index_Accept, _,
-             Fail_Index, Trig_Depth_Accept,
-             Trig_source_Accept, FID,
-             LD_Z,
-             LD_Index,
-             FID_Index) = Determine_Pseudo_3D_landslides(
-                self._Elev_Mat, Trig_Cells, self._Area_Mat, self._Slope_Mat,
-                self._FD_Mat, Cell_size, Trig_Depths, Trig_sources,
-                Fail_Index, FID, Min_LD_area,
+            (
+                Vol,
+                Area,
+                NL,
+                Trig_Index_Accept,
+                _,
+                Fail_Index,
+                Trig_Depth_Accept,
+                Trig_source_Accept,
+                FID,
+                LD_Z,
+                LD_Index,
+                FID_Index,
+            ) = Determine_Pseudo_3D_landslides(
+                self._Elev_Mat,
+                Trig_Cells,
+                self._Area_Mat,
+                self._Slope_Mat,
+                self._FD_Mat,
+                Cell_size,
+                Trig_Depths,
+                Trig_sources,
+                Fail_Index,
+                FID,
+                Min_LD_area,
                 upslope_map=self._upslope_map,
             )
 
@@ -1540,18 +1679,18 @@ class CrisisComponent(Component):
             self._FID_Index = FID_Index
         else:
             # nothing triggered this step — use empty results
-            Vol  = np.array([], dtype=np.float32)
+            Vol = np.array([], dtype=np.float32)
             Area = np.array([], dtype=np.float32)
-            NL   = 0
-            Trig_Index_Accept  = np.array([], dtype=np.int64)
-            Trig_Depth_Accept  = []
+            NL = 0
+            Trig_Index_Accept = np.array([], dtype=np.int64)
+            Trig_Depth_Accept = []
             Trig_source_Accept = []
 
         # ── Write updated failure arrays back into state ───────────────────────
         # save the updated failed-cells grid back into state
         self._state["Fail_Index_all_times"] = Fail_Index
         # save the updated landslide-ID grid back into state
-        self._state["FID_all_times"]        = FID
+        self._state["FID_all_times"] = FID
 
         # ── Update cumulative registry ────────────────────────────────────────
         # Merge newly accepted landslides into the running cumulative lists and
@@ -1559,8 +1698,13 @@ class CrisisComponent(Component):
 
         # fold this step's new landslides into the running master list
         self._update_cumulative_registry(
-            t, Trig_Index_Accept, Trig_Depth_Accept,
-            Trig_source_Accept, Vol, Area, Cell_size,
+            t,
+            Trig_Index_Accept,
+            Trig_Depth_Accept,
+            Trig_source_Accept,
+            Vol,
+            Area,
+            Cell_size,
         )
 
         # ── Compute summary scalars ───────────────────────────────────────────
@@ -1571,18 +1715,19 @@ class CrisisComponent(Component):
             cum_NL, cum_area_total, cum_vol_total = 0, 0.0, 0.0
         else:
             # otherwise compute the running totals: landslide count, area, volume
-            cum_NL         = int(np.nanmax(FID))
-            cum_area_total = np.nansum(Fail_Index) * Cell_size ** 2
-            cum_vol_total  = np.nansum(self._state["Individual_Cumulative_volumes"])
+            cum_NL = int(np.nanmax(FID))
+            cum_area_total = np.nansum(Fail_Index) * Cell_size**2
+            cum_vol_total = np.nansum(self._state["Individual_Cumulative_volumes"])
 
         # append this step's totals (new landslides, and running cumulative totals)
         for key, value in (
-                ("Total_Current_Area_vector_with_time",      np.sum(Area)),
-                ("Total_Current_Volume_vector_with_time",    np.sum(Vol)),
-                ("Total_Current_NL_vector_with_time",        NL),
-                ("Total_Cumulative_Area_vector_with_time",   cum_area_total),
-                ("Total_Cumulative_NL_vector_with_time",     cum_NL),
-                ("Total_Cumulative_Volume_vector_with_time", cum_vol_total)):
+            ("Total_Current_Area_vector_with_time", np.sum(Area)),
+            ("Total_Current_Volume_vector_with_time", np.sum(Vol)),
+            ("Total_Current_NL_vector_with_time", NL),
+            ("Total_Cumulative_Area_vector_with_time", cum_area_total),
+            ("Total_Cumulative_NL_vector_with_time", cum_NL),
+            ("Total_Cumulative_Volume_vector_with_time", cum_vol_total),
+        ):
             self._state[key] = np.append(self._state[key], np.float32(value))
 
         # ── Shapefile export ──────────────────────────────────────────────────
@@ -1592,7 +1737,13 @@ class CrisisComponent(Component):
 
         # write out a shapefile of all landslides so far, for this time step
         Modeled_landslides_shapefiles(
-            FID, Cell_size, self._x, self._y, t, CRS, str(self._output_dir),
+            FID,
+            Cell_size,
+            self._x,
+            self._y,
+            t,
+            CRS,
+            str(self._output_dir),
             file_name="Predicted_landslides.shp" if self._steady_state else None,
         )
 
@@ -1640,33 +1791,51 @@ class CrisisComponent(Component):
         >>> from landlab.components import FlowAccumulator
         >>> from landlab.components import CrisisComponent
         >>> grid = RasterModelGrid((6, 20), xy_spacing=1.0)
-        >>> rate = np.where(grid.y_of_node >= 3, 0.9, 0.1)   # steep north half
-        >>> _ = grid.add_field("topographic__elevation", rate * grid.x_of_node, at="node")
-        >>> _ = grid.add_field("topographic__slope",
-        ...     np.degrees(grid.calc_slope_at_node("topographic__elevation")), at="node")
+        >>> rate = np.where(grid.y_of_node >= 3, 0.9, 0.1)  # steep north half
+        >>> _ = grid.add_field(
+        ...     "topographic__elevation", rate * grid.x_of_node, at="node"
+        ... )
+        >>> _ = grid.add_field(
+        ...     "topographic__slope",
+        ...     np.degrees(grid.calc_slope_at_node("topographic__elevation")),
+        ...     at="node",
+        ... )
         >>> FlowAccumulator(grid, flow_director="FlowDirectorD8").run_one_step()
         >>> folder = tempfile.mkdtemp()
         >>> import io
-        >>> dem_file = io.StringIO("ncols 20\\nnrows 6\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n")  # ASCII DEM header of this grid, in memory
+        >>> dem_file = io.StringIO(
+        ...     "ncols 20\\nnrows 6\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n"
+        ... )  # ASCII DEM header of this grid, in memory
         >>> params = {
         ...     "output_dir": folder,
-        ...     "Coordinate_Reference_System": "EPSG:32610", "dem_file": dem_file,
-        ...     "Gamma": 22.0, "z_min": 0.0, "z_max": 2.0,
-        ...     "Depth_points": 9, "Min_LD_area": 4.0,
-        ...     "top_or_bottom_indicator": 1, "Triggering_Indicator": 1,
-        ...     "Hydrological_model_indicator": 1, "Ru": 0.4,
+        ...     "Coordinate_Reference_System": "EPSG:32610",
+        ...     "dem_file": dem_file,
+        ...     "Gamma": 22.0,
+        ...     "z_min": 0.0,
+        ...     "z_max": 2.0,
+        ...     "Depth_points": 9,
+        ...     "Min_LD_area": 4.0,
+        ...     "top_or_bottom_indicator": 1,
+        ...     "Triggering_Indicator": 1,
+        ...     "Hydrological_model_indicator": 1,
+        ...     "Ru": 0.4,
         ...     "Strength_variation_with_theta": 1,
-        ...     "Theta_s": 0.45, "Theta_r": 0.1,
-        ...     "Strength_indicator": 1, "c": 2.0, "Phi": 30.0,
+        ...     "Theta_s": 0.45,
+        ...     "Theta_r": 0.1,
+        ...     "Strength_indicator": 1,
+        ...     "c": 2.0,
+        ...     "Phi": 30.0,
         ... }
         >>> crisis = CrisisComponent(grid, params)
         >>> crisis.run_one_step()
         >>> crisis.write_outputs()
         >>> sorted(f for f in os.listdir(folder) if f.endswith((".xlsx", ".shp")))
         ['Individual_landslides.xlsx', 'Predicted_landslides.shp', 'Total_landslides.xlsx']
-        >>> cells = pd.read_excel(os.path.join(folder, "Individual_landslides.xlsx"),
-        ...     sheet_name="Triggering_Cells")["Triggering cell"]
-        >>> file_rows = cells.to_numpy() // 20          # row in the DEM file, 0 = top
+        >>> cells = pd.read_excel(
+        ...     os.path.join(folder, "Individual_landslides.xlsx"),
+        ...     sheet_name="Triggering_Cells",
+        ... )["Triggering cell"]
+        >>> file_rows = cells.to_numpy() // 20  # row in the DEM file, 0 = top
         >>> bool(len(file_rows) > 0 and file_rows.max() < 3)
         True
         """
@@ -1674,8 +1843,11 @@ class CrisisComponent(Component):
 
         # with a coupled component the number of time steps is not fixed, so the
         # earthquake time step may never have been reached: say so
-        if (self._Triggering_Indicator == 2 and self._number_of_time_steps is None
-                and self._Earthquake_time_point >= self._current_time_index):
+        if (
+            self._Triggering_Indicator == 2
+            and self._number_of_time_steps is None
+            and self._Earthquake_time_point >= self._current_time_index
+        ):
             self._log(
                 f"Earthquake_time_point = {self._Earthquake_time_point} was not reached "
                 f"({self._current_time_index} time step(s) run): no seismic displacement "
@@ -1683,10 +1855,13 @@ class CrisisComponent(Component):
             )
 
         # per-landslide workbook (triggering-cell indices converted to rows from north to south)
-        _save_individual_excel(self._state, self._output_dir, rows_cols,
-                               steady_state=self._steady_state)
+        _save_individual_excel(
+            self._state, self._output_dir, rows_cols, steady_state=self._steady_state
+        )
         # totals workbook (one row per time step, or a single row when steady state)
-        _save_summary_excel(self._state, self._output_dir, steady_state=self._steady_state)
+        _save_summary_excel(
+            self._state, self._output_dir, steady_state=self._steady_state
+        )
 
     # =============================================================================
     # Properties
@@ -1722,17 +1897,28 @@ class CrisisComponent(Component):
         >>> import os, tempfile
         >>> folder = tempfile.mkdtemp()
         >>> import io
-        >>> dem_file = io.StringIO("ncols 100\\nnrows 3\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n")  # ASCII DEM header of this grid, in memory
+        >>> dem_file = io.StringIO(
+        ...     "ncols 100\\nnrows 3\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n"
+        ... )  # ASCII DEM header of this grid, in memory
         >>> params = {
         ...     "output_dir": folder,
-        ...     "Coordinate_Reference_System": "EPSG:32610", "dem_file": dem_file,
-        ...     "Gamma": 22.0, "z_min": 0.125, "z_max": 1.875,
-        ...     "Depth_points": 8, "Min_LD_area": 12.0,
-        ...     "top_or_bottom_indicator": 1, "Triggering_Indicator": 1,
-        ...     "Hydrological_model_indicator": 1, "Ru": 0.8,
+        ...     "Coordinate_Reference_System": "EPSG:32610",
+        ...     "dem_file": dem_file,
+        ...     "Gamma": 22.0,
+        ...     "z_min": 0.125,
+        ...     "z_max": 1.875,
+        ...     "Depth_points": 8,
+        ...     "Min_LD_area": 12.0,
+        ...     "top_or_bottom_indicator": 1,
+        ...     "Triggering_Indicator": 1,
+        ...     "Hydrological_model_indicator": 1,
+        ...     "Ru": 0.8,
         ...     "Strength_variation_with_theta": 1,
-        ...     "Theta_s": 0.45, "Theta_r": 0.1,
-        ...     "Strength_indicator": 1, "c": 20.0, "Phi": 37.0,
+        ...     "Theta_s": 0.45,
+        ...     "Theta_r": 0.1,
+        ...     "Strength_indicator": 1,
+        ...     "c": 20.0,
+        ...     "Phi": 37.0,
         ... }
         >>> crisis = CrisisComponent(grid, params)
         >>> crisis.run_one_step()
@@ -1773,17 +1959,28 @@ class CrisisComponent(Component):
         >>> import os, tempfile
         >>> folder = tempfile.mkdtemp()
         >>> import io
-        >>> dem_file = io.StringIO("ncols 100\\nnrows 3\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n")  # ASCII DEM header of this grid, in memory
+        >>> dem_file = io.StringIO(
+        ...     "ncols 100\\nnrows 3\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n"
+        ... )  # ASCII DEM header of this grid, in memory
         >>> params = {
         ...     "output_dir": folder,
-        ...     "Coordinate_Reference_System": "EPSG:32610", "dem_file": dem_file,
-        ...     "Gamma": 22.0, "z_min": 0.125, "z_max": 1.875,
-        ...     "Depth_points": 8, "Min_LD_area": 12.0,
-        ...     "top_or_bottom_indicator": 1, "Triggering_Indicator": 1,
-        ...     "Hydrological_model_indicator": 1, "Ru": 0.8,
+        ...     "Coordinate_Reference_System": "EPSG:32610",
+        ...     "dem_file": dem_file,
+        ...     "Gamma": 22.0,
+        ...     "z_min": 0.125,
+        ...     "z_max": 1.875,
+        ...     "Depth_points": 8,
+        ...     "Min_LD_area": 12.0,
+        ...     "top_or_bottom_indicator": 1,
+        ...     "Triggering_Indicator": 1,
+        ...     "Hydrological_model_indicator": 1,
+        ...     "Ru": 0.8,
         ...     "Strength_variation_with_theta": 1,
-        ...     "Theta_s": 0.45, "Theta_r": 0.1,
-        ...     "Strength_indicator": 1, "c": 20.0, "Phi": 37.0,
+        ...     "Theta_s": 0.45,
+        ...     "Theta_r": 0.1,
+        ...     "Strength_indicator": 1,
+        ...     "c": 20.0,
+        ...     "Phi": 37.0,
         ... }
         >>> crisis = CrisisComponent(grid, params)
         >>> crisis.run_one_step()
@@ -1824,23 +2021,36 @@ class CrisisComponent(Component):
         >>> import os, tempfile
         >>> folder = tempfile.mkdtemp()
         >>> import io
-        >>> dem_file = io.StringIO("ncols 100\\nnrows 3\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n")  # ASCII DEM header of this grid, in memory
+        >>> dem_file = io.StringIO(
+        ...     "ncols 100\\nnrows 3\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n"
+        ... )  # ASCII DEM header of this grid, in memory
         >>> params = {
         ...     "output_dir": folder,
-        ...     "Coordinate_Reference_System": "EPSG:32610", "dem_file": dem_file,
-        ...     "Gamma": 22.0, "z_min": 0.125, "z_max": 1.875,
-        ...     "Depth_points": 8, "Min_LD_area": 12.0,
-        ...     "top_or_bottom_indicator": 1, "Triggering_Indicator": 1,
-        ...     "Hydrological_model_indicator": 1, "Ru": 0.8,
+        ...     "Coordinate_Reference_System": "EPSG:32610",
+        ...     "dem_file": dem_file,
+        ...     "Gamma": 22.0,
+        ...     "z_min": 0.125,
+        ...     "z_max": 1.875,
+        ...     "Depth_points": 8,
+        ...     "Min_LD_area": 12.0,
+        ...     "top_or_bottom_indicator": 1,
+        ...     "Triggering_Indicator": 1,
+        ...     "Hydrological_model_indicator": 1,
+        ...     "Ru": 0.8,
         ...     "Strength_variation_with_theta": 1,
-        ...     "Theta_s": 0.45, "Theta_r": 0.1,
-        ...     "Strength_indicator": 1, "c": 20.0, "Phi": 37.0,
+        ...     "Theta_s": 0.45,
+        ...     "Theta_r": 0.1,
+        ...     "Strength_indicator": 1,
+        ...     "c": 20.0,
+        ...     "Phi": 37.0,
         ... }
         >>> crisis = CrisisComponent(grid, params)
         >>> crisis.run_one_step()
         >>> sorted(crisis.state.keys())
         ['FID_all_times', 'Fail_Index_all_times', 'Individual_Cumulative_areas', 'Individual_Cumulative_areas_with_time', 'Individual_Cumulative_triggering_depths', 'Individual_Cumulative_triggering_depths_with_time', 'Individual_Cumulative_triggering_linear_indices', 'Individual_Cumulative_triggering_linear_indices_with_time', 'Individual_Cumulative_triggering_sources', 'Individual_Cumulative_triggering_sources_with_time', 'Individual_Cumulative_volumes', 'Individual_Cumulative_volumes_with_time', 'Individual_Current_areas_with_time', 'Individual_Current_triggering_depths_with_time', 'Individual_Current_triggering_linear_indices_with_time', 'Individual_Current_triggering_sources_with_time', 'Individual_Current_volumes_with_time', 'Total_Cumulative_Area_vector_with_time', 'Total_Cumulative_NL_vector_with_time', 'Total_Cumulative_Volume_vector_with_time', 'Total_Current_Area_vector_with_time', 'Total_Current_NL_vector_with_time', 'Total_Current_Volume_vector_with_time']
-        >>> float(crisis.state["Total_Current_NL_vector_with_time"][0])  # new landslides at t = 0
+        >>> float(
+        ...     crisis.state["Total_Current_NL_vector_with_time"][0]
+        ... )  # new landslides at t = 0
         2.0
         """
         return self._state
@@ -1875,17 +2085,28 @@ class CrisisComponent(Component):
         >>> import os, tempfile
         >>> folder = tempfile.mkdtemp()
         >>> import io
-        >>> dem_file = io.StringIO("ncols 100\\nnrows 3\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n")  # ASCII DEM header of this grid, in memory
+        >>> dem_file = io.StringIO(
+        ...     "ncols 100\\nnrows 3\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n"
+        ... )  # ASCII DEM header of this grid, in memory
         >>> params = {
         ...     "output_dir": folder,
-        ...     "Coordinate_Reference_System": "EPSG:32610", "dem_file": dem_file,
-        ...     "Gamma": 22.0, "z_min": 0.125, "z_max": 1.875,
-        ...     "Depth_points": 8, "Min_LD_area": 12.0,
-        ...     "top_or_bottom_indicator": 1, "Triggering_Indicator": 1,
-        ...     "Hydrological_model_indicator": 1, "Ru": 0.8,
+        ...     "Coordinate_Reference_System": "EPSG:32610",
+        ...     "dem_file": dem_file,
+        ...     "Gamma": 22.0,
+        ...     "z_min": 0.125,
+        ...     "z_max": 1.875,
+        ...     "Depth_points": 8,
+        ...     "Min_LD_area": 12.0,
+        ...     "top_or_bottom_indicator": 1,
+        ...     "Triggering_Indicator": 1,
+        ...     "Hydrological_model_indicator": 1,
+        ...     "Ru": 0.8,
         ...     "Strength_variation_with_theta": 1,
-        ...     "Theta_s": 0.45, "Theta_r": 0.1,
-        ...     "Strength_indicator": 1, "c": 20.0, "Phi": 37.0,
+        ...     "Theta_s": 0.45,
+        ...     "Theta_r": 0.1,
+        ...     "Strength_indicator": 1,
+        ...     "c": 20.0,
+        ...     "Phi": 37.0,
         ... }
         >>> crisis = CrisisComponent(grid, params)
         >>> crisis.current_time_index
@@ -1933,15 +2154,25 @@ class CrisisComponent(Component):
         >>> import os, tempfile
         >>> folder = tempfile.mkdtemp()
         >>> import io
-        >>> dem_file = io.StringIO("ncols 100\\nnrows 3\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n")  # ASCII DEM header of this grid, in memory
+        >>> dem_file = io.StringIO(
+        ...     "ncols 100\\nnrows 3\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n"
+        ... )  # ASCII DEM header of this grid, in memory
         >>> params = {
         ...     "output_dir": folder,
-        ...     "Coordinate_Reference_System": "EPSG:32610", "dem_file": dem_file,
-        ...     "Gamma": 22.0, "z_min": 0.125, "z_max": 1.875,
-        ...     "Depth_points": 8, "Min_LD_area": 12.0,
-        ...     "top_or_bottom_indicator": 1, "Triggering_Indicator": 1,
-        ...     "Hydrological_model_indicator": 1, "Ru": 0.8,
-        ...     "Strength_indicator": 1, "c": 20.0, "Phi": 37.0,
+        ...     "Coordinate_Reference_System": "EPSG:32610",
+        ...     "dem_file": dem_file,
+        ...     "Gamma": 22.0,
+        ...     "z_min": 0.125,
+        ...     "z_max": 1.875,
+        ...     "Depth_points": 8,
+        ...     "Min_LD_area": 12.0,
+        ...     "top_or_bottom_indicator": 1,
+        ...     "Triggering_Indicator": 1,
+        ...     "Hydrological_model_indicator": 1,
+        ...     "Ru": 0.8,
+        ...     "Strength_indicator": 1,
+        ...     "c": 20.0,
+        ...     "Phi": 37.0,
         ... }
         >>> CrisisComponent(grid, params).number_of_time_steps
         1
@@ -1949,10 +2180,15 @@ class CrisisComponent(Component):
         With pore pressure heads written on the grid by a coupled component
         (indicator 3), the number of time steps is not fixed:
 
-        >>> _ = grid.add_field("soil_water__pressure_head",
-        ...                    np.zeros((grid.number_of_nodes, 8)), at="node", clobber=True)
-        >>> params.update({"Hydrological_model_indicator": 3,
-        ...                "Strength_variation_with_theta": 1})
+        >>> _ = grid.add_field(
+        ...     "soil_water__pressure_head",
+        ...     np.zeros((grid.number_of_nodes, 8)),
+        ...     at="node",
+        ...     clobber=True,
+        ... )
+        >>> params.update(
+        ...     {"Hydrological_model_indicator": 3, "Strength_variation_with_theta": 1}
+        ... )
         >>> CrisisComponent(grid, params).number_of_time_steps is None
         True
         """
@@ -1996,21 +2232,36 @@ class CrisisComponent(Component):
         >>> import os, tempfile
         >>> folder = tempfile.mkdtemp()
         >>> import io
-        >>> dem_file = io.StringIO("ncols 100\\nnrows 3\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n")  # ASCII DEM header of this grid, in memory
+        >>> dem_file = io.StringIO(
+        ...     "ncols 100\\nnrows 3\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n"
+        ... )  # ASCII DEM header of this grid, in memory
         >>> params = {
         ...     "output_dir": folder,
-        ...     "Coordinate_Reference_System": "EPSG:32610", "dem_file": dem_file,
-        ...     "Gamma": 22.0, "z_min": 0.125, "z_max": 1.875,
-        ...     "Depth_points": 8, "Min_LD_area": 12.0,
-        ...     "top_or_bottom_indicator": 1, "Triggering_Indicator": 1,
-        ...     "Hydrological_model_indicator": 1, "Ru": 0.8,
+        ...     "Coordinate_Reference_System": "EPSG:32610",
+        ...     "dem_file": dem_file,
+        ...     "Gamma": 22.0,
+        ...     "z_min": 0.125,
+        ...     "z_max": 1.875,
+        ...     "Depth_points": 8,
+        ...     "Min_LD_area": 12.0,
+        ...     "top_or_bottom_indicator": 1,
+        ...     "Triggering_Indicator": 1,
+        ...     "Hydrological_model_indicator": 1,
+        ...     "Ru": 0.8,
         ...     "Strength_variation_with_theta": 1,
-        ...     "Theta_s": 0.45, "Theta_r": 0.1,
-        ...     "Strength_indicator": 1, "c": 20.0, "Phi": 37.0,
+        ...     "Theta_s": 0.45,
+        ...     "Theta_r": 0.1,
+        ...     "Strength_indicator": 1,
+        ...     "c": 20.0,
+        ...     "Phi": 37.0,
         ... }
         >>> crisis = CrisisComponent(grid, params)
-        >>> sorted(f for f in grid.at_node.keys()
-        ...        if f.startswith("landslide") or f in ("failure__depth", "triggering__cells"))
+        >>> sorted(
+        ...     f
+        ...     for f in grid.at_node.keys()
+        ...     if f.startswith("landslide")
+        ...     or f in ("failure__depth", "triggering__cells")
+        ... )
         ['failure__depth', 'landslide__failed_accumulated', 'landslide__failure_id', 'landslide__failure_id_accumulated', 'triggering__cells']
         """
 
@@ -2018,7 +2269,9 @@ class CrisisComponent(Component):
 
         # cumulative landslide-ID field, default NaN (no landslide yet)
         if "landslide__failure_id_accumulated" not in self.grid.at_node:
-            self.grid.add_full("landslide__failure_id_accumulated", np.nan, at="node", dtype=float)
+            self.grid.add_full(
+                "landslide__failure_id_accumulated", np.nan, at="node", dtype=float
+            )
 
         # cumulative failed flag, default False
         if "landslide__failed_accumulated" not in self.grid.at_node:
@@ -2070,17 +2323,28 @@ class CrisisComponent(Component):
         >>> import os, tempfile
         >>> folder = tempfile.mkdtemp()
         >>> import io
-        >>> dem_file = io.StringIO("ncols 100\\nnrows 3\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n")  # ASCII DEM header of this grid, in memory
+        >>> dem_file = io.StringIO(
+        ...     "ncols 100\\nnrows 3\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n"
+        ... )  # ASCII DEM header of this grid, in memory
         >>> params = {
         ...     "output_dir": folder,
-        ...     "Coordinate_Reference_System": "EPSG:32610", "dem_file": dem_file,
-        ...     "Gamma": 22.0, "z_min": 0.125, "z_max": 1.875,
-        ...     "Depth_points": 8, "Min_LD_area": 12.0,
-        ...     "top_or_bottom_indicator": 1, "Triggering_Indicator": 1,
-        ...     "Hydrological_model_indicator": 1, "Ru": 0.8,
+        ...     "Coordinate_Reference_System": "EPSG:32610",
+        ...     "dem_file": dem_file,
+        ...     "Gamma": 22.0,
+        ...     "z_min": 0.125,
+        ...     "z_max": 1.875,
+        ...     "Depth_points": 8,
+        ...     "Min_LD_area": 12.0,
+        ...     "top_or_bottom_indicator": 1,
+        ...     "Triggering_Indicator": 1,
+        ...     "Hydrological_model_indicator": 1,
+        ...     "Ru": 0.8,
         ...     "Strength_variation_with_theta": 1,
-        ...     "Theta_s": 0.45, "Theta_r": 0.1,
-        ...     "Strength_indicator": 1, "c": 20.0, "Phi": 37.0,
+        ...     "Theta_s": 0.45,
+        ...     "Theta_r": 0.1,
+        ...     "Strength_indicator": 1,
+        ...     "c": 20.0,
+        ...     "Phi": 37.0,
         ... }
         >>> crisis = CrisisComponent(grid, params)
         >>> crisis.run_one_step()
@@ -2089,14 +2353,18 @@ class CrisisComponent(Component):
         """
 
         # flatten the landslide-ID grid and write it into the Landlab field
-        self.grid.at_node["landslide__failure_id_accumulated"][:] = self._state["FID_all_times"].ravel()
+        self.grid.at_node["landslide__failure_id_accumulated"][:] = self._state[
+            "FID_all_times"
+        ].ravel()
         # flatten the failed-cells grid and write it into the Landlab field
-        self.grid.at_node["landslide__failed_accumulated"][:]     = self._state["Fail_Index_all_times"].ravel()
+        self.grid.at_node["landslide__failed_accumulated"][:] = self._state[
+            "Fail_Index_all_times"
+        ].ravel()
 
         # per-step fields: only written when new landslides formed in this step
         if len(self.LD_Z) > 0:
-            self._grid.at_node['failure__depth'][self.LD_Index] = self.LD_Z
-            self._grid.at_node['triggering__cells'][self.Trig_Index_Accept] = True
+            self._grid.at_node["failure__depth"][self.LD_Index] = self.LD_Z
+            self._grid.at_node["triggering__cells"][self.Trig_Index_Accept] = True
             self.grid.at_node["landslide__failure_id"][:] = self._FID_Index.flatten()
 
     # ─────────────────────────────────────────────────────────────────────────────
@@ -2152,17 +2420,28 @@ class CrisisComponent(Component):
         >>> import os, tempfile
         >>> folder = tempfile.mkdtemp()
         >>> import io
-        >>> dem_file = io.StringIO("ncols 100\\nnrows 3\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n")  # ASCII DEM header of this grid, in memory
+        >>> dem_file = io.StringIO(
+        ...     "ncols 100\\nnrows 3\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n"
+        ... )  # ASCII DEM header of this grid, in memory
         >>> params = {
         ...     "output_dir": folder,
-        ...     "Coordinate_Reference_System": "EPSG:32610", "dem_file": dem_file,
-        ...     "Gamma": 22.0, "z_min": 0.125, "z_max": 1.875,
-        ...     "Depth_points": 8, "Min_LD_area": 12.0,
-        ...     "top_or_bottom_indicator": 1, "Triggering_Indicator": 1,
-        ...     "Hydrological_model_indicator": 1, "Ru": 0.8,
+        ...     "Coordinate_Reference_System": "EPSG:32610",
+        ...     "dem_file": dem_file,
+        ...     "Gamma": 22.0,
+        ...     "z_min": 0.125,
+        ...     "z_max": 1.875,
+        ...     "Depth_points": 8,
+        ...     "Min_LD_area": 12.0,
+        ...     "top_or_bottom_indicator": 1,
+        ...     "Triggering_Indicator": 1,
+        ...     "Hydrological_model_indicator": 1,
+        ...     "Ru": 0.8,
         ...     "Strength_variation_with_theta": 1,
-        ...     "Theta_s": 0.45, "Theta_r": 0.1,
-        ...     "Strength_indicator": 1, "c": 20.0, "Phi": 37.0,
+        ...     "Theta_s": 0.45,
+        ...     "Theta_r": 0.1,
+        ...     "Strength_indicator": 1,
+        ...     "c": 20.0,
+        ...     "Phi": 37.0,
         ... }
         >>> crisis = CrisisComponent(grid, params)
         >>> fd_mat = crisis._build_fd_mat_from_landlab(grid, "flow__receiver_node")
@@ -2179,9 +2458,9 @@ class CrisisComponent(Component):
         # grid dimensions
         nrows, ncols = grid.shape
         # which node each node's water flows into, reshaped to 2D
-        receiver     = grid.at_node[flow_direction].reshape(nrows, ncols)
+        receiver = grid.at_node[flow_direction].reshape(nrows, ncols)
         # output grid of direction codes, starts all zero (no direction / sink)
-        FD_Mat       = np.zeros((nrows, ncols), dtype=np.float32)
+        FD_Mat = np.zeros((nrows, ncols), dtype=np.float32)
 
         # ── Direction code lookup table ───────────────────────────────────────
         # Map (row_offset, col_offset) → D8 code (same table as _crisis_core.T_UpGrid)
@@ -2189,14 +2468,14 @@ class CrisisComponent(Component):
 
         # lookup table: which direction code matches which row/col shift
         offset_to_code = {
-            ( 0,  1):   1,
-            ( 1,  1):   2,
-            ( 1,  0):   4,
-            ( 1, -1):   8,
-            ( 0, -1):  16,
-            (-1, -1):  32,
-            (-1,  0):  64,
-            (-1,  1): 128,
+            (0, 1): 1,
+            (1, 1): 2,
+            (1, 0): 4,
+            (1, -1): 8,
+            (0, -1): 16,
+            (-1, -1): 32,
+            (-1, 0): 64,
+            (-1, 1): 128,
         }
 
         # ── Build flat index arrays ───────────────────────────────────────────
@@ -2318,24 +2597,35 @@ class CrisisComponent(Component):
         >>> import os, tempfile
         >>> folder = tempfile.mkdtemp()
         >>> import io
-        >>> dem_file = io.StringIO("ncols 100\\nnrows 3\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n")  # ASCII DEM header of this grid, in memory
+        >>> dem_file = io.StringIO(
+        ...     "ncols 100\\nnrows 3\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n"
+        ... )  # ASCII DEM header of this grid, in memory
         >>> params = {
         ...     "output_dir": folder,
-        ...     "Coordinate_Reference_System": "EPSG:32610", "dem_file": dem_file,
-        ...     "Gamma": 22.0, "z_min": 0.125, "z_max": 1.875,
-        ...     "Depth_points": 8, "Min_LD_area": 12.0,
-        ...     "top_or_bottom_indicator": 1, "Triggering_Indicator": 1,
-        ...     "Hydrological_model_indicator": 1, "Ru": 0.8,
+        ...     "Coordinate_Reference_System": "EPSG:32610",
+        ...     "dem_file": dem_file,
+        ...     "Gamma": 22.0,
+        ...     "z_min": 0.125,
+        ...     "z_max": 1.875,
+        ...     "Depth_points": 8,
+        ...     "Min_LD_area": 12.0,
+        ...     "top_or_bottom_indicator": 1,
+        ...     "Triggering_Indicator": 1,
+        ...     "Hydrological_model_indicator": 1,
+        ...     "Ru": 0.8,
         ...     "Strength_variation_with_theta": 1,
-        ...     "Theta_s": 0.45, "Theta_r": 0.1,
-        ...     "Strength_indicator": 1, "c": 20.0, "Phi": 37.0,
+        ...     "Theta_s": 0.45,
+        ...     "Theta_r": 0.1,
+        ...     "Strength_indicator": 1,
+        ...     "c": 20.0,
+        ...     "Phi": 37.0,
         ... }
         >>> crisis = CrisisComponent(grid, params)
         >>> theta_3d, pressures_3d = crisis._calc_hydrology(0, params)
         >>> theta_3d is None, pressures_3d is None
         (True, True)
         >>> head = grid.at_node["soil_water__pressure_head"]
-        >>> head.shape                                  # (number_of_nodes, Depth_points)
+        >>> head.shape  # (number_of_nodes, Depth_points)
         (300, 8)
         >>> np.allclose(head, 0.8 * 22.0 / 9.81 * crisis._Depths_vector)
         True
@@ -2351,21 +2641,34 @@ class CrisisComponent(Component):
         head is capped at its depth.
 
         >>> import h5py
-        >>> north_first_head  = np.full((3, 100), -1.0); north_first_head[0] = 5.0
-        >>> north_first_theta = np.full((3, 100), 0.2);  north_first_theta[0] = 0.4
+        >>> north_first_head = np.full((3, 100), -1.0)
+        >>> north_first_head[0] = 5.0
+        >>> north_first_theta = np.full((3, 100), 0.2)
+        >>> north_first_theta[0] = 0.4
         >>> for z in range(1, 9):
-        ...     with h5py.File(os.path.join(folder, f"Pressure_head_T0Z{z}.h5"), "w") as f:
+        ...     with h5py.File(
+        ...         os.path.join(folder, f"Pressure_head_T0Z{z}.h5"), "w"
+        ...     ) as f:
         ...         _ = f.create_dataset("data", data=north_first_head)
         ...     with h5py.File(os.path.join(folder, f"Theta_T0Z{z}.h5"), "w") as f:
         ...         _ = f.create_dataset("data", data=north_first_theta)
-        >>> params.update({"Hydrological_model_indicator": 2, "hydro_files_dir": folder,
-        ...                "Strength_variation_with_theta": 2, "theta_files_dir": folder})
+        ...
+        >>> params.update(
+        ...     {
+        ...         "Hydrological_model_indicator": 2,
+        ...         "hydro_files_dir": folder,
+        ...         "Strength_variation_with_theta": 2,
+        ...         "theta_files_dir": folder,
+        ...     }
+        ... )
         >>> crisis = CrisisComponent(grid, params)
         Hydrological_model_indicator = 2: 1 time step(s) found in the HDF5 files (T0 ... T0).
         >>> theta_3d, pressures_3d = crisis._calc_hydrology(0, params)
         >>> pressures_3d.shape
         (3, 100, 8)
-        >>> pressures_3d[:, 0, 0].tolist(), pressures_3d[:, 0, 7].tolist()  # rows 0 (south) .. 2 (north)
+        >>> pressures_3d[:, 0, 0].tolist(), pressures_3d[
+        ...     :, 0, 7
+        ... ].tolist()  # rows 0 (south) .. 2 (north)
         ([-1.0, -1.0, 0.125], [-1.0, -1.0, 1.875])
         >>> theta_3d[:, 0, 0].tolist()
         [0.20000000298023224, 0.20000000298023224, 0.4000000059604645]
@@ -2380,7 +2683,9 @@ class CrisisComponent(Component):
         [0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875]
         >>> grid.at_node["soil_water__pressure_head"][0].tolist() == [-1.0] * 8
         True
-        >>> np.round(grid.at_node["soil_water__volume_fraction"][[0, 200], 0], 3).tolist()
+        >>> np.round(
+        ...     grid.at_node["soil_water__volume_fraction"][[0, 200], 0], 3
+        ... ).tolist()
         [0.2, 0.4]
 
         Pressure heads and water contents from grid fields written by a
@@ -2390,13 +2695,21 @@ class CrisisComponent(Component):
         head of every layer equals the node's y (row 0 = 0 m ... row 2 = 2 m)
         and the water content is 0.1 + 0.1 y.
 
-        >>> layers_of = lambda v: np.repeat(v[:, np.newaxis], 8, axis=1)  # same value in all 8 layers
+        >>> layers_of = lambda v: np.repeat(
+        ...     v[:, np.newaxis], 8, axis=1
+        ... )  # same value in all 8 layers
         >>> grid.at_node["soil_water__pressure_head"][:] = layers_of(grid.y_of_node)
-        >>> grid.at_node["soil_water__volume_fraction"][:] = layers_of(0.1 + 0.1 * grid.y_of_node)
-        >>> params.update({"Hydrological_model_indicator": 3, "Strength_variation_with_theta": 3})
+        >>> grid.at_node["soil_water__volume_fraction"][:] = layers_of(
+        ...     0.1 + 0.1 * grid.y_of_node
+        ... )
+        >>> params.update(
+        ...     {"Hydrological_model_indicator": 3, "Strength_variation_with_theta": 3}
+        ... )
         >>> crisis = CrisisComponent(grid, params)
         >>> theta_3d, pressures_3d = crisis._calc_hydrology(0, params)
-        >>> pressures_3d[:, 0, 0].tolist(), pressures_3d[:, 0, 7].tolist()  # capped at 0.125 / 1.875 m
+        >>> pressures_3d[:, 0, 0].tolist(), pressures_3d[
+        ...     :, 0, 7
+        ... ].tolist()  # capped at 0.125 / 1.875 m
         ([0.0, 0.125, 0.125], [0.0, 1.0, 1.875])
         >>> np.round(theta_3d[:, 50, 3].astype(float), 3).tolist()
         [0.1, 0.2, 0.3]
@@ -2412,10 +2725,10 @@ class CrisisComponent(Component):
         # number of depth layers
         Depth_points = params["Depth_points"]
         # where the pore pressure heads come from: 1 = Ru, 2 = HDF5 files, 3 = grid field
-        Hydro_ind    = self._Hydro_indicator
+        Hydro_ind = self._Hydro_indicator
         # where the water contents come from: 1 = not used, 2 = HDF5 files, 3 = grid field
         # (already set to 1 by __init__ for a constant Ru)
-        Theta_var    = self._Strength_variation_with_theta
+        Theta_var = self._Strength_variation_with_theta
 
         # ── File paths (only used with indicator = 2, the HDF5 files) ─────────
 
@@ -2433,9 +2746,12 @@ class CrisisComponent(Component):
 
         if Theta_var == 2:
             # load water content HDF5 files from an external hydrological model
-            folder  = theta_dir()
-            missing = [d + 1 for d in range(Depth_points)
-                       if not (folder / f"Theta_T{t}Z{d + 1}.h5").exists()]
+            folder = theta_dir()
+            missing = [
+                d + 1
+                for d in range(Depth_points)
+                if not (folder / f"Theta_T{t}Z{d + 1}.h5").exists()
+            ]
             if missing:
                 raise FileNotFoundError(
                     f"Strength_variation_with_theta = 2, but the water content file "
@@ -2444,7 +2760,9 @@ class CrisisComponent(Component):
                 )
             # load one file per depth layer into a 3D array
             # (load_h5 flips each file, rows from north to south, to Landlab's row order)
-            Theta_3D = np.zeros((self._rows, self._clms, Depth_points), dtype=np.float32)
+            Theta_3D = np.zeros(
+                (self._rows, self._clms, Depth_points), dtype=np.float32
+            )
             for d in range(Depth_points):
                 Theta_3D[:, :, d] = load_h5(folder / f"Theta_T{t}Z{d + 1}.h5")
             # store this step's water contents on the grid (no flip: same row order)
@@ -2454,7 +2772,9 @@ class CrisisComponent(Component):
             # water contents written on the grid by a coupled component: Landlab
             # node order already, so reshape only (no flip); astype makes a copy,
             # so the field is not modified
-            Theta_3D = self._layer_field_to_3d(self._water_content_name).astype(np.float32)
+            Theta_3D = self._layer_field_to_3d(self._water_content_name).astype(
+                np.float32
+            )
 
         # ── Pore pressure head — Pressures_3D ────────────────────────────────
         # Hydro_ind == 1: None, the core uses Ru (field filled once by __init__).
@@ -2465,9 +2785,12 @@ class CrisisComponent(Component):
 
         if Hydro_ind == 2:
             # load pore pressure head HDF5 files from an external hydrological model
-            folder  = hydro_dir()
-            missing = [d + 1 for d in range(Depth_points)
-                       if not (folder / f"Pressure_head_T{t}Z{d + 1}.h5").exists()]
+            folder = hydro_dir()
+            missing = [
+                d + 1
+                for d in range(Depth_points)
+                if not (folder / f"Pressure_head_T{t}Z{d + 1}.h5").exists()
+            ]
             if missing:
                 raise FileNotFoundError(
                     f"Hydrological_model_indicator = 2, but the pore pressure head file "
@@ -2477,7 +2800,9 @@ class CrisisComponent(Component):
                 )
             # load one file per depth layer, capping pressure at that layer's depth
             # (load_h5 flips each file, rows from north to south, to Landlab's row order)
-            Pressures_3D = np.zeros((self._rows, self._clms, Depth_points), dtype=np.float32)
+            Pressures_3D = np.zeros(
+                (self._rows, self._clms, Depth_points), dtype=np.float32
+            )
             for d in range(Depth_points):
                 P2D = load_h5(folder / f"Pressure_head_T{t}Z{d + 1}.h5")
                 Pressures_3D[:, :, d] = np.minimum(P2D, self._Depths_vector[d])
@@ -2490,7 +2815,9 @@ class CrisisComponent(Component):
             # at its depth, like indicator = 2 (HDF5 files); np.minimum returns a new array,
             # so the field is not modified.
             P3D = self._layer_field_to_3d(self._pressure_head_name).astype(np.float32)
-            Pressures_3D = np.minimum(P3D, self._Depths_vector[np.newaxis, np.newaxis, :])
+            Pressures_3D = np.minimum(
+                P3D, self._Depths_vector[np.newaxis, np.newaxis, :]
+            )
 
         # ── Return both arrays ────────────────────────────────────────────────
 
@@ -2563,21 +2890,32 @@ class CrisisComponent(Component):
         >>> import os, tempfile
         >>> folder = tempfile.mkdtemp()
         >>> import io
-        >>> dem_file = io.StringIO("ncols 100\\nnrows 3\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n")  # ASCII DEM header of this grid, in memory
+        >>> dem_file = io.StringIO(
+        ...     "ncols 100\\nnrows 3\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n"
+        ... )  # ASCII DEM header of this grid, in memory
         >>> params = {
         ...     "output_dir": folder,
-        ...     "Coordinate_Reference_System": "EPSG:32610", "dem_file": dem_file,
-        ...     "Gamma": 22.0, "z_min": 0.5, "z_max": 1.0,
-        ...     "Depth_points": 2, "Min_LD_area": 12.0,
-        ...     "top_or_bottom_indicator": 1, "Triggering_Indicator": 1,
+        ...     "Coordinate_Reference_System": "EPSG:32610",
+        ...     "dem_file": dem_file,
+        ...     "Gamma": 22.0,
+        ...     "z_min": 0.5,
+        ...     "z_max": 1.0,
+        ...     "Depth_points": 2,
+        ...     "Min_LD_area": 12.0,
+        ...     "top_or_bottom_indicator": 1,
+        ...     "Triggering_Indicator": 1,
         ...     "Hydrological_model_indicator": 3,
         ...     "Strength_variation_with_theta": 1,
-        ...     "Theta_s": 0.45, "Theta_r": 0.1,
-        ...     "Strength_indicator": 1, "c": 20.0, "Phi": 37.0,
+        ...     "Theta_s": 0.45,
+        ...     "Theta_r": 0.1,
+        ...     "Strength_indicator": 1,
+        ...     "c": 20.0,
+        ...     "Phi": 37.0,
         ... }
         >>> node = np.arange(grid.number_of_nodes, dtype=float)
-        >>> _ = grid.add_field("soil_water__pressure_head",
-        ...                    np.stack([node, -node], axis=1), at="node")
+        >>> _ = grid.add_field(
+        ...     "soil_water__pressure_head", np.stack([node, -node], axis=1), at="node"
+        ... )
         >>> crisis = CrisisComponent(grid, params)
         >>> head_3d = crisis._layer_field_to_3d("soil_water__pressure_head")
         >>> head_3d.shape
@@ -2614,16 +2952,18 @@ class CrisisComponent(Component):
         writing into the same array that CRISIS reads.
 
         >>> head32 = np.stack([node, -node], axis=1).astype(np.float32)
-        >>> _ = grid.add_field("soil_water__pressure_head", head32, at="node", clobber=True)
+        >>> _ = grid.add_field(
+        ...     "soil_water__pressure_head", head32, at="node", clobber=True
+        ... )
         >>> crisis = CrisisComponent(grid, params)
         >>> grid.at_node["soil_water__pressure_head"].dtype
         dtype('float32')
-        >>> head32[205] = [9.0, -9.0]           # the other component updates its array
+        >>> head32[205] = [9.0, -9.0]  # the other component updates its array
         >>> crisis._layer_field_to_3d("soil_water__pressure_head")[2, 5].tolist()
         [9.0, -9.0]
         """
         n_nodes = self.grid.number_of_nodes
-        n_dep   = len(self._Depths_vector)
+        n_dep = len(self._Depths_vector)
 
         # the field must exist on the grid
         if name not in self.grid.at_node:
@@ -2690,27 +3030,43 @@ class CrisisComponent(Component):
         >>> import os, tempfile
         >>> folder = tempfile.mkdtemp()
         >>> import io
-        >>> dem_file = io.StringIO("ncols 100\\nnrows 3\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n")  # ASCII DEM header of this grid, in memory
+        >>> dem_file = io.StringIO(
+        ...     "ncols 100\\nnrows 3\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n"
+        ... )  # ASCII DEM header of this grid, in memory
         >>> import h5py
-        >>> for z in (1, 2):   # pore pressure head files of one time step, 2 depth layers
-        ...     with h5py.File(os.path.join(folder, f"Pressure_head_T0Z{z}.h5"), "w") as f:
+        >>> for z in (
+        ...     1,
+        ...     2,
+        ... ):  # pore pressure head files of one time step, 2 depth layers
+        ...     with h5py.File(
+        ...         os.path.join(folder, f"Pressure_head_T0Z{z}.h5"), "w"
+        ...     ) as f:
         ...         _ = f.create_dataset("data", data=np.zeros((nrows, ncols)))
         >>> params = {
         ...     "output_dir": folder,
-        ...     "Coordinate_Reference_System": "EPSG:32610", "dem_file": dem_file,
-        ...     "Gamma": 22.0, "z_min": 0.5, "z_max": 1.0,
-        ...     "Depth_points": 2, "Min_LD_area": 12.0,
-        ...     "top_or_bottom_indicator": 1, "Triggering_Indicator": 1,
-        ...     "Hydrological_model_indicator": 2, "hydro_files_dir": folder,
+        ...     "Coordinate_Reference_System": "EPSG:32610",
+        ...     "dem_file": dem_file,
+        ...     "Gamma": 22.0,
+        ...     "z_min": 0.5,
+        ...     "z_max": 1.0,
+        ...     "Depth_points": 2,
+        ...     "Min_LD_area": 12.0,
+        ...     "top_or_bottom_indicator": 1,
+        ...     "Triggering_Indicator": 1,
+        ...     "Hydrological_model_indicator": 2,
+        ...     "hydro_files_dir": folder,
         ...     "Strength_variation_with_theta": 1,
-        ...     "Strength_indicator": 1, "c": 20.0, "Phi": 37.0,
+        ...     "Strength_indicator": 1,
+        ...     "c": 20.0,
+        ...     "Phi": 37.0,
         ... }
         >>> crisis = CrisisComponent(grid, params)
         Hydrological_model_indicator = 2: 1 time step(s) found in the HDF5 files (T0 ... T0).
-        >>> a3d = np.zeros((3, 100, 2)); a3d[2, 5] = [7.0, 8.0]   # row 2 (north), column 5
+        >>> a3d = np.zeros((3, 100, 2))
+        >>> a3d[2, 5] = [7.0, 8.0]  # row 2 (north), column 5
         >>> crisis._write_layer_field("soil_water__pressure_head", a3d)
         >>> head = grid.at_node["soil_water__pressure_head"]
-        >>> np.flatnonzero(head[:, 0]).tolist(), head[205].tolist()   # node 2 * 100 + 5
+        >>> np.flatnonzero(head[:, 0]).tolist(), head[205].tolist()  # node 2 * 100 + 5
         ([205], [7.0, 8.0])
         """
         field = self.grid.at_node[name]
@@ -2751,20 +3107,35 @@ class CrisisComponent(Component):
         >>> import os, tempfile
         >>> folder = tempfile.mkdtemp()
         >>> import io
-        >>> dem_file = io.StringIO("ncols 100\\nnrows 3\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n")  # ASCII DEM header of this grid, in memory
+        >>> dem_file = io.StringIO(
+        ...     "ncols 100\\nnrows 3\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n"
+        ... )  # ASCII DEM header of this grid, in memory
         >>> import h5py
-        >>> for z in (1, 2):   # pore pressure head files of one time step, 2 depth layers
-        ...     with h5py.File(os.path.join(folder, f"Pressure_head_T0Z{z}.h5"), "w") as f:
+        >>> for z in (
+        ...     1,
+        ...     2,
+        ... ):  # pore pressure head files of one time step, 2 depth layers
+        ...     with h5py.File(
+        ...         os.path.join(folder, f"Pressure_head_T0Z{z}.h5"), "w"
+        ...     ) as f:
         ...         _ = f.create_dataset("data", data=np.zeros((nrows, ncols)))
         >>> params = {
         ...     "output_dir": folder,
-        ...     "Coordinate_Reference_System": "EPSG:32610", "dem_file": dem_file,
-        ...     "Gamma": 22.0, "z_min": 0.5, "z_max": 1.0,
-        ...     "Depth_points": 2, "Min_LD_area": 12.0,
-        ...     "top_or_bottom_indicator": 1, "Triggering_Indicator": 1,
-        ...     "Hydrological_model_indicator": 2, "hydro_files_dir": folder,
+        ...     "Coordinate_Reference_System": "EPSG:32610",
+        ...     "dem_file": dem_file,
+        ...     "Gamma": 22.0,
+        ...     "z_min": 0.5,
+        ...     "z_max": 1.0,
+        ...     "Depth_points": 2,
+        ...     "Min_LD_area": 12.0,
+        ...     "top_or_bottom_indicator": 1,
+        ...     "Triggering_Indicator": 1,
+        ...     "Hydrological_model_indicator": 2,
+        ...     "hydro_files_dir": folder,
         ...     "Strength_variation_with_theta": 1,
-        ...     "Strength_indicator": 1, "c": 20.0, "Phi": 37.0,
+        ...     "Strength_indicator": 1,
+        ...     "c": 20.0,
+        ...     "Phi": 37.0,
         ... }
         >>> crisis = CrisisComponent(grid, params)
         Hydrological_model_indicator = 2: 1 time step(s) found in the HDF5 files (T0 ... T0).
@@ -2773,7 +3144,7 @@ class CrisisComponent(Component):
         ((300, 2), True)
         """
         if name in self.grid.at_node:
-            self._layer_field_to_3d(name)          # raises if the shape is wrong
+            self._layer_field_to_3d(name)  # raises if the shape is wrong
         else:
             shape = (self.grid.number_of_nodes, len(self._Depths_vector))
             self.grid.add_field(name, np.full(shape, np.nan), at="node")
@@ -2826,29 +3197,52 @@ class CrisisComponent(Component):
         >>> import os, tempfile
         >>> folder = tempfile.mkdtemp()
         >>> import io
-        >>> dem_file = io.StringIO("ncols 100\\nnrows 3\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n")  # ASCII DEM header of this grid, in memory
+        >>> dem_file = io.StringIO(
+        ...     "ncols 100\\nnrows 3\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n"
+        ... )  # ASCII DEM header of this grid, in memory
         >>> import h5py
         >>> pga_file = os.path.join(folder, "PGA.h5")  # coupled mode needs a PGA raster
         >>> with h5py.File(pga_file, "w") as f:
         ...     _ = f.create_dataset("data", data=np.full((nrows, ncols), 0.3))
+        ...
         >>> params = {
         ...     "output_dir": folder,
-        ...     "Coordinate_Reference_System": "EPSG:32610", "dem_file": dem_file,
-        ...     "Gamma": 22.0, "z_min": 0.125, "z_max": 1.875,
-        ...     "Depth_points": 8, "Min_LD_area": 12.0,
+        ...     "Coordinate_Reference_System": "EPSG:32610",
+        ...     "dem_file": dem_file,
+        ...     "Gamma": 22.0,
+        ...     "z_min": 0.125,
+        ...     "z_max": 1.875,
+        ...     "Depth_points": 8,
+        ...     "Min_LD_area": 12.0,
         ...     "top_or_bottom_indicator": 1,
-        ...     "Hydrological_model_indicator": 1, "Ru": 0.35,
+        ...     "Hydrological_model_indicator": 1,
+        ...     "Ru": 0.35,
         ...     "Strength_variation_with_theta": 1,
-        ...     "Theta_s": 0.45, "Theta_r": 0.1,
-        ...     "Strength_indicator": 1, "c": 20.0, "Phi": 37.0,
-        ...     "Triggering_Indicator": 2, "Seismic_displacement_model": 3,
-        ...     "pga_file": pga_file, "Earthquake_time_point": 0,
-        ...     "Seismic_displacement_threshold": 5.0, "M": 6.5,
-        ...     "Rathje_method": 1, "Ts": 0.3,
-        ...     "fault_X1": 0.0, "fault_Y1": 0.0,  "fault_Z1": 0.0,
-        ...     "fault_X2": 0.0, "fault_Y2": 50.0, "fault_Z2": 0.0,
-        ...     "fault_X3": 0.0, "fault_Y3": 50.0, "fault_Z3": 1000.0,
-        ...     "fault_X4": 0.0, "fault_Y4": 0.0,  "fault_Z4": 1000.0,
+        ...     "Theta_s": 0.45,
+        ...     "Theta_r": 0.1,
+        ...     "Strength_indicator": 1,
+        ...     "c": 20.0,
+        ...     "Phi": 37.0,
+        ...     "Triggering_Indicator": 2,
+        ...     "Seismic_displacement_model": 3,
+        ...     "pga_file": pga_file,
+        ...     "Earthquake_time_point": 0,
+        ...     "Seismic_displacement_threshold": 5.0,
+        ...     "M": 6.5,
+        ...     "Rathje_method": 1,
+        ...     "Ts": 0.3,
+        ...     "fault_X1": 0.0,
+        ...     "fault_Y1": 0.0,
+        ...     "fault_Z1": 0.0,
+        ...     "fault_X2": 0.0,
+        ...     "fault_Y2": 50.0,
+        ...     "fault_Z2": 0.0,
+        ...     "fault_X3": 0.0,
+        ...     "fault_Y3": 50.0,
+        ...     "fault_Z3": 1000.0,
+        ...     "fault_X4": 0.0,
+        ...     "fault_Y4": 0.0,
+        ...     "fault_Z4": 1000.0,
         ... }
         >>> crisis = CrisisComponent(grid, params)
         Computing fault rupture distances...
@@ -2866,19 +3260,22 @@ class CrisisComponent(Component):
         # 4-corner fault plane; Z values are depths (positive downward)
 
         # the four corners of the fault plane, as x/y/z points
-        corners = np.array([
-            [params["fault_X1"], params["fault_Y1"], params["fault_Z1"]],
-            [params["fault_X2"], params["fault_Y2"], params["fault_Z2"]],
-            [params["fault_X3"], params["fault_Y3"], params["fault_Z3"]],
-            [params["fault_X4"], params["fault_Y4"], params["fault_Z4"]],
-        ], dtype=np.float64)
+        corners = np.array(
+            [
+                [params["fault_X1"], params["fault_Y1"], params["fault_Z1"]],
+                [params["fault_X2"], params["fault_Y2"], params["fault_Z2"]],
+                [params["fault_X3"], params["fault_Y3"], params["fault_Z3"]],
+                [params["fault_X4"], params["fault_Y4"], params["fault_Z4"]],
+            ],
+            dtype=np.float64,
+        )
 
         # ── Prepare 2D coordinate and elevation grids ─────────────────────────
         # Cell-center coordinates computed in __init__ (float64, to avoid
         # precision loss with large projected coordinate values)
 
         # elevation grid at high precision
-        _elev        = self._Elev_Mat.astype(np.float64)
+        _elev = self._Elev_Mat.astype(np.float64)
         # grid size shortcuts
         _rows, _clms = _elev.shape
 
@@ -2901,8 +3298,16 @@ class CrisisComponent(Component):
     # ─────────────────────────────────────────────────────────────────────────────
 
     # adds this time step's newly accepted landslides into the running master records
-    def _update_cumulative_registry(self, t, Trig_Index_Accept, Trig_Depth_Accept,
-                                    Trig_source_Accept, Vol, Area, Cell_size):
+    def _update_cumulative_registry(
+        self,
+        t,
+        Trig_Index_Accept,
+        Trig_Depth_Accept,
+        Trig_source_Accept,
+        Vol,
+        Area,
+        Cell_size,
+    ):
         """Merge newly accepted landslides into the cumulative tracking registry.
 
         Parameters
@@ -2949,36 +3354,63 @@ class CrisisComponent(Component):
         >>> import os, tempfile
         >>> folder = tempfile.mkdtemp()
         >>> import io
-        >>> dem_file = io.StringIO("ncols 100\\nnrows 3\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n")  # ASCII DEM header of this grid, in memory
+        >>> dem_file = io.StringIO(
+        ...     "ncols 100\\nnrows 3\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n"
+        ... )  # ASCII DEM header of this grid, in memory
         >>> params = {
         ...     "output_dir": folder,
-        ...     "Coordinate_Reference_System": "EPSG:32610", "dem_file": dem_file,
-        ...     "Gamma": 22.0, "z_min": 0.125, "z_max": 1.875,
-        ...     "Depth_points": 8, "Min_LD_area": 12.0,
-        ...     "top_or_bottom_indicator": 1, "Triggering_Indicator": 1,
-        ...     "Hydrological_model_indicator": 1, "Ru": 0.8,
+        ...     "Coordinate_Reference_System": "EPSG:32610",
+        ...     "dem_file": dem_file,
+        ...     "Gamma": 22.0,
+        ...     "z_min": 0.125,
+        ...     "z_max": 1.875,
+        ...     "Depth_points": 8,
+        ...     "Min_LD_area": 12.0,
+        ...     "top_or_bottom_indicator": 1,
+        ...     "Triggering_Indicator": 1,
+        ...     "Hydrological_model_indicator": 1,
+        ...     "Ru": 0.8,
         ...     "Strength_variation_with_theta": 1,
-        ...     "Theta_s": 0.45, "Theta_r": 0.1,
-        ...     "Strength_indicator": 1, "c": 20.0, "Phi": 37.0,
+        ...     "Theta_s": 0.45,
+        ...     "Theta_r": 0.1,
+        ...     "Strength_indicator": 1,
+        ...     "c": 20.0,
+        ...     "Phi": 37.0,
         ... }
         >>> crisis = CrisisComponent(grid, params)
         >>> crisis.run_one_step()
-        >>> sorted(crisis.state["Individual_Cumulative_triggering_linear_indices"].tolist())
+        >>> sorted(
+        ...     crisis.state["Individual_Cumulative_triggering_linear_indices"].tolist()
+        ... )
         [100, 176]
-        >>> Trig_Index_Accept  = crisis.Trig_Index_Accept
-        >>> Trig_Depth_Accept  = crisis.state["Individual_Current_triggering_depths_with_time"][-1]
-        >>> Trig_source_Accept = crisis.state["Individual_Current_triggering_sources_with_time"][-1]
-        >>> Vol  = crisis.state["Individual_Current_volumes_with_time"][-1]
+        >>> Trig_Index_Accept = crisis.Trig_Index_Accept
+        >>> Trig_Depth_Accept = crisis.state[
+        ...     "Individual_Current_triggering_depths_with_time"
+        ... ][-1]
+        >>> Trig_source_Accept = crisis.state[
+        ...     "Individual_Current_triggering_sources_with_time"
+        ... ][-1]
+        >>> Vol = crisis.state["Individual_Current_volumes_with_time"][-1]
         >>> Area = crisis.state["Individual_Current_areas_with_time"][-1]
-        >>> crisis._update_cumulative_registry(1, Trig_Index_Accept, Trig_Depth_Accept, Trig_source_Accept, Vol, Area, dx)
-        >>> sorted(crisis.state["Individual_Cumulative_triggering_linear_indices"].tolist())
+        >>> crisis._update_cumulative_registry(
+        ...     1,
+        ...     Trig_Index_Accept,
+        ...     Trig_Depth_Accept,
+        ...     Trig_source_Accept,
+        ...     Vol,
+        ...     Area,
+        ...     dx,
+        ... )
+        >>> sorted(
+        ...     crisis.state["Individual_Cumulative_triggering_linear_indices"].tolist()
+        ... )
         [100, 176]
         """
 
         # ── Shortcuts ─────────────────────────────────────────────────────────
 
         # current landslide-ID grid
-        FID   = self._state["FID_all_times"]
+        FID = self._state["FID_all_times"]
         # shortcut to the state dictionary
         state = self._state
 
@@ -2992,27 +3424,33 @@ class CrisisComponent(Component):
 
         # while the registry is still empty, start it with this step's results
         if len(cum_idx) == 0:
-            state["Individual_Cumulative_triggering_linear_indices"] = Trig_Index_Accept.copy()
-            state["Individual_Cumulative_triggering_depths"]         = list(Trig_Depth_Accept)
-            state["Individual_Cumulative_triggering_sources"]        = list(Trig_source_Accept)
-            state["Individual_Cumulative_volumes"]                   = Vol.copy()
+            state["Individual_Cumulative_triggering_linear_indices"] = (
+                Trig_Index_Accept.copy()
+            )
+            state["Individual_Cumulative_triggering_depths"] = list(Trig_Depth_Accept)
+            state["Individual_Cumulative_triggering_sources"] = list(Trig_source_Accept)
+            state["Individual_Cumulative_volumes"] = Vol.copy()
 
         elif len(Trig_Index_Accept) > 0:
             # later steps: merge old and new data together
             merged_idx = np.concatenate((cum_idx, Trig_Index_Accept))
-            merged_dep = np.concatenate((state["Individual_Cumulative_triggering_depths"],
-                                         Trig_Depth_Accept))
-            merged_src = np.concatenate((state["Individual_Cumulative_triggering_sources"],
-                                         Trig_source_Accept))
+            merged_dep = np.concatenate(
+                (state["Individual_Cumulative_triggering_depths"], Trig_Depth_Accept)
+            )
+            merged_src = np.concatenate(
+                (state["Individual_Cumulative_triggering_sources"], Trig_source_Accept)
+            )
             merged_vol = np.concatenate((state["Individual_Cumulative_volumes"], Vol))
 
             # drop duplicate cells, keeping only the first time each one appeared
             # (np.unique returns them sorted, so the registry is ordered by linear index)
             _, unique_idx = np.unique(merged_idx, return_index=True)
-            state["Individual_Cumulative_triggering_linear_indices"] = merged_idx[unique_idx]
-            state["Individual_Cumulative_triggering_depths"]         = merged_dep[unique_idx]
-            state["Individual_Cumulative_triggering_sources"]        = merged_src[unique_idx]
-            state["Individual_Cumulative_volumes"]                   = merged_vol[unique_idx]
+            state["Individual_Cumulative_triggering_linear_indices"] = merged_idx[
+                unique_idx
+            ]
+            state["Individual_Cumulative_triggering_depths"] = merged_dep[unique_idx]
+            state["Individual_Cumulative_triggering_sources"] = merged_src[unique_idx]
+            state["Individual_Cumulative_volumes"] = merged_vol[unique_idx]
 
         # ── Recompute cumulative areas from the FID raster ────────────────────
         # Area of each landslide = number of cells carrying its ID × cell area
@@ -3026,12 +3464,15 @@ class CrisisComponent(Component):
             # count how many cells belong to each landslide ID
             fids_uniq, counts = np.unique(valid_fid, return_counts=True)
             # turn that cell count into a real area in square meters, per landslide ID
-            fid_to_area = {int(f): cnt * Cell_size ** 2 for f, cnt in zip(fids_uniq, counts)}
+            fid_to_area = {
+                int(f): cnt * Cell_size**2 for f, cnt in zip(fids_uniq, counts)
+            }
             # look up which landslide ID each triggering cell belongs to
             fid_of_trig = FID.flat[cum_trig]
             # look up the area for each triggering cell's landslide
-            cum_areas   = np.array([fid_to_area.get(int(f), 0.0) for f in fid_of_trig],
-                                   dtype=np.float32)
+            cum_areas = np.array(
+                [fid_to_area.get(int(f), 0.0) for f in fid_of_trig], dtype=np.float32
+            )
         else:
             # no triggering cells yet, so no areas to report
             cum_areas = np.array([], dtype=np.float32)
@@ -3043,11 +3484,17 @@ class CrisisComponent(Component):
         # one entry per column in the final Excel workbook
 
         # record this step's new triggering cell locations
-        state["Individual_Current_triggering_linear_indices_with_time"].append(Trig_Index_Accept)
+        state["Individual_Current_triggering_linear_indices_with_time"].append(
+            Trig_Index_Accept
+        )
         # record this step's new failure depths
-        state["Individual_Current_triggering_depths_with_time"].append(Trig_Depth_Accept)
+        state["Individual_Current_triggering_depths_with_time"].append(
+            Trig_Depth_Accept
+        )
         # record this step's new trigger sources
-        state["Individual_Current_triggering_sources_with_time"].append(Trig_source_Accept)
+        state["Individual_Current_triggering_sources_with_time"].append(
+            Trig_source_Accept
+        )
         # record this step's new landslide areas
         state["Individual_Current_areas_with_time"].append(Area)
         # record this step's new landslide volumes
@@ -3055,18 +3502,22 @@ class CrisisComponent(Component):
 
         # save a snapshot of the full master list of triggering cells, for this step
         state["Individual_Cumulative_triggering_linear_indices_with_time"].append(
-            state["Individual_Cumulative_triggering_linear_indices"].copy())
+            state["Individual_Cumulative_triggering_linear_indices"].copy()
+        )
         # save a snapshot of the full master list of failure depths, for this step
         state["Individual_Cumulative_triggering_depths_with_time"].append(
-            state["Individual_Cumulative_triggering_depths"].copy())
+            state["Individual_Cumulative_triggering_depths"].copy()
+        )
         # save a snapshot of the full master list of trigger sources, for this step
         state["Individual_Cumulative_triggering_sources_with_time"].append(
-            state["Individual_Cumulative_triggering_sources"].copy())
+            state["Individual_Cumulative_triggering_sources"].copy()
+        )
         # save a snapshot of the cumulative areas, for this step
         state["Individual_Cumulative_areas_with_time"].append(cum_areas)
         # save a snapshot of the full master list of volumes, for this step
         state["Individual_Cumulative_volumes_with_time"].append(
-            state["Individual_Cumulative_volumes"].copy())
+            state["Individual_Cumulative_volumes"].copy()
+        )
 
     # ─────────────────────────────────────────────────────────────────────────────
     # get_topographic_slope / get_drainage_area — current topography from the grid
@@ -3110,17 +3561,28 @@ class CrisisComponent(Component):
         >>> import os, tempfile
         >>> folder = tempfile.mkdtemp()
         >>> import io
-        >>> dem_file = io.StringIO("ncols 100\\nnrows 3\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n")  # ASCII DEM header of this grid, in memory
+        >>> dem_file = io.StringIO(
+        ...     "ncols 100\\nnrows 3\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n"
+        ... )  # ASCII DEM header of this grid, in memory
         >>> params = {
         ...     "output_dir": folder,
-        ...     "Coordinate_Reference_System": "EPSG:32610", "dem_file": dem_file,
-        ...     "Gamma": 22.0, "z_min": 0.125, "z_max": 1.875,
-        ...     "Depth_points": 8, "Min_LD_area": 12.0,
-        ...     "top_or_bottom_indicator": 1, "Triggering_Indicator": 1,
-        ...     "Hydrological_model_indicator": 1, "Ru": 0.8,
+        ...     "Coordinate_Reference_System": "EPSG:32610",
+        ...     "dem_file": dem_file,
+        ...     "Gamma": 22.0,
+        ...     "z_min": 0.125,
+        ...     "z_max": 1.875,
+        ...     "Depth_points": 8,
+        ...     "Min_LD_area": 12.0,
+        ...     "top_or_bottom_indicator": 1,
+        ...     "Triggering_Indicator": 1,
+        ...     "Hydrological_model_indicator": 1,
+        ...     "Ru": 0.8,
         ...     "Strength_variation_with_theta": 1,
-        ...     "Theta_s": 0.45, "Theta_r": 0.1,
-        ...     "Strength_indicator": 1, "c": 20.0, "Phi": 37.0,
+        ...     "Theta_s": 0.45,
+        ...     "Theta_r": 0.1,
+        ...     "Strength_indicator": 1,
+        ...     "c": 20.0,
+        ...     "Phi": 37.0,
         ... }
         >>> crisis = CrisisComponent(grid, params)
         >>> crisis.get_topographic_slope()[:3]
@@ -3169,17 +3631,28 @@ class CrisisComponent(Component):
         >>> import os, tempfile
         >>> folder = tempfile.mkdtemp()
         >>> import io
-        >>> dem_file = io.StringIO("ncols 100\\nnrows 3\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n")  # ASCII DEM header of this grid, in memory
+        >>> dem_file = io.StringIO(
+        ...     "ncols 100\\nnrows 3\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n"
+        ... )  # ASCII DEM header of this grid, in memory
         >>> params = {
         ...     "output_dir": folder,
-        ...     "Coordinate_Reference_System": "EPSG:32610", "dem_file": dem_file,
-        ...     "Gamma": 22.0, "z_min": 0.125, "z_max": 1.875,
-        ...     "Depth_points": 8, "Min_LD_area": 12.0,
-        ...     "top_or_bottom_indicator": 1, "Triggering_Indicator": 1,
-        ...     "Hydrological_model_indicator": 1, "Ru": 0.8,
+        ...     "Coordinate_Reference_System": "EPSG:32610",
+        ...     "dem_file": dem_file,
+        ...     "Gamma": 22.0,
+        ...     "z_min": 0.125,
+        ...     "z_max": 1.875,
+        ...     "Depth_points": 8,
+        ...     "Min_LD_area": 12.0,
+        ...     "top_or_bottom_indicator": 1,
+        ...     "Triggering_Indicator": 1,
+        ...     "Hydrological_model_indicator": 1,
+        ...     "Ru": 0.8,
         ...     "Strength_variation_with_theta": 1,
-        ...     "Theta_s": 0.45, "Theta_r": 0.1,
-        ...     "Strength_indicator": 1, "c": 20.0, "Phi": 37.0,
+        ...     "Theta_s": 0.45,
+        ...     "Theta_r": 0.1,
+        ...     "Strength_indicator": 1,
+        ...     "c": 20.0,
+        ...     "Phi": 37.0,
         ... }
         >>> crisis = CrisisComponent(grid, params)
         >>> crisis.get_drainage_area()[:3]
@@ -3226,17 +3699,28 @@ class CrisisComponent(Component):
         >>> import os, tempfile
         >>> folder = tempfile.mkdtemp()
         >>> import io
-        >>> dem_file = io.StringIO("ncols 100\\nnrows 3\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n")  # ASCII DEM header of this grid, in memory
+        >>> dem_file = io.StringIO(
+        ...     "ncols 100\\nnrows 3\\nxllcenter 0.0\\nyllcenter 0.0\\ncellsize 1.0\\n"
+        ... )  # ASCII DEM header of this grid, in memory
         >>> params = {
         ...     "output_dir": folder,
-        ...     "Coordinate_Reference_System": "EPSG:32610", "dem_file": dem_file,
-        ...     "Gamma": 22.0, "z_min": 0.125, "z_max": 1.875,
-        ...     "Depth_points": 8, "Min_LD_area": 12.0,
-        ...     "top_or_bottom_indicator": 1, "Triggering_Indicator": 1,
-        ...     "Hydrological_model_indicator": 1, "Ru": 0.8,
+        ...     "Coordinate_Reference_System": "EPSG:32610",
+        ...     "dem_file": dem_file,
+        ...     "Gamma": 22.0,
+        ...     "z_min": 0.125,
+        ...     "z_max": 1.875,
+        ...     "Depth_points": 8,
+        ...     "Min_LD_area": 12.0,
+        ...     "top_or_bottom_indicator": 1,
+        ...     "Triggering_Indicator": 1,
+        ...     "Hydrological_model_indicator": 1,
+        ...     "Ru": 0.8,
         ...     "Strength_variation_with_theta": 1,
-        ...     "Theta_s": 0.45, "Theta_r": 0.1,
-        ...     "Strength_indicator": 1, "c": 20.0, "Phi": 37.0,
+        ...     "Theta_s": 0.45,
+        ...     "Theta_r": 0.1,
+        ...     "Strength_indicator": 1,
+        ...     "c": 20.0,
+        ...     "Phi": 37.0,
         ... }
         >>> crisis = CrisisComponent(grid, params)
         >>> crisis.run_one_step()
@@ -3250,6 +3734,6 @@ class CrisisComponent(Component):
         """
 
         # reset the three per-step output fields to their defaults
-        self._grid.at_node['triggering__cells'][:] = False
-        self._grid.at_node['failure__depth'].fill(0.0)
+        self._grid.at_node["triggering__cells"][:] = False
+        self._grid.at_node["failure__depth"].fill(0.0)
         self._grid.at_node["landslide__failure_id"].fill(0)

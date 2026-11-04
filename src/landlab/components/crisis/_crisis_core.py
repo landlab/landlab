@@ -30,13 +30,12 @@ import math
 from contextlib import nullcontext
 from pathlib import Path
 
+import geopandas as gpd
+import h5py
 import numpy as np
 import pandas as pd
-import h5py
-import geopandas as gpd
 from shapely.geometry import box as _shapely_box
 from shapely.ops import unary_union as _unary_union
-
 
 # =============================================================================
 # Module-level constants
@@ -50,6 +49,7 @@ _EMPTY_ARR = np.array([], dtype=np.int64)
 # =============================================================================
 # Utility helpers
 # =============================================================================
+
 
 def load_h5(file_path):
     """Load the 'data' dataset from an HDF5 file and return it as a float32 array.
@@ -77,14 +77,17 @@ def load_h5(file_path):
     >>> from landlab.components.crisis._crisis_core import load_h5
     >>> h5 = io.BytesIO()
     >>> with h5py.File(h5, "w") as f:
-    ...     _ = f.create_dataset("data", data=np.array([[1.0, 2.0],
-    ...                                                  [3.0, 4.0]]))
+    ...     _ = f.create_dataset("data", data=np.array([[1.0, 2.0], [3.0, 4.0]]))
+    ...
     >>> load_h5(h5)
     array([[3., 4.],
            [1., 2.]], dtype=float32)
     """
-    with h5py.File(file_path, 'r') as f:
-        return np.flipud(f['data'][:].astype(np.float32))  # north-up file -> Landlab order (row 0 = south)
+    with h5py.File(file_path, "r") as f:
+        return np.flipud(
+            f["data"][:].astype(np.float32)
+        )  # north-up file -> Landlab order (row 0 = south)
+
 
 # -----------------------------------------------------------------------------------------------------
 def pad_rows(data):
@@ -116,6 +119,7 @@ def pad_rows(data):
         max_len = max(len(row) for row in data)
         return [list(row) + [None] * (max_len - len(row)) for row in data]
     return []
+
 
 # -----------------------------------------------------------------------------------------------------
 def read_ascii_header(file_path):
@@ -151,8 +155,10 @@ def read_ascii_header(file_path):
 
     >>> import io
     >>> from landlab.components.crisis._crisis_core import read_ascii_header
-    >>> dem = io.StringIO("ncols 3\\nnrows 2\\nxllcorner 1000.0\\nyllcorner 5000.0\\n"
-    ...                   "cellsize 10.0\\nNODATA_value -9999\\n1 2 3\\n4 5 6\\n")
+    >>> dem = io.StringIO(
+    ...     "ncols 3\\nnrows 2\\nxllcorner 1000.0\\nyllcorner 5000.0\\n"
+    ...     "cellsize 10.0\\nNODATA_value -9999\\n1 2 3\\n4 5 6\\n"
+    ... )
     >>> header = read_ascii_header(dem)
     >>> header["ncols"], header["nrows"], header["xllcorner"], header["cellsize"]
     (3, 2, 1000.0, 10.0)
@@ -163,7 +169,11 @@ def read_ascii_header(file_path):
     # a path is opened here; an already open text stream is read from its start
     if hasattr(file_path, "read"):
         file_path.seek(0)
-    with (open(file_path, "r") if not hasattr(file_path, "read") else nullcontext(file_path)) as f:
+    with (
+        open(file_path)
+        if not hasattr(file_path, "read")
+        else nullcontext(file_path)
+    ) as f:
         for line in f:
             parts = line.split()
             # header lines are exactly "key value" with a non-numeric key
@@ -171,7 +181,7 @@ def read_ascii_header(file_path):
                 break
             try:
                 float(parts[0])
-                break          # numeric first token: the data block has started
+                break  # numeric first token: the data block has started
             except ValueError:
                 pass
             header[parts[0].lower()] = float(parts[1])
@@ -190,6 +200,7 @@ def read_ascii_header(file_path):
     header["ncols"] = int(header["ncols"])
     header["nrows"] = int(header["nrows"])
     return header
+
 
 # -----------------------------------------------------------------------------------------------------
 def lower_left_cell_center(header):
@@ -213,15 +224,20 @@ def lower_left_cell_center(header):
     Examples
     --------
     >>> from landlab.components.crisis._crisis_core import lower_left_cell_center
-    >>> lower_left_cell_center({"xllcorner": 1000.0, "yllcorner": 5000.0, "cellsize": 10.0})
+    >>> lower_left_cell_center(
+    ...     {"xllcorner": 1000.0, "yllcorner": 5000.0, "cellsize": 10.0}
+    ... )
     (1005.0, 5005.0)
-    >>> lower_left_cell_center({"xllcenter": 1005.0, "yllcenter": 5005.0, "cellsize": 10.0})
+    >>> lower_left_cell_center(
+    ...     {"xllcenter": 1005.0, "yllcenter": 5005.0, "cellsize": 10.0}
+    ... )
     (1005.0, 5005.0)
     """
     half = 0.5 * header["cellsize"]
     xmin = header["xllcenter"] if "xllcenter" in header else header["xllcorner"] + half
     ymin = header["yllcenter"] if "yllcenter" in header else header["yllcorner"] + half
     return float(xmin), float(ymin)
+
 
 # -----------------------------------------------------------------------------------------------------
 def compute_coordinate_vectors(rows, columns, xmin, ymin, Cell_size):
@@ -270,6 +286,7 @@ def compute_coordinate_vectors(rows, columns, xmin, ymin, Cell_size):
 # Function 1 — Upslope grid cells (D8 flow routing)
 # =============================================================================
 
+
 def T_UpGrid(FD_Mat, indID):
     """
     Find all upslope (inflow) cells for a target cell using the D8 convention.
@@ -291,11 +308,13 @@ def T_UpGrid(FD_Mat, indID):
 
     >>> import numpy as np
     >>> from landlab.components.crisis._crisis_core import T_UpGrid
-    >>> FD_Mat = np.array([
-    ...     [0,  4,  0],
-    ...     [1,  0, 16],
-    ...     [0, 64,  0],
-    ... ])
+    >>> FD_Mat = np.array(
+    ...     [
+    ...         [0, 4, 0],
+    ...         [1, 0, 16],
+    ...         [0, 64, 0],
+    ...     ]
+    ... )
     >>> T_UpGrid(FD_Mat, 4)
     array([5, 7, 3, 1])
     """
@@ -307,13 +326,13 @@ def T_UpGrid(FD_Mat, indID):
     # Each key is a D8 code; value is the (row, col) offset of the neighbor
     # that code points to. The codes are used purely as offset labels.
     directions = {
-        1:   (0,  1),
-        2:   (1,  1),
-        4:   (1,  0),
-        8:   (1, -1),
-        16:  (0, -1),
-        32:  (-1, -1),
-        64:  (-1, 0),
+        1: (0, 1),
+        2: (1, 1),
+        4: (1, 0),
+        8: (1, -1),
+        16: (0, -1),
+        32: (-1, -1),
+        64: (-1, 0),
         128: (-1, 1),
     }
     # Opposite direction codes: a cell flows INTO the target if its flow
@@ -354,11 +373,13 @@ def _build_upslope_map(FD_Mat):
 
     >>> import numpy as np
     >>> from landlab.components.crisis._crisis_core import _build_upslope_map
-    >>> FD_Mat = np.array([
-    ...     [0,  4,  0],
-    ...     [1,  0, 16],
-    ...     [0, 64,  0],
-    ... ])
+    >>> FD_Mat = np.array(
+    ...     [
+    ...         [0, 4, 0],
+    ...         [1, 0, 16],
+    ...         [0, 64, 0],
+    ...     ]
+    ... )
     >>> upslope = _build_upslope_map(FD_Mat)
     >>> upslope[4].tolist()
     [5, 7, 3, 1]
@@ -366,10 +387,18 @@ def _build_upslope_map(FD_Mat):
     nrow, ncol = FD_Mat.shape
 
     # D8 direction codes and their (row, col) offsets
-    directions = {1: (0, 1), 2: (1, 1), 4: (1, 0), 8: (1, -1),
-                  16: (0, -1), 32: (-1, -1), 64: (-1, 0), 128: (-1, 1)}
+    directions = {
+        1: (0, 1),
+        2: (1, 1),
+        4: (1, 0),
+        8: (1, -1),
+        16: (0, -1),
+        32: (-1, -1),
+        64: (-1, 0),
+        128: (-1, 1),
+    }
     # Opposite direction lookup for determining inflow relationships
-    opposite   = {1: 16, 2: 32, 4: 64, 8: 128, 16: 1, 32: 2, 64: 4, 128: 8}
+    opposite = {1: 16, 2: 32, 4: 64, 8: 128, 16: 1, 32: 2, 64: 4, 128: 8}
 
     # Accumulators for all (source → target) upslope pairs across the whole grid
     all_src_list, all_tgt_list = [], []
@@ -394,8 +423,12 @@ def _build_upslope_map(FD_Mat):
             continue
 
         # Convert valid (row, col) pairs to flat linear indices and store them
-        all_src_list.append(np.ravel_multi_index((r_src[valid], c_src[valid]), (nrow, ncol)))
-        all_tgt_list.append(np.ravel_multi_index((r_tgt[valid], c_tgt[valid]), (nrow, ncol)))
+        all_src_list.append(
+            np.ravel_multi_index((r_src[valid], c_src[valid]), (nrow, ncol))
+        )
+        all_tgt_list.append(
+            np.ravel_multi_index((r_tgt[valid], c_tgt[valid]), (nrow, ncol))
+        )
 
     # If no upslope relationships were found (e.g. flat DEM), return empty dict
     if not all_src_list:
@@ -406,9 +439,9 @@ def _build_upslope_map(FD_Mat):
     all_tgt = np.concatenate(all_tgt_list)
 
     # Sort pairs by target index so we can group upslope sources per target cell
-    sort_idx = np.argsort(all_tgt, kind='stable')
-    all_src  = all_src[sort_idx]
-    all_tgt  = all_tgt[sort_idx]
+    sort_idx = np.argsort(all_tgt, kind="stable")
+    all_src = all_src[sort_idx]
+    all_tgt = all_tgt[sort_idx]
 
     # Group all source cells by their common target cell using np.unique + np.split
     uniq_tgt, counts = np.unique(all_tgt, return_counts=True)
@@ -422,10 +455,21 @@ def _build_upslope_map(FD_Mat):
 # Function 2 — Pseudo-3D landslide delineation
 # =============================================================================
 
-def Determine_Pseudo_3D_landslides(Elev_Mat, Trig_Cells, Area_Mat, Slope_Mat,
-                                   FD_Mat, Cell_size, Trig_Depths, Trig_sources,
-                                   Fail_Index_all_times, FID_all_times, Min_LD_area,
-                                   upslope_map=None):
+
+def Determine_Pseudo_3D_landslides(
+    Elev_Mat,
+    Trig_Cells,
+    Area_Mat,
+    Slope_Mat,
+    FD_Mat,
+    Cell_size,
+    Trig_Depths,
+    Trig_sources,
+    Fail_Index_all_times,
+    FID_all_times,
+    Min_LD_area,
+    upslope_map=None,
+):
     """
     Form pseudo-3D landslide bodies from triggering cells using upslope BFS expansion.
     Based on Gong et al. (2023) and Gallen et al. (2015) with modifications.
@@ -516,21 +560,32 @@ def Determine_Pseudo_3D_landslides(Elev_Mat, Trig_Cells, Area_Mat, Slope_Mat,
     plane geometry along the way makes its computed depth negative.
 
     >>> import numpy as np
-    >>> from landlab.components.crisis._crisis_core import Determine_Pseudo_3D_landslides
-    >>> Elev_Mat  = np.array([[0.0, 2.0, 4.0, 6.0, 8.0]])
+    >>> from landlab.components.crisis._crisis_core import (
+    ...     Determine_Pseudo_3D_landslides,
+    ... )
+    >>> Elev_Mat = np.array([[0.0, 2.0, 4.0, 6.0, 8.0]])
     >>> Slope_Mat = np.full((1, 5), 45.0)
-    >>> Area_Mat  = np.array([[500.0, 400.0, 300.0, 200.0, 100.0]])
-    >>> FD_Mat    = np.full((1, 5), 16, dtype=int)   # every cell flows West
-    >>> Trig_Cells   = np.array([0])
-    >>> Trig_Depths  = np.array([1.0])
+    >>> Area_Mat = np.array([[500.0, 400.0, 300.0, 200.0, 100.0]])
+    >>> FD_Mat = np.full((1, 5), 16, dtype=int)  # every cell flows West
+    >>> Trig_Cells = np.array([0])
+    >>> Trig_Depths = np.array([1.0])
     >>> Trig_sources = np.array([1])
     >>> Fail_Index_all_times = np.zeros((1, 5), dtype=bool)
     >>> FID_all_times = np.full((1, 5), np.nan, dtype=np.float32)
     >>> result = Determine_Pseudo_3D_landslides(
-    ...     Elev_Mat, Trig_Cells, Area_Mat, Slope_Mat, FD_Mat, Cell_size=2.0,
-    ...     Trig_Depths=Trig_Depths, Trig_sources=Trig_sources,
-    ...     Fail_Index_all_times=Fail_Index_all_times, FID_all_times=FID_all_times,
-    ...     Min_LD_area=8.0, upslope_map=None)
+    ...     Elev_Mat,
+    ...     Trig_Cells,
+    ...     Area_Mat,
+    ...     Slope_Mat,
+    ...     FD_Mat,
+    ...     Cell_size=2.0,
+    ...     Trig_Depths=Trig_Depths,
+    ...     Trig_sources=Trig_sources,
+    ...     Fail_Index_all_times=Fail_Index_all_times,
+    ...     FID_all_times=FID_all_times,
+    ...     Min_LD_area=8.0,
+    ...     upslope_map=None,
+    ... )
     >>> Vol, Area, NL, Trig_Index_Accept = result[0], result[1], result[2], result[3]
     >>> Vol
     array([11.903158], dtype=float32)
@@ -545,7 +600,9 @@ def Determine_Pseudo_3D_landslides(Elev_Mat, Trig_Cells, Area_Mat, Slope_Mat,
     """
     # Retrieve the highest landslide ID assigned in previous time steps so new
     # IDs continue the sequence rather than restarting from 1
-    NL_previous = int(np.nanmax(FID_all_times)) if not np.isnan(FID_all_times).all() else 0
+    NL_previous = (
+        int(np.nanmax(FID_all_times)) if not np.isnan(FID_all_times).all() else 0
+    )
     # Counter for landslides accepted at this time step
     NL = 0
 
@@ -569,34 +626,36 @@ def Determine_Pseudo_3D_landslides(Elev_Mat, Trig_Cells, Area_Mat, Slope_Mat,
 
     LD_Index_Accept = []
     LD_Z_Accept = []
-    FID_Index  =np.zeros_like(Area_Mat)
+    FID_Index = np.zeros_like(Area_Mat)
     # ── Process each triggering cell ──────────────────────────────────────────
     for j in range(NTC):
         Trig_Index = Trig_Cells_Desc[j]
 
         # Recover original position in the unsorted array to get depth and source
         orig_pos = np.where(Trig_Cells == Trig_Index)[0][0]
-        Trig_Depth_cell  = Trig_Depths[orig_pos]
+        Trig_Depth_cell = Trig_Depths[orig_pos]
         Trig_source_cell = Trig_sources[orig_pos]
 
         # Skip this cell if it has zero contributing area (sink/flat) or if it
         # has already been assigned to a previously delineated landslide body
-        if np.take(Area_Mat, Trig_Index) <= 0 or np.take(Fail_Index_all_times, Trig_Index) != 0:
+        if (
+            np.take(Area_Mat, Trig_Index) <= 0
+            or np.take(Fail_Index_all_times, Trig_Index) != 0
+        ):
             continue
 
         # Extract topographic properties at the triggering cell
-        Elev_Trig  = np.take(Elev_Mat, Trig_Index)   # surface elevation (m)
-        Trig_Slope = np.take(Slope_Mat, Trig_Index)   # slope angle (degrees)
+        Elev_Trig = np.take(Elev_Mat, Trig_Index)  # surface elevation (m)
+        Trig_Slope = np.take(Slope_Mat, Trig_Index)  # slope angle (degrees)
         # Elevation of the failure plane at the triggering cell
-        Hf_Trig    = Elev_Trig - Trig_Depth_cell
+        Hf_Trig = Elev_Trig - Trig_Depth_cell
         Trig_row, Trig_col = np.unravel_index(Trig_Index, (m, n))
 
         # Initialize the BFS (breadth-first search) queue with the triggering cell.
         # A set is used alongside the list for O(1) duplicate checking.
-        LD_set  = {int(Trig_Index)}
+        LD_set = {int(Trig_Index)}
         LD_list = [int(Trig_Index)]
         Counter = 0
-
 
         # ── BFS: expand landslide body upslope ────────────────────────────────
         while Counter < len(LD_list):
@@ -624,15 +683,18 @@ def Determine_Pseudo_3D_landslides(Elev_Mat, Trig_Cells, Area_Mat, Slope_Mat,
             # Condition 3: exclude neighbor cells that are lower in elevation
             # than the triggering cell — the landslide body must extend uphill
             if len(UpGrid_Cells) > 0:
-                UpGrid_Cells = UpGrid_Cells[np.take(Elev_Mat, UpGrid_Cells) >= Elev_Trig]
+                UpGrid_Cells = UpGrid_Cells[
+                    np.take(Elev_Mat, UpGrid_Cells) >= Elev_Trig
+                ]
             # Condition 4: exclude neighbor cells where the projected failure
             # plane depth would be zero or negative (no room for a slide body)
             if len(UpGrid_Cells) > 0:
                 UpGrid_row, UpGrid_col = np.unravel_index(UpGrid_Cells, (m, n))
                 # Horizontal distance from the triggering cell to each candidate neighbor
-                UpGrid_dist = np.sqrt(
-                    (UpGrid_row - Trig_row)**2 + (UpGrid_col - Trig_col)**2
-                ) * Cell_size
+                UpGrid_dist = (
+                    np.sqrt((UpGrid_row - Trig_row) ** 2 + (UpGrid_col - Trig_col) ** 2)
+                    * Cell_size
+                )
                 # Failure plane elevation at each neighbor, projected from the
                 # triggering cell using its slope angle
                 Hf = Hf_Trig + UpGrid_dist * np.tan(np.radians(Trig_Slope))
@@ -662,15 +724,17 @@ def Determine_Pseudo_3D_landslides(Elev_Mat, Trig_Cells, Area_Mat, Slope_Mat,
         Surf_Elev = np.take(Elev_Mat, LD_Index)
         LD_row, LD_col = np.unravel_index(LD_Index, (m, n))
         # Horizontal distance from the triggering cell to every landslide cell
-        LD_dist = np.sqrt((LD_row - Trig_row)**2 + (LD_col - Trig_col)**2) * Cell_size
+        LD_dist = (
+            np.sqrt((LD_row - Trig_row) ** 2 + (LD_col - Trig_col) ** 2) * Cell_size
+        )
 
         # Find the highest elevation in the landslide and its distance from the trigger
-        Max_elev    = np.max(Surf_Elev)
+        Max_elev = np.max(Surf_Elev)
         Min_LD_dist = np.min(LD_dist[Surf_Elev == Max_elev])
-        Elev_diff   = Max_elev - Hf_Trig
+        Elev_diff = Max_elev - Hf_Trig
         if Min_LD_dist > 0:
             # Refined mean slope angle from triggering cell to the highest point
-            M_slope  = math.ceil(math.degrees(math.atan(Elev_diff / Min_LD_dist)))
+            M_slope = math.ceil(math.degrees(math.atan(Elev_diff / Min_LD_dist)))
             # Rate of slope change along the landslide (slope gradient)
             dx_slope = (M_slope - Trig_Slope) / Min_LD_dist
         else:
@@ -681,19 +745,19 @@ def Determine_Pseudo_3D_landslides(Elev_Mat, Trig_Cells, Area_Mat, Slope_Mat,
             dx_slope = 0
 
         # Recompute failure plane depths using the refined slope profile
-        Hf    = Hf_Trig + LD_dist * np.tan(np.radians(Trig_Slope + LD_dist * dx_slope))
-        LD_Z  = Surf_Elev - Hf
+        Hf = Hf_Trig + LD_dist * np.tan(np.radians(Trig_Slope + LD_dist * dx_slope))
+        LD_Z = Surf_Elev - Hf
         # Keep only cells where the refined failure depth is still positive
         LD_Index = np.array(LD_Index)[LD_Z > 0]
-        LD_Z     = LD_Z[LD_Z > 0]
+        LD_Z = LD_Z[LD_Z > 0]
 
         # Reject landslides that fall below the minimum area threshold after refinement
         if len(LD_Index) < min_required_cells:
             continue
 
         # ── Accept this landslide ─────────────────────────────────────────────
-        if len(LD_Index_Accept)>0:
-            LD_Index_Accept = np.concatenate((LD_Index_Accept,LD_Index))
+        if len(LD_Index_Accept) > 0:
+            LD_Index_Accept = np.concatenate((LD_Index_Accept, LD_Index))
             LD_Z_Accept = np.concatenate((LD_Z_Accept, LD_Z))
         else:
             LD_Index_Accept = np.copy(LD_Index)
@@ -710,30 +774,31 @@ def Determine_Pseudo_3D_landslides(Elev_Mat, Trig_Cells, Area_Mat, Slope_Mat,
         Vol.append(np.sum(LD_Z * Cell_size**2))
 
         # Mark all cells of this landslide in the global failure and FID arrays
-        FID_all_times.flat[LD_Index]       = NL_previous + NL
-        FID_Index.flat[LD_Index]                = NL
+        FID_all_times.flat[LD_Index] = NL_previous + NL
+        FID_Index.flat[LD_Index] = NL
         Fail_Index_all_times.flat[LD_Index] = 1
 
     # Return results as numpy arrays (trim to accepted count NL)
     return (
-        np.array(Vol[:NL],                       dtype=np.float32),
-        np.array(Area_out[:NL],                  dtype=np.float32),
+        np.array(Vol[:NL], dtype=np.float32),
+        np.array(Area_out[:NL], dtype=np.float32),
         NL,
-        np.array(Trig_Index_Accept[:NL],         dtype=np.int64),
-        np.array(Slope_Trig_Index_Accept[:NL],   dtype=np.float32),
+        np.array(Trig_Index_Accept[:NL], dtype=np.int64),
+        np.array(Slope_Trig_Index_Accept[:NL], dtype=np.float32),
         Fail_Index_all_times,
         Trig_Depth_Accept,
         Trig_source_Accept,
         FID_all_times,
         LD_Z_Accept,
         LD_Index_Accept,
-        FID_Index
+        FID_Index,
     )
 
 
 # =============================================================================
 # Function 3 — Closest-distance to fault rupture plane
 # =============================================================================
+
 
 def Rupture_Dist(x_2d, y_2d, z_2d, corners):
     """
@@ -776,17 +841,17 @@ def Rupture_Dist(x_2d, y_2d, z_2d, corners):
     >>> y_2d = np.array([[500.0, 500.0]])
     >>> z_2d = np.array([[0.0, 0.0]])
     >>> corners = [
-    ...     [0.0,    0.0,    0.0],    # top-left    (shallow)
-    ...     [0.0, 1000.0,    0.0],    # top-right   (shallow)
-    ...     [0.0, 1000.0, 1000.0],    # bottom-right (deep)
-    ...     [0.0,    0.0, 1000.0],    # bottom-left  (deep)
+    ...     [0.0, 0.0, 0.0],  # top-left    (shallow)
+    ...     [0.0, 1000.0, 0.0],  # top-right   (shallow)
+    ...     [0.0, 1000.0, 1000.0],  # bottom-right (deep)
+    ...     [0.0, 0.0, 1000.0],  # bottom-left  (deep)
     ... ]
     >>> Rupture_Dist(x_2d, y_2d, z_2d, corners)
     array([[0.5, 0.3]])
     """
     # Convert corners to a numpy array and preserve the original grid shape
     corners = np.asarray(corners, dtype=np.float64)
-    shape   = x_2d.shape
+    shape = x_2d.shape
 
     # The user supplies fault depth as positive-downward; negate the Z column
     # so the fault sits in the same right-handed coordinate system as the DEM
@@ -796,36 +861,36 @@ def Rupture_Dist(x_2d, y_2d, z_2d, corners):
 
     # Flatten all DEM cells to an (N, 3) array of 3-D site coordinates
     N = x_2d.size
-    P = np.stack([x_2d.ravel(), y_2d.ravel(), z_2d.ravel()], axis=1)   # (N, 3)
+    P = np.stack([x_2d.ravel(), y_2d.ravel(), z_2d.ravel()], axis=1)  # (N, 3)
 
     # ── Define the fault plane via its unit normal vector ─────────────────────
     # Two edge vectors spanning the fault plane from corner 0
-    v1    = corners[1] - corners[0]
-    v2    = corners[3] - corners[0]
+    v1 = corners[1] - corners[0]
+    v2 = corners[3] - corners[0]
     # Cross product gives the plane normal; normalize to unit length
-    n     = np.cross(v1, v2)
+    n = np.cross(v1, v2)
     n_len = np.linalg.norm(n)
     if n_len < 1e-10:
         raise ValueError("Fault corners are collinear — cannot define a plane.")
-    n_hat = n / n_len   # unit normal vector
+    n_hat = n / n_len  # unit normal vector
 
     # ── Compute perpendicular distance from each site to the fault plane ──────
     # Vector from fault corner 0 to each site
-    AP             = P - corners[0]
+    AP = P - corners[0]
     # Signed scalar projection onto the unit normal = perpendicular distance
-    dist_plane     = AP @ n_hat
+    dist_plane = AP @ n_hat
     abs_dist_plane = np.abs(dist_plane)
     # Orthogonal projection of each site onto the fault plane
-    P_proj         = P - dist_plane[:, np.newaxis] * n_hat
+    P_proj = P - dist_plane[:, np.newaxis] * n_hat
 
     # ── Test whether each projected point lies inside the fault quadrilateral ─
     # For a convex quad, a point is inside if it is on the same side of all edges.
     # edge_sign returns the signed cross-product component along the normal.
     def edge_sign(Q, A, B):
-        e  = B - A          # edge direction vector
-        qA = Q - A          # vectors from edge start to each query point
-        c  = np.cross(e, qA)
-        return c @ n_hat    # scalar: positive = left of edge, negative = right
+        e = B - A  # edge direction vector
+        qA = Q - A  # vectors from edge start to each query point
+        c = np.cross(e, qA)
+        return c @ n_hat  # scalar: positive = left of edge, negative = right
 
     # Evaluate sign for all four edges of the quadrilateral
     s0 = edge_sign(P_proj, corners[0], corners[1])
@@ -834,20 +899,19 @@ def Rupture_Dist(x_2d, y_2d, z_2d, corners):
     s3 = edge_sign(P_proj, corners[3], corners[0])
 
     # A point is inside if all four signs agree (all positive OR all negative)
-    inside = (
-        ((s0 >= 0) & (s1 >= 0) & (s2 >= 0) & (s3 >= 0)) |
-        ((s0 <= 0) & (s1 <= 0) & (s2 <= 0) & (s3 <= 0))
+    inside = ((s0 >= 0) & (s1 >= 0) & (s2 >= 0) & (s3 >= 0)) | (
+        (s0 <= 0) & (s1 <= 0) & (s2 <= 0) & (s3 <= 0)
     )
 
     # ── Compute distance to each edge (used for points outside the quad) ──────
     def dist_to_segment(Q, A, B):
         """Shortest 3-D distance from each point in Q (N×3) to segment A–B."""
-        AB  = B - A
+        AB = B - A
         AB2 = AB @ AB
         # Scalar projection onto the segment direction, clamped to [0, 1]
-        t   = np.clip((Q - A) @ AB / (AB2 + 1e-30), 0.0, 1.0)
+        t = np.clip((Q - A) @ AB / (AB2 + 1e-30), 0.0, 1.0)
         # Closest point on segment for each query point
-        C   = A + t[:, np.newaxis] * AB
+        C = A + t[:, np.newaxis] * AB
         return np.linalg.norm(Q - C, axis=1)
 
     # Find the minimum distance across all four edges for each site
@@ -874,24 +938,24 @@ def Rupture_Dist(x_2d, y_2d, z_2d, corners):
 # Columns: T1, T2, then the coefficients at period T1 (a1_F, a2_F, a8_F)
 # and at period T2 (a1_S, a2_S, a8_S)
 _SA_TABLE = [
-    (0.000, 0.010,  0.804, -0.9679, -0.0372,  0.811, -0.9676, -0.0372),
-    (0.010, 0.020,  0.811, -0.9676, -0.0372,  0.855, -0.9774, -0.0372),
-    (0.020, 0.030,  0.855, -0.9774, -0.0372,  0.962, -1.0024, -0.0372),
-    (0.030, 0.040,  0.962, -1.0024, -0.0372,  1.037, -1.0289, -0.0315),
-    (0.040, 0.050,  1.037, -1.0289, -0.0315,  1.133, -1.0508, -0.0271),
-    (0.050, 0.075,  1.133, -1.0508, -0.0271,  1.375, -1.0810, -0.0191),
-    (0.075, 0.100,  1.375, -1.0810, -0.0191,  1.563, -1.0833, -0.0166),
-    (0.100, 0.150,  1.563, -1.0833, -0.0166,  1.716, -1.0375, -0.0254),
-    (0.150, 0.200,  1.716, -1.0375, -0.0254,  1.687, -0.9700, -0.0396),
-    (0.200, 0.250,  1.687, -0.9700, -0.0396,  1.646, -0.9202, -0.0539),
-    (0.250, 0.300,  1.646, -0.9202, -0.0539,  1.601, -0.8974, -0.0656),
-    (0.300, 0.400,  1.601, -0.8974, -0.0656,  1.511, -0.8677, -0.0807),
-    (0.400, 0.500,  1.511, -0.8677, -0.0807,  1.397, -0.8475, -0.0924),
-    (0.500, 0.750,  1.397, -0.8475, -0.0924,  1.137, -0.8206, -0.1137),
-    (0.750, 1.000,  1.137, -0.8206, -0.1137,  0.915, -0.8088, -0.1289),
-    (1.000, 1.500,  0.915, -0.8088, -0.1289,  0.510, -0.7995, -0.1534),
-    (1.500, 2.000,  0.510, -0.7995, -0.1534,  0.192, -0.7960, -0.1708),
-    (2.000, 3.000,  0.192, -0.7960, -0.1708, -0.280, -0.7960, -0.1954),
+    (0.000, 0.010, 0.804, -0.9679, -0.0372, 0.811, -0.9676, -0.0372),
+    (0.010, 0.020, 0.811, -0.9676, -0.0372, 0.855, -0.9774, -0.0372),
+    (0.020, 0.030, 0.855, -0.9774, -0.0372, 0.962, -1.0024, -0.0372),
+    (0.030, 0.040, 0.962, -1.0024, -0.0372, 1.037, -1.0289, -0.0315),
+    (0.040, 0.050, 1.037, -1.0289, -0.0315, 1.133, -1.0508, -0.0271),
+    (0.050, 0.075, 1.133, -1.0508, -0.0271, 1.375, -1.0810, -0.0191),
+    (0.075, 0.100, 1.375, -1.0810, -0.0191, 1.563, -1.0833, -0.0166),
+    (0.100, 0.150, 1.563, -1.0833, -0.0166, 1.716, -1.0375, -0.0254),
+    (0.150, 0.200, 1.716, -1.0375, -0.0254, 1.687, -0.9700, -0.0396),
+    (0.200, 0.250, 1.687, -0.9700, -0.0396, 1.646, -0.9202, -0.0539),
+    (0.250, 0.300, 1.646, -0.9202, -0.0539, 1.601, -0.8974, -0.0656),
+    (0.300, 0.400, 1.601, -0.8974, -0.0656, 1.511, -0.8677, -0.0807),
+    (0.400, 0.500, 1.511, -0.8677, -0.0807, 1.397, -0.8475, -0.0924),
+    (0.500, 0.750, 1.397, -0.8475, -0.0924, 1.137, -0.8206, -0.1137),
+    (0.750, 1.000, 1.137, -0.8206, -0.1137, 0.915, -0.8088, -0.1289),
+    (1.000, 1.500, 0.915, -0.8088, -0.1289, 0.510, -0.7995, -0.1534),
+    (1.500, 2.000, 0.510, -0.7995, -0.1534, 0.192, -0.7960, -0.1708),
+    (2.000, 3.000, 0.192, -0.7960, -0.1708, -0.280, -0.7960, -0.1954),
     (3.000, 4.000, -0.280, -0.7960, -0.1954, -0.639, -0.7960, -0.2128),
     (4.000, 5.000, -0.639, -0.7960, -0.2128, -0.936, -0.7960, -0.2263),
 ]
@@ -950,8 +1014,18 @@ def _compute_Sa_vec(Ts_13, M, R_2D):
 
             # Compute log(Sa) at the lower (T1, "_F") and upper (T2, "_S") period
             # of the bin
-            f1_F = a1_F + a_mag*(M - c1) + a8_F*(8.5 - M)**2 + (a2_F + a3*(M - c1))*logR
-            f1_S = a1_S + a_mag*(M - c1) + a8_S*(8.5 - M)**2 + (a2_S + a3*(M - c1))*logR
+            f1_F = (
+                a1_F
+                + a_mag * (M - c1)
+                + a8_F * (8.5 - M) ** 2
+                + (a2_F + a3 * (M - c1)) * logR
+            )
+            f1_S = (
+                a1_S
+                + a_mag * (M - c1)
+                + a8_S * (8.5 - M) ** 2
+                + (a2_S + a3 * (M - c1)) * logR
+            )
 
             # Exponentiate to get Sa in g at each bin boundary period
             Sa_F = np.exp(f1_F)
@@ -968,16 +1042,40 @@ def _compute_Sa_vec(Ts_13, M, R_2D):
 # Function 5 — Find triggering cells (initiation points of landslides)
 # =============================================================================
 
+
 def _find_triggering_cells_vectorized(
-        rows, clms, Elev_Mat, Slope_Mat, Depths_vector,
-        Hydro_indicator, Pressures_3D, Theta_3D, Ru,
-        Triggering_Indicator, Strength_indicator, c, Phi,
-        Theta_s, Theta_r, Cohesion_3D_array, Phi_3D_array,
-        Gamma_W, Gamma, t, Earthquake_time_point, PGA_2D_array,
-        Seismic_displacement_threshold, M,
-        Strength_variation_with_theta, top_bot,
-        Seismic_displacement_model, PGV_2D_array,
-        Ts, Rathje_method, Rupture_2D_array):
+    rows,
+    clms,
+    Elev_Mat,
+    Slope_Mat,
+    Depths_vector,
+    Hydro_indicator,
+    Pressures_3D,
+    Theta_3D,
+    Ru,
+    Triggering_Indicator,
+    Strength_indicator,
+    c,
+    Phi,
+    Theta_s,
+    Theta_r,
+    Cohesion_3D_array,
+    Phi_3D_array,
+    Gamma_W,
+    Gamma,
+    t,
+    Earthquake_time_point,
+    PGA_2D_array,
+    Seismic_displacement_threshold,
+    M,
+    Strength_variation_with_theta,
+    top_bot,
+    Seismic_displacement_model,
+    PGV_2D_array,
+    Ts,
+    Rathje_method,
+    Rupture_2D_array,
+):
     """
     Identify all triggering cells (landslide initiation points) for a given
     time step using fully vectorized numpy operations over the entire grid.
@@ -1089,21 +1187,45 @@ def _find_triggering_cells_vectorized(
     cell (1, 1) is excluded for having a NaN (no-data) elevation.
 
     >>> import numpy as np
-    >>> from landlab.components.crisis._crisis_core import _find_triggering_cells_vectorized
-    >>> Elev_Mat  = np.array([[100.0, 90.0], [80.0, np.nan]])
+    >>> from landlab.components.crisis._crisis_core import (
+    ...     _find_triggering_cells_vectorized,
+    ... )
+    >>> Elev_Mat = np.array([[100.0, 90.0], [80.0, np.nan]])
     >>> Slope_Mat = np.array([[45.0, 0.00005], [10.0, 20.0]])
     >>> Depths_vector = np.array([0.0, 1.0, 2.0], dtype=np.float32)
     >>> trig_cells, trig_depths, trig_sources = _find_triggering_cells_vectorized(
-    ...     rows=2, clms=2, Elev_Mat=Elev_Mat, Slope_Mat=Slope_Mat,
+    ...     rows=2,
+    ...     clms=2,
+    ...     Elev_Mat=Elev_Mat,
+    ...     Slope_Mat=Slope_Mat,
     ...     Depths_vector=Depths_vector,
-    ...     Hydro_indicator=1, Pressures_3D=None, Theta_3D=None, Ru=0.8,
-    ...     Triggering_Indicator=1, Strength_indicator=1, c=2.0, Phi=25.0,
-    ...     Theta_s=0.45, Theta_r=0.05, Cohesion_3D_array=None, Phi_3D_array=None,
-    ...     Gamma_W=9.81, Gamma=18.0, t=0, Earthquake_time_point=None,
-    ...     PGA_2D_array=None, Seismic_displacement_threshold=None, M=None,
-    ...     Strength_variation_with_theta=1, top_bot=1,
-    ...     Seismic_displacement_model=None, PGV_2D_array=None, Ts=None,
-    ...     Rathje_method=None, Rupture_2D_array=None)
+    ...     Hydro_indicator=1,
+    ...     Pressures_3D=None,
+    ...     Theta_3D=None,
+    ...     Ru=0.8,
+    ...     Triggering_Indicator=1,
+    ...     Strength_indicator=1,
+    ...     c=2.0,
+    ...     Phi=25.0,
+    ...     Theta_s=0.45,
+    ...     Theta_r=0.05,
+    ...     Cohesion_3D_array=None,
+    ...     Phi_3D_array=None,
+    ...     Gamma_W=9.81,
+    ...     Gamma=18.0,
+    ...     t=0,
+    ...     Earthquake_time_point=None,
+    ...     PGA_2D_array=None,
+    ...     Seismic_displacement_threshold=None,
+    ...     M=None,
+    ...     Strength_variation_with_theta=1,
+    ...     top_bot=1,
+    ...     Seismic_displacement_model=None,
+    ...     PGV_2D_array=None,
+    ...     Ts=None,
+    ...     Rathje_method=None,
+    ...     Rupture_2D_array=None,
+    ... )
     >>> trig_cells.tolist()
     [0, 2]
     >>> trig_depths
@@ -1118,25 +1240,47 @@ def _find_triggering_cells_vectorized(
 
     >>> Depths_vector = np.array([0.5, 1.0, 2.0], dtype=np.float32)
     >>> trig_cells, trig_depths, trig_sources = _find_triggering_cells_vectorized(
-    ...     rows=2, clms=2, Elev_Mat=Elev_Mat, Slope_Mat=Slope_Mat,
+    ...     rows=2,
+    ...     clms=2,
+    ...     Elev_Mat=Elev_Mat,
+    ...     Slope_Mat=Slope_Mat,
     ...     Depths_vector=Depths_vector,
-    ...     Hydro_indicator=1, Pressures_3D=None, Theta_3D=None, Ru=0.8,
-    ...     Triggering_Indicator=1, Strength_indicator=1, c=2.0, Phi=25.0,
-    ...     Theta_s=0.45, Theta_r=0.05, Cohesion_3D_array=None, Phi_3D_array=None,
-    ...     Gamma_W=9.81, Gamma=18.0, t=0, Earthquake_time_point=None,
-    ...     PGA_2D_array=None, Seismic_displacement_threshold=None, M=None,
-    ...     Strength_variation_with_theta=1, top_bot=1,
-    ...     Seismic_displacement_model=None, PGV_2D_array=None, Ts=None,
-    ...     Rathje_method=None, Rupture_2D_array=None)
+    ...     Hydro_indicator=1,
+    ...     Pressures_3D=None,
+    ...     Theta_3D=None,
+    ...     Ru=0.8,
+    ...     Triggering_Indicator=1,
+    ...     Strength_indicator=1,
+    ...     c=2.0,
+    ...     Phi=25.0,
+    ...     Theta_s=0.45,
+    ...     Theta_r=0.05,
+    ...     Cohesion_3D_array=None,
+    ...     Phi_3D_array=None,
+    ...     Gamma_W=9.81,
+    ...     Gamma=18.0,
+    ...     t=0,
+    ...     Earthquake_time_point=None,
+    ...     PGA_2D_array=None,
+    ...     Seismic_displacement_threshold=None,
+    ...     M=None,
+    ...     Strength_variation_with_theta=1,
+    ...     top_bot=1,
+    ...     Seismic_displacement_model=None,
+    ...     PGV_2D_array=None,
+    ...     Ts=None,
+    ...     Rathje_method=None,
+    ...     Rupture_2D_array=None,
+    ... )
     >>> trig_cells.tolist(), trig_depths.tolist()
     ([0, 2], [0.5, 2.0])
     """
     n_dep = len(Depths_vector)
     # Small epsilon to prevent division-by-zero throughout the function
-    eps   = 1e-10
+    eps = 1e-10
 
     # Accept flat (number_of_nodes,) slope / elevation arrays: reshape them to (rows, clms)
-    if np.ndim(Slope_Mat)<2:
+    if np.ndim(Slope_Mat) < 2:
         Slope_Mat = Slope_Mat.reshape(rows, clms)
 
     if np.ndim(Elev_Mat) < 2:
@@ -1146,17 +1290,16 @@ def _find_triggering_cells_vectorized(
     # Valid cells are those with a non-NaN DEM elevation
     valid_mask = ~np.isnan(Elev_Mat)
     # Cells with effectively zero slope are excluded (infinite slope FS is undefined)
-    slope_ok   = Slope_Mat > 0.0001
+    slope_ok = Slope_Mat > 0.0001
     # A candidate cell must be valid AND have a non-trivial slope
-    candidate  = valid_mask & slope_ok
+    candidate = valid_mask & slope_ok
 
     # ── Step 2: Build the 3D pore pressure array (rows × cols × n_dep) ───────
     if Hydro_indicator == 1:
         # Constant Ru model: pore pressure head = Ru × (γ/γ_w) × z
         # broadcast_to avoids allocating a full 3D array in memory
         P_3D = np.broadcast_to(
-            (Ru * Gamma / Gamma_W) * Depths_vector,
-            (rows, clms, n_dep)
+            (Ru * Gamma / Gamma_W) * Depths_vector, (rows, clms, n_dep)
         )
     else:
         # Time-varying pore pressure heads: the 3D array from the HDF5 files
@@ -1169,35 +1312,33 @@ def _find_triggering_cells_vectorized(
         Bishop_3D = 1.0
     else:
         # χ scales with degree of saturation: (θ - θ_r) / (θ_s - θ_r)
-        Bishop_3D = np.clip(
-            (Theta_3D - Theta_r) / (Theta_s - Theta_r + eps), 0.0, 1.0
-        )
+        Bishop_3D = np.clip((Theta_3D - Theta_r) / (Theta_s - Theta_r + eps), 0.0, 1.0)
 
     # ── Step 4: Compute slope geometry, broadcast across depth layers ─────────
     # Add depth axis so that (rows, clms) arrays broadcast with (n_dep,) arrays
-    slope_rad = np.radians(Slope_Mat)[:, :, np.newaxis]   # shape: (rows, clms, 1)
-    sin_s     = np.sin(slope_rad)
-    cos_s     = np.cos(slope_rad)
+    slope_rad = np.radians(Slope_Mat)[:, :, np.newaxis]  # shape: (rows, clms, 1)
+    sin_s = np.sin(slope_rad)
+    cos_s = np.cos(slope_rad)
     # Depth vector reshaped for broadcasting: shape (1, 1, n_dep)
-    D         = Depths_vector[np.newaxis, np.newaxis, :]
+    D = Depths_vector[np.newaxis, np.newaxis, :]
 
     # ── Step 5: Compute Factor of Safety for all cells and depths at once ─────
     # Denominator of the infinite slope FS: γ · z · sin(β) · cos(β)
     denom = Gamma * D * (sin_s * cos_s + eps)
     # Effective normal stress coefficient a1 (accounts for pore pressure and Bishop χ)
-    a1    = (Gamma * D * cos_s**2 - Gamma_W * P_3D * Bishop_3D) / denom
+    a1 = (Gamma * D * cos_s**2 - Gamma_W * P_3D * Bishop_3D) / denom
     # Cohesion coefficient a2
-    a2    = 1.0 / denom
+    a2 = 1.0 / denom
 
     if Strength_indicator == 1:
         # Uniform c and Phi: scalar operations broadcast over the full 3D array
-        FS_3D    = a1 * np.tan(np.radians(Phi)) + a2 * c
+        FS_3D = a1 * np.tan(np.radians(Phi)) + a2 * c
         mask_neg = a1 <= 0
         # When normal effective stress is negative, cohesion alone provides resistance
         FS_3D[mask_neg] = (a2 * c)[mask_neg]
     else:
         # Spatially variable strength: Phi_3D and Cohesion_3D arrays shape (rows, clms, n_dep)
-        FS_3D    = a1 * np.tan(np.radians(Phi_3D_array)) + a2 * Cohesion_3D_array
+        FS_3D = a1 * np.tan(np.radians(Phi_3D_array)) + a2 * Cohesion_3D_array
         mask_neg = a1 <= 0
         FS_3D[mask_neg] = (a2 * Cohesion_3D_array)[mask_neg]
 
@@ -1209,7 +1350,7 @@ def _find_triggering_cells_vectorized(
     FS_3D[~candidate] = 2.0
 
     # Rainfall failure flag: True where FS ≤ 1 (failure criterion)
-    rain_fail_3D  = FS_3D <= 1.0
+    rain_fail_3D = FS_3D <= 1.0
     # Collapse depth dimension: True if any depth layer fails at this cell
     rain_fail_any = np.any(rain_fail_3D, axis=2)
 
@@ -1232,8 +1373,8 @@ def _find_triggering_cells_vectorized(
             depth_idx = (n_dep - 1) - np.argmax(fail_2D[:, ::-1], axis=1)
 
         # Convert (row, col) pairs to flat linear indices
-        trig_cells   = np.ravel_multi_index((fail_rows, fail_cols), (rows, clms))
-        trig_depths  = Depths_vector[depth_idx].astype(np.float32)
+        trig_cells = np.ravel_multi_index((fail_rows, fail_cols), (rows, clms))
+        trig_depths = Depths_vector[depth_idx].astype(np.float32)
         # All triggers at this point are rainfall-induced (source code = 1)
         trig_sources = np.ones(len(trig_cells), dtype=np.int64)
         return trig_cells, trig_depths, trig_sources
@@ -1241,77 +1382,99 @@ def _find_triggering_cells_vectorized(
     # ── Step 7: Earthquake path (at the earthquake timestep only) ─────────────
     # Compute critical acceleration ac: the horizontal acceleration required to
     # just bring the slope to limiting equilibrium (FS = 1)
-    cos2      = cos_s ** 2
+    cos2 = cos_s**2
     tan_slope = np.tan(slope_rad)
     # Broadcast PGA across the depth axis for element-wise operations
-    PGA_3D    = PGA_2D_array[:, :, np.newaxis]
+    PGA_3D = PGA_2D_array[:, :, np.newaxis]
 
     # Select strength parameters for ac computation based on Strength_indicator
     if Strength_indicator == 1:
         tan_phi_ac = np.tan(np.radians(Phi))
-        c_ac       = c
+        c_ac = c
     else:
         tan_phi_ac = np.tan(np.radians(Phi_3D_array))
-        c_ac       = Cohesion_3D_array
+        c_ac = Cohesion_3D_array
 
     # Numerator of the ac / g expression (dimensionless)
-    num_ac   = (c_ac / (Gamma * D * cos2 + eps)
-                + tan_phi_ac * (1.0 - (P_3D * Gamma_W) / (Gamma * D * cos2 + eps))
-                - tan_slope)
+    num_ac = (
+        c_ac / (Gamma * D * cos2 + eps)
+        + tan_phi_ac * (1.0 - (P_3D * Gamma_W) / (Gamma * D * cos2 + eps))
+        - tan_slope
+    )
     # Denominator accounts for the effect of slope angle on the yield coefficient
     denom_ac = 1.0 + tan_phi_ac * tan_slope
-    ky       = num_ac / denom_ac
+    ky = num_ac / denom_ac
     # Floor ac at 0.001 g to avoid numerical issues when ky ≤ 0
-    ac       = np.maximum(ky, 0.001)
+    ac = np.maximum(ky, 0.001)
 
     # Valid cells for seismic displacement: candidate cells below the ground surface
     eq_valid_3D = np.zeros((rows, clms, n_dep), dtype=bool)
     eq_valid_3D[candidate] = True
-    eq_valid_3D[:, :, surface] = False   # a layer at depth 0 (ground surface) is excluded
+    eq_valid_3D[:, :, surface] = (
+        False  # a layer at depth 0 (ground surface) is excluded
+    )
 
     # ── Step 8: Compute Newmark displacement using the selected model ─────────
 
     if Seismic_displacement_model == 1:
         # ── Jibson (2007) — Rigid block ───────────────────────────────────────
         # Displacement is computed only where ac < PGA (i.e. ac/PGA < 1)
-        ac2PGA       = ac / np.maximum(PGA_3D, eps)
+        ac2PGA = ac / np.maximum(PGA_3D, eps)
         eq_fail_mask = eq_valid_3D & (ac2PGA < 1)
         # Clip ratio to valid range for log computation; use safe values elsewhere
-        safe_NM  = np.where(eq_fail_mask, np.clip(ac2PGA, eps, 0.99), 0.5)
+        safe_NM = np.where(eq_fail_mask, np.clip(ac2PGA, eps, 0.99), 0.5)
         safe_1mN = np.where(eq_fail_mask, np.maximum(1.0 - safe_NM, eps), 0.5)
-        with np.errstate(divide='ignore', invalid='ignore'):
+        with np.errstate(divide="ignore", invalid="ignore"):
             # Log term from Jibson (2007) Eq. 7
             log_term = np.where(
-                eq_fail_mask,
-                np.log10(safe_1mN ** 2.335 * safe_NM ** (-1.478)),
-                0.0
+                eq_fail_mask, np.log10(safe_1mN**2.335 * safe_NM ** (-1.478)), 0.0
             )
         # Newmark displacement in cm, capped at 50 cm
-        Dn_3D = np.where(eq_fail_mask,
-                         np.minimum(10 ** (-2.710 + log_term + 0.424 * M), 50.0),
-                         np.nan)
+        Dn_3D = np.where(
+            eq_fail_mask,
+            np.minimum(10 ** (-2.710 + log_term + 0.424 * M), 50.0),
+            np.nan,
+        )
 
     elif Seismic_displacement_model == 2:
         # ── Rathje et al. (2014) — Rigid block ───────────────────────────────
-        ac2PGA       = ac / np.maximum(PGA_3D, eps)
+        ac2PGA = ac / np.maximum(PGA_3D, eps)
         eq_fail_mask = eq_valid_3D & (ac2PGA < 1)
-        safe_r       = np.where(eq_fail_mask, np.clip(ac2PGA, eps, 0.999), 0.5)
-        PGA_sc       = np.maximum(PGA_3D, eps)
+        safe_r = np.where(eq_fail_mask, np.clip(ac2PGA, eps, 0.999), 0.5)
+        PGA_sc = np.maximum(PGA_3D, eps)
         if Rathje_method == 1:
             # PGAM variant: uses PGA and magnitude M
             a1, a2, a3, a4, a5, a6, a7 = 4.89, -4.85, -19.64, 42.49, -29.06, 0.72, 0.89
             Dn_raw = np.exp(
-                a1 + a2*safe_r + a3*safe_r**2 + a4*safe_r**3 + a5*safe_r**4
-                + a6*np.log(PGA_sc) + a7*(M - 6)
+                a1
+                + a2 * safe_r
+                + a3 * safe_r**2
+                + a4 * safe_r**3
+                + a5 * safe_r**4
+                + a6 * np.log(PGA_sc)
+                + a7 * (M - 6)
             )
         else:
             # PGAV variant: uses both PGA and PGV as intensity measures
             PGV_3D = PGV_2D_array[:, :, np.newaxis]
             PGV_sc = np.maximum(PGV_3D, eps)
-            a1, a2, a3, a4, a5, a6, a7 = -1.56, -4.58, -20.84, 44.75, -30.50, -0.64, 1.55
+            a1, a2, a3, a4, a5, a6, a7 = (
+                -1.56,
+                -4.58,
+                -20.84,
+                44.75,
+                -30.50,
+                -0.64,
+                1.55,
+            )
             Dn_raw = np.exp(
-                a1 + a2*safe_r + a3*safe_r**2 + a4*safe_r**3 + a5*safe_r**4
-                + a6*np.log(PGA_sc) + a7*np.log(PGV_sc)
+                a1
+                + a2 * safe_r
+                + a3 * safe_r**2
+                + a4 * safe_r**3
+                + a5 * safe_r**4
+                + a6 * np.log(PGA_sc)
+                + a7 * np.log(PGV_sc)
             )
         # Cap displacement at 50 cm; NaN where no displacement is computed
         Dn_3D = np.where(eq_fail_mask, np.minimum(Dn_raw, 50.0), np.nan)
@@ -1324,14 +1487,16 @@ def _find_triggering_cells_vectorized(
 
         # Closest distance from every cell to the fault rupture (no default)
         if Rupture_2D_array is None:
-            raise ValueError("Seismic_displacement_model = 3 requires Rupture_2D_array.")
+            raise ValueError(
+                "Seismic_displacement_model = 3 requires Rupture_2D_array."
+            )
         R_2D = Rupture_2D_array[:, :, np.newaxis]
 
         # Estimate the predominant period of ground motion Tm
-        Tm_2D = np.exp(-1.00 + 0.18*(M - 6) + 0.0038*R_2D + 0.078*1.0)
+        Tm_2D = np.exp(-1.00 + 0.18 * (M - 6) + 0.0038 * R_2D + 0.078 * 1.0)
 
         # Ratio of sliding-mass period to ground motion period
-        ratio        = Ts / np.maximum(Tm_2D, eps)
+        ratio = Ts / np.maximum(Tm_2D, eps)
         log_ratio_01 = np.log(np.maximum(ratio / 0.1, 1e-6))
         log_ratio_02 = np.log(np.maximum(ratio / 0.2, 1e-6))
 
@@ -1339,20 +1504,21 @@ def _find_triggering_cells_vectorized(
         # equal to PGA otherwise
         kmax = np.where(
             ratio >= 0.1,
-            PGA_3D * np.exp(
-                (0.459 - 0.702*PGA_3D)*log_ratio_01
-                + (-0.228 + 0.076*PGA_3D)*log_ratio_01**2
-            ),
             PGA_3D
+            * np.exp(
+                (0.459 - 0.702 * PGA_3D) * log_ratio_01
+                + (-0.228 + 0.076 * PGA_3D) * log_ratio_01**2
+            ),
+            PGA_3D,
         )
 
         # Displacement is computed only where ac < kmax
-        ac_to_kmax   = ac / np.maximum(kmax, eps)
+        ac_to_kmax = ac / np.maximum(kmax, eps)
         eq_fail_mask = eq_valid_3D & (ac_to_kmax < 1)
 
         # Period-dependent correction factors for the displacement equation
-        f1_Ts = 3.69*Ts - 1.22*Ts**2 if Ts <= 1.5 else 2.78
-        f2_Ts = 1.42*Ts if Ts <= 0.5 else 0.71
+        f1_Ts = 3.69 * Ts - 1.22 * Ts**2 if Ts <= 1.5 else 2.78
+        f2_Ts = 1.42 * Ts if Ts <= 0.5 else 0.71
 
         safe_r = np.where(eq_fail_mask, np.clip(ac_to_kmax, eps, 0.999), 0.5)
         kmax_s = np.where(eq_fail_mask, np.maximum(kmax, eps), 1.0)
@@ -1361,24 +1527,44 @@ def _find_triggering_cells_vectorized(
             # PGAM variant
             a1, a2, a3, a4, a5, a6, a7 = 4.89, -4.85, -19.64, 42.49, -29.06, 0.72, 0.89
             Dn_raw = np.exp(
-                a1 + a2*safe_r + a3*safe_r**2 + a4*safe_r**3 + a5*safe_r**4
-                + a6*np.log(kmax_s) + a7*(M - 6) + f1_Ts
+                a1
+                + a2 * safe_r
+                + a3 * safe_r**2
+                + a4 * safe_r**3
+                + a5 * safe_r**4
+                + a6 * np.log(kmax_s)
+                + a7 * (M - 6)
+                + f1_Ts
             )
         else:
             # PGAV variant: uses maximum velocity coefficient kvel_max
             kvel_max = np.where(
                 ratio >= 0.2,
-                PGV_2D_array[:, :, np.newaxis] * np.exp(
-                    0.240*log_ratio_02
-                    + (-0.091 - 0.171*PGA_3D)*log_ratio_02**2
-                ),
                 PGV_2D_array[:, :, np.newaxis]
+                * np.exp(
+                    0.240 * log_ratio_02 + (-0.091 - 0.171 * PGA_3D) * log_ratio_02**2
+                ),
+                PGV_2D_array[:, :, np.newaxis],
             )
             kvel_s = np.where(eq_fail_mask, np.maximum(kvel_max, eps), 1.0)
-            a1, a2, a3, a4, a5, a6, a7 = -1.56, -4.58, -20.84, 44.75, -30.50, -0.64, 1.55
+            a1, a2, a3, a4, a5, a6, a7 = (
+                -1.56,
+                -4.58,
+                -20.84,
+                44.75,
+                -30.50,
+                -0.64,
+                1.55,
+            )
             Dn_raw = np.exp(
-                a1 + a2*safe_r + a3*safe_r**2 + a4*safe_r**3 + a5*safe_r**4
-                + a6*np.log(kmax_s) + a7*np.log(kvel_s) + f2_Ts
+                a1
+                + a2 * safe_r
+                + a3 * safe_r**2
+                + a4 * safe_r**3
+                + a5 * safe_r**4
+                + a6 * np.log(kmax_s)
+                + a7 * np.log(kvel_s)
+                + f2_Ts
             )
         Dn_3D = np.where(eq_fail_mask, np.minimum(Dn_raw, 50.0), np.nan)
 
@@ -1387,7 +1573,9 @@ def _find_triggering_cells_vectorized(
         # Uses spectral acceleration Sa(1.3Ts) and PGV as intensity measures.
         # Sa is computed from the rupture distance (no default).
         if Rupture_2D_array is None or PGV_2D_array is None:
-            raise ValueError("Seismic_displacement_model = 4 requires Rupture_2D_array and PGV_2D_array.")
+            raise ValueError(
+                "Seismic_displacement_model = 4 requires Rupture_2D_array and PGV_2D_array."
+            )
 
         # Compute effective rupture distance including 4.5 km pseudo-depth
         R_2D = np.sqrt(Rupture_2D_array**2 + 4.5**2)
@@ -1405,9 +1593,23 @@ def _find_triggering_cells_vectorized(
         # equations depending on Ts. Kept for reference only: CRISIS uses the
         # median displacement, not PX, in the failure decision below.
         if Ts <= 0.7:
-            PX = (-2.46 - 2.98*ln_ac - 0.12*ln_ac**2 - 0.71*Ts*ln_ac + 1.69*Ts + 2.76*ln_Sa)
+            PX = (
+                -2.46
+                - 2.98 * ln_ac
+                - 0.12 * ln_ac**2
+                - 0.71 * Ts * ln_ac
+                + 1.69 * Ts
+                + 2.76 * ln_Sa
+            )
         else:
-            PX = (-3.40 - 4.95*ln_ac - 0.30*ln_ac**2 - 0.33*Ts*ln_ac - 0.62*Ts + 2.85*ln_Sa)
+            PX = (
+                -3.40
+                - 4.95 * ln_ac
+                - 0.30 * ln_ac**2
+                - 0.33 * Ts * ln_ac
+                - 0.62 * Ts
+                + 2.85 * ln_Sa
+            )
 
         # PGV array (cm/s), with a depth axis for broadcasting
         PGV_3D = PGV_2D_array[:, :, np.newaxis]
@@ -1420,8 +1622,8 @@ def _find_triggering_cells_vectorized(
 
         # Additional PGV-dependent correction when PGV > 115 cm/s
         pgv_high = PGV_3D > 115.0
-        a4_D     = np.where(pgv_high, 1.0, 0.0)
-        a5_D     = np.where(pgv_high, -4.75, 0.0)
+        a4_D = np.where(pgv_high, 1.0, 0.0)
+        a5_D = np.where(pgv_high, -4.75, 0.0)
 
         # The displacement equation is applied where ac > 0.01 g; cells with
         # ac <= 0.01 g are assigned the 50 cm cap below
@@ -1434,25 +1636,37 @@ def _find_triggering_cells_vectorized(
 
         # Displacement equation (Bray & Macedo 2019, Eq. for median Dn)
         Dn_raw = np.exp(
-            a1_D - 2.491*safe_lna - 0.245*safe_lna**2 + 0.344*safe_lna*safe_lnS
-            + 2.703*safe_lnS - 0.089*safe_lnS**2
-            + a2_D*Ts + a3_D*Ts**2 + 0.607*M
-            + a4_D*safe_lnV + a5_D
+            a1_D
+            - 2.491 * safe_lna
+            - 0.245 * safe_lna**2
+            + 0.344 * safe_lna * safe_lnS
+            + 2.703 * safe_lnS
+            - 0.089 * safe_lnS**2
+            + a2_D * Ts
+            + a3_D * Ts**2
+            + 0.607 * M
+            + a4_D * safe_lnV
+            + a5_D
         )
         # When ac ≤ 0.01, the slope is essentially always failing; assign 50 cm cap
         Dn_raw = np.where(ac <= 0.01, 50.0, Dn_raw)
-        Dn_3D  = np.where(eq_fail_mask | ((ac <= 0.01) & eq_valid_3D),
-                          np.minimum(Dn_raw, 50.0), np.nan)
+        Dn_3D = np.where(
+            eq_fail_mask | ((ac <= 0.01) & eq_valid_3D),
+            np.minimum(Dn_raw, 50.0),
+            np.nan,
+        )
 
     # ── Step 9: Determine which cells fail seismically ────────────────────────
     # A cell is seismically triggered if its Newmark displacement meets the threshold
-    eq_fail_3D = eq_valid_3D & (np.where(np.isnan(Dn_3D), 0.0, Dn_3D) >= Seismic_displacement_threshold)
+    eq_fail_3D = eq_valid_3D & (
+        np.where(np.isnan(Dn_3D), 0.0, Dn_3D) >= Seismic_displacement_threshold
+    )
 
     # ── Step 10: Combine rainfall and seismic failure flags ───────────────────
     # A cell triggers if it fails by rainfall OR by seismic displacement
     combined_3D = rain_fail_3D | eq_fail_3D
     # Collapse depth axis: True if any depth layer triggers at this cell
-    fail_any             = np.any(combined_3D, axis=2)
+    fail_any = np.any(combined_3D, axis=2)
     fail_rows, fail_cols = np.where(fail_any)
 
     # Return empty arrays if no triggering cell is found at this timestep
@@ -1462,30 +1676,30 @@ def _find_triggering_cells_vectorized(
     n_trig = len(fail_rows)
 
     # Convert (row, col) indices to flat linear indices
-    trig_cells  = np.ravel_multi_index((fail_rows, fail_cols), (rows, clms))
+    trig_cells = np.ravel_multi_index((fail_rows, fail_cols), (rows, clms))
 
     # Extract failure-flag profiles for the triggering cells across all depths
     combined_2D = combined_3D[fail_rows, fail_cols, :]
-    rain_2D     = rain_fail_3D[fail_rows, fail_cols, :]
-    eq_2D       = eq_fail_3D[fail_rows, fail_cols, :]
+    rain_2D = rain_fail_3D[fail_rows, fail_cols, :]
+    eq_2D = eq_fail_3D[fail_rows, fail_cols, :]
 
     # Identify the reported failure depth (shallowest or deepest) per cell
     if top_bot == 1:
-        depth_idx = np.argmax(combined_2D, axis=1)            # shallowest
+        depth_idx = np.argmax(combined_2D, axis=1)  # shallowest
     else:
         depth_idx = (n_dep - 1) - np.argmax(combined_2D[:, ::-1], axis=1)  # deepest
 
     # Retrieve actual depth values (m) at the identified depth indices
-    trig_depths  = Depths_vector[depth_idx].astype(np.float32)
+    trig_depths = Depths_vector[depth_idx].astype(np.float32)
 
     # Assign trigger source codes:
     #   1 = rainfall only  |  2 = both rainfall and earthquake  |  3 = earthquake only
     trig_sources = np.zeros(n_trig, dtype=np.int64)
-    idx_range    = np.arange(n_trig)
+    idx_range = np.arange(n_trig)
     in_rain = rain_2D[idx_range, depth_idx]
-    in_eq   = eq_2D[idx_range, depth_idx]
+    in_eq = eq_2D[idx_range, depth_idx]
     trig_sources[in_rain & ~in_eq] = 1
-    trig_sources[in_rain &  in_eq] = 2
+    trig_sources[in_rain & in_eq] = 2
     trig_sources[~in_rain & in_eq] = 3
 
     return trig_cells, trig_depths, trig_sources
@@ -1495,9 +1709,17 @@ def _find_triggering_cells_vectorized(
 # Function 6 — Export landslide polygons to shapefile
 # =============================================================================
 
-def Modeled_landslides_shapefiles(FID_all_times, Cell_size, x, y, t,
-                                  Coordinate_Reference_System, output_dir,
-                                  file_name=None):
+
+def Modeled_landslides_shapefiles(
+    FID_all_times,
+    Cell_size,
+    x,
+    y,
+    t,
+    Coordinate_Reference_System,
+    output_dir,
+    file_name=None,
+):
     """
     Write all cumulative landslide polygons up to time step t as a shapefile.
 
@@ -1549,20 +1771,24 @@ def Modeled_landslides_shapefiles(FID_all_times, Cell_size, x, y, t,
 
     >>> import numpy as np, geopandas as gpd, tempfile, os
     >>> from landlab.components.crisis._crisis_core import Modeled_landslides_shapefiles
-    >>> FID_all_times = np.array([
-    ...     [1.0, 1.0, np.nan],
-    ...     [np.nan, 2.0, 2.0],
-    ... ])
+    >>> FID_all_times = np.array(
+    ...     [
+    ...         [1.0, 1.0, np.nan],
+    ...         [np.nan, 2.0, 2.0],
+    ...     ]
+    ... )
     >>> x = np.array([0.0, 10.0, 20.0])
     >>> y = np.array([0.0, 10.0])
     >>> outdir = tempfile.mkdtemp()
-    >>> Modeled_landslides_shapefiles(FID_all_times, 10.0, x, y, 0, "EPSG:32610", outdir)
+    >>> Modeled_landslides_shapefiles(
+    ...     FID_all_times, 10.0, x, y, 0, "EPSG:32610", outdir
+    ... )
     >>> sorted(os.listdir(outdir))
     ['Predicted_landslides_time_0.cpg', 'Predicted_landslides_time_0.dbf', 'Predicted_landslides_time_0.prj', 'Predicted_landslides_time_0.shp', 'Predicted_landslides_time_0.shx']
     >>> gdf = gpd.read_file(os.path.join(outdir, "Predicted_landslides_time_0.shp"))
     >>> list(gdf.columns)
     ['landslide_', 'geometry']
-    >>> list(gdf['landslide_'])
+    >>> list(gdf["landslide_"])
     [1.0, 2.0]
     >>> gdf.total_bounds
     array([-5., -5., 25., 15.])
@@ -1571,8 +1797,16 @@ def Modeled_landslides_shapefiles(FID_all_times, Cell_size, x, y, t,
     shapefile has no time step in its name:
 
     >>> outdir = tempfile.mkdtemp()
-    >>> Modeled_landslides_shapefiles(FID_all_times, 10.0, x, y, 0, "EPSG:32610", outdir,
-    ...                               file_name="Predicted_landslides.shp")
+    >>> Modeled_landslides_shapefiles(
+    ...     FID_all_times,
+    ...     10.0,
+    ...     x,
+    ...     y,
+    ...     0,
+    ...     "EPSG:32610",
+    ...     outdir,
+    ...     file_name="Predicted_landslides.shp",
+    ... )
     >>> sorted(f for f in os.listdir(outdir) if f.endswith(".shp"))
     ['Predicted_landslides.shp']
     """
@@ -1595,8 +1829,12 @@ def Modeled_landslides_shapefiles(FID_all_times, Cell_size, x, y, t,
 
         # Build a list of axis-aligned bounding boxes, one per landslide cell
         cells = [
-            _shapely_box(x[cols_l[ii]] - h, y[rows_l[ii]] - h,
-                         x[cols_l[ii]] + h, y[rows_l[ii]] + h)
+            _shapely_box(
+                x[cols_l[ii]] - h,
+                y[rows_l[ii]] - h,
+                x[cols_l[ii]] + h,
+                y[rows_l[ii]] + h,
+            )
             for ii in range(len(rows_l))
         ]
 
@@ -1604,24 +1842,31 @@ def Modeled_landslides_shapefiles(FID_all_times, Cell_size, x, y, t,
         merged = _unary_union(cells)
 
         # Create a one-row GeoDataFrame for this landslide
-        gdfs.append(gpd.GeoDataFrame(
-            {'landslide_number': [lid], 'geometry': [merged]},
-            crs=Coordinate_Reference_System
-        ))
+        gdfs.append(
+            gpd.GeoDataFrame(
+                {"landslide_number": [lid], "geometry": [merged]},
+                crs=Coordinate_Reference_System,
+            )
+        )
 
     # Combine all landslide GeoDataFrames into one; create empty frame if none
-    gdf_all = pd.concat(gdfs, ignore_index=True) if gdfs else gpd.GeoDataFrame(
-        columns=['landslide_number', 'geometry'], crs=Coordinate_Reference_System
+    gdf_all = (
+        pd.concat(gdfs, ignore_index=True)
+        if gdfs
+        else gpd.GeoDataFrame(
+            columns=["landslide_number", "geometry"], crs=Coordinate_Reference_System
+        )
     )
 
     # Write to a shapefile named by time step (or by file_name, e.g. for a steady-state run)
-    out_path = Path(output_dir) / (file_name or f'Predicted_landslides_time_{t}.shp')
+    out_path = Path(output_dir) / (file_name or f"Predicted_landslides_time_{t}.shp")
     gdf_all.to_file(str(out_path))
 
 
 # =============================================================================
 # Function 7 — Excel output writers
 # =============================================================================
+
 
 def to_north_to_south_index(linear_index, grid_shape):
     """Convert Landlab linear indices to north-up (DEM file) row order.
@@ -1707,16 +1952,22 @@ def _save_individual_excel(state, output_dir, grid_shape, steady_state=False):
     >>> import pandas as pd, tempfile, os
     >>> from landlab.components.crisis._crisis_core import _save_individual_excel
     >>> state = {
-    ...     'Individual_Current_triggering_linear_indices_with_time': [[0, 1], [2]],
-    ...     'Individual_Current_triggering_depths_with_time':         [[1.0, 2.0], [1.5]],
-    ...     'Individual_Current_triggering_sources_with_time':        [[1, 1], [1]],
-    ...     'Individual_Current_areas_with_time':                     [[16.0, 8.0], [4.0]],
-    ...     'Individual_Current_volumes_with_time':                   [[11.9, 5.0], [2.0]],
-    ...     'Individual_Cumulative_triggering_linear_indices_with_time': [[0, 1], [0, 1, 2]],
-    ...     'Individual_Cumulative_triggering_depths_with_time':         [[1.0, 2.0], [1.0, 2.0, 1.5]],
-    ...     'Individual_Cumulative_triggering_sources_with_time':        [[1, 1], [1, 1, 1]],
-    ...     'Individual_Cumulative_areas_with_time':                     [[16.0, 8.0], [16.0, 8.0, 4.0]],
-    ...     'Individual_Cumulative_volumes_with_time':                   [[11.9, 5.0], [11.9, 5.0, 2.0]],
+    ...     "Individual_Current_triggering_linear_indices_with_time": [[0, 1], [2]],
+    ...     "Individual_Current_triggering_depths_with_time": [[1.0, 2.0], [1.5]],
+    ...     "Individual_Current_triggering_sources_with_time": [[1, 1], [1]],
+    ...     "Individual_Current_areas_with_time": [[16.0, 8.0], [4.0]],
+    ...     "Individual_Current_volumes_with_time": [[11.9, 5.0], [2.0]],
+    ...     "Individual_Cumulative_triggering_linear_indices_with_time": [
+    ...         [0, 1],
+    ...         [0, 1, 2],
+    ...     ],
+    ...     "Individual_Cumulative_triggering_depths_with_time": [
+    ...         [1.0, 2.0],
+    ...         [1.0, 2.0, 1.5],
+    ...     ],
+    ...     "Individual_Cumulative_triggering_sources_with_time": [[1, 1], [1, 1, 1]],
+    ...     "Individual_Cumulative_areas_with_time": [[16.0, 8.0], [16.0, 8.0, 4.0]],
+    ...     "Individual_Cumulative_volumes_with_time": [[11.9, 5.0], [11.9, 5.0, 2.0]],
     ... }
     >>> outdir = tempfile.mkdtemp()
     >>> _save_individual_excel(state, outdir, grid_shape=(2, 3))
@@ -1743,6 +1994,7 @@ def _save_individual_excel(state, output_dir, grid_shape, steady_state=False):
     >>> xl.parse("Triggering_Cells")["Triggering cell"].tolist()
     [3, 4, 5]
     """
+
     def to_df(key):
         # pad_rows makes the ragged list rectangular, then transpose so that
         # time steps become columns (few) and landslides become rows (many),
@@ -1752,7 +2004,7 @@ def _save_individual_excel(state, output_dir, grid_shape, steady_state=False):
             # Landlab node IDs -> row-major indices with rows from north to south, like all output files
             rows = [to_north_to_south_index(r, grid_shape).tolist() for r in rows]
         df = pd.DataFrame(pad_rows(rows)).T
-        df.columns = [f't={i}' for i in range(df.shape[1])]
+        df.columns = [f"t={i}" for i in range(df.shape[1])]
         return df
 
     if steady_state:
@@ -1764,43 +2016,71 @@ def _save_individual_excel(state, output_dir, grid_shape, steady_state=False):
                 values = to_north_to_south_index(values, grid_shape).tolist()
             return values
 
-        path = Path(output_dir) / 'Individual_landslides.xlsx'
-        with pd.ExcelWriter(str(path), engine='openpyxl') as writer:
+        path = Path(output_dir) / "Individual_landslides.xlsx"
+        with pd.ExcelWriter(str(path), engine="openpyxl") as writer:
             for key, sheet, column in (
-                ('Individual_Cumulative_triggering_linear_indices_with_time', 'Triggering_Cells',    'Triggering cell'),
-                ('Individual_Cumulative_triggering_depths_with_time',         'Triggering_Depths_m', 'Triggering depth (m)'),
-                ('Individual_Cumulative_triggering_sources_with_time',        'Triggering_Sources',  'Triggering source'),
-                ('Individual_Cumulative_areas_with_time',                     'Areas_m2',            'Area (m^2)'),
-                ('Individual_Cumulative_volumes_with_time',                   'Volumes_m3',          'Volume (m^3)'),
+                (
+                    "Individual_Cumulative_triggering_linear_indices_with_time",
+                    "Triggering_Cells",
+                    "Triggering cell",
+                ),
+                (
+                    "Individual_Cumulative_triggering_depths_with_time",
+                    "Triggering_Depths_m",
+                    "Triggering depth (m)",
+                ),
+                (
+                    "Individual_Cumulative_triggering_sources_with_time",
+                    "Triggering_Sources",
+                    "Triggering source",
+                ),
+                ("Individual_Cumulative_areas_with_time", "Areas_m2", "Area (m^2)"),
+                (
+                    "Individual_Cumulative_volumes_with_time",
+                    "Volumes_m3",
+                    "Volume (m^3)",
+                ),
             ):
-                pd.DataFrame({column: last(key)}).to_excel(writer, sheet_name=sheet, index=False)
+                pd.DataFrame({column: last(key)}).to_excel(
+                    writer, sheet_name=sheet, index=False
+                )
         return
 
-    path = Path(output_dir) / 'Individual_landslides_with_time.xlsx'
-    with pd.ExcelWriter(str(path), engine='openpyxl') as writer:
-        kw = dict(index=False, header=True, na_rep='')
+    path = Path(output_dir) / "Individual_landslides_with_time.xlsx"
+    with pd.ExcelWriter(str(path), engine="openpyxl") as writer:
+        kw = dict(index=False, header=True, na_rep="")
         # ── Current (new-at-this-timestep) landslide data ─────────────────────
-        to_df('Individual_Current_triggering_linear_indices_with_time'
-              ).to_excel(writer, sheet_name='Triggering_Cells_Current',       **kw)
-        to_df('Individual_Current_triggering_depths_with_time'
-              ).to_excel(writer, sheet_name='Triggering_Depths_Current_m',    **kw)
-        to_df('Individual_Current_triggering_sources_with_time'
-              ).to_excel(writer, sheet_name='Triggering_Sources_Current',     **kw)
-        to_df('Individual_Current_areas_with_time'
-              ).to_excel(writer, sheet_name='Areas_Current_m2',               **kw)
-        to_df('Individual_Current_volumes_with_time'
-              ).to_excel(writer, sheet_name='Volumes_Current_m3',             **kw)
+        to_df("Individual_Current_triggering_linear_indices_with_time").to_excel(
+            writer, sheet_name="Triggering_Cells_Current", **kw
+        )
+        to_df("Individual_Current_triggering_depths_with_time").to_excel(
+            writer, sheet_name="Triggering_Depths_Current_m", **kw
+        )
+        to_df("Individual_Current_triggering_sources_with_time").to_excel(
+            writer, sheet_name="Triggering_Sources_Current", **kw
+        )
+        to_df("Individual_Current_areas_with_time").to_excel(
+            writer, sheet_name="Areas_Current_m2", **kw
+        )
+        to_df("Individual_Current_volumes_with_time").to_excel(
+            writer, sheet_name="Volumes_Current_m3", **kw
+        )
         # ── Cumulative (all-time) landslide data ──────────────────────────────
-        to_df('Individual_Cumulative_triggering_linear_indices_with_time'
-              ).to_excel(writer, sheet_name='Triggering_Cells_Cumulative',    **kw)
-        to_df('Individual_Cumulative_triggering_depths_with_time'
-              ).to_excel(writer, sheet_name='Triggering_Depths_Cumulative_m', **kw)
-        to_df('Individual_Cumulative_triggering_sources_with_time'
-              ).to_excel(writer, sheet_name='Triggering_Sources_Cumulative',  **kw)
-        to_df('Individual_Cumulative_areas_with_time'
-              ).to_excel(writer, sheet_name='Areas_Cumulative_m2',            **kw)
-        to_df('Individual_Cumulative_volumes_with_time'
-              ).to_excel(writer, sheet_name='Volumes_Cumulative_m3',          **kw)
+        to_df("Individual_Cumulative_triggering_linear_indices_with_time").to_excel(
+            writer, sheet_name="Triggering_Cells_Cumulative", **kw
+        )
+        to_df("Individual_Cumulative_triggering_depths_with_time").to_excel(
+            writer, sheet_name="Triggering_Depths_Cumulative_m", **kw
+        )
+        to_df("Individual_Cumulative_triggering_sources_with_time").to_excel(
+            writer, sheet_name="Triggering_Sources_Cumulative", **kw
+        )
+        to_df("Individual_Cumulative_areas_with_time").to_excel(
+            writer, sheet_name="Areas_Cumulative_m2", **kw
+        )
+        to_df("Individual_Cumulative_volumes_with_time").to_excel(
+            writer, sheet_name="Volumes_Cumulative_m3", **kw
+        )
 
 
 def _save_summary_excel(state, output_dir, steady_state=False):
@@ -1832,12 +2112,12 @@ def _save_summary_excel(state, output_dir, steady_state=False):
     >>> import numpy as np, pandas as pd, tempfile, os
     >>> from landlab.components.crisis._crisis_core import _save_summary_excel
     >>> state = {
-    ...     'Total_Current_NL_vector_with_time':        np.array([2.0, 1.0]),
-    ...     'Total_Current_Area_vector_with_time':      np.array([24.0, 4.0]),
-    ...     'Total_Current_Volume_vector_with_time':    np.array([16.9, 2.0]),
-    ...     'Total_Cumulative_NL_vector_with_time':     np.array([2.0, 3.0]),
-    ...     'Total_Cumulative_Area_vector_with_time':   np.array([24.0, 28.0]),
-    ...     'Total_Cumulative_Volume_vector_with_time': np.array([16.9, 18.9]),
+    ...     "Total_Current_NL_vector_with_time": np.array([2.0, 1.0]),
+    ...     "Total_Current_Area_vector_with_time": np.array([24.0, 4.0]),
+    ...     "Total_Current_Volume_vector_with_time": np.array([16.9, 2.0]),
+    ...     "Total_Cumulative_NL_vector_with_time": np.array([2.0, 3.0]),
+    ...     "Total_Cumulative_Area_vector_with_time": np.array([24.0, 28.0]),
+    ...     "Total_Cumulative_Volume_vector_with_time": np.array([16.9, 18.9]),
     ... }
     >>> outdir = tempfile.mkdtemp()
     >>> _save_summary_excel(state, outdir)
@@ -1846,9 +2126,9 @@ def _save_summary_excel(state, output_dir, steady_state=False):
     >>> summary = pd.read_excel(os.path.join(outdir, "Total_landslides_with_time.xlsx"))
     >>> list(summary.columns)
     ['Time', 'Current Number of Landslides', 'Current Total Area (m^2)', 'Current Total Volume (m^3)', 'Cumulative Number of Landslides', 'Cumulative Total Area (m^2)', 'Cumulative Total Volume (m^3)']
-    >>> summary['Time'].tolist()
+    >>> summary["Time"].tolist()
     ['t=0', 't=1']
-    >>> summary['Cumulative Total Volume (m^3)'].tolist()
+    >>> summary["Cumulative Total Volume (m^3)"].tolist()
     [16.9, 18.9]
 
     In a steady-state run (constant Ru, a single time step), the workbook has
@@ -1866,23 +2146,46 @@ def _save_summary_excel(state, output_dir, steady_state=False):
     """
     if steady_state:
         # steady state (constant Ru): a single row with the totals of the run
-        df = pd.DataFrame({
-            'Number of Landslides': [state['Total_Cumulative_NL_vector_with_time'][-1]],
-            'Total Area (m^2)':     [state['Total_Cumulative_Area_vector_with_time'][-1]],
-            'Total Volume (m^3)':   [state['Total_Cumulative_Volume_vector_with_time'][-1]],
-        })
-        df.to_excel(str(Path(output_dir) / 'Total_landslides.xlsx'), index=False, engine='openpyxl', na_rep='NaN')
+        df = pd.DataFrame(
+            {
+                "Number of Landslides": [
+                    state["Total_Cumulative_NL_vector_with_time"][-1]
+                ],
+                "Total Area (m^2)": [
+                    state["Total_Cumulative_Area_vector_with_time"][-1]
+                ],
+                "Total Volume (m^3)": [
+                    state["Total_Cumulative_Volume_vector_with_time"][-1]
+                ],
+            }
+        )
+        df.to_excel(
+            str(Path(output_dir) / "Total_landslides.xlsx"),
+            index=False,
+            engine="openpyxl",
+            na_rep="NaN",
+        )
         return
 
-    n_time = len(state['Total_Current_NL_vector_with_time'])
-    df = pd.DataFrame({
-        'Time':                            [f't={i}' for i in range(n_time)],
-        'Current Number of Landslides':    state['Total_Current_NL_vector_with_time'],
-        'Current Total Area (m^2)':        state['Total_Current_Area_vector_with_time'],
-        'Current Total Volume (m^3)':      state['Total_Current_Volume_vector_with_time'],
-        'Cumulative Number of Landslides': state['Total_Cumulative_NL_vector_with_time'],
-        'Cumulative Total Area (m^2)':     state['Total_Cumulative_Area_vector_with_time'],
-        'Cumulative Total Volume (m^3)':   state['Total_Cumulative_Volume_vector_with_time'],
-    })
-    path = Path(output_dir) / 'Total_landslides_with_time.xlsx'
-    df.to_excel(str(path), index=False, engine='openpyxl', na_rep='NaN')
+    n_time = len(state["Total_Current_NL_vector_with_time"])
+    df = pd.DataFrame(
+        {
+            "Time": [f"t={i}" for i in range(n_time)],
+            "Current Number of Landslides": state["Total_Current_NL_vector_with_time"],
+            "Current Total Area (m^2)": state["Total_Current_Area_vector_with_time"],
+            "Current Total Volume (m^3)": state[
+                "Total_Current_Volume_vector_with_time"
+            ],
+            "Cumulative Number of Landslides": state[
+                "Total_Cumulative_NL_vector_with_time"
+            ],
+            "Cumulative Total Area (m^2)": state[
+                "Total_Cumulative_Area_vector_with_time"
+            ],
+            "Cumulative Total Volume (m^3)": state[
+                "Total_Cumulative_Volume_vector_with_time"
+            ],
+        }
+    )
+    path = Path(output_dir) / "Total_landslides_with_time.xlsx"
+    df.to_excel(str(path), index=False, engine="openpyxl", na_rep="NaN")

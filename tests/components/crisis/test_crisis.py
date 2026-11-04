@@ -1,6 +1,4 @@
-"""Test the CRISIS component.
-
-"""
+"""Test the CRISIS component."""
 
 import io
 
@@ -71,7 +69,6 @@ def _params(output_dir, **kwds):
 @pytest.fixture
 def grid():
     return _sloped_grid()
-
 
 
 def test_node_to_2d():
