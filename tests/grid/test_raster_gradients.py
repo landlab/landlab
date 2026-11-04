@@ -36,7 +36,6 @@ def test_calc_grad_at_link_matches(shape, spacing):
     assert_array_almost_equal(actual, expected)
 
 
-
 @pytest.mark.parametrize("func", [calc_diff_at_link, calc_grad_at_link])
 @pytest.mark.parametrize("size", [0, 19, 21, 31])
 def test_calc_at_link_bad_value_size(func, size):
@@ -67,6 +66,7 @@ def test_calc_at_link_accepts_2d_values(func):
     grid = RasterModelGrid((4, 5))
     values = np.arange(20.0)
     assert_array_equal(func(grid, values.reshape(grid.shape)), func(grid, values))
+
 
 def test_calc_grad_at_active_d8():
     grid = RasterModelGrid((3, 4), xy_spacing=(4, 3))
