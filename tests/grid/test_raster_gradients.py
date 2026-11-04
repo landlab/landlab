@@ -15,11 +15,10 @@ from landlab.grid.raster_gradients import calc_grad_at_link
 def test_calc_diff_at_link_matches(shape, spacing):
     grid = RasterModelGrid(shape, xy_spacing=spacing)
 
-    value_at_link = np.random.uniform(size=grid.number_of_links)
-    actual = grid.empty(at="node")
+    value_at_node = np.random.uniform(size=grid.number_of_nodes)
 
-    expected = calc_diff_at_link_slow(grid, value_at_link)
-    actual = calc_diff_at_link(grid, value_at_link)
+    expected = calc_diff_at_link_slow(grid, value_at_node)
+    actual = calc_diff_at_link(grid, value_at_node)
 
     assert_array_almost_equal(actual, expected)
 
@@ -29,14 +28,45 @@ def test_calc_diff_at_link_matches(shape, spacing):
 def test_calc_grad_at_link_matches(shape, spacing):
     grid = RasterModelGrid(shape, xy_spacing=spacing)
 
-    value_at_link = np.random.uniform(size=grid.number_of_links)
-    actual = grid.empty(at="node")
+    value_at_node = np.random.uniform(size=grid.number_of_nodes)
 
-    expected = calc_grad_at_link_slow(grid, value_at_link)
-    actual = calc_grad_at_link(grid, value_at_link)
+    expected = calc_grad_at_link_slow(grid, value_at_node)
+    actual = calc_grad_at_link(grid, value_at_node)
 
     assert_array_almost_equal(actual, expected)
 
+
+
+@pytest.mark.parametrize("func", [calc_diff_at_link, calc_grad_at_link])
+@pytest.mark.parametrize("size", [0, 19, 21, 31])
+def test_calc_at_link_bad_value_size(func, size):
+    grid = RasterModelGrid((4, 5))
+    with pytest.raises(ValueError, match="value_at_node"):
+        func(grid, np.zeros(size))
+
+
+@pytest.mark.parametrize("func", [calc_diff_at_link, calc_grad_at_link])
+@pytest.mark.parametrize("size", [0, 3, 30, 32])
+def test_calc_at_link_bad_out_size(func, size):
+    grid = RasterModelGrid((4, 5))
+    with pytest.raises(ValueError, match="out"):
+        func(grid, np.zeros(grid.number_of_nodes), out=np.empty(size))
+
+
+@pytest.mark.parametrize("func", [calc_diff_at_link, calc_grad_at_link])
+def test_calc_at_link_read_only_out(func):
+    grid = RasterModelGrid((4, 5))
+    out = np.empty(grid.number_of_links)
+    out.flags.writeable = False
+    with pytest.raises(ValueError, match="out"):
+        func(grid, np.zeros(grid.number_of_nodes), out=out)
+
+
+@pytest.mark.parametrize("func", [calc_diff_at_link, calc_grad_at_link])
+def test_calc_at_link_accepts_2d_values(func):
+    grid = RasterModelGrid((4, 5))
+    values = np.arange(20.0)
+    assert_array_equal(func(grid, values.reshape(grid.shape)), func(grid, values))
 
 def test_calc_grad_at_active_d8():
     grid = RasterModelGrid((3, 4), xy_spacing=(4, 3))
