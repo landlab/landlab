@@ -35,8 +35,8 @@ _FIVE_BY_THREE = 5.0 / 3.0
 _WICKERT_ROUGHNESS_FACTOR = 0.17
 _POINT_FIVE = 0.5
 _THREE_BY_TWO = 3.0 / 2.0
-
-_WICKERT_MANNINGS_FACTOR = 5.9 * _EARTH_GRAV  ** 0.5
+#_WICKERT_MANNINGS_FACTOR = 5.9 * _EARTH_GRAV  ** 0.5
+_WICKERT_MANNINGS_FACTOR = _EARTH_GRAV ** 0.5 / _WICKERT_ROUGHNESS_FACTOR
 
 def _calc_chan_width_fixed_width(coeff, expt, discharge, core_nodes, out=None):
     """Calculate channel width according to water discharge using empirical formula
