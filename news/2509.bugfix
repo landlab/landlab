@@ -1,0 +1,3 @@
+Fixed `IcosphereGlobalGrid.area_of_cell`, which was wrong for the hexagonal cells
+of densified icospheres and did not sum to the area of the sphere; cell areas are
+now the sum of the spherical triangles between the node and its corners.
