@@ -52,6 +52,10 @@ dependencies = [
   "statsmodels",
   "pandas",
   "xarray >= 0.16",
+  "geopandas",
+  "h5py",
+  "openpyxl",
+
 ]
 dynamic = ["readme"]
 

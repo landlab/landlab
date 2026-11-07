@@ -170,9 +170,13 @@ def read_ascii_header(file_path):
     if hasattr(file_path, "read"):
         file_path.seek(0)
     with (
+<<<<<<< Updated upstream
         open(file_path)
         if not hasattr(file_path, "read")
         else nullcontext(file_path)
+=======
+        open(file_path) if not hasattr(file_path, "read") else nullcontext(file_path)
+>>>>>>> Stashed changes
     ) as f:
         for line in f:
             parts = line.split()
@@ -189,12 +193,12 @@ def read_ascii_header(file_path):
     # check the required keys
     for key in ("ncols", "nrows", "cellsize"):
         if key not in header:
-            raise ValueError(f"ASCII header of '{file_path}' is missing '{key}'.")
+            raise ValueError(f"ASCII header of {file_path!r} is missing {key!r}.")
     for corner, center in (("xllcorner", "xllcenter"), ("yllcorner", "yllcenter")):
         if (corner in header) == (center in header):
             raise ValueError(
-                f"ASCII header of '{file_path}' must contain exactly one of "
-                f"'{corner}' or '{center}'."
+                f"ASCII header of {file_path!r} must contain exactly one of "
+                f"{corner!r} or {center!r}."
             )
 
     header["ncols"] = int(header["ncols"])
@@ -1602,7 +1606,11 @@ def _find_triggering_cells_vectorized(
                 + 2.76 * ln_Sa
             )
         else:
+<<<<<<< Updated upstream
             PX = (
+=======
+            PX = (  # noqa: F841
+>>>>>>> Stashed changes
                 -3.40
                 - 4.95 * ln_ac
                 - 0.30 * ln_ac**2
@@ -1784,7 +1792,9 @@ def Modeled_landslides_shapefiles(
     ...     FID_all_times, 10.0, x, y, 0, "EPSG:32610", outdir
     ... )
     >>> sorted(os.listdir(outdir))
-    ['Predicted_landslides_time_0.cpg', 'Predicted_landslides_time_0.dbf', 'Predicted_landslides_time_0.prj', 'Predicted_landslides_time_0.shp', 'Predicted_landslides_time_0.shx']
+    ['Predicted_landslides_time_0.cpg', 'Predicted_landslides_time_0.dbf',
+     'Predicted_landslides_time_0.prj', 'Predicted_landslides_time_0.shp',
+     'Predicted_landslides_time_0.shx']
     >>> gdf = gpd.read_file(os.path.join(outdir, "Predicted_landslides_time_0.shp"))
     >>> list(gdf.columns)
     ['landslide_', 'geometry']
@@ -1975,7 +1985,11 @@ def _save_individual_excel(state, output_dir, grid_shape, steady_state=False):
     ['Individual_landslides_with_time.xlsx']
     >>> xl = pd.ExcelFile(os.path.join(outdir, "Individual_landslides_with_time.xlsx"))
     >>> xl.sheet_names
-    ['Triggering_Cells_Current', 'Triggering_Depths_Current_m', 'Triggering_Sources_Current', 'Areas_Current_m2', 'Volumes_Current_m3', 'Triggering_Cells_Cumulative', 'Triggering_Depths_Cumulative_m', 'Triggering_Sources_Cumulative', 'Areas_Cumulative_m2', 'Volumes_Cumulative_m3']
+    ['Triggering_Cells_Current', 'Triggering_Depths_Current_m',
+     'Triggering_Sources_Current', 'Areas_Current_m2', 'Volumes_Current_m3',
+     'Triggering_Cells_Cumulative', 'Triggering_Depths_Cumulative_m',
+     'Triggering_Sources_Cumulative', 'Areas_Cumulative_m2',
+     'Volumes_Cumulative_m3']
     >>> xl.parse("Triggering_Cells_Current")
        t=0  t=1
     0    3  5.0
@@ -2001,7 +2015,8 @@ def _save_individual_excel(state, output_dir, grid_shape, steady_state=False):
         # which fits Excel's row limit better
         rows = state[key]
         if "triggering_linear_indices" in key:
-            # Landlab node IDs -> row-major indices with rows from north to south, like all output files
+            # Landlab node IDs -> row-major indices with rows from north to
+            # south, like all output files
             rows = [to_north_to_south_index(r, grid_shape).tolist() for r in rows]
         df = pd.DataFrame(pad_rows(rows)).T
         df.columns = [f"t={i}" for i in range(df.shape[1])]
@@ -2048,7 +2063,12 @@ def _save_individual_excel(state, output_dir, grid_shape, steady_state=False):
 
     path = Path(output_dir) / "Individual_landslides_with_time.xlsx"
     with pd.ExcelWriter(str(path), engine="openpyxl") as writer:
+<<<<<<< Updated upstream
         kw = dict(index=False, header=True, na_rep="")
+=======
+        # kw = dict(index=False, header=True, na_rep="")
+        kw = {"index": False, "header": True, "na_rep": ""}
+>>>>>>> Stashed changes
         # ── Current (new-at-this-timestep) landslide data ─────────────────────
         to_df("Individual_Current_triggering_linear_indices_with_time").to_excel(
             writer, sheet_name="Triggering_Cells_Current", **kw
@@ -2125,7 +2145,13 @@ def _save_summary_excel(state, output_dir, steady_state=False):
     ['Total_landslides_with_time.xlsx']
     >>> summary = pd.read_excel(os.path.join(outdir, "Total_landslides_with_time.xlsx"))
     >>> list(summary.columns)
+<<<<<<< Updated upstream
     ['Time', 'Current Number of Landslides', 'Current Total Area (m^2)', 'Current Total Volume (m^3)', 'Cumulative Number of Landslides', 'Cumulative Total Area (m^2)', 'Cumulative Total Volume (m^3)']
+=======
+    ['Time', 'Current Number of Landslides', 'Current Total Area (m^2)',
+     'Current Total Volume (m^3)', 'Cumulative Number of Landslides',
+     'Cumulative Total Area (m^2)', 'Cumulative Total Volume (m^3)']
+>>>>>>> Stashed changes
     >>> summary["Time"].tolist()
     ['t=0', 't=1']
     >>> summary["Cumulative Total Volume (m^3)"].tolist()

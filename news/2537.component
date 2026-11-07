@@ -1,0 +1,1 @@
+Added a new component, {class}`~.CrisisComponent`, that models  shallow rainfall- and earthquake-triggered landslides. CRISIS (Coupled Regional Rainfall-Induced and Seismic Slope Instability Simulations), evaluates slope stability and generates realistic pseudo-3D landslide geometries triggered by rainfall and/or earthquake.

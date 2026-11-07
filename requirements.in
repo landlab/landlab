@@ -11,3 +11,6 @@ rich-click
 scipy
 statsmodels
 xarray >= 0.16
+geopandas
+h5py
+openpyxl>=3.1.5

@@ -15,10 +15,12 @@
             University of California, Berkeley
             zekkos@berkeley.edu
 
-            Code was also written and reviewed by Yuval Shmilovitz (Yuval.Shmilovitz@colorado.edu)
+            Code was also written and reviewed by Yuval Shmilovitz
+            (Yuval.Shmilovitz@colorado.edu)
 
-   Documentation: Additional documentation and manual stored at https://github.com/kassemmirna/CRISIS-Landlab-Component-Documentation
-=============================================================================
+   Documentation: Additional documentation and manual stored at
+   https://github.com/kassemmirna/CRISIS-Landlab-Component-Documentation
+   =============================================================================
 """
 
 # =============================================================================
@@ -32,7 +34,10 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+<<<<<<< Updated upstream
 import h5py
+=======
+>>>>>>> Stashed changes
 import numpy as np
 
 from landlab import Component
@@ -44,10 +49,7 @@ Gamma_W = 9.81  # unit weight of water (kN/m³)
 # _crisis_core.py sits next to this file: import it relative to the package when
 # this file is imported as part of Landlab (landlab.components.crisis), and
 # directly when imported from its own folder.
-try:
-    from . import _crisis_core as _core
-except ImportError:
-    import _crisis_core as _core
+from . import _crisis_core as _core
 
 _build_upslope_map = _core._build_upslope_map
 _find_triggering_cells_vectorized = _core._find_triggering_cells_vectorized
@@ -209,8 +211,8 @@ def check_params(params):
     ...
     ValueError: Missing or invalid entries in params:
       - hydro_files_dir is missing (required when Hydrological_model_indicator = 2)
-      - Strength_variation_with_theta is missing (required when Hydrological_model_indicator = 2)
-
+      - Strength_variation_with_theta is missing (required when
+        Hydrological_model_indicator = 2)
     A coupled run with the Bray & Macedo model needs the earthquake keys:
 
     >>> check_params(
@@ -229,8 +231,9 @@ def check_params(params):
       - M is missing (required when Seismic_displacement_model = 4)
       - pgv_file is missing (required when Seismic_displacement_model = 4)
       - Ts is missing (required when Seismic_displacement_model = 4)
-      - fault_X1, fault_Y1, fault_Z1, fault_X2, fault_Y2, fault_Z2, fault_X3, fault_Y3, fault_Z3, fault_X4, fault_Y4, fault_Z4 are missing (required when Seismic_displacement_model = 4)
-
+      - fault_X1, fault_Y1, fault_Z1, fault_X2, fault_Y2, fault_Z2, fault_X3,
+        fault_Y3, fault_Z3, fault_X4, fault_Y4, fault_Z4 are missing (required
+        when Seismic_displacement_model = 4)
     With a constant Ru (a single time step), the earthquake can only be at
     time step 0:
 
@@ -248,8 +251,8 @@ def check_params(params):
     Traceback (most recent call last):
     ...
     ValueError: Missing or invalid entries in params:
-      - Earthquake_time_point must be 0 with Hydrological_model_indicator = 1 (a single time step), not 3
-
+      - Earthquake_time_point must be 0 with Hydrological_model_indicator = 1
+        (a single time step), not 3
     Values that are not allowed are reported too (every indicator starts at
     1):
 
@@ -418,15 +421,15 @@ def _count_time_steps(folder, prefix, Depth_points):
     >>> _count_time_steps(folder, "Pressure_head", Depth_points=3)
     Traceback (most recent call last):
     ...
-    FileNotFoundError: Pressure_head files: time step T0 is missing depth layer(s) Z3 (expected Z1 ... Z3 for every time step).
-
+    FileNotFoundError: Pressure_head files: time step T0 is missing depth
+    layer(s) Z3 (expected Z1 ... Z3 for every time step).
     and no depth layer beyond ``Depth_points``:
 
     >>> _count_time_steps(folder, "Pressure_head", Depth_points=1)
     Traceback (most recent call last):
     ...
-    ValueError: Pressure_head files: time step T0 has depth layer(s) Z2 beyond Depth_points = 1 (expected exactly Z1 ... Z1 for every time step).
-
+    ValueError: Pressure_head files: time step T0 has depth layer(s) Z2 beyond
+    Depth_points = 1 (expected exactly Z1 ... Z1 for every time step).
     The time steps must have no gap:
 
     >>> for z in (1, 2):
@@ -435,8 +438,8 @@ def _count_time_steps(folder, prefix, Depth_points):
     >>> _count_time_steps(folder, "Pressure_head", Depth_points=2)
     Traceback (most recent call last):
     ...
-    FileNotFoundError: Pressure_head files: time step(s) T1 missing (found T0 ... T2; the time steps must be T0, T1, ... without gaps).
-    """
+    FileNotFoundError: Pressure_head files: time step(s) T1 missing (found
+    T0 ... T2; the time steps must be T0, T1, ... without gaps)."""
     pattern = re.compile(rf"^{re.escape(prefix)}_T(\d+)Z(\d+)\.h5$")
     layers = {}  # time step -> set of depth layers found
     for path in Path(folder).iterdir() if Path(folder).is_dir() else ():
@@ -445,7 +448,7 @@ def _count_time_steps(folder, prefix, Depth_points):
             layers.setdefault(int(match.group(1)), set()).add(int(match.group(2)))
     if not layers:
         raise FileNotFoundError(
-            f"No {prefix}_T{{t}}Z{{z}}.h5 files found in '{folder}'."
+            f"No {prefix}_T{{t}}Z{{z}}.h5 files found in {folder!r}."
         )
     last = max(layers)
     gaps = [t for t in range(last + 1) if t not in layers]
@@ -790,7 +793,10 @@ class CrisisComponent(Component):
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "True at the triggering cell of each landslide that is new in the current time step.",
+            "doc": (
+                "True at the triggering cell of each landslide that is new in "
+                "the current time step."
+            ),
         },
     }
 
@@ -964,8 +970,8 @@ class CrisisComponent(Component):
         >>> CrisisComponent(grid, params)
         Traceback (most recent call last):
         ...
-        ValueError: dem_file cellsize (2.0) does not match the grid spacing (dx = 1.0, dy = 1.0).
-
+        ValueError: dem_file cellsize (2.0) does not match the grid spacing
+        (dx = 1.0, dy = 1.0).
         With a constant Ru (``Hydrological_model_indicator = 1``) there is no
         water content: Bishop χ = 1, and ``Strength_variation_with_theta`` is
         ignored (no water content file is read, no water content field is
@@ -974,7 +980,8 @@ class CrisisComponent(Component):
         >>> params["dem_file"] = dem_file
         >>> params["Strength_variation_with_theta"] = 2
         >>> crisis = CrisisComponent(grid, params)
-        Hydrological_model_indicator = 1 (constant Ru): Bishop chi = 1, Strength_variation_with_theta = 2 is ignored.
+        Hydrological_model_indicator = 1 (constant Ru): Bishop chi = 1,
+        Strength_variation_with_theta = 2 is ignored.
         >>> "soil_water__volume_fraction" in grid.at_node
         False
 
@@ -1181,7 +1188,8 @@ class CrisisComponent(Component):
                 if theta_steps != self._number_of_time_steps:
                     raise ValueError(
                         f"The water content files have {theta_steps} time step(s), but the "
-                        f"pore pressure head files have {self._number_of_time_steps}: both must "
+                        f"pore pressure head files have "
+                        f"{self._number_of_time_steps}: both must "
                         "cover the same time steps."
                     )
             self._log(
@@ -1209,7 +1217,8 @@ class CrisisComponent(Component):
             and not 0 <= eq_t < self._number_of_time_steps
         ):
             raise ValueError(
-                f"Earthquake_time_point = {eq_t} is not one of the {self._number_of_time_steps} "
+                f"Earthquake_time_point = {eq_t} is not one of the "
+                f"{self._number_of_time_steps} "
                 f"time step(s) of the run (0 ... {self._number_of_time_steps - 1})."
             )
 
@@ -2047,7 +2056,29 @@ class CrisisComponent(Component):
         >>> crisis = CrisisComponent(grid, params)
         >>> crisis.run_one_step()
         >>> sorted(crisis.state.keys())
+<<<<<<< Updated upstream
         ['FID_all_times', 'Fail_Index_all_times', 'Individual_Cumulative_areas', 'Individual_Cumulative_areas_with_time', 'Individual_Cumulative_triggering_depths', 'Individual_Cumulative_triggering_depths_with_time', 'Individual_Cumulative_triggering_linear_indices', 'Individual_Cumulative_triggering_linear_indices_with_time', 'Individual_Cumulative_triggering_sources', 'Individual_Cumulative_triggering_sources_with_time', 'Individual_Cumulative_volumes', 'Individual_Cumulative_volumes_with_time', 'Individual_Current_areas_with_time', 'Individual_Current_triggering_depths_with_time', 'Individual_Current_triggering_linear_indices_with_time', 'Individual_Current_triggering_sources_with_time', 'Individual_Current_volumes_with_time', 'Total_Cumulative_Area_vector_with_time', 'Total_Cumulative_NL_vector_with_time', 'Total_Cumulative_Volume_vector_with_time', 'Total_Current_Area_vector_with_time', 'Total_Current_NL_vector_with_time', 'Total_Current_Volume_vector_with_time']
+=======
+        ['FID_all_times', 'Fail_Index_all_times', 'Individual_Cumulative_areas',
+         'Individual_Cumulative_areas_with_time',
+         'Individual_Cumulative_triggering_depths',
+         'Individual_Cumulative_triggering_depths_with_time',
+         'Individual_Cumulative_triggering_linear_indices',
+         'Individual_Cumulative_triggering_linear_indices_with_time',
+         'Individual_Cumulative_triggering_sources',
+         'Individual_Cumulative_triggering_sources_with_time',
+         'Individual_Cumulative_volumes', 'Individual_Cumulative_volumes_with_time',
+         'Individual_Current_areas_with_time',
+         'Individual_Current_triggering_depths_with_time',
+         'Individual_Current_triggering_linear_indices_with_time',
+         'Individual_Current_triggering_sources_with_time',
+         'Individual_Current_volumes_with_time',
+         'Total_Cumulative_Area_vector_with_time',
+         'Total_Cumulative_NL_vector_with_time',
+         'Total_Cumulative_Volume_vector_with_time',
+         'Total_Current_Area_vector_with_time', 'Total_Current_NL_vector_with_time',
+         'Total_Current_Volume_vector_with_time']
+>>>>>>> Stashed changes
         >>> float(
         ...     crisis.state["Total_Current_NL_vector_with_time"][0]
         ... )  # new landslides at t = 0
@@ -2262,7 +2293,12 @@ class CrisisComponent(Component):
         ...     if f.startswith("landslide")
         ...     or f in ("failure__depth", "triggering__cells")
         ... )
+<<<<<<< Updated upstream
         ['failure__depth', 'landslide__failed_accumulated', 'landslide__failure_id', 'landslide__failure_id_accumulated', 'triggering__cells']
+=======
+        ['failure__depth', 'landslide__failed_accumulated', 'landslide__failure_id',
+         'landslide__failure_id_accumulated', 'triggering__cells']
+>>>>>>> Stashed changes
         """
 
         # Each field is only created if it does not already exist on the grid
@@ -2755,7 +2791,7 @@ class CrisisComponent(Component):
             if missing:
                 raise FileNotFoundError(
                     f"Strength_variation_with_theta = 2, but the water content file "
-                    f"Theta_T{t}Z{missing[0]}.h5 was not found in '{folder}'. Expected "
+                    f"Theta_T{t}Z{missing[0]}.h5 was not found in {folder!r}. Expected "
                     f"Theta_T{t}Z1.h5 ... Theta_T{t}Z{Depth_points}.h5 for time step {t}."
                 )
             # load one file per depth layer into a 3D array
@@ -2794,7 +2830,7 @@ class CrisisComponent(Component):
             if missing:
                 raise FileNotFoundError(
                     f"Hydrological_model_indicator = 2, but the pore pressure head file "
-                    f"Pressure_head_T{t}Z{missing[0]}.h5 was not found in '{folder}'. Expected "
+                    f"Pressure_head_T{t}Z{missing[0]}.h5 was not found in {folder!r}. Expected "
                     f"Pressure_head_T{t}Z1.h5 ... Pressure_head_T{t}Z{Depth_points}.h5 for "
                     f"time step {t}."
                 )
@@ -2935,18 +2971,24 @@ class CrisisComponent(Component):
         >>> crisis._layer_field_to_3d("no_such_field")
         Traceback (most recent call last):
         ...
-        KeyError: "Grid field 'no_such_field' not found. With Hydrological_model_indicator = 3 (pore pressure heads) or Strength_variation_with_theta = 3 (water contents), add it to the grid before creating CrisisComponent, with shape (number_of_nodes, Depth_points) = (300, 2)."
+        KeyError: "Grid field 'no_such_field' not found. With
+        Hydrological_model_indicator = 3 (pore pressure heads) or
+        Strength_variation_with_theta = 3 (water contents), add it to the grid
+        before creating CrisisComponent, with shape (number_of_nodes,
+        Depth_points) = (300, 2)."
         >>> _ = grid.add_field("three_layers", np.zeros((300, 3)), at="node")
         >>> crisis._layer_field_to_3d("three_layers")
         Traceback (most recent call last):
         ...
-        ValueError: Grid field 'three_layers' has shape (300, 3), but must have shape (number_of_nodes, Depth_points) = (300, 2): one row per node, one column per depth layer (shallow to deep).
+        ValueError: Grid field 'three_layers' has shape (300, 3), but must have
+        shape (number_of_nodes, Depth_points) = (300, 2): one row per node, one
+        column per depth layer (shallow to deep).
         >>> _ = grid.add_field("int_layers", np.zeros((300, 2), dtype=int), at="node")
         >>> crisis._layer_field_to_3d("int_layers")
         Traceback (most recent call last):
         ...
-        TypeError: Grid field 'int_layers' has dtype int64, but must hold floating-point values (e.g. float64 or float32).
-
+        TypeError: Grid field 'int_layers' has dtype int64, but must hold
+        floating-point values (e.g. float64 or float32).
         A float32 field (e.g. written by a coupled component) is accepted as
         it is: it is not converted or replaced, so the coupled component keeps
         writing into the same array that CRISIS reads.
