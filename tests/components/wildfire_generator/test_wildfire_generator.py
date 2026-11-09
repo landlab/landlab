@@ -58,6 +58,17 @@ def _doctest_grid():
     return mg
 
 
+def _west_east_gradient(mg):
+    """Aridity increasing linearly from 0 (west edge) to 1 (east edge)."""
+    return mg.x_of_node / mg.x_of_node.max()
+
+
+def _node_at_xy(mg, xy):
+    """Return the node id at an (x, y) coordinate."""
+    x, y = xy
+    return int(np.flatnonzero((mg.x_of_node == x) & (mg.y_of_node == y))[0])
+
+
 class _FakeRng:
     """Deterministic stand-in for numpy.random.Generator."""
 
@@ -102,16 +113,13 @@ def test_missing_drainage_area_raises():
 # =============================================================================
 
 
-def test_aridity_below_zero_raises():
+# Aridity validation may come from requireit (ValidationError) or from the
+# aridity setter (ValueError), so accept either.
+@pytest.mark.parametrize("bad", [-0.01, 1.01])
+def test_aridity_scalar_out_of_range_raises(bad):
     mg = _make_grid()
-    with pytest.raises(ValidationError, match="aridity must be >= 0.0"):
-        WildfireGenerator(mg, aridity=-0.01)
-
-
-def test_aridity_above_one_raises():
-    mg = _make_grid()
-    with pytest.raises(ValidationError, match="aridity must be <= 1.0"):
-        WildfireGenerator(mg, aridity=1.01)
+    with pytest.raises((ValidationError, ValueError), match="aridity must be"):
+        WildfireGenerator(mg, aridity=bad)
 
 
 def test_potential_fires_zero_raises():
@@ -273,16 +281,19 @@ def test_upslope_preference_property():
 
 
 def test_aridity_getter():
+    """A scalar aridity is stored as a uniform node array."""
     mg = _make_grid()
     wg = WildfireGenerator(mg, aridity=0.3)
-    assert wg.aridity == 0.3
+    assert wg.aridity.shape == (mg.number_of_nodes,)
+    testing.assert_array_equal(wg.aridity, 0.3)
 
 
 def test_aridity_setter_valid():
     mg = _make_grid()
     wg = WildfireGenerator(mg)
     wg.aridity = 0.75
-    assert wg.aridity == 0.75
+    assert wg.aridity.shape == (mg.number_of_nodes,)
+    testing.assert_array_equal(wg.aridity, 0.75)
 
 
 def test_aridity_setter_below_zero_raises():
@@ -307,6 +318,96 @@ def test_rivers_mask_based_on_minimum_river_threshold():
     wg = WildfireGenerator(mg)
     assert wg._rivers[20]
     assert not wg._rivers[21]
+
+
+# =============================================================================
+# Spatially variable aridity -- input handling
+# =============================================================================
+
+
+def test_aridity_array_in_constructor():
+    """A node array passed to the constructor is stored node by node."""
+    mg = _make_grid()
+    aridity = _west_east_gradient(mg)
+    wg = WildfireGenerator(mg, aridity=aridity)
+    testing.assert_array_equal(wg.aridity, aridity)
+
+
+def test_aridity_setter_array():
+    mg = _make_grid()
+    wg = WildfireGenerator(mg)
+    aridity = _west_east_gradient(mg)
+    wg.aridity = aridity
+    testing.assert_array_equal(wg.aridity, aridity)
+
+
+def test_aridity_setter_field_name():
+    mg = _make_grid()
+    mg.add_field("aridity", np.full(mg.number_of_nodes, 0.2), at="node")
+    wg = WildfireGenerator(mg)
+    wg.aridity = "aridity"
+    testing.assert_array_equal(wg.aridity, 0.2)
+
+
+def test_aridity_setter_missing_field_raises():
+    mg = _make_grid()
+    wg = WildfireGenerator(mg)
+    with pytest.raises(FieldError):
+        wg.aridity = "not_a_field"
+
+
+def test_aridity_array_wrong_size_raises():
+    mg = _make_grid()
+    wg = WildfireGenerator(mg)
+    with pytest.raises(ValueError):
+        wg.aridity = np.full(mg.number_of_nodes + 1, 0.5)
+
+
+@pytest.mark.parametrize(
+    "bad_value, message",
+    [(-0.1, "aridity must be >= 0.0"), (1.1, "aridity must be <= 1.0")],
+)
+def test_aridity_array_single_bad_node_raises(bad_value, message):
+    """One out-of-range node is enough to reject the whole array."""
+    mg = _make_grid()
+    wg = WildfireGenerator(mg)
+    aridity = np.full(mg.number_of_nodes, 0.5)
+    aridity[7] = bad_value
+    with pytest.raises(ValueError, match=message):
+        wg.aridity = aridity
+
+
+def test_aridity_array_out_of_range_in_constructor_raises():
+    mg = _make_grid()
+    aridity = np.full(mg.number_of_nodes, 0.5)
+    aridity[3] = 1.5
+    with pytest.raises((ValidationError, ValueError), match="aridity must be"):
+        WildfireGenerator(mg, aridity=aridity)
+
+
+def test_uniform_array_matches_scalar():
+    """A uniform aridity array must give exactly the same run as the scalar."""
+    mg_a = _make_grid(9, 9, spacing=100, fuel_val=0.8)
+    mg_b = _make_grid(9, 9, spacing=100, fuel_val=0.8)
+    _, log_a = _run_with_log(mg_a, n_steps=3, aridity=0.6, rng=21)
+    _, log_b = _run_with_log(
+        mg_b, n_steps=3, aridity=np.full(mg_b.number_of_nodes, 0.6), rng=21
+    )
+    assert log_a.records == log_b.records
+    testing.assert_array_equal(
+        mg_a.at_node["fuel_availability"], mg_b.at_node["fuel_availability"]
+    )
+
+
+def test_aridity_can_change_between_steps():
+    """Aridity can be swapped from scalar to spatial between timesteps."""
+    mg = _make_grid(9, 9, spacing=100, fuel_val=0.8)
+    wg, log = _run_with_log(mg, aridity=0.5, rng=4)
+    wg.aridity = _west_east_gradient(mg)
+    wg.run_one_step(1)
+    testing.assert_array_equal(wg.aridity, _west_east_gradient(mg))
+    assert np.all(mg.at_node["fuel_availability"] >= 0.0)
+    assert np.all(mg.at_node["fuel_availability"] <= 1.0)
 
 
 # =============================================================================
@@ -387,6 +488,7 @@ def test_fire_event_field_types():
         assert isinstance(e.burned_nodes, tuple)
         assert all(isinstance(n, int) for n in e.burned_nodes)
         assert isinstance(e.fire_size, float)
+        assert isinstance(e.aridity, float)
 
 
 def test_fire_sizes_positive():
@@ -449,6 +551,21 @@ def test_get_regrowth_params_out_of_range_raises(aridity):
         get_regrowth_params(aridity)
 
 
+def test_get_regrowth_params_array_matches_scalar():
+    """The array lookup must agree element-wise with the scalar lookup."""
+    aridity = np.array([0.0, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.9, 1.0])
+    t, e = get_regrowth_params(aridity)
+    assert t.shape == e.shape == aridity.shape
+    expected = [get_regrowth_params(float(a)) for a in aridity]
+    testing.assert_array_equal(t, [x[0] for x in expected])
+    testing.assert_array_equal(e, [x[1] for x in expected])
+
+
+def test_get_regrowth_params_array_out_of_range_raises():
+    with pytest.raises(ValueError, match="outside the table range"):
+        get_regrowth_params(np.array([0.2, 0.5, 1.2]))
+
+
 # =============================================================================
 # get_aridity_weights
 # =============================================================================
@@ -484,6 +601,17 @@ def test_get_aridity_weights_out_of_range_raises(aridity):
         get_aridity_weights(aridity)
 
 
+def test_get_aridity_weights_array():
+    """Weights for an aridity array are looked up per element and sum to one."""
+    aridity = np.linspace(0.0, 1.0, 21)
+    fw, aw = get_aridity_weights(aridity)
+    assert fw.shape == aw.shape == aridity.shape
+    testing.assert_allclose(fw + aw, 1.0)
+    expected = [get_aridity_weights(float(a)) for a in aridity]
+    testing.assert_array_equal(fw, [x[0] for x in expected])
+    testing.assert_array_equal(aw, [x[1] for x in expected])
+
+
 # =============================================================================
 # _calc_severity
 # =============================================================================
@@ -493,9 +621,10 @@ def test_calc_severity_range():
     """_calc_severity should always return a value in [0, 1]."""
     mg = _make_grid(nrows=9, ncols=9, topo_val=100)
     wg = WildfireGenerator(mg, aridity=0.5)
-    for _ in range(200):
-        s = wg._calc_severity()
-        assert 0.0 <= s <= 1.0, f"Severity {s} is outside [0, 1]"
+    for aridity in (0.0, 0.5, 1.0):
+        for _ in range(200):
+            s = wg._calc_severity(aridity)
+            assert 0.0 <= s <= 1.0, f"Severity {s} is outside [0, 1]"
 
 
 def test_calc_severity_rounded():
@@ -503,30 +632,29 @@ def test_calc_severity_rounded():
     mg = _make_grid(nrows=9, ncols=9, topo_val=100)
     wg = WildfireGenerator(mg)
     for _ in range(50):
-        s = wg._calc_severity()
+        s = wg._calc_severity(0.5)
         assert round(s, 2) == s, f"Severity {s} is not rounded to 2 decimals"
 
 
 def test_calc_severity_increases_with_aridity():
     """Higher aridity should produce higher mean severity (power-law relationship)."""
-    wg_low = WildfireGenerator(_make_grid(9, 9, topo_val=100), aridity=0.1, rng=0)
-    wg_high = WildfireGenerator(_make_grid(9, 9, topo_val=100), aridity=0.9, rng=0)
-    sev_low = [wg_low._calc_severity() for _ in range(500)]
-    sev_high = [wg_high._calc_severity() for _ in range(500)]
+    wg = WildfireGenerator(_make_grid(9, 9, topo_val=100), rng=0)
+    sev_low = [wg._calc_severity(0.1) for _ in range(500)]
+    sev_high = [wg._calc_severity(0.9) for _ in range(500)]
     assert np.mean(sev_high) > np.mean(sev_low)
 
 
 def test_calc_severity_at_zero_aridity_near_zero():
     """With aridity near 0, mean severity should be low."""
-    wg = WildfireGenerator(_make_grid(9, 9, topo_val=100), aridity=0.01, rng=1)
-    mean_sev = np.mean([wg._calc_severity() for _ in range(300)])
+    wg = WildfireGenerator(_make_grid(9, 9, topo_val=100), rng=1)
+    mean_sev = np.mean([wg._calc_severity(0.01) for _ in range(300)])
     assert mean_sev < 0.2, f"Mean severity at near-zero aridity was {mean_sev}"
 
 
 def test_calc_severity_at_unit_aridity_near_one():
     """With aridity = 1, mean severity should be close to 1."""
-    wg = WildfireGenerator(_make_grid(9, 9, topo_val=100), aridity=1.0, rng=2)
-    mean_sev = np.mean([wg._calc_severity() for _ in range(300)])
+    wg = WildfireGenerator(_make_grid(9, 9, topo_val=100), rng=2)
+    mean_sev = np.mean([wg._calc_severity(1.0) for _ in range(300)])
     assert mean_sev > 0.9, f"Mean severity at aridity=1 was {mean_sev}"
 
 
@@ -590,6 +718,30 @@ def test_regrow_vegetation_custom_max_vegetation():
     for _ in range(200):
         wg._regrow_vegetation(dt=1)
     assert np.all(wg._vegetation <= max_veg)
+
+
+def test_regrow_vegetation_spatial_matches_analytic():
+    """With spatial aridity, every node regrows with its own bin parameters."""
+    mg = _make_grid(nrows=5, ncols=5)
+    aridity = _west_east_gradient(mg)
+    wg = WildfireGenerator(mg, aridity=aridity)
+    regrowth_time, regrowth_exponent = get_regrowth_params(aridity)
+    wg._vegetation[:] = 0.0
+    wg._regrow_vegetation(dt=1)
+    expected = 1 - np.exp(-regrowth_exponent / regrowth_time)
+    testing.assert_allclose(wg._vegetation, expected)
+
+
+def test_regrow_vegetation_faster_where_less_arid():
+    """Humid nodes should recover faster than arid nodes over the same dt."""
+    mg = _make_grid(nrows=5, ncols=5)
+    aridity = np.where(mg.x_of_node < 2, 0.05, 0.9)
+    wg = WildfireGenerator(mg, aridity=aridity)
+    wg._vegetation[:] = 0.0
+    wg._regrow_vegetation(dt=5)
+    humid = wg._vegetation[aridity == 0.05]
+    arid = wg._vegetation[aridity == 0.9]
+    assert humid.min() > arid.max()
 
 
 # =============================================================================
@@ -763,6 +915,58 @@ def test_fire_revisits_already_burned_node_in_front(monkeypatch):
 
 
 # =============================================================================
+# _fire -- spatially variable aridity
+# =============================================================================
+
+
+def test_fire_event_aridity_is_ignition_node_aridity():
+    """With spatial aridity, each event records the aridity at its ignition node."""
+    mg = _make_grid(nrows=9, ncols=9, spacing=100, fuel_val=0.8)
+    aridity = _west_east_gradient(mg)
+    _, log = _run_with_log(mg, potential_fires=50, aridity=aridity, rng=42)
+    assert log.records
+    for e in log:
+        node = _node_at_xy(mg, e.xy_of_ignition)
+        assert e.aridity == aridity[node]
+
+
+def test_fire_never_enters_zero_fuel_zero_aridity_zone():
+    """Ignition and spread probabilities are evaluated per node.
+
+    Where fuel and aridity are both zero, the probability is zero, so fire
+    can neither start nor spread there, even next to a highly flammable zone.
+    """
+    mg = _make_grid(nrows=9, ncols=9, spacing=100, fuel_val=1.0)
+    west = mg.x_of_node < mg.x_of_node.max() / 2
+    mg.at_node["fuel_availability"][west] = 0.0
+    aridity = np.where(west, 0.0, 0.9)
+
+    log = FireEventLog()
+    wg = WildfireGenerator(mg, potential_fires=100, aridity=aridity, rng=8, log=log)
+    for t in range(10):
+        wg._current_time = t
+        wg._fire(dt=1)
+
+    assert log.records, "Expected fires in the flammable east half"
+    burned = {n for e in log for n in e.burned_nodes}
+    assert burned.isdisjoint(np.flatnonzero(west))
+
+
+def test_fire_more_frequent_in_arid_zone():
+    """With equal fuel everywhere, more fires should ignite where it is more arid."""
+    mg = _make_grid(nrows=21, ncols=21, spacing=100, fuel_val=0.1)
+    east = mg.x_of_node > mg.x_of_node.max() / 2
+    west = mg.x_of_node < mg.x_of_node.max() / 2
+    aridity = np.where(east, 0.9, 0.05)
+
+    _, log = _run_with_log(mg, potential_fires=200, aridity=aridity, rng=13)
+    ignition_nodes = [_node_at_xy(mg, e.xy_of_ignition) for e in log]
+    n_east = sum(east[n] for n in ignition_nodes)
+    n_west = sum(west[n] for n in ignition_nodes)
+    assert n_east > n_west
+
+
+# =============================================================================
 # run_one_step -- time tracking
 # =============================================================================
 
@@ -828,6 +1032,18 @@ def test_run_one_step_updates_vegetation():
     mg = _make_grid(nrows=9, ncols=9, topo_val=100, fuel_val=0.5)
     wg = WildfireGenerator(mg, potential_fires=100, aridity=0.6, rng=42)
     wg.run_one_step(dt=1)
+    assert np.all(wg._vegetation >= 0)
+    assert np.all(wg._vegetation <= wg._max_vegetation)
+
+
+def test_run_one_step_spatial_aridity_keeps_vegetation_in_range():
+    """Vegetation stays within [0, max_vegetation] with spatial aridity."""
+    mg = _make_grid(nrows=9, ncols=9, spacing=100, fuel_val=0.5)
+    wg = WildfireGenerator(
+        mg, potential_fires=100, aridity=_west_east_gradient(mg), rng=42
+    )
+    for _ in range(5):
+        wg.run_one_step(dt=1)
     assert np.all(wg._vegetation >= 0)
     assert np.all(wg._vegetation <= wg._max_vegetation)
 

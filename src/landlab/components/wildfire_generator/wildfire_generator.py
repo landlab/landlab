@@ -1,6 +1,7 @@
 import numpy as np
 from requireit import require_between
 from requireit import require_positive
+
 from landlab import Component
 from landlab.utils.return_array import return_array_at_node
 
@@ -25,6 +26,7 @@ _ARIDITY_WEIGHTS = (
     (0.5, 0.7, 0.8, 0.2),  # Sparse shrubs
     (0.7, 1.0, 0.9, 0.1),  # Sparse shrubs
 )
+
 
 def _get_aridity_bin(aridity, table):
     """Return the two values in a table row for the bin containing aridity.
@@ -102,7 +104,7 @@ class WildfireGenerator(Component):
     Landlab component that simulates landscape-scale fire
     activity driven by global climate-vegetation interactions, following
     the theory of Pausas and Paula (2012) and Pausas and Ribeiro (2013).
-    
+
     **Aridity**
 
     Aridity may be uniform or spatially distributed. ``aridity`` accepts a
@@ -206,7 +208,7 @@ class WildfireGenerator(Component):
     >>> wg.run_one_step(dt)
     >>> len(log.records)
     13
-    
+
     Aridity can vary in space, for example increasing from west to east:
 
     >>> wg.aridity = mg.x_of_node / mg.x_of_node.max()
@@ -410,7 +412,6 @@ class WildfireGenerator(Component):
         if np.any(new_val > 1.0):
             raise ValueError("aridity must be <= 1.0")
         self._aridity = new_val
-
 
     def _regrow_vegetation(self, dt):
 
