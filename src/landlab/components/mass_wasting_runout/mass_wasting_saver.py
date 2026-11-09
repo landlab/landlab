@@ -44,10 +44,9 @@ class MassWastingSaver:
         self.arn_r[mw_id] = []
         self.arndn_r[mw_id] = []
         if self.MWR.track_attributes:
-            self.att_r[mw_id] = dict.fromkeys(
-                self.MWR._tracked_attributes, []
-            )  # this becomes the data container for each attribute
-            self.aratt_r[mw_id] = dict.fromkeys(self.MWR._tracked_attributes, [])
+            # this becomes the data container for each attribute
+            self.att_r[mw_id] = {key: [] for key in self.MWR._tracked_attributes}
+            self.aratt_r[mw_id] = {key: [] for key in self.MWR._tracked_attributes}
 
     def save_conditions_before_runout(self, mw_i, mw_id):
         # save first set of data to reflect scar/depression in DEM created by
