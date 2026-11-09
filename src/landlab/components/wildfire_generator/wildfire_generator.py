@@ -1,8 +1,8 @@
 import numpy as np
 from requireit import require_between
 from requireit import require_positive
-
 from landlab import Component
+from landlab.utils.return_array import return_array_at_node
 
 from .fire_event_log import FireEvent
 
@@ -26,12 +26,13 @@ _ARIDITY_WEIGHTS = (
     (0.7, 1.0, 0.9, 0.1),  # Sparse shrubs
 )
 
-
 def _get_aridity_bin(aridity, table):
     """Return the two values in a table row for the bin containing aridity.
 
-    Bins are half-open, ``[low, high)``, except the last bin, which also
-    includes its upper edge so that the maximum aridity is valid.
+    Works for scalars and arrays. Bins are half-open, ``[low, high)``,
+    except the last bin, which also includes its upper edge so that the
+    maximum aridity is valid. Scalars return a tuple of floats; arrays
+    return a tuple of arrays with the same shape as ``aridity``.
 
     Examples
     --------
@@ -42,16 +43,35 @@ def _get_aridity_bin(aridity, table):
     (3.0, 4.0)
     >>> _get_aridity_bin(1.0, table)
     (3.0, 4.0)
+    >>> a, b = _get_aridity_bin([0.0, 0.5, 1.0], table)
+    >>> a
+    array([1., 3., 3.])
+    >>> b
+    array([2., 4., 4.])
+    >>> _get_aridity_bin(1.5, table)
+    Traceback (most recent call last):
+    ...
+    ValueError: aridity is outside the table range [0.0, 1.0]
     """
-    upper_edge = table[-1][1]
-    for low, high, a, b in table:
-        if low <= aridity < high or aridity == high == upper_edge:
-            return a, b
-    raise ValueError(f"aridity {aridity} is outside the table range")
+    table = np.asarray(table, dtype=float)
+    edges = np.append(table[:, 0], table[-1, 1])
+    values = np.asarray(aridity, dtype=float)
+
+    if np.any((values < edges[0]) | (values > edges[-1])):
+        raise ValueError(
+            f"aridity is outside the table range [{edges[0]}, {edges[-1]}]"
+        )
+    index = np.searchsorted(edges, values, side="right") - 1
+    index = np.clip(index, 0, len(table) - 1)
+    first, second = table[index, 2], table[index, 3]
+
+    if values.ndim == 0:
+        return float(first), float(second)
+    return first, second
 
 
 def get_regrowth_params(aridity, table=_REGROWTH_TABLE):
-    """Return ``(regrowth_time, regrowth_exponent)`` for an aridity value.
+    """Return ``(regrowth_time, regrowth_exponent)`` for aridity values.
 
     Examples
     --------
@@ -64,7 +84,7 @@ def get_regrowth_params(aridity, table=_REGROWTH_TABLE):
 
 
 def get_aridity_weights(aridity, table=_ARIDITY_WEIGHTS):
-    """Return ``(fuel_weight, aridity_weight)`` for an aridity value.
+    """Return ``(fuel_weight, aridity_weight)`` for aridity values.
 
     Examples
     --------
@@ -82,6 +102,15 @@ class WildfireGenerator(Component):
     Landlab component that simulates landscape-scale fire
     activity driven by global climate-vegetation interactions, following
     the theory of Pausas and Paula (2012) and Pausas and Ribeiro (2013).
+    
+    **Aridity**
+
+    Aridity may be uniform or spatially distributed. ``aridity`` accepts a
+    scalar, an array with one value per node, or the name of an existing
+    node field. Internally it is always stored as a node array, and the
+    regrowth parameters and ignition/spread weights are looked up per node
+    from their aridity bins. Aridity can be changed between timesteps by
+    assigning to the ``aridity`` property.
 
     **Fire ignition and spread**
 
@@ -101,11 +130,9 @@ class WildfireGenerator(Component):
     This is a simplifying assumption that may not hold for large, wind-driven
     fires. Making firebreaks probabilistic could be tested in future versions.
 
-
     Fire spreads iteratively outward from the ignition node to orthogonal
     (D4) neighbors using the same fuel-aridity probability, modulated by a
     logistic slope factor following Rothermel-style upslope enhancement::
-
 
 
         slope_factor = 1 / (1 + exp(-upslope_preference * slope))
@@ -120,9 +147,7 @@ class WildfireGenerator(Component):
     Severity is calculated as a power-law function of a randomly perturbed
     aridity index following Grunig et al. (2023)::
 
-
-
-        severity = aridity ** sev_exponent
+        severity = aridity ** severity_exponent
 
     where the aridity index is drawn from a normal distribution centred
     on ``aridity`` (std = 0.05), clamped to [0, 1]. Vegetation at burned nodes
@@ -132,8 +157,6 @@ class WildfireGenerator(Component):
 
     After each timestep, vegetation recovers asymptotically toward
     ``max_vegetation`` following::
-
-
 
         delta_vegetation = 1 - exp(-regrowth_exponent * dt / regrowth_time)
 
@@ -183,6 +206,20 @@ class WildfireGenerator(Component):
     >>> wg.run_one_step(dt)
     >>> len(log.records)
     13
+    
+    Aridity can vary in space, for example increasing from west to east:
+
+    >>> wg.aridity = mg.x_of_node / mg.x_of_node.max()
+    >>> wg.aridity.reshape(mg.shape)[0]
+    array([0.  , 0.25, 0.5 , 0.75, 1.  ])
+    >>> wg.run_one_step(dt)
+
+    It can also be read from an existing node field:
+
+    >>> _ = mg.add_field("aridity", np.full(mg.number_of_nodes, 0.2), at="node")
+    >>> wg.aridity = "aridity"
+    >>> bool(np.all(wg.aridity == 0.2))
+    True
 
 
     References
@@ -330,7 +367,7 @@ class WildfireGenerator(Component):
         self._max_vegetation = max_vegetation
         self._minimum_river_threshold = minimum_river_threshold
         self._alpha = upslope_preference
-        self._aridity = aridity
+        self.aridity = aridity
         self._sev_exponent = severity_exponent
         self._current_time = 0.0
 
@@ -367,11 +404,13 @@ class WildfireGenerator(Component):
 
     @aridity.setter
     def aridity(self, new_val):
-        if new_val < 0.0:
+        new_val = np.asarray(return_array_at_node(self._grid, new_val), dtype=float)
+        if np.any(new_val < 0.0):
             raise ValueError("aridity must be >= 0.0")
-        if new_val > 1.0:
+        if np.any(new_val > 1.0):
             raise ValueError("aridity must be <= 1.0")
         self._aridity = new_val
+
 
     def _regrow_vegetation(self, dt):
 
@@ -385,7 +424,7 @@ class WildfireGenerator(Component):
         """Method to get the active neighbor nodes (for fire spreading)"""
         return self._grid.active_adjacent_nodes_at_node[node]
 
-    def _calc_severity(self):
+    def _calc_severity(self, aridity):
         """Calculate fire severity as a power-law function of aridity.
         Draws a random aridity index from a normal distribution centred on
         the component aridity (std=0.05), clamps it to [0, 1], then applies
@@ -393,7 +432,7 @@ class WildfireGenerator(Component):
         Grunig et al. (2023). The result is clamped to a maximum of 1 and
         rounded to 2 decimal places.
         """
-        aridity_index = np.clip(self._rng.normal(self._aridity, 0.05), 0, 1)
+        aridity_index = np.clip(self._rng.normal(aridity, 0.05), 0, 1)
         return np.round(np.minimum(np.power(aridity_index, self._sev_exponent), 1), 2)
 
     def _fire(self, dt):
@@ -412,20 +451,22 @@ class WildfireGenerator(Component):
 
         cell_area = self._grid.cell_area_at_node
 
+        fuel_weight, aridity_weight = get_aridity_weights(self._aridity)
+
         for _ in range(fire_ignitions):
-            fuel_weight, aridity_weight = get_aridity_weights(self._aridity)
             center = self._rng.choice(self._grid.core_nodes)
 
             if self._rivers[center]:
                 continue
 
             ignition_prob = (
-                self._vegetation[center] * fuel_weight + self._aridity * aridity_weight
+                self._vegetation[center] * fuel_weight[center]
+                + self._aridity[center] * aridity_weight[center]
             )
             if self._rng.random() > ignition_prob:
                 continue
 
-            severity_factor = self._calc_severity()
+            severity_factor = self._calc_severity(self._aridity[center])
             fire_front = {center}
             burned = set()
 
@@ -450,8 +491,8 @@ class WildfireGenerator(Component):
                         )
                         slope_factor = 1 / (1 + np.exp(-self._alpha * slope))
                         spread_prob = (
-                            self._vegetation[neighbor] * fuel_weight
-                            + self._aridity * aridity_weight
+                            self._vegetation[neighbor] * fuel_weight[neighbor]
+                            + self._aridity[neighbor] * aridity_weight[neighbor]
                         ) * slope_factor
                         if self._rng.random() < spread_prob:
                             new_front.add(neighbor)
@@ -481,7 +522,7 @@ class WildfireGenerator(Component):
                         burned_nodes=tuple(int(n) for n in changed_nodes),
                         fire_size=float(cell_area[changed_nodes].sum()),
                         severity_factor=severity_factor,
-                        aridity=float(self._aridity),
+                        aridity=float(self._aridity[center]),
                         vegetation_removed_fraction=float(removed_fraction),
                     )
                 )
