@@ -29,6 +29,14 @@ def test_calc_net_face_flux_at_cell():
     assert_array_almost_equal(out, expected)
 
 
+@pytest.mark.parametrize("size", [0, 5, 7])
+def test_calc_net_face_flux_at_cell_bad_out_size(size):
+    grid = RasterModelGrid((4, 5))
+    unit_flux_at_face = np.zeros(grid.number_of_faces)
+    with pytest.raises(ValueError, match="out"):
+        calc_net_face_flux_at_cell(grid, unit_flux_at_face, out=np.empty(size))
+
+
 @pytest.mark.parametrize("shape", [(4, 5), (40, 50), (50, 40), (3, 3)])
 @pytest.mark.parametrize("spacing", [(1.0, 3.0), (3.0, 1.0)])
 def test_flux_div_at_node_matches(shape, spacing):

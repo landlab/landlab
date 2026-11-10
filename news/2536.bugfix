@@ -1,0 +1,3 @@
+Fixed out-of-bounds reads and writes in the raster `calc_grad_at_link`,
+`calc_diff_at_link` and `calc_net_face_flux_at_cell` when given
+wrong-sized arrays; they now raise a `ValueError`.
