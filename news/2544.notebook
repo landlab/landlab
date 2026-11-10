@@ -1,0 +1,3 @@
+Added two tutorial notebooks for the {class}`~.GeoEnthalpyDelta` component: one
+that builds a small delta and tracks its shoreline, and one that applies the
+component to an alluvial fan with a migrating sediment feeder.
