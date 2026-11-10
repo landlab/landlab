@@ -493,10 +493,10 @@ class MassWastingRunout(Component):
                 self.arqsoL = []  # list of flux out
                 self.arndnL = []  # list of donor nodes
                 if self.track_attributes:
-                    self.aratt_ns = dict.fromkeys(
-                        self._tracked_attributes, np.array([])
-                    )  #
-                    self.arattL = dict.fromkeys(self._tracked_attributes, [])
+                    self.aratt_ns = {
+                        key: np.array([]) for key in self._tracked_attributes
+                    }
+                    self.arattL = {key: [] for key in self._tracked_attributes}
 
                 # for each unique node in receiving node list self.arn
                 self.arn_u = np.unique(self.arn).astype(int)  # unique arn list
@@ -569,7 +569,7 @@ class MassWastingRunout(Component):
         rni = np.array([])
         rqsoi = np.array([])
         if self._tracked_attributes:
-            att = dict.fromkeys(self._tracked_attributes, np.array([]))
+            att = {key: np.array([]) for key in self._tracked_attributes}
 
         # order source area nodes from lowest to highest elevation
         node_z = self._grid.at_node.dataset["topographic__elevation"][inn]
