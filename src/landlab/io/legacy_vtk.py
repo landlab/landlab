@@ -4,6 +4,7 @@ from enum import IntEnum
 from enum import unique
 
 import numpy as np
+from numpy.typing import ArrayLike
 
 
 def dump(grid, stream=None, include="*", exclude=None, z_coord=0.0, at="node"):
@@ -56,7 +57,7 @@ def dump(grid, stream=None, include="*", exclude=None, z_coord=0.0, at="node"):
     "points")
 
     >>> print(os.linesep.join(lines[5:13]))
-    POINTS 7 float
+    POINTS 7 double
     0.5 0.0 0.0
     1.5 0.0 1.0
     0.0 0.866025 2.0
@@ -92,7 +93,7 @@ def dump(grid, stream=None, include="*", exclude=None, z_coord=0.0, at="node"):
     >>> print(os.linesep.join(lines[30:51]))
     POINT_DATA 7
     <BLANKLINE>
-    SCALARS surface_water__depth float 1
+    SCALARS surface_water__depth double 1
     LOOKUP_TABLE default
     0.7
     0.6
@@ -102,7 +103,7 @@ def dump(grid, stream=None, include="*", exclude=None, z_coord=0.0, at="node"):
     0.2
     0.1
     <BLANKLINE>
-    SCALARS topographic__elevation float 1
+    SCALARS topographic__elevation double 1
     LOOKUP_TABLE default
     0.0
     1.0
@@ -117,7 +118,7 @@ def dump(grid, stream=None, include="*", exclude=None, z_coord=0.0, at="node"):
 
     >>> lines = vtk.dump(grid, at="corner").splitlines()
     >>> print(os.linesep.join(lines[5:12]))
-    POINTS 6 float
+    POINTS 6 double
     1.0 0.288675 0.0
     0.5 0.57735 0.0
     1.5 0.57735 0.0
@@ -173,7 +174,7 @@ def write_legacy_vtk(
     # vtk DataFile Version 2.0
 
     >>> print(os.linesep.join(lines[5:13]))
-    POINTS 7 float
+    POINTS 7 double
     0.5 0.0 0.0
     1.5 0.0 1.0
     0.0 0.866025 2.0
@@ -203,7 +204,7 @@ def write_legacy_vtk(
     >>> print(os.linesep.join(lines[30:51]))
     POINT_DATA 7
     <BLANKLINE>
-    SCALARS surface_water__depth float 1
+    SCALARS surface_water__depth double 1
     LOOKUP_TABLE default
     0.7
     0.6
@@ -213,7 +214,7 @@ def write_legacy_vtk(
     0.2
     0.1
     <BLANKLINE>
-    SCALARS topographic__elevation float 1
+    SCALARS topographic__elevation double 1
     LOOKUP_TABLE default
     0.0
     1.0
@@ -328,7 +329,7 @@ DATASET UNSTRUCTURED_GRID"""
 
 def _format_vtk_points(coords_of_points):
     return "\n".join(
-        [f"POINTS {len(coords_of_points)} float"]
+        [f"POINTS {len(coords_of_points)} double"]
         + [" ".join(str(coord) for coord in coords) for coords in coords_of_points]
     )
 
@@ -369,7 +370,14 @@ def _format_vtk_cell_data(cell_data):
     return (2 * "\n").join([f"CELL_DATA {number_of_cells}"] + content)
 
 
-def _format_vtk_scalar_data(values, name="data"):
+def _format_vtk_scalar_data(
+    values: ArrayLike,
+    *,
+    name: str = "data",
+):
+    values = np.asarray(values, dtype=np.double, copy=True)
+    values[np.abs(values) < np.finfo(np.double).tiny] = 0.0
+
     return "\n".join([f"""\
-SCALARS {name} float 1
-LOOKUP_TABLE default"""] + [str(float(value)) for value in values])
+SCALARS {name} double 1
+LOOKUP_TABLE default"""] + list(map(str, values)))

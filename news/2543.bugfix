@@ -1,0 +1,3 @@
+Fixed errors when reading VTK output with ParaView by modifying
+`write_legacy_vtk` to output double precision and clamp tiny
+values to zero.
