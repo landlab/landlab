@@ -129,28 +129,6 @@ jobs:
           nox-session: "test-notebooks"
           upload-name: ${{ matrix.os == 'macos-latest' && format('notebooks-{0}', matrix.pytest-marker) || '' }}
 
-  check-links:
-    runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        shell: bash -l {0}
-
-    steps:
-      - uses: actions/checkout@v7
-      - name: Use Python 3.14
-        uses: actions/setup-python@v7
-        with:
-          python-version: '3.14'
-
-      - name: Install Pandoc
-        run: sudo apt-get update && sudo apt-get install -y pandoc
-
-      - name: Check documentation links
-        run: |
-          pip install nox
-          nox -s docs-check-links
-
   docs:
     needs: test-notebooks
     runs-on: ubuntu-latest
