@@ -3271,6 +3271,27 @@ mapping = 'node'
 optional = false
 units = 'm'
 
+[components.SoilDepthEvolver]
+name = 'landlab.components.soil_depth_evolver.soil_depth_evolver.SoilDepthEvolver'
+unit_agnostic = true
+summary = 'Evolve soil depth through soil production and hillslope transport.'
+
+[components.SoilDepthEvolver.info.soil__depth]
+doc = 'Current soil thickness.'
+dtype = 'float64'
+intent = 'inout'
+mapping = 'node'
+optional = false
+units = 'm'
+
+[components.SoilDepthEvolver.info.topographic__elevation]
+doc = 'Surface elevation.'
+dtype = 'float64'
+intent = 'inout'
+mapping = 'node'
+optional = false
+units = 'm'
+
 [components.SoilInfiltrationGreenAmpt]
 name = 'landlab.components.soil_moisture.infiltrate_soil_green_ampt.SoilInfiltrationGreenAmpt'
 unit_agnostic = false
@@ -5144,6 +5165,7 @@ used_by = [
   'landlab.components.depth_dependent_diffusion.hillslope_depth_dependent_linear_flux.DepthDependentDiffuser',
   'landlab.components.depth_dependent_taylor_soil_creep.hillslope_depth_dependent_taylor_flux.DepthDependentTaylorDiffuser',
   'landlab.components.gravel_bedrock_eroder.gravel_bedrock_eroder.GravelBedrockEroder',
+  'landlab.components.soil_depth_evolver.soil_depth_evolver.SoilDepthEvolver',
   'landlab.components.space.space.Space',
   'landlab.components.space.space_large_scale_eroder.SpaceLargeScaleEroder',
   'landlab.components.threshold_eroder.threshold_eroder.ThresholdEroder',
@@ -5154,6 +5176,7 @@ provided_by = [
   'landlab.components.bedrock_landslider.bedrock_landslider.BedrockLandslider',
   'landlab.components.depth_dependent_diffusion.hillslope_depth_dependent_linear_flux.DepthDependentDiffuser',
   'landlab.components.depth_dependent_taylor_soil_creep.hillslope_depth_dependent_taylor_flux.DepthDependentTaylorDiffuser',
+  'landlab.components.soil_depth_evolver.soil_depth_evolver.SoilDepthEvolver',
   'landlab.components.space.space.Space',
   'landlab.components.space.space_large_scale_eroder.SpaceLargeScaleEroder',
   'landlab.components.threshold_eroder.threshold_eroder.ThresholdEroder',
@@ -5510,6 +5533,7 @@ used_by = [
   'landlab.components.river_flow_dynamics.river_flow_dynamics.RiverFlowDynamics',
   'landlab.components.sink_fill.fill_sinks.SinkFiller',
   'landlab.components.sink_fill.sink_fill_barnes.SinkFillerBarnes',
+  'landlab.components.soil_depth_evolver.soil_depth_evolver.SoilDepthEvolver',
   'landlab.components.space.space.Space',
   'landlab.components.space.space_large_scale_eroder.SpaceLargeScaleEroder',
   'landlab.components.spatial_precip.generate_spatial_precip.SpatialPrecipitationDistribution',
@@ -5550,6 +5574,7 @@ provided_by = [
   'landlab.components.normal_fault.normal_fault.NormalFault',
   'landlab.components.sink_fill.fill_sinks.SinkFiller',
   'landlab.components.sink_fill.sink_fill_barnes.SinkFillerBarnes',
+  'landlab.components.soil_depth_evolver.soil_depth_evolver.SoilDepthEvolver',
   'landlab.components.space.space.Space',
   'landlab.components.space.space_large_scale_eroder.SpaceLargeScaleEroder',
   'landlab.components.stream_power.fastscape_stream_power.FastscapeEroder',
