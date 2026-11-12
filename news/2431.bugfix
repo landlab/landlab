@@ -3,3 +3,4 @@ could silently point to stale data if another component replaced the underlying
 array in the grid. Fixed in the following components:
 
 * `TidalFlowCalculator`
+* `AdvectionSolverTVD`
