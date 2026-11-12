@@ -45,6 +45,7 @@ from .flow_director import FlowDirectorSteepest
 from .fracture_grid import FractureGridGenerator
 from .geoenthalpy_delta import GeoEnthalpyDelta
 from .gflex import gFlex
+from .glacial_eroder import GlacialEroder
 from .gravel_bedrock_eroder import GravelBedrockEroder
 from .gravel_river_transporter import GravelRiverTransporter
 from .groundwater import GroundwaterDupuitPercolator
@@ -141,6 +142,7 @@ COMPONENTS = [
     FractureGridGenerator,
     GeoEnthalpyDelta,
     gFlex,
+    GlacialEroder,
     GravelBedrockEroder,
     GravelRiverTransporter,
     GroundwaterDupuitPercolator,
