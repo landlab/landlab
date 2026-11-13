@@ -105,9 +105,9 @@ jobs:
       matrix:
         target: ${{ fromJSON(needs.targets.outputs.targets) }}
         pytest-marker: ["slow", "not slow"]
-        exclude:
-          - os: windows-2022
-            python-version: "3.15"
+        # exclude:
+        #   - os: windows-2022
+        #     python-version: "3.15"
 
     steps:
       - uses: actions/checkout@v7
