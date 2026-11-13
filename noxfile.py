@@ -472,7 +472,7 @@ def nuke(session):
 
 @nox.session(name="list-wheels")
 def list_wheels(session):
-    print(os.linesep.join(_get_wheels(session)))
+    print(os.linesep.join(sorted(_get_wheels(session))))
 
 
 @nox.session(name="list-ci-matrix")
@@ -480,7 +480,11 @@ def list_ci_matrix(session):
 
     event = os.environ.get("GITHUB_EVENT_NAME")
     if event == "workflow_dispatch":
-        mode = os.environ.get("REQUESTED_MODE") if os.environ.get("PUBLISH_TO") == "none" else "release"
+        mode = (
+            os.environ.get("REQUESTED_MODE")
+            if os.environ.get("PUBLISH_TO") == "none"
+            else "release"
+        )
     elif event == "pull_request":
         mode = "draft" if os.environ.get("DRAFT") == "true" else "review"
     else:
@@ -491,11 +495,13 @@ def list_ci_matrix(session):
     runners = {
         "manylinux_x86_64": "ubuntu-latest",
         "manylinux_aarch64": "ubuntu-24.04-arm",
-        "macosx_arm64":"macos-latest",
+        "macosx_arm64": "macos-latest",
         "macosx_x86_64": "macos-15-intel",
         "win_amd64": "windows-2022",
     }
-    identifiers = _get_wheels(session)
+
+    exclude = {"cp315-win_amd64"}
+    identifiers = _get_wheels(session) - exclude
 
     matrix = []
     for identifier in identifiers:
@@ -511,7 +517,7 @@ def list_ci_matrix(session):
     python = pythons[-2]
 
     if mode == "draft":
-        select = {f"{newest_python}-manylinux_x86_64"}
+        select = {f"{oldest_python}-manylinux_x86_64"}
     elif mode == "review":
         select = {
             f"{oldest_python}-manylinux_x86_64",
@@ -522,9 +528,12 @@ def list_ci_matrix(session):
     elif mode == "release":
         select = {entry["cibw-only"] for entry in matrix}
     else:
-        raise ValueError("mode must be one of 'draft', 'review', 'entry'")
+        raise ValueError("mode must be one of 'draft', 'review', 'release'")
 
-    selected = [entry for entry in matrix if entry["cibw-only"] in sorted(select)]
+    selected = sorted(
+        [entry for entry in matrix if entry["cibw-only"] in select],
+        key=lambda item: (item["os"], item["python-version"]),
+    )
     if not selected:
         raise ValueError("nothing selected")
 
@@ -542,15 +551,17 @@ def _get_wheels(session, platforms=None):
     platforms = ("linux", "macos", "windows") if platforms is None else platforms
     session.install("cibuildwheel")
 
-    wheels = []
+    wheels = set()
     for platform in platforms:
-        wheels += session.run(
-            "cibuildwheel",
-            "--print-build-identifiers",
-            "--platform",
-            platform,
-            silent=True,
-        ).splitlines()
+        wheels |= set(
+            session.run(
+                "cibuildwheel",
+                "--print-build-identifiers",
+                "--platform",
+                platform,
+                silent=True,
+            ).splitlines()
+        )
     return wheels
 
 
