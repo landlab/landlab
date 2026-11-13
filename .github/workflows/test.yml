@@ -5,9 +5,20 @@ on:
     branches:
       - master
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+      - converted_to_draft
+
   workflow_dispatch:
     inputs:
+      mode:
+        description: "Test mode"
+        type: choice
+        default: review
+        options: [draft, review, release]
       publish_to:
         description: "Where to publish"
         type: choice
@@ -23,6 +34,27 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  targets:
+    runs-on: ubuntu-latest
+    outputs:
+      targets: ${{ steps.matrix.outputs.targets }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+
+      - id: matrix
+        name: Select builds
+        env:
+          EVENT: ${{ github.event_name }}
+          DRAFT: ${{ github.event.pull_request.draft }}
+          REQUESTED_MODE: ${{ inputs.mode }}
+          PUBLISH_TO: ${{ inputs.publish_to }}
+        run: |
+          pip install nox
+          nox -s list-ci-matrix
+
   build-sdist:
     name: Build source distribution
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
@@ -39,33 +71,15 @@ jobs:
           path: ${{ github.workspace }}/dist/*.tar.gz
 
   build-wheels:
-    name: Build wheels on ${{ matrix.cibw-only }}
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
-    runs-on: ${{ matrix.os }}
+    name: Build wheels on ${{ matrix.target.cibw-only }}
+    needs: targets
+
+    # if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    runs-on: ${{ matrix.target.os }}
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - { os: macos-15-intel, cibw-only: cp312-macosx_x86_64 }
-          - { os: macos-15-intel, cibw-only: cp313-macosx_x86_64 }
-          - { os: macos-15-intel, cibw-only: cp314-macosx_x86_64 }
-          - { os: macos-15-intel, cibw-only: cp315-macosx_x86_64 }
-          - { os: macos-latest, cibw-only: cp312-macosx_arm64 }
-          - { os: macos-latest, cibw-only: cp313-macosx_arm64 }
-          - { os: macos-latest, cibw-only: cp314-macosx_arm64 }
-          - { os: macos-latest, cibw-only: cp315-macosx_arm64 }
-          - { os: ubuntu-latest, cibw-only: cp312-manylinux_x86_64 }
-          - { os: ubuntu-latest, cibw-only: cp313-manylinux_x86_64 }
-          - { os: ubuntu-latest, cibw-only: cp314-manylinux_x86_64 }
-          - { os: ubuntu-latest, cibw-only: cp315-manylinux_x86_64 }
-          - { os: ubuntu-24.04-arm, cibw-only: cp312-manylinux_aarch64 }
-          - { os: ubuntu-24.04-arm, cibw-only: cp313-manylinux_aarch64 }
-          - { os: ubuntu-24.04-arm, cibw-only: cp314-manylinux_aarch64 }
-          - { os: ubuntu-24.04-arm, cibw-only: cp315-manylinux_aarch64 }
-          - { os: windows-2022, cibw-only: cp312-win_amd64 }
-          - { os: windows-2022, cibw-only: cp313-win_amd64 }
-          - { os: windows-2022, cibw-only: cp314-win_amd64 }
-          - { os: windows-2022, cibw-only: cp315-win_amd64 }
+        target: ${{ fromJSON(needs.targets.outputs.targets) }}
 
     steps:
       - uses: actions/checkout@v7
@@ -75,22 +89,23 @@ jobs:
             LANDLAB_BUILD_RELEASE=${{ github.event_name == 'workflow_dispatch' && inputs.publish_to != 'none' && '1' || '0' }}
 
         with:
-          cibw-only: ${{ matrix.cibw-only }}
-          upload-name: build-wheels-${{ matrix.cibw-only }}
+          cibw-only: ${{ matrix.target.cibw-only }}
+          upload-name: build-wheels-${{ matrix.target.cibw-only }}
 
   test-landlab:
     name: Run the tests
-    needs: build-wheels
-    runs-on: ${{ matrix.os }}
+    needs:
+      - targets
+      - build-wheels
+    runs-on: ${{ matrix.target.os }}
 
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm, macos-15-intel, macos-latest, windows-latest]
-        python-version: ["3.12", "3.13", "3.14", "3.15"]
+        target: ${{ fromJSON(needs.targets.outputs.targets) }}
         pytest-marker: ["slow", "not slow"]
         exclude:
-          - os: windows-latest
+          - os: windows-2022
             python-version: "3.15"
 
     steps:
@@ -102,7 +117,7 @@ jobs:
           MPLBACKEND: "Agg"
           PYTEST_ADDOPTS: "-m '${{ matrix.pytest-marker }}'"
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ matrix.target.python-version }}
           nox-session: "test"
 
   test-notebooks:
@@ -113,7 +128,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest]
+        os: [ubuntu-latest]
         pytest-marker: ["slow", "not slow"]
 
     steps:
@@ -125,9 +140,9 @@ jobs:
           MPLBACKEND: "module://matplotlib_inline.backend_inline"
           PYTEST_ADDOPTS: "--overwrite -m '${{ matrix.pytest-marker }}'"
         with:
-          python-version: "3.14"
+          python-version: "3.15"
           nox-session: "test-notebooks"
-          upload-name: ${{ matrix.os == 'macos-latest' && format('notebooks-{0}', matrix.pytest-marker) || '' }}
+          upload-name: ${{ matrix.os == 'ubuntu-latest' && format('notebooks-{0}', matrix.pytest-marker) || '' }}
 
   docs:
     needs: test-notebooks
