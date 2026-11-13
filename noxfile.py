@@ -477,25 +477,69 @@ def list_wheels(session):
 
 @nox.session(name="list-ci-matrix")
 def list_ci_matrix(session):
-    """Create a matrix entry for a gha workflow that builds wheels"""
 
-    def _os_from_wheel(name):
-        if "linux" in name:
-            return "ubuntu-" + ("24.04" if name.endswith("x86_64") else "24.04-arm")
-        elif "macos" in name:
-            return "macos-" + ("13" if name.endswith("x86_64") else "14")
-        elif "win" in name:
-            return "windows-2022"
+    event = os.environ.get("GITHUB_EVENT_NAME")
+    if event == "workflow_dispatch":
+        mode = os.environ.get("REQUESTED_MODE") if os.environ.get("PUBLISH_TO") == "none" else "release"
+    elif event == "pull_request":
+        mode = "draft" if os.environ.get("DRAFT") == "true" else "review"
+    else:
+        mode = "review"
 
-    include_lines = [
-        f"- {{ os: {_os_from_wheel(wheel)}, cibw-only: {wheel} }}"
-        for wheel in _get_wheels(session)
-    ]
-    print("\n".join(sorted(include_lines)))
+    mode = session.posargs[0] if session.posargs else mode
+
+    runners = {
+        "manylinux_x86_64": "ubuntu-latest",
+        "manylinux_aarch64": "ubuntu-24.04-arm",
+        "macosx_arm64":"macos-latest",
+        "macosx_x86_64": "macos-15-intel",
+        "win_amd64": "windows-2022",
+    }
+    identifiers = _get_wheels(session)
+
+    matrix = []
+    for identifier in identifiers:
+        py, platform = identifier.split("-", maxsplit=1)
+        python = f"{py[2]}.{py[3:]}"
+        matrix.append(
+            {"os": runners[platform], "python-version": python, "cibw-only": identifier}
+        )
+
+    pythons = sorted({identifier[:5] for identifier in identifiers})
+    oldest_python = pythons[0]
+    newest_python = pythons[-1]
+    python = pythons[-2]
+
+    if mode == "draft":
+        select = {f"{newest_python}-manylinux_x86_64"}
+    elif mode == "review":
+        select = {
+            f"{oldest_python}-manylinux_x86_64",
+            f"{newest_python}-manylinux_x86_64",
+            f"{python}-macosx_arm64",
+            f"{python}-win_amd64",
+        }
+    elif mode == "release":
+        select = {entry["cibw-only"] for entry in matrix}
+    else:
+        raise ValueError("mode must be one of 'draft', 'review', 'entry'")
+
+    selected = [entry for entry in matrix if entry["cibw-only"] in sorted(select)]
+    if not selected:
+        raise ValueError("nothing selected")
+
+    output = os.environ.get("GITHUB_OUTPUT")
+    if output:
+        with open(output, "a") as fp:
+            print("targets=" + json.dumps(selected), file=fp)
+    else:
+        lines = ",\n".join(["  " + json.dumps(entry) for entry in selected])
+        content = "\n".join(["[", lines, "]"])
+        print(content)
 
 
-def _get_wheels(session):
-    platforms = session.posargs or ["linux", "macos", "windows"]
+def _get_wheels(session, platforms=None):
+    platforms = ("linux", "macos", "windows") if platforms is None else platforms
     session.install("cibuildwheel")
 
     wheels = []
