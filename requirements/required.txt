@@ -4,7 +4,7 @@ netcdf4==1.7.5.1.post1
 numpy==2.5.4
 pandas==3.1.1
 py-richdem==2.2.0rc3
-pyshp==3.1.6
+pyshp==3.1.8
 pyyaml==6.0.3
 requireit==0.12.0
 rich-click==1.9.9
