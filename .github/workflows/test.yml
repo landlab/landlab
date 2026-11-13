@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - consolidate-test-workflows
   pull_request:
     types:
       - opened
@@ -53,7 +54,7 @@ jobs:
           PUBLISH_TO: ${{ inputs.publish_to }}
         run: |
           pip install nox
-          nox -s list-ci-matrix
+          nox -s list-ci-matrix -- draft
 
   build-sdist:
     name: Build source distribution
