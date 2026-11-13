@@ -500,7 +500,7 @@ def list_ci_matrix(session):
         "win_amd64": "windows-2022",
     }
 
-    exclude = {"cp315-win_amd64"}
+    exclude = set()  # {"cp315-win_amd64"}
     identifiers = _get_wheels(session) - exclude
 
     matrix = []
