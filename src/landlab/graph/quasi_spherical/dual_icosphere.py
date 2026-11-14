@@ -10,6 +10,7 @@ Greg Tucker, University of Colorado Boulder, September 2023
 import numpy as np
 
 from landlab.graph.quasi_spherical.refinable_icosahedron import RefinableIcosahedron
+from landlab.utils.geometry.spherical import angles_of_sphertri
 from landlab.utils.geometry.spherical import arc_length
 from landlab.utils.geometry.spherical import area_of_sphertri
 from landlab.utils.geometry.spherical import cartesian_to_spherical
@@ -473,23 +474,46 @@ class DualIcosphereGraph:
         """
         Calculate areas of cells.
 
-        Area calculation uses the fact that cells are either pentagonal or hexagonal.
-        Therefore the area can be calculated by first finding the area of a triangle
-        formed by the cell's node and the first two of its corners, and then
-        multiplying by either 5 or 6. We take advantage of the fact that node and
-        cell numbering are the same. We detect shape by looking at the number of
-        non-negative (= valid) entries in the corners_at_cell array.
+        Each cell is a spherical polygon (pentagon or hexagon) around a node,
+        with the node and cell numbering being the same. Its area is the sum
+        of the areas of the spherical triangles formed by the node and each
+        pair of consecutive corners (corners_at_node is sorted
+        counter-clockwise). The triangles of a cell are only congruent on the
+        base icosahedron; from the first densification level on, the hexagons
+        are irregular, so every triangle has to be summed.
 
-        We could probably just calculate the first hex and first pent, and then
-        assign the same area to all others accordingly (TODO).
+        Examples
+        --------
+        >>> import numpy as np
+        >>> ico = DualIcosphereGraph(radius=2.0, mesh_densification_level=2)
+        >>> bool(np.isclose(ico.area_of_cell.sum(), 4.0 * np.pi * 2.0**2))
+        True
         """
         self.number_of_cells = self.number_of_nodes
         self.area_of_cell = np.zeros(self.number_of_cells)
 
-        for cell in range(self.number_of_cells):
-            p0 = self.coords_of_node[cell]
-            p1 = self.coords_of_corner[self.corners_at_node[cell][0]]
-            p2 = self.coords_of_corner[self.corners_at_node[cell][1]]
-            area_of_tri = area_of_sphertri(p0, p1, p2, self._radius)
-            ntri = 5 + int(np.amin(self.corners_at_node[cell]) > -1)
-            self.area_of_cell[cell] = ntri * area_of_tri
+        corners = self.corners_at_node
+        n_corners = np.count_nonzero(corners + 1, axis=1)
+        max_corners = corners.shape[1]
+
+        # unit vectors to the nodes and corners
+        p0 = self.coords_of_node / self._radius
+        corner_unit = self.coords_of_corner / self._radius
+
+        for i in range(max_corners):
+            has_corner = i < n_corners
+            next_corner = np.where(
+                i + 1 < n_corners, corners[:, (i + 1) % max_corners], corners[:, 0]
+            )
+            cells = np.nonzero(has_corner)[0]
+            p1 = corner_unit[corners[cells, i]]
+            p2 = corner_unit[next_corner[cells]]
+
+            # radial lengths of the sides of each spherical triangle
+            a = np.arccos(np.clip(np.einsum("ij,ij->i", p1, p2), -1.0, 1.0))
+            b = np.arccos(np.clip(np.einsum("ij,ij->i", p0[cells], p2), -1.0, 1.0))
+            c = np.arccos(np.clip(np.einsum("ij,ij->i", p0[cells], p1), -1.0, 1.0))
+            A, B, C = angles_of_sphertri(a, b, c)
+
+            # Girard's theorem: area is the spherical excess times R^2
+            self.area_of_cell[cells] += (A + B + C - np.pi) * self._radius**2
