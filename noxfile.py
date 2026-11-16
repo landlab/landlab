@@ -4,6 +4,9 @@ import json
 import os
 import pathlib
 import shutil
+from collections.abc import Iterable
+from enum import StrEnum
+from typing import TypedDict
 
 import nox
 from packaging.requirements import Requirement
@@ -18,6 +21,15 @@ PATH = {
     "requirements": ROOT / "requirements",
     "root": ROOT,
 }
+
+
+class TestMode(StrEnum):
+    DRAFT = "draft"
+    REVIEW = "review"
+    RELEASE = "release"
+
+
+Target = TypedDict("Target", {"os": str, "python-version": str, "cibw-only": str})
 
 
 @nox.session(python=PYTHON_VERSION)
@@ -475,23 +487,103 @@ def list_wheels(session):
     print(os.linesep.join(sorted(_get_wheels(session))))
 
 
-@nox.session(name="list-ci-matrix")
-def list_ci_matrix(session):
-
-    event = os.environ.get("GITHUB_EVENT_NAME")
-    if event == "workflow_dispatch":
-        mode = (
-            os.environ.get("REQUESTED_MODE")
-            if os.environ.get("PUBLISH_TO") == "none"
-            else "release"
+@nox.session(name="ci-targets")
+def ci_targets(session):
+    mode = (
+        TestMode(session.posargs[0])
+        if session.posargs
+        else _select_mode(
+            publish=os.environ.get("PUBLISH_TO") in {"pypi", "testpypi"},
+            mode=os.environ.get("TEST_MODE"),
+            is_draft=os.environ.get("DRAFT") == "true",
         )
-    elif event == "pull_request":
-        mode = "draft" if os.environ.get("DRAFT") == "true" else "review"
-    else:
-        mode = "review"
+    )
 
-    mode = session.posargs[0] if session.posargs else mode
+    identifiers = _get_wheels(session)
 
+    test_identifiers = _select_identifiers(identifiers, mode=mode)
+    notebook_identifiers = _select_identifiers(identifiers, mode=TestMode.DRAFT)
+    build_identifiers = test_identifiers | notebook_identifiers
+
+    named_targets = (
+        ("build-targets", _identifiers_to_targets(build_identifiers)),
+        ("notebook-targets", _identifiers_to_targets(notebook_identifiers)),
+        ("test-targets", _identifiers_to_targets(test_identifiers)),
+    )
+
+    lines = [f"mode={mode}"] + [
+        f"{name}={_format_targets(target)}" for name, target in named_targets
+    ]
+
+    print("\n".join(lines))
+
+
+def _select_mode(
+    publish: bool = False,
+    mode: TestMode | str | None = None,
+    is_draft: bool = False,
+) -> TestMode:
+    if publish:
+        return TestMode.RELEASE
+
+    if mode not in {"auto", None, ""}:
+        return TestMode(mode)
+
+    return TestMode.DRAFT if is_draft else TestMode.REVIEW
+
+
+def _format_targets(
+    targets: Iterable[Target],
+    indent: int | None = None,
+) -> str:
+    if indent is not None:
+        return "\n".join(
+            [
+                "[",
+                ",\n".join([" " * indent + json.dumps(target) for target in targets]),
+                "]",
+            ]
+        )
+    return json.dumps(list(targets))
+
+
+def _select_identifiers(
+    identifiers: Iterable[str],
+    mode: TestMode | str = TestMode.DRAFT,
+) -> set[str]:
+    mode = TestMode(mode)
+
+    pythons = sorted({identifier[:5] for identifier in identifiers})
+
+    oldest_python, newest_python = pythons[0], pythons[-1]
+    python = pythons[-2]
+
+    if mode == "draft":
+        selected = {f"{oldest_python}-manylinux_x86_64"}
+    elif mode == "review":
+        selected = {
+            f"{oldest_python}-manylinux_x86_64",
+            f"{newest_python}-manylinux_x86_64",
+            f"{python}-macosx_arm64",
+            f"{python}-win_amd64",
+        }
+    elif mode == "release":
+        selected = set(identifiers)
+
+    missing = sorted(selected - set(identifiers))
+    if missing:
+        raise ValueError(f"unavailable targets: {', '.join(missing)}")
+
+    return selected
+
+
+def _identifiers_to_targets(identifiers: Iterable[str]) -> list[Target]:
+    targets = [_identifier_to_target(identifier) for identifier in identifiers]
+
+    return sorted(targets, key=lambda target: (target["os"], target["python-version"]))
+
+
+def _identifier_to_target(identifier: str) -> Target:
     runners = {
         "manylinux_x86_64": "ubuntu-latest",
         "manylinux_aarch64": "ubuntu-24.04-arm",
@@ -500,56 +592,14 @@ def list_ci_matrix(session):
         "win_amd64": "windows-2022",
     }
 
-    exclude = set()  # {"cp315-win_amd64"}
-    identifiers = _get_wheels(session) - exclude
-
-    matrix = []
-    for identifier in identifiers:
-        py, platform = identifier.split("-", maxsplit=1)
-        python = f"{py[2]}.{py[3:]}"
-        matrix.append(
-            {"os": runners[platform], "python-version": python, "cibw-only": identifier}
-        )
-
-    pythons = sorted({identifier[:5] for identifier in identifiers})
-    oldest_python = pythons[0]
-    newest_python = pythons[-1]
-    python = pythons[-2]
-
-    if mode == "draft":
-        select = {f"{oldest_python}-manylinux_x86_64"}
-    elif mode == "review":
-        select = {
-            f"{oldest_python}-manylinux_x86_64",
-            f"{newest_python}-manylinux_x86_64",
-            f"{python}-macosx_arm64",
-            f"{python}-win_amd64",
-        }
-    elif mode == "release":
-        select = {entry["cibw-only"] for entry in matrix}
-    else:
-        raise ValueError("mode must be one of 'draft', 'review', 'release'")
-
-    selected = sorted(
-        [entry for entry in matrix if entry["cibw-only"] in select],
-        key=lambda item: (item["os"], item["python-version"]),
-    )
-    if not selected:
-        raise ValueError("nothing selected")
-
-    output = os.environ.get("GITHUB_OUTPUT")
-    if output:
-        with open(output, "a") as fp:
-            print("targets=" + json.dumps(selected), file=fp)
-    else:
-        lines = ",\n".join(["  " + json.dumps(entry) for entry in selected])
-        content = "\n".join(["[", lines, "]"])
-        print(content)
+    py, platform = identifier.split("-", maxsplit=1)
+    python = f"{py[2]}.{py[3:]}"
+    return {"os": runners[platform], "python-version": python, "cibw-only": identifier}
 
 
 def _get_wheels(session, platforms=None):
     platforms = ("linux", "macos", "windows") if platforms is None else platforms
-    session.install("cibuildwheel")
+    session.install("cibuildwheel==4.3.5")
 
     wheels = set()
     for platform in platforms:
