@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - master
-      - consolidate-test-workflows
   pull_request:
     types:
       - opened
@@ -56,7 +55,7 @@ jobs:
           DRAFT: ${{ github.event.pull_request.draft }}
         run: |
           pip install nox
-          nox -s ci-targets -- release >> "$GITHUB_OUTPUT"
+          nox -s ci-targets >> "$GITHUB_OUTPUT"
 
   build-sdist:
     name: Build source distribution
