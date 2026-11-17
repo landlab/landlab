@@ -23,6 +23,8 @@ runs:
 
     - name: Test
       shell: bash
+      env:
+        OMP_NUM_THREADS: "1"
       run: |
         pip install nox
         nox --verbose -s ${{ inputs.nox-session }} \
