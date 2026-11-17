@@ -18,7 +18,7 @@ runs:
       with:
         only: ${{ inputs.cibw-only }}
 
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
       with:
         name: ${{ inputs.upload-name }}
         path: ${{ github.workspace }}/wheelhouse/*.whl
