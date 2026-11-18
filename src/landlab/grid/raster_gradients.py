@@ -14,6 +14,7 @@ Gradient calculators for raster grids
 from collections import deque
 
 import numpy as np
+from requireit import require_array
 
 from landlab.core.utils import make_optional_arg_into_id_array
 from landlab.core.utils import radians_to_degrees
@@ -231,9 +232,16 @@ def calc_diff_at_link(grid, value_at_node, out=None):
 
     :meta landlab: info-link, gradient
     """
+    value_at_node = require_array(
+        np.asarray(value_at_node).reshape(-1),
+        shape=(grid.number_of_nodes,),
+        name="value_at_node",
+    )
     if out is None:
         out = grid.empty(at="link")
-    _calc_diff_at_link_c(grid.shape, np.asarray(value_at_node).reshape(-1), out)
+    out = require_array(out, shape=(grid.number_of_links,), writable=True, name="out")
+
+    _calc_diff_at_link_c(grid.shape, value_at_node, out)
 
     return out
 
@@ -280,11 +288,16 @@ def calc_grad_at_link(grid, value_at_node, out=None):
 
     :meta landlab: info-link, gradient
     """
+    value_at_node = require_array(
+        np.asarray(value_at_node).reshape(-1),
+        shape=(grid.number_of_nodes,),
+        name="value_at_node",
+    )
     if out is None:
         out = grid.empty(at="link")
-    _calc_grad_at_link_c(
-        grid.shape, (grid.dx, grid.dy), np.asarray(value_at_node).reshape(-1), out
-    )
+    out = require_array(out, shape=(grid.number_of_links,), writable=True, name="out")
+
+    _calc_grad_at_link_c(grid.shape, (grid.dx, grid.dy), value_at_node, out)
 
     return out
 

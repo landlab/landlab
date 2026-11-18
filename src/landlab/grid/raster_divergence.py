@@ -2,6 +2,7 @@
 """Calculate flux divergence on a raster grid."""
 
 import numpy as np
+from requireit import require_array
 
 from landlab.grid.ext.raster_divergence import _calc_flux_div_at_node
 from landlab.grid.ext.raster_divergence import _calc_net_face_flux_at_cell
@@ -114,6 +115,7 @@ def calc_net_face_flux_at_cell(grid, unit_flux_at_face, out=None):
 
     if out is None:
         out = grid.empty(at="cell")
+    out = require_array(out, shape=(grid.number_of_cells,), writable=True, name="out")
 
     _calc_net_face_flux_at_cell(
         grid.shape, (grid.dx, grid.dy), np.asarray(unit_flux_at_face), out
