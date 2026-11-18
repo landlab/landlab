@@ -15,7 +15,7 @@ jobs:
       github.event_name == 'push' ||
       github.event.pull_request.head.repo.full_name != github.repository
 
-    runs-on: "macos-14"
+    runs-on: "macos-latest"
     strategy:
       matrix:
         include:
@@ -30,7 +30,7 @@ jobs:
 
   run-tests:
     needs: build
-    runs-on: "macos-14"
+    runs-on: "macos-latest"
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/run-tests/
@@ -44,7 +44,7 @@ jobs:
 
   run-notebooks:
     needs: build
-    runs-on: "macos-14"
+    runs-on: "macos-latest"
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/run-notebooks/

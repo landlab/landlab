@@ -74,7 +74,7 @@ def test_build_events_missing_action_raises():
         "save": {"interval": 0.5},
     }
     actions = {"report": Mock()}
-    with pytest.raises(ValidationError, match="^actions must contain save"):
+    with pytest.raises(ValidationError, match="^actions must contain 'save'"):
         _build_events(params, clock=Clock(start=1.0, stop=2.0), actions=actions)
 
 

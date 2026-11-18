@@ -244,7 +244,7 @@ def test_model_from_params(model_params):
 def test_model_from_params_missing_keys(key):
     params = {"grid": None, "clock": None}
     params.pop(key)
-    with pytest.raises(ValidationError, match=f"^params must contain {key}"):
+    with pytest.raises(ValidationError, match=f"^params must contain {key!r}"):
         Model.from_params(params)
 
 
