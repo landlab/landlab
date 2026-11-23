@@ -1,0 +1,1 @@
+Added a new component, {class}`~.MultiClassExpSlopeDependentWeatherer` that calculate exponential and slope-dependent weathering of bedrock. This component spreads the weathered material into various sediment grain classes.
