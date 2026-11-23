@@ -80,7 +80,7 @@ repos:
           )
 
 - repo: https://github.com/kynan/nbstripout
-  rev: 0.9.1
+  rev: 0.9.2
   hooks:
     - id: nbstripout
       description: Strip output from jupyter notebooks
@@ -93,7 +93,7 @@ repos:
     args: [--py311-plus]
 
 - repo: https://github.com/PyCQA/isort
-  rev: 10.0.0b2
+  rev: 10.0.0b3
   hooks:
   - id: isort
     name: isort (python)
