@@ -3,6 +3,8 @@
 @author: dejh
 """
 
+import warnings
+
 import numpy as np
 
 from landlab import Component
@@ -185,8 +187,8 @@ class ChiFinder(Component):
         """
         Parameters
         ----------
-        grid : RasterModelGrid
-            A landlab RasterModelGrid.
+        grid : ModelGrid
+            A landlab grid. RasterModelGrid is the primary supported grid type.
         reference_concavity : float
             The reference concavity to use in the calculation.
         min_drainage_area : float (m**2)
@@ -205,6 +207,14 @@ class ChiFinder(Component):
 
         """
         super().__init__(grid)
+
+        if not isinstance(self._grid, RasterModelGrid):
+            warnings.warn(
+                "ChiFinder is primarily supported for RasterModelGrid; "
+                "other grid types are not fully tested.",
+                UserWarning,
+                stacklevel=2,
+            )
 
         if grid.at_node["flow__receiver_node"].size != grid.size("node"):
             raise NotImplementedError(
