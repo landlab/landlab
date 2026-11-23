@@ -1,0 +1,1 @@
+Fixed handling of head and outlet node elevations in the NetworkSedimentTransporter, as well as bug that removed all active parcels from the outlet link within a single timestep.
