@@ -1,0 +1,4 @@
+Add the :class:`~landlab.components.ShallowLandslider` component for
+coseismic shallow-landslide initiation and probabilistic inventory selection
+on raster grids, including morphology-aware completion of enclosed background
+cells before aspect and KDE splitting.

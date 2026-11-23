@@ -54,6 +54,7 @@ following categories of components:
 
 * {mod}`landlab.components.bedrock_landslider`
 * {mod}`landlab.components.landslides`
+* {mod}`landlab.components.shallow_landslider`
 * {mod}`landlab.components.dimensionless_discharge`
 
 ## Vegetation
