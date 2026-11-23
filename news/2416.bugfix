@@ -1,0 +1,3 @@
+Changed `NetworkSedimentTransporter` `WongParker` `active_layer_method`
+to more accurately represent thicknesses reported in literature, and to
+maintain a mimimum active layer thickness at very low transport stages.
