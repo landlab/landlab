@@ -156,7 +156,7 @@ class KinematicWaveRengers(Component):
         super().__init__(grid)
 
         if not isinstance(self.grid, RasterModelGrid):
-            ValueError("KinematicWaveRengers: grid must be regular")
+            raise ValueError("KinematicWaveRengers: grid must be regular")
 
         if np.isclose(dt_max, 0.0):
             raise ValueError("KinematicWaveRengers: dt must be > 0.0")
