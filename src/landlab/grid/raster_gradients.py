@@ -1073,7 +1073,7 @@ def _calc_subtriangle_slopes_at_node(
         elif subtriangle_unit_normals[7].shape[0] == grid.number_of_cells:
             reshape_size = grid.number_of_cells
         else:
-            ValueError("Subtriangles must be of length nnodes or ncells")
+            raise ValueError("Subtriangles must be of length nnodes or ncells")
     else:
         (
             n_ENE,
@@ -1315,7 +1315,7 @@ def _calc_subtriangle_aspect_at_node(
         elif subtriangle_unit_normals[7].shape[0] == grid.number_of_cells:
             reshape_size = grid.number_of_cells
         else:
-            ValueError("Subtriangles must be of length nnodes or ncells")
+            raise ValueError("Subtriangles must be of length nnodes or ncells")
         (
             n_ENE,
             n_NNE,

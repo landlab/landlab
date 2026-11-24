@@ -292,7 +292,7 @@ class SharedStreamPower(ErosionDeposition):
             New runoff rate.
         """
         if self._discharge_field != "water__unit_flux_in":
-            ValueError(
+            raise ValueError(
                 "The SharedStreamPower's update_runoff method can only be used"
                 "when discharge field is set to water__unit_flux_in (got"
                 f" {self._discharge_field})"
