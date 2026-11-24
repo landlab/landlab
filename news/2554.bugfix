@@ -1,0 +1,2 @@
+Fixed input checks in ``SharedStreamPower``, ``KinematicWaveRengers`` and the raster
+gradient functions that created a ``ValueError`` but did not raise it.
